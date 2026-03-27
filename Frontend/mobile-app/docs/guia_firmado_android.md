@@ -33,13 +33,10 @@ Para permitir que el flujo de CI/CD firme tu APK de lanzamiento, debes agregar l
 
 ## 3. Integración con el Flujo de Trabajo de CI/CD
 
-El flujo de trabajo en `.github/workflows/android_ci.yml` está configurado para compilar el APK automáticamente. Utiliza las variables de entorno que el sistema de construcción de Android espera.
-
-### Ubicación del Flujo de Trabajo
-Al tratarse de un monorepositorio, el flujo de trabajo se encuentra en la raíz: `.github/workflows/android_ci.yml`.
+El archivo actual `.github/workflows/android_ci.yml` está configurado para compilar el APK. Para automatizar completamente el firmado, el flujo de trabajo debe actualizarse para decodificar el secreto `ANDROID_KEYSTORE_BASE64` en un archivo temporal y establecer las variables de entorno que `build.gradle.kts` espera.
 
 ### Lógica Actual en `build.gradle.kts`:
-El proyecto en `Frontend/mobile-app/android/app/build.gradle.kts` ya está configurado para verificar las siguientes variables de entorno:
+El proyecto ya está configurado para verificar las siguientes variables de entorno:
 - `ANDROID_KEYSTORE_PATH`
 - `ANDROID_KEYSTORE_PASSWORD`
 - `ANDROID_KEY_ALIAS`

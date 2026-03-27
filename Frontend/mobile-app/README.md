@@ -88,7 +88,7 @@ Una vez configurado el entorno:
 
 1.  Navega al directorio del proyecto:
     ```bash
-    cd mobile_app
+    cd Frontend/mobile-app
     ```
 2.  Obtén las dependencias:
     ```bash
@@ -103,4 +103,11 @@ Una vez configurado el entorno:
 - `lib/`: Contiene el código fuente en Dart.
 - `test/`: Contiene las pruebas unitarias y de widgets.
 - `android/`: Configuración específica para Android.
-- `ios/`: Configuración específica para iOS.
+- `ios/`: Contiene la configuración para iOS.
+
+## CI/CD y Firmado de Aplicación
+Este proyecto incluye un flujo de trabajo automatizado con **GitHub Actions** para la integración continua (CI).
+
+- **CI Workflow**: Se encuentra en `.github/workflows/android_ci.yml`. Realiza análisis estático, ejecución de pruebas y validación de compilación en cada Pull Request.
+- **Guía de Firmado**: Para configurar el firmado de la aplicación en el pipeline de CI, consulta la [Guía de Firmado de Android](docs/guia_firmado_android.md).
+- **Verificación Local**: Puedes ejecutar el script `scripts/verify_ci_locally.sh` para validar que tu código pase todas las etapas de CI antes de subirlo al repositorio.

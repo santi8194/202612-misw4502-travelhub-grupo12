@@ -51,6 +51,7 @@ jobs:
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.jks
 
       - name: Build APK (Release)
+        if: startsWith(github.ref, 'refs/tags/v')
         run: flutter build apk --release
         env:
           ANDROID_KEYSTORE_PATH: "release.jks"

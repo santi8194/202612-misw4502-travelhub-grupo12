@@ -1,0 +1,22 @@
+{
+  "loginTitle": "Iniciar sesión",
+  "emailLabel": "Correo electrónico",
+  "passwordLabel": "Contraseña",
+  "loginButton": "Ingresar",
+  "noAccountText": "¿No tienes una cuenta? ",
+  "registerLink": "Regístrate",
+  "registerTitle": "Registro",
+  "fullNameLabel": "Nombre completo",
+  "confirmPasswordLabel": "Confirmar contraseña",
+  "registerButton": "Registrarse",
+  "haveAccountText": "¿Ya tienes una cuenta? ",
+  "loginLink": "Inicia sesión",
+  "navHome": "Inicio",
+  "navSearch": "Buscar",
+  "navBookings": "Reservas",
+  "navProfile": "Perfil",
+  "homeTitle": "Pantalla de Inicio",
+  "searchTitle": "Pantalla de Búsqueda",
+  "bookingsTitle": "Pantalla de Reservas",
+  "profileTitle": "Pantalla de Perfil"
+}

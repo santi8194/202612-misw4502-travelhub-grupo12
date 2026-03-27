@@ -1,0 +1,22 @@
+{
+  "loginTitle": "Login",
+  "emailLabel": "Email address",
+  "passwordLabel": "Password",
+  "loginButton": "Enter",
+  "noAccountText": "Don't have an account? ",
+  "registerLink": "Register",
+  "registerTitle": "Registration",
+  "fullNameLabel": "Full Name",
+  "confirmPasswordLabel": "Confirm Password",
+  "registerButton": "Register",
+  "haveAccountText": "Already have an account? ",
+  "loginLink": "Login",
+  "navHome": "Home",
+  "navSearch": "Search",
+  "navBookings": "Bookings",
+  "navProfile": "Profile",
+  "homeTitle": "Home Screen",
+  "searchTitle": "Search Screen",
+  "bookingsTitle": "Bookings Screen",
+  "profileTitle": "Profile Screen"
+}

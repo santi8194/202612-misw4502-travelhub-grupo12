@@ -1,0 +1,58 @@
+"""Domain entities for the search service."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import date
+from decimal import Decimal
+from typing import List
+from uuid import UUID
+
+
+@dataclass(frozen=True)
+class Disponibilidad:
+    """Value Object representing availability for a specific date."""
+
+    fecha: date
+    cupos: int
+
+    def __post_init__(self) -> None:
+        if self.cupos < 0:
+            raise ValueError("cupos must be >= 0")
+
+
+@dataclass(frozen=True)
+class Coordenadas:
+    """Value Object representing geographical coordinates."""
+
+    lat: float
+    lon: float
+
+    def __post_init__(self) -> None:
+        if not (-90 <= self.lat <= 90):
+            raise ValueError("lat must be between -90 and 90")
+        if not (-180 <= self.lon <= 180):
+            raise ValueError("lon must be between -180 and 180")
+
+
+@dataclass(frozen=True)
+class Hospedaje:
+    """Entity representing an accommodation in the search index."""
+
+    id_propiedad: UUID
+    id_categoria: UUID
+    propiedad_nombre: str
+    categoria_nombre: str
+    imagen_principal_url: str
+    amenidades_destacadas: List[str]
+    estrellas: int
+    rating_promedio: float
+    ciudad: str
+    estado_provincia: str
+    pais: str
+    coordenadas: Coordenadas
+    capacidad_pax: int
+    precio_base: Decimal
+    moneda: str
+    es_reembolsable: bool
+    disponibilidad: List[Disponibilidad] = field(default_factory=list)

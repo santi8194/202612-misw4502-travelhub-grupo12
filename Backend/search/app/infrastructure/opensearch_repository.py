@@ -1,0 +1,148 @@
+"""OpenSearch adapter implementing the HospedajeRepository port."""
+
+from __future__ import annotations
+
+from datetime import date, timedelta
+from decimal import Decimal
+from typing import Any, Dict, List
+from uuid import UUID
+
+from opensearchpy import AsyncOpenSearch
+
+from app.application.ports import HospedajeRepository
+from app.domain.entities import Coordenadas, Disponibilidad, Hospedaje
+from app.domain.strategies import RankingStrategy
+
+
+class OpenSearchHospedajeRepository(HospedajeRepository):
+    """Repository backed by an OpenSearch index.
+
+    The query delegates **all** filtering of dates and availability
+    to OpenSearch using nested queries, complying with the performance
+    ASR that forbids doing this work in Python.
+    """
+
+    def __init__(self, client: AsyncOpenSearch, index_name: str) -> None:
+        self._client = client
+        self._index = index_name
+
+    # ── Public interface ─────────────────────────────────────────────────
+
+    async def buscar(
+        self,
+        destino: str,
+        fecha_inicio: date,
+        fecha_fin: date,
+        huespedes: int,
+        strategy: RankingStrategy,
+    ) -> List[Hospedaje]:
+        query = self._build_query(destino, fecha_inicio, fecha_fin, huespedes)
+        sort = strategy.build_sort()
+
+        body: Dict[str, Any] = {
+            "query": query,
+            "sort": sort,
+            "size": 50,
+        }
+
+        response = await self._client.search(index=self._index, body=body)
+
+        return [
+            self._hit_to_entity(hit) for hit in response["hits"]["hits"]
+        ]
+
+    # ── Query builder ────────────────────────────────────────────────────
+
+    @staticmethod
+    def _build_query(
+        destino: str,
+        fecha_inicio: date,
+        fecha_fin: date,
+        huespedes: int,
+    ) -> Dict[str, Any]:
+        """Build an OpenSearch bool query with nested availability filters.
+
+        For each day in [fecha_inicio, fecha_fin] we add a nested filter
+        that requires ``disponibilidad.fecha == day`` AND
+        ``disponibilidad.cupos >= huespedes``.  Because all nested clauses
+        are inside ``bool.must``, OpenSearch guarantees that **every**
+        single day in the range satisfies the constraint.
+        """
+
+        must_clauses: List[Dict[str, Any]] = [
+            {
+                "multi_match": {
+                    "query": destino,
+                    "fields": ["ciudad", "estado_provincia", "pais"],
+                }
+            }
+        ]
+
+        current = fecha_inicio
+        while current <= fecha_fin:
+            must_clauses.append(
+                {
+                    "nested": {
+                        "path": "disponibilidad",
+                        "query": {
+                            "bool": {
+                                "must": [
+                                    {
+                                        "term": {
+                                            "disponibilidad.fecha": current.isoformat()
+                                        }
+                                    },
+                                    {
+                                        "range": {
+                                            "disponibilidad.cupos": {
+                                                "gte": huespedes
+                                            }
+                                        }
+                                    },
+                                ]
+                            }
+                        },
+                    }
+                }
+            )
+            current += timedelta(days=1)
+
+        return {"bool": {"must": must_clauses}}
+
+    # ── Mapping helpers ──────────────────────────────────────────────────
+
+    @staticmethod
+    def _hit_to_entity(hit: Dict[str, Any]) -> Hospedaje:
+        src = hit["_source"]
+
+        coordenadas_raw = src.get("coordenadas", {})
+        disponibilidad_raw = src.get("disponibilidad", [])
+
+        return Hospedaje(
+            id_propiedad=UUID(src["id_propiedad"]),
+            id_categoria=UUID(src["id_categoria"]),
+            propiedad_nombre=src["propiedad_nombre"],
+            categoria_nombre=src["categoria_nombre"],
+            imagen_principal_url=src["imagen_principal_url"],
+            amenidades_destacadas=src.get("amenidades_destacadas", []),
+            estrellas=src.get("estrellas", 0),
+            rating_promedio=float(src.get("rating_promedio", 0.0)),
+            ciudad=src["ciudad"],
+            estado_provincia=src.get("estado_provincia", ""),
+            pais=src["pais"],
+            coordenadas=Coordenadas(
+                lat=float(coordenadas_raw.get("lat", 0.0)),
+                lon=float(coordenadas_raw.get("lon", 0.0)),
+            ),
+            capacidad_pax=src.get("capacidad_pax", 1),
+            precio_base=Decimal(str(src["precio_base"])),
+            moneda=src.get("moneda", "COP"),
+            es_reembolsable=src.get("es_reembolsable", False),
+            disponibilidad=[
+                Disponibilidad(
+                    fecha=date.fromisoformat(d["fecha"]),
+                    cupos=int(d["cupos"]),
+                )
+                for d in disponibilidad_raw
+            ],
+        )

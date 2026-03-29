@@ -1,0 +1,186 @@
+{
+	"info": {
+		"_postman_id": "b5a1e771-7c09-4810-bd12-2cce4fc2e845",
+		"name": "TravelHub Search Service",
+		"description": "Colección para probar el microservicio de búsqueda de hospedajes (FastAPI + OpenSearch).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Verifica si el servicio de búsqueda está arriba."
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar en Cartagena",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/search?destino=Cartagena&fecha_inicio=2026-03-28&fecha_fin=2026-03-30&huespedes=2",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"search"
+					],
+					"query": [
+						{
+							"key": "destino",
+							"value": "Cartagena"
+						},
+						{
+							"key": "fecha_inicio",
+							"value": "2026-03-28"
+						},
+						{
+							"key": "fecha_fin",
+							"value": "2026-03-30"
+						},
+						{
+							"key": "huespedes",
+							"value": "2"
+						}
+					]
+				},
+				"description": "Busca hospedajes en Cartagena para 2 personas en un rango de fechas."
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar en Medellín (4 personas)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/search?destino=Medellín&fecha_inicio=2026-04-01&fecha_fin=2026-04-05&huespedes=4",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"search"
+					],
+					"query": [
+						{
+							"key": "destino",
+							"value": "Medellín"
+						},
+						{
+							"key": "fecha_inicio",
+							"value": "2026-04-01"
+						},
+						{
+							"key": "fecha_fin",
+							"value": "2026-04-05"
+						},
+						{
+							"key": "huespedes",
+							"value": "4"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validación: Error de Rango (> 30 días)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/search?destino=Bogotá&fecha_inicio=2026-01-01&fecha_fin=2026-02-15&huespedes=1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"search"
+					],
+					"query": [
+						{
+							"key": "destino",
+							"value": "Bogotá"
+						},
+						{
+							"key": "fecha_inicio",
+							"value": "2026-01-01"
+						},
+						{
+							"key": "fecha_fin",
+							"value": "2026-02-15"
+						},
+						{
+							"key": "huespedes",
+							"value": "1"
+						}
+					]
+				},
+				"description": "Prueba la validación de rango máximo de 30 días (debe retornar 422)."
+			},
+			"response": []
+		},
+		{
+			"name": "Validación: Error fecha_fin < fecha_inicio",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/search?destino=Cali&fecha_inicio=2026-03-20&fecha_fin=2026-03-15&huespedes=1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"search"
+					],
+					"query": [
+						{
+							"key": "destino",
+							"value": "Cali"
+						},
+						{
+							"key": "fecha_inicio",
+							"value": "2026-03-20"
+						},
+						{
+							"key": "fecha_fin",
+							"value": "2026-03-15"
+						},
+						{
+							"key": "huespedes",
+							"value": "1"
+						}
+					]
+				},
+				"description": "Prueba la validación de orden de fechas (debe retornar 422)."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}

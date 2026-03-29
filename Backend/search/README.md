@@ -44,7 +44,7 @@ pip install -r requirements.txt
 ### 3. Poblar Datos de Prueba (Seed)
 Este paso crea el índice con el mapping `nested` correcto e inserta 8 hospedajes colombianos realistas:
 ```bash
-python scripts/seed_data.py
+python3 scripts/seed_data.py
 ```
 
 ### 4. Iniciar el Microservicio

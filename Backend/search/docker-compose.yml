@@ -29,8 +29,20 @@ services:
     networks:
       - travelhub-net
 
+  redis:
+    image: redis:7-alpine
+    container_name: travelhub_redis_search
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - travelhub-net
+
 volumes:
   opensearch-data:
+  redis_data:
 
 networks:
   travelhub-net:

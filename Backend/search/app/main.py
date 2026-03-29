@@ -8,17 +8,21 @@ from typing import AsyncIterator
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from opensearchpy import AsyncOpenSearch
+from redis.asyncio import Redis as AsyncRedis
 
-from app.application.dtos import SearchRequest, SearchResponse
+from app.application.dtos import DestinationResponse, SearchRequest, SearchResponse
 from app.application.use_cases import BuscarHospedaje
 from app.config import settings
 from app.domain.strategies import PriceFirstStrategy
 from app.infrastructure.opensearch_repository import OpenSearchHospedajeRepository
+from app.infrastructure.redis_destination_repository import RedisDestinationRepository
 
 # ── Shared state ─────────────────────────────────────────────────────────────
 
 _os_client: AsyncOpenSearch | None = None
 _repository: OpenSearchHospedajeRepository | None = None
+_redis_client: AsyncRedis | None = None
+_dest_repository: RedisDestinationRepository | None = None
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────────────
@@ -27,7 +31,7 @@ _repository: OpenSearchHospedajeRepository | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Create the OpenSearch async client on startup; close on shutdown."""
-    global _os_client, _repository  # noqa: PLW0603
+    global _os_client, _repository, _redis_client, _dest_repository  # noqa: PLW0603
 
     _os_client = AsyncOpenSearch(
         hosts=[settings.opensearch_endpoint],
@@ -40,11 +44,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         client=_os_client,
         index_name=settings.opensearch_index,
     )
+    
+    _redis_client = AsyncRedis.from_url(settings.redis_url, decode_responses=True)
+    _dest_repository = RedisDestinationRepository(client=_redis_client)
 
     yield
 
     if _os_client is not None:
         await _os_client.close()
+    if _redis_client is not None:
+        await _redis_client.aclose()
 
 
 # ── App factory ──────────────────────────────────────────────────────────────
@@ -71,6 +80,16 @@ def get_use_case() -> BuscarHospedaje:
         repository=_repository,
         strategy=PriceFirstStrategy(),
     )
+
+
+def get_destination_repo() -> RedisDestinationRepository:
+    """Provide the Redis-backed destination repository."""
+    if _dest_repository is None:
+        raise HTTPException(
+            status_code=503,
+            detail="El servicio no está listo: Redis no ha sido inicializado",
+        )
+    return _dest_repository
 
 
 def validate_search_params(
@@ -125,3 +144,18 @@ async def search(
 ) -> SearchResponse:
     """Search accommodations by destination, dates and guest count."""
     return await use_case.ejecutar(request)
+
+
+@app.get(
+    "/api/v1/search/destinations",
+    response_model=DestinationResponse,
+    tags=["Search"],
+    summary="Autocomplete destinations",
+)
+async def autocomplete_destinations(
+    q: str = Query(..., min_length=3, description="Prefijo de búsqueda (mín. 3 caracteres)"),
+    repo: RedisDestinationRepository = Depends(get_destination_repo),
+) -> DestinationResponse:
+    """Suggest destinations whose city name starts with the given prefix."""
+    results = await repo.autocomplete(q)
+    return DestinationResponse(results=results)

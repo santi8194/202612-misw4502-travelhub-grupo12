@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     opensearch_verify_certs: bool = False
     opensearch_user: str = "admin"
     opensearch_password: str = "MyStr0ng!Pass#2026"
+    redis_url: str = "redis://localhost:6379/0"
 
 
 settings = Settings()

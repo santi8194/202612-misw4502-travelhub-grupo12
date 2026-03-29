@@ -19,7 +19,8 @@ import random
 import urllib3
 from datetime import date, timedelta
 from decimal import Decimal
-from uuid import uuid4
+from uuid import uuid4, uuid5, NAMESPACE_DNS
+import redis as redis_lib
 
 from opensearchpy import OpenSearch
 
@@ -32,6 +33,9 @@ OS_HOST = "https://localhost:9200"
 OS_USER = "admin"
 OS_PASS = "MyStr0ng!Pass#2026"
 INDEX = "hospedajes"
+REDIS_URL = "redis://localhost:6379/0"
+DEST_INDEX_KEY = "search:destinations:index"
+DEST_DATA_KEY = "search:destinations:data"
 
 # ── OpenSearch client (sync, for scripting) ──────────────────────────────────
 
@@ -42,6 +46,8 @@ client = OpenSearch(
     verify_certs=False,
     ssl_show_warn=False,
 )
+
+redis_client = redis_lib.Redis.from_url(REDIS_URL, decode_responses=True)
 
 # ── Index mapping ────────────────────────────────────────────────────────────
 
@@ -246,6 +252,49 @@ def _build_document(prop: dict) -> dict:
     }
 
 
+def _seed_redis_destinations() -> None:
+    """Extract unique destinations from PROPERTIES and insert into Redis.
+
+    Each unique (ciudad, estado_provincia, pais) tuple gets a single entry.
+    Uses uuid5 for deterministic, stable IDs per destination.
+    """
+    print("🔴  Poblando Redis con destinos únicos...")
+    redis_client.delete(DEST_INDEX_KEY, DEST_DATA_KEY)
+
+    seen: set[tuple[str, str, str]] = set()
+    pipe = redis_client.pipeline()
+    count = 0
+
+    for prop in PROPERTIES:
+        ciudad = prop["ciudad"]
+        estado_provincia = prop.get("estado_provincia", "")
+        pais = prop["pais"]
+        key_tuple = (ciudad, estado_provincia, pais)
+
+        if key_tuple in seen:
+            continue
+        seen.add(key_tuple)
+
+        # ID determinista basado en la combinación única
+        dest_id = str(uuid5(NAMESPACE_DNS, f"{ciudad}|{estado_provincia}|{pais}"))
+        ciudad_lower = ciudad.lower()
+
+        # A. Sorted Set — índice lexicográfico (score=0 para orden lexicográfico)
+        pipe.zadd(DEST_INDEX_KEY, {f"{ciudad_lower}:{dest_id}": 0})
+
+        # B. Hash — payload completo como JSON
+        payload = json.dumps({
+            "ciudad": ciudad,
+            "estado_provincia": estado_provincia,
+            "pais": pais,
+        })
+        pipe.hset(DEST_DATA_KEY, dest_id, payload)
+        count += 1
+
+    pipe.execute()
+    print(f"   ✅  {count} destinos únicos insertados en Redis.")
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -265,6 +314,9 @@ def main() -> None:
         doc = _build_document(prop)
         resp = client.index(index=INDEX, body=doc, refresh=True)
         print(f"   ✅  {prop['nombre']} ({prop['ciudad']}) → {resp['_id']}")
+
+    # 3b. Seed Redis with unique destinations
+    _seed_redis_destinations()
 
     # 4. Verify
     count = client.count(index=INDEX)["count"]

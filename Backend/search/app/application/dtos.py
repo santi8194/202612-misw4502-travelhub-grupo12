@@ -70,3 +70,17 @@ class SearchResponse(BaseModel):
 
     resultados: List[HospedajeResponse]
     total: int
+
+
+class DestinationItem(BaseModel):
+    """Single destination suggestion for autocomplete."""
+
+    ciudad: str
+    estado_provincia: str
+    pais: str
+
+
+class DestinationResponse(BaseModel):
+    """Response wrapper for destination autocomplete."""
+
+    results: List[DestinationItem]

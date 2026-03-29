@@ -174,6 +174,60 @@
 				"description": "Prueba la validación de orden de fechas (debe retornar 422)."
 			},
 			"response": []
+		},
+		{
+			"name": "Autocompletar Destinos (Cartagena)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/search/destinations?q=car",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"search",
+						"destinations"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "car"
+						}
+					]
+				},
+				"description": "Prueba la función de autocompletado para destinos que comienzan con 'car'."
+			},
+			"response": []
+		},
+		{
+			"name": "Autocompletar Destinos (Error: < 3 caracteres)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/search/destinations?q=ca",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"search",
+						"destinations"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "ca"
+						}
+					]
+				},
+				"description": "Prueba la validación de longitud mínima de 3 caracteres para el autocompletado (debe retornar 422)."
+			},
+			"response": []
 		}
 	],
 	"variable": [

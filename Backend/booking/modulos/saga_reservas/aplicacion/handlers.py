@@ -1,7 +1,7 @@
-from Booking.seedwork.aplicacion.comandos import Handler
-from Booking.modulos.reserva.dominio.eventos import ReservaPendiente
-from Booking.modulos.saga_reservas.dominio.eventos import PagoExitosoEvt, ConfirmacionPmsExitosaEvt, RechazarReservaCmd
-from Booking.modulos.saga_reservas.aplicacion.orquestador import OrquestadorSagaReservas
+from seedwork.aplicacion.comandos import Handler
+from modulos.reserva.dominio.eventos import ReservaPendiente
+from modulos.saga_reservas.dominio.eventos import PagoExitosoEvt, ConfirmacionPmsExitosaEvt, RechazarReservaCmd
+from modulos.saga_reservas.aplicacion.orquestador import OrquestadorSagaReservas
 
 class IniciarSagaHandler(Handler):
     """
@@ -16,9 +16,7 @@ class IniciarSagaHandler(Handler):
         self.orquestador.iniciar_saga(
             id_reserva=evento.id_reserva,
             id_usuario=evento.id_usuario,
-            monto=evento.monto,
-            id_habitacion=evento.id_habitacion,
-            fecha_reserva=evento.fecha_reserva
+            id_categoria=evento.id_categoria
         )
 
 class RespuestaSagaHandler(Handler):

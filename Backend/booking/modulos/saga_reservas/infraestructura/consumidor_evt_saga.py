@@ -12,10 +12,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Importar contexto de base de datos y orquestador
-from Booking.config.db import db
-from Booking.modulos.saga_reservas.aplicacion.orquestador import OrquestadorSagaReservas
-from Booking.modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
-from Booking.config.uow import UnidadTrabajoHibrida
+from config.db import db
+from modulos.saga_reservas.aplicacion.orquestador import OrquestadorSagaReservas
+from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
+from config.uow import UnidadTrabajoHibrida
 
 def get_db_session():
     # Obtienemos la sesión de BD de SQLAlchemy configurada
@@ -29,7 +29,7 @@ def get_db_session():
     if all([db_user, db_password, db_host, db_name]):
         connection_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
     else:
-        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'database', 'booking.db'))
+        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'database', 'db'))
         # connection_url = f'sqlite:///{db_path}'
         connection_url = "sqlite:///:memory:"
         
@@ -42,7 +42,7 @@ def procesar_mensaje(ch, method, properties, body):
         mensaje = json.loads(body)
         print(f"\n[SAGA WORKER] Mensaje Recibido: {method.routing_key}")
         
-        from Booking.api import create_app
+        from api import create_app
         print("[SAGA WORKER] Creando Flask App en memoria...", flush=True)
         app = create_app()
         
@@ -61,7 +61,7 @@ def procesar_mensaje(ch, method, properties, body):
                 id_reserva = payload.get('id_reserva') or mensaje.get('id_reserva')
                 id_usuario = payload.get('id_usuario') or payload.get('id_cliente') or mensaje.get('id_usuario', str(uuid.uuid4()))
                 monto = payload.get('monto') or mensaje.get('monto', 1500.0)
-                id_habitacion = payload.get('id_habitacion') or mensaje.get('id_habitacion')
+                id_categoria = payload.get('id_categoria') or mensaje.get('id_categoria')
                 fecha_reserva = payload.get('fecha_reserva') or mensaje.get('fecha_reserva')
                 
                 if not id_reserva:
@@ -76,7 +76,7 @@ def procesar_mensaje(ch, method, properties, body):
                     id_reserva=uuid.UUID(str(id_reserva)),
                     id_usuario=uuid.UUID(str(id_usuario)),
                     monto=float(monto),
-                    id_habitacion=uuid.UUID(str(id_habitacion)) if id_habitacion else None,
+                    id_categoria=uuid.UUID(str(id_categoria)) if id_categoria else None,
                     fecha_reserva=fecha_reserva
                 )
                 print(f"[SAGA WORKER] Orquestador terminó con resultado: {res}", flush=True)

@@ -15,7 +15,7 @@ def create_app(config_name=None):
     if all([db_user, db_password, db_host, db_name]):
         database_uri = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
     else:
-        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'database', 'booking.db'))
+        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'database', 'db'))
         #database_uri = f'sqlite:///{db_path}'
         database_uri = "sqlite:///:memory:"
 
@@ -41,17 +41,17 @@ def create_app(config_name=None):
         return jsonify({"status": "healthy", "service": "booking"})
 
     # Base de datos
-    from Booking.config.db import db
+    from config.db import db
     db.init_app(app)
     
     # Modelos necesarios para la creación de tablas
-    import Booking.modulos.reserva.infraestructura.dto
-    import Booking.modulos.saga_reservas.infraestructura.dto
+    import modulos.reserva.infraestructura.dto
+    import modulos.saga_reservas.infraestructura.dto
     
     with app.app_context():
         db.create_all()
         # Inicializar la configuración de la Saga si no existe
-        from Booking.modulos.saga_reservas.infraestructura.dto import SagaDefinitionDTO, SagaStepsDefinitionDTO
+        from modulos.saga_reservas.infraestructura.dto import SagaDefinitionDTO, SagaStepsDefinitionDTO
         
         if not db.session.query(SagaDefinitionDTO).filter_by(id_flujo="RESERVA_ESTANDAR").first():
             definicion = SagaDefinitionDTO(
@@ -75,7 +75,7 @@ def create_app(config_name=None):
             print("[Booking API] Configuración de Saga Orquestada insertada en BD exitosamente.")
 
     # Importar y registrar blueprints
-    from Booking.modulos.reserva.infraestructura.api import reserva_api
+    from modulos.reserva.infraestructura.api import reserva_api
     app.register_blueprint(reserva_api, url_prefix='/api')
 
     return app

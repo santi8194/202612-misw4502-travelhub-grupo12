@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import uuid
-from Booking.seedwork.aplicacion.comandos import Comando
-from Booking.seedwork.dominio.eventos import EventoDominio
+from seedwork.aplicacion.comandos import Comando
+from seedwork.dominio.eventos import EventoDominio
 
 # --- COMANDOS: Acción Hacia Adelante ---
 @dataclass
@@ -12,14 +12,15 @@ class ProcesarPagoCmd(Comando):
 @dataclass
 class ConfirmarReservaPmsCmd(Comando):
     id_reserva: uuid.UUID
-    id_habitacion: uuid.UUID
-    fecha_reserva: str = None
+    id_categoria: uuid.UUID
+    fecha_check_in: str = None
+    fecha_check_out: str = None
 
 # --- COMANDOS: Compensación (Rollback LIFO) ---
 @dataclass
 class CancelarReservaPmsCmd(Comando):
     id_reserva: uuid.UUID
-    id_habitacion: uuid.UUID
+    id_categoria: uuid.UUID
 
 @dataclass
 class ReversarPagoCmd(Comando):
@@ -49,7 +50,7 @@ class ReservaRechazadaPmsEvt(EventoDominio):
 @dataclass
 class SolicitarAprobacionManualCmd(Comando):
     id_reserva: uuid.UUID
-    id_habitacion: uuid.UUID
+    id_categoria: uuid.UUID
 
 @dataclass
 class ReservaAprobadaManualEvt(EventoDominio):

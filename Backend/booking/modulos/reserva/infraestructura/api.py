@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
-from Booking.modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva
-from Booking.modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler
-from Booking.modulos.reserva.infraestructura.repositorios import RepositorioReservas
-from Booking.config.uow import UnidadTrabajoHibrida
+from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva
+from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler
+from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+from config.uow import UnidadTrabajoHibrida
 import uuid
 
 reserva_api = Blueprint('reserva_api', __name__)
@@ -13,24 +13,29 @@ def iniciar_reserva_hold():
         data = request.json
         if not data:
             return jsonify({"error": "No data provided"}), 400
-        
-        # Validar campos obligatorios
-        campos_obligatorios = ['id_usuario', 'id_habitacion', 'monto', 'fecha_reserva']
+
+        campos_obligatorios = ['id_usuario', 'id_categoria', 'fecha_check_in', 'fecha_check_out', 'ocupacion']
         for campo in campos_obligatorios:
             if campo not in data or data[campo] is None:
                 return jsonify({"error": f"El campo '{campo}' es obligatorio"}), 400
 
-        # Convertimos los strings a UUIDs
         id_usuario = uuid.UUID(data.get('id_usuario'))
-        id_habitacion = uuid.UUID(data.get('id_habitacion'))
-        monto = float(data.get('monto'))
-        fecha_reserva = data.get('fecha_reserva') # Expected YYYY-MM-DD
+        id_categoria = uuid.UUID(data.get('id_categoria'))
+        fecha_check_in = data.get('fecha_check_in')
+        fecha_check_out = data.get('fecha_check_out')
+        ocupacion = data.get('ocupacion')
 
         comando = CrearReservaHold(
             id_usuario=id_usuario,
-            id_habitacion=id_habitacion,
-            monto=monto,
-            fecha_reserva=fecha_reserva
+            id_categoria=id_categoria,
+            codigo_confirmacion_ota=data.get('codigo_confirmacion_ota'),
+            codigo_localizador_pms=data.get('codigo_localizador_pms'),
+            estado=data.get('estado'),
+            fecha_check_in=fecha_check_in,
+            fecha_check_out=fecha_check_out,
+            ocupacion=ocupacion,
+            usuario_nombre=data.get('usuario_nombre'),
+            usuario_email=data.get('usuario_email')
         )
 
         uow = UnidadTrabajoHibrida()

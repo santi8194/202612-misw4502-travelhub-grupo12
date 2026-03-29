@@ -1,16 +1,17 @@
-from Booking.seedwork.aplicacion.comandos import Handler
-from Booking.modulos.reserva.aplicacion.comandos import (
+from seedwork.aplicacion.comandos import Handler
+from modulos.reserva.aplicacion.comandos import (
     CrearReservaHold, FormalizarReserva, 
     ConfirmarReservaLocalCmd, CancelarReservaLocalCmd
 )
-from Booking.modulos.reserva.dominio.entidades import Reserva
-from Booking.modulos.reserva.dominio.eventos import (
+from modulos.reserva.dominio.entidades import Reserva, Usuario, CategoriaHabitacion
+from modulos.reserva.dominio.objetos_valor import EstadoReserva, Pax
+from modulos.reserva.dominio.eventos import (
     ReservaConfirmadaEvt, FallaActualizacionLocalEvt
 )
-from Booking.modulos.reserva.infraestructura.repositorios import RepositorioReservas
-from Booking.config.uow import UnidadTrabajoHibrida
+from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+from config.uow import UnidadTrabajoHibrida
 import uuid
-from datetime import datetime
+import datetime
 
 class CrearReservaHoldHandler(Handler):
     def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
@@ -20,19 +21,39 @@ class CrearReservaHoldHandler(Handler):
     def handle(self, comando: CrearReservaHold) -> uuid.UUID:
         with self.uow:
             reserva = Reserva(id=uuid.uuid4())
-            reserva.iniciar_reserva_hold(
-                id_usuario=comando.id_usuario,
-                id_habitacion=comando.id_habitacion,
-                monto=comando.monto,
-                fecha_reserva=comando.fecha_reserva
+            id_categoria = comando.id_categoria
+            ocupacion = None
+            if comando.ocupacion:
+                ocupacion = Pax(
+                    adultos=int(comando.ocupacion.get('adultos', 0)),
+                    ninos=int(comando.ocupacion.get('ninos', 0)),
+                    infantes=int(comando.ocupacion.get('infantes', 0))
+                )
+
+            usuario = None
+            if comando.id_usuario or comando.usuario_nombre or comando.usuario_email:
+                usuario = Usuario(
+                    id=str(comando.id_usuario) if comando.id_usuario else str(uuid.uuid4()),
+                    nombre=comando.usuario_nombre,
+                    email=comando.usuario_email
+                )
+
+            reserva.crear_reserva(
+                id_categoria=id_categoria,
+                codigo_confirmacion_ota=comando.codigo_confirmacion_ota,
+                codigo_localizador_pms=comando.codigo_localizador_pms,
+                estado=EstadoReserva(comando.estado) if comando.estado else None,
+                fecha_check_in=datetime.date.fromisoformat(comando.fecha_check_in) if comando.fecha_check_in else None,
+                fecha_check_out=datetime.date.fromisoformat(comando.fecha_check_out) if comando.fecha_check_out else None,
+                ocupacion=ocupacion,
+                usuario=usuario
             )
             
             self.uow.agregar_eventos(reserva.eventos)
             self.repositorio.agregar(reserva)
             
-            # Trigger UoW Híbrida (Salva en BD -> Publica eventos a RabbitMQ)
             self.uow.commit() 
-            print(f"Reserva_Hold persistida y evento despachado: {reserva.id}")
+            print(f"Reserva persistida y evento despachado: {reserva.id}")
         return reserva.id
 
 class FormalizarReservaHandler(Handler):
@@ -67,14 +88,12 @@ class ConfirmarReservaLocalHandler(Handler):
             if not reserva:
                 raise ValueError(f"No se encontró la reserva con ID: {comando.id_reserva}")
             
-            # Usar la lógica de dominio
             reserva.confirmar_reserva()
             
-            # Limpiamos los eventos genéricos y en su lugar anexamos nuestro evento de ruteo local.
             reserva.eventos.clear() 
             evento_local = ReservaConfirmadaEvt(
                 id_reserva=reserva.id, 
-                fecha_actualizacion=datetime.now()
+                fecha_actualizacion=datetime.datetime.now()
             )
             reserva.agregar_evento(evento_local)
             
@@ -95,13 +114,12 @@ class CancelarReservaLocalHandler(Handler):
             if not reserva:
                 raise ValueError(f"No se encontró la reserva con ID: {comando.id_reserva}")
             
-            # Lógica de dominio para cancelar
             reserva.cancelar_reserva()
             
             reserva.eventos.clear()
             evento_falla = FallaActualizacionLocalEvt(
                 id_reserva=reserva.id, 
-                fecha_actualizacion=datetime.now()
+                fecha_actualizacion=datetime.datetime.now()
             )
             reserva.agregar_evento(evento_falla)
             

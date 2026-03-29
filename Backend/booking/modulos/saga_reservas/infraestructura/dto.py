@@ -1,4 +1,4 @@
-from Booking.config.db import db
+from config.db import db
 
 class SagaDefinitionDTO(db.Model):
     __tablename__ = "saga_definitions"

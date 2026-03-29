@@ -1,14 +1,12 @@
 import uuid
 from typing import Optional
-from Booking.seedwork.infraestructura.schema.v1.eventos import EventoIntegracion
+from seedwork.infraestructura.schema.v1.eventos import EventoIntegracion
 
 class ReservaCreadaPayload:
-    def __init__(self, id_reserva: str, id_usuario: str, id_habitacion: str, monto: float, fecha_reserva: str, estado: str, fecha_creacion: str):
+    def __init__(self, id_reserva: str, id_usuario: str, id_categoria: str, estado: str, fecha_creacion: str):
         self.id_reserva = id_reserva
         self.id_usuario = id_usuario
-        self.id_habitacion = id_habitacion
-        self.monto = monto
-        self.fecha_reserva = fecha_reserva
+        self.id_categoria = id_categoria
         self.estado = estado
         self.fecha_creacion = fecha_creacion
 
@@ -16,9 +14,7 @@ class ReservaCreadaPayload:
         return {
             "id_reserva": self.id_reserva,
             "id_usuario": self.id_usuario,
-            "id_habitacion": self.id_habitacion,
-            "monto": self.monto,
-            "fecha_reserva": self.fecha_reserva,
+            "id_categoria": self.id_categoria,
             "estado": self.estado,
             "fecha_creacion": self.fecha_creacion
         }

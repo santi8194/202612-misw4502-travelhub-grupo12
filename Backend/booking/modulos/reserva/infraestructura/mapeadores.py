@@ -1,6 +1,6 @@
-from Booking.seedwork.dominio.repositorios import Mapeador
-from Booking.seedwork.dominio.eventos import EventoDominio
-from Booking.modulos.reserva.dominio.eventos import ReservaPendiente, ReservaConfirmadaEvt
+from seedwork.dominio.repositorios import Mapeador
+from seedwork.dominio.eventos import EventoDominio
+from modulos.reserva.dominio.eventos import ReservaPendiente, ReservaConfirmadaEvt
 from .schema.v1.eventos import EventoReservaCreada, ReservaCreadaPayload, EventoReservaConfirmada, ReservaConfirmadaPayload
 import datetime
 
@@ -29,9 +29,7 @@ class MapeadorEventosReserva(Mapeador):
             payload = ReservaCreadaPayload(
                 id_reserva=str(ev.id_reserva),
                 id_usuario=str(ev.id_usuario),
-                id_habitacion=str(ev.id_habitacion) if ev.id_habitacion else None,
-                monto=float(ev.monto) if ev.monto is not None else None,
-                fecha_reserva=str(ev.fecha_reserva) if ev.fecha_reserva else None,
+                id_categoria=str(ev.id_categoria),
                 estado="PENDIENTE",
                 fecha_creacion=ev.fecha_evento.isoformat() if hasattr(ev, 'fecha_evento') else datetime.datetime.now().isoformat()
             )

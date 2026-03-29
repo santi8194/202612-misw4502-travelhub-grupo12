@@ -1,5 +1,5 @@
 from enum import Enum
-from Booking.seedwork.dominio.objetos_valor import ObjetoValor
+from seedwork.dominio.objetos_valor import ObjetoValor
 from dataclasses import dataclass
 
 class EstadoReserva(Enum):
@@ -7,3 +7,10 @@ class EstadoReserva(Enum):
     PENDIENTE = "PENDIENTE"
     CONFIRMADA = "CONFIRMADA"
     CANCELADA = "CANCELADA"
+    EXPIRADA = "EXPIRADA"
+
+@dataclass(frozen=True)
+class Pax(ObjetoValor):
+    adultos: int = 0
+    ninos: int = 0
+    infantes: int = 0

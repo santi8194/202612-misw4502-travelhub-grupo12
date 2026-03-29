@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 import datetime
 import uuid
 
-from Booking.seedwork.dominio.entidades import AgregacionRaiz, Entidad
-from Booking.modulos.saga_reservas.dominio.objetos_valor import EstadoSaga, TipoMensajeSaga
+from seedwork.dominio.entidades import AgregacionRaiz, Entidad
+from modulos.saga_reservas.dominio.objetos_valor import EstadoSaga, TipoMensajeSaga
 
 @dataclass
 class SagaExecutionLog(Entidad):

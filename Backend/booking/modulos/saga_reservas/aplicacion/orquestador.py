@@ -1,8 +1,8 @@
-from Booking.modulos.saga_reservas.dominio.entidades import SagaInstance
-from Booking.modulos.saga_reservas.dominio.objetos_valor import EstadoSaga, TipoMensajeSaga
-from Booking.modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
-from Booking.config.uow import UnidadTrabajoHibrida
-from Booking.modulos.saga_reservas.dominio.eventos import (
+from modulos.saga_reservas.dominio.entidades import SagaInstance
+from modulos.saga_reservas.dominio.objetos_valor import EstadoSaga, TipoMensajeSaga
+from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
+from config.uow import UnidadTrabajoHibrida
+from modulos.saga_reservas.dominio.eventos import (
     ProcesarPagoCmd, ConfirmarReservaPmsCmd, 
     CancelarReservaPmsCmd, ReversarPagoCmd, CancelarReservaLocalCmd,
     SolicitarAprobacionManualCmd, MarcarSagaEsperandoVoucherCmd
@@ -60,14 +60,14 @@ class OrquestadorSagaReservas:
             saga.registrar_comando_emitido(comando_nombre, payload_registro)
             print(f"[Orquestador] Interceptando Comando Local: {comando_nombre}. Procesando en memoria.")
             
-            from Booking.modulos.reserva.infraestructura.repositorios import RepositorioReservas
-            from Booking.config.db import db
+            from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+            from config.db import db
             
             repo_reservas = RepositorioReservas()
             reserva = repo_reservas.obtener_por_id(str(id_reserva))
             
             if reserva:
-                from Booking.modulos.reserva.dominio.eventos import ReservaConfirmadaEvt
+                from modulos.reserva.dominio.eventos import ReservaConfirmadaEvt
                 from datetime import datetime
                 
                 reserva.confirmar_reserva()
@@ -115,13 +115,13 @@ class OrquestadorSagaReservas:
                 # Hack temporal para la prueba de concepto y el routing slip:
                 # Si el comando requiere datos que no fluyeron nativamente en el evento anterior (ej. Pago -> PMS)
                 # los inyectamos rescatándolos del contexto inicial o como mock si están ausentes:
-                if 'id_habitacion' in parametros_validos and 'id_habitacion' not in kwargs_filtrados:
+                if 'id_categoria' in parametros_validos and 'id_categoria' not in kwargs_filtrados:
                     habitacion_ctx = None
                     if saga.historial:
-                        habitacion_ctx = saga.historial[0].payload_snapshot.get('id_habitacion')
+                        habitacion_ctx = saga.historial[0].payload_snapshot.get('id_categoria')
                     if not habitacion_ctx:
-                        raise ValueError(f"Falta 'id_habitacion' en la historia de la saga para el comando {comando_nombre}")
-                    kwargs_filtrados['id_habitacion'] = uuid.UUID(str(habitacion_ctx)) if isinstance(habitacion_ctx, str) else habitacion_ctx
+                        raise ValueError(f"Falta 'id_categoria' en la historia de la saga para el comando {comando_nombre}")
+                    kwargs_filtrados['id_categoria'] = uuid.UUID(str(habitacion_ctx)) if isinstance(habitacion_ctx, str) else habitacion_ctx
                     
                 if 'monto' in parametros_validos and 'monto' not in kwargs_filtrados:
                     monto_ctx = None
@@ -165,7 +165,7 @@ class OrquestadorSagaReservas:
                 print(f"[Orquestador] Comando Externo {comando_nombre} emitido para reserva {id_reserva}")
                 self.uow.commit()
 
-    def iniciar_saga(self, id_reserva: uuid.UUID, id_usuario: uuid.UUID, monto: float, id_habitacion: uuid.UUID = None, fecha_reserva: str = None):
+    def iniciar_saga(self, id_reserva: uuid.UUID, id_usuario: uuid.UUID, monto: float, id_categoria: uuid.UUID = None, fecha_reserva: str = None):
         """Invocado cuando la reserva inicial pasa a PENDIENTE"""
         try:
             with self.uow:
@@ -193,7 +193,7 @@ class OrquestadorSagaReservas:
                 payload_inicial = {
                     "id_reserva": str(id_reserva), 
                     "id_usuario": str(id_usuario),
-                    "id_habitacion": str(id_habitacion) if id_habitacion else None,
+                    "id_categoria": str(id_categoria) if id_categoria else None,
                     "monto": float(monto), 
                     "fecha_reserva": fecha_reserva,
                     "estado": "PENDIENTE",
@@ -334,18 +334,18 @@ class OrquestadorSagaReservas:
                             comandos_compensatorios.append(cmd)
                             kwargs_log["monto"] = float(monto_reversa)
                         elif ClaseCompensacion == CancelarReservaPmsCmd:
-                            habitacion = log.payload_snapshot.get('id_habitacion')
+                            habitacion = log.payload_snapshot.get('id_categoria')
                             if not habitacion and saga.historial:
-                                habitacion = saga.historial[0].payload_snapshot.get('id_habitacion')
+                                habitacion = saga.historial[0].payload_snapshot.get('id_categoria')
                             if not habitacion:
-                                raise ValueError("Falta 'id_habitacion' en la saga para compensar CancelarReservaPmsCmd")
-                            cmd = CancelarReservaPmsCmd(id_reserva=id_reserva, id_habitacion=uuid.UUID(str(habitacion)))
+                                raise ValueError("Falta 'id_categoria' en la saga para compensar CancelarReservaPmsCmd")
+                            cmd = CancelarReservaPmsCmd(id_reserva=id_reserva, id_categoria=uuid.UUID(str(habitacion)))
                             comandos_compensatorios.append(cmd)
-                            kwargs_log["id_habitacion"] = str(habitacion)
+                            kwargs_log["id_categoria"] = str(habitacion)
                         elif ClaseCompensacion == CancelarReservaLocalCmd:
                             print(f"[Orquestador-Fallo] Interceptando Comando Local para Compensación: CancelarReservaLocalCmd")
-                            from Booking.modulos.reserva.aplicacion.handlers import CancelarReservaLocalHandler
-                            from Booking.modulos.reserva.infraestructura.repositorios import RepositorioReservas
+                            from modulos.reserva.aplicacion.handlers import CancelarReservaLocalHandler
+                            from modulos.reserva.infraestructura.repositorios import RepositorioReservas
                             
                             handler_local_fallo = CancelarReservaLocalHandler(
                                 repositorio=RepositorioReservas(), 

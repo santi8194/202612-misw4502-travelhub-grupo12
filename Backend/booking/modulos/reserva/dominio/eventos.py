@@ -3,24 +3,19 @@ from dataclasses import dataclass, field
 import uuid
 from datetime import datetime
 
-from Booking.seedwork.dominio.eventos import EventoDominio
+from seedwork.dominio.eventos import EventoDominio
 
 @dataclass
 class ReservaIniciada(EventoDominio):
     id_reserva: uuid.UUID = None
     id_usuario: uuid.UUID = None
-    id_habitacion: uuid.UUID = None
-    monto: float = None
-    fecha_reserva: str = None
-    fecha_creacion: datetime = None
-
+    id_categoria: uuid.UUID = None
+    fecha_creacion : datetime = None
 @dataclass
 class ReservaPendiente(EventoDominio):
     id_reserva: uuid.UUID = None
     id_usuario: uuid.UUID = None
-    id_habitacion: uuid.UUID = None
-    monto: float = None
-    fecha_reserva: str = None
+    id_categoria: uuid.UUID = None
 
 @dataclass
 class ReservaConfirmada(EventoDominio):

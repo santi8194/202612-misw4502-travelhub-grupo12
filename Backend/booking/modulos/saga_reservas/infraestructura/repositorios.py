@@ -1,11 +1,11 @@
-from Booking.seedwork.dominio.repositorios import Repositorio
-from Booking.modulos.saga_reservas.dominio.entidades import SagaInstance, SagaExecutionLog
-from Booking.modulos.saga_reservas.dominio.objetos_valor import EstadoSaga, TipoMensajeSaga
-from Booking.modulos.saga_reservas.infraestructura.dto import (
+from seedwork.dominio.repositorios import Repositorio
+from modulos.saga_reservas.dominio.entidades import SagaInstance, SagaExecutionLog
+from modulos.saga_reservas.dominio.objetos_valor import EstadoSaga, TipoMensajeSaga
+from modulos.saga_reservas.infraestructura.dto import (
     SagaInstanceDTO, SagaExecutionLogDTO, 
     SagaDefinitionDTO, SagaStepsDefinitionDTO
 )
-from Booking.config.db import db
+from config.db import db
 import uuid
 
 class RepositorioSagas(Repositorio):

@@ -1,9 +1,9 @@
 from typing import List
-from Booking.seedwork.aplicacion.uow import UnidadTrabajo
-from Booking.config.db import db
-from Booking.seedwork.infraestructura.dispatchers import DespachadorRabbitMQ
-from Booking.seedwork.aplicacion.dispatchers import Despachador
-from Booking.modulos.reserva.infraestructura.mapeadores import MapeadorEventosReserva
+from seedwork.aplicacion.uow import UnidadTrabajo
+from config.db import db
+from seedwork.infraestructura.dispatchers import DespachadorRabbitMQ
+from seedwork.aplicacion.dispatchers import Despachador
+from modulos.reserva.infraestructura.mapeadores import MapeadorEventosReserva
 
 class UnidadTrabajoHibrida(UnidadTrabajo):
     """

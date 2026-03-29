@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
-from Booking.seedwork.dominio.entidades import Entidad
+from seedwork.dominio.entidades import Entidad
 
 class Repositorio(ABC):
     @abstractmethod

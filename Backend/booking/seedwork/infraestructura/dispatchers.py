@@ -2,7 +2,7 @@ import pika
 import json
 import os
 from dataclasses import asdict
-from Booking.seedwork.aplicacion.dispatchers import Despachador
+from seedwork.aplicacion.dispatchers import Despachador
 
 class DespachadorRabbitMQ(Despachador):
 
@@ -131,7 +131,7 @@ class DespachadorRabbitMQ(Despachador):
                     routing_key = "cmd.pms.cancelar-reserva"
                 # Comandos locales del Booking no deberían ir a rmq, pero si llegan por UOW...
                 elif "LocalCmd" in tipo: 
-                     routing_key = f"cmd.booking.{tipo.lower()}"
+                     routing_key = f"cmd.{tipo.lower()}"
                 else:
                     routing_key = f"cmd.generico.{tipo.lower()}"
                     print(f"[RabbitMQ] Advertencia: Tipo de comando '{tipo}' no mapeado formalmente. Usando '{routing_key}'")

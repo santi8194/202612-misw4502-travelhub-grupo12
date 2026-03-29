@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
-from app.infrastructure.redis_destination_repository import RedisDestinationRepository
+from app.application.ports import DestinationRepository
 from app.main import app, get_destination_repo
 
 
@@ -15,8 +15,8 @@ from app.main import app, get_destination_repo
 
 
 def _mock_destination_repo(return_value: list[dict] | None = None):
-    """Create a mock RedisDestinationRepository."""
-    repo = AsyncMock(spec=RedisDestinationRepository)
+    """Create a mock DestinationRepository."""
+    repo = AsyncMock(spec=DestinationRepository)
     repo.autocomplete.return_value = return_value or []
     return repo
 
@@ -71,20 +71,16 @@ class TestAutocompleteDestinations:
         assert response.status_code == 422
 
     def test_autocomplete_redis_unavailable(self):
-        app.dependency_overrides[get_destination_repo] = lambda: (_ for _ in ()).throw(
-            Exception("Redis not initialized")
-        )
-        # Override with None to trigger 503
+        # Remove dependency override to exercise the real guard in get_destination_repo
         app.dependency_overrides.pop(get_destination_repo, None)
 
-        # Temporarily set _dest_repository to None
-        import app.main as main_module
-
-        original = main_module._dest_repository
-        main_module._dest_repository = None
+        # Temporarily clear dest_repository from app.state to simulate Redis being down
+        original = getattr(app.state, "dest_repository", None)
+        app.state.dest_repository = None
         try:
             client = TestClient(app, raise_server_exceptions=False)
             response = client.get("/api/v1/search/destinations", params={"q": "car"})
             assert response.status_code == 503
         finally:
-            main_module._dest_repository = original
+            app.state.dest_repository = original
+            app.dependency_overrides[get_destination_repo] = lambda: _mock_destination_repo([])

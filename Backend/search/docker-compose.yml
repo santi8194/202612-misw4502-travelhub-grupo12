@@ -40,6 +40,14 @@ services:
     networks:
       - travelhub-net
 
+#  redis-insight:
+#    image: redislabs/redisinsight:latest
+#    container_name: travelhub_redis_insight
+#    ports:
+#      - "8001:5540"      
+#    networks:
+#      - travelhub-net
+
 volumes:
   opensearch-data:
   redis_data:

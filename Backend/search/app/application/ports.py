@@ -47,3 +47,21 @@ class HospedajeRepository(ABC):
         -------
         List of matching :class:`Hospedaje` entities.
         """
+
+
+class DestinationRepository(ABC):
+    """Port for querying destination autocomplete suggestions."""
+
+    @abstractmethod
+    async def autocomplete(self, prefix: str) -> List[dict]:
+        """Return destination suggestions whose city name starts with *prefix*.
+
+        Parameters
+        ----------
+        prefix:
+            User-typed text (min 3 chars).
+
+        Returns
+        -------
+        List of dicts with keys ``ciudad``, ``estado_provincia``, ``pais``.
+        """

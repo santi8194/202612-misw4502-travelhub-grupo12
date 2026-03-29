@@ -34,8 +34,12 @@ OS_USER = "admin"
 OS_PASS = "MyStr0ng!Pass#2026"
 INDEX = "hospedajes"
 REDIS_URL = "redis://localhost:6379/0"
-DEST_INDEX_KEY = "search:destinations:index"
-DEST_DATA_KEY = "search:destinations:data"
+try:
+    from app.infrastructure.redis_keys import DEST_INDEX_KEY, DEST_DATA_KEY
+except ImportError:
+    # Fallback when running the script standalone outside the app package
+    DEST_INDEX_KEY = "search:destinations:index"
+    DEST_DATA_KEY = "search:destinations:data"
 
 # ── OpenSearch client (sync, for scripting) ──────────────────────────────────
 
@@ -331,12 +335,8 @@ def main() -> None:
         "query": {
             "bool": {
                 "must": [
-                    {
-                        "multi_match": {
-                            "query": "Cartagena",
-                            "fields": ["ciudad", "estado_provincia", "pais"],
-                        }
-                    },
+                    {"term": {"ciudad.keyword": "Cartagena"}},
+                    {"term": {"pais.keyword": "Colombia"}},
                 ]
                 + [
                     {

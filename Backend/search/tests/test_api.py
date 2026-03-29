@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 from unittest.mock import AsyncMock
-from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,29 +17,6 @@ from app.main import app, get_use_case
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
-
-def _sample_hospedaje() -> Hospedaje:
-    return Hospedaje(
-        id_propiedad=uuid4(),
-        id_categoria=uuid4(),
-        propiedad_nombre="Hotel Test",
-        categoria_nombre="Hotel",
-        imagen_principal_url="https://cdn.example.com/img.jpg",
-        amenidades_destacadas=["WiFi", "Pool"],
-        estrellas=4,
-        rating_promedio=4.5,
-        ciudad="Cartagena",
-        estado_provincia="Bolívar",
-        pais="Colombia",
-        coordenadas=Coordenadas(lat=10.39, lon=-75.53),
-        capacidad_pax=4,
-        precio_base=Decimal("350000"),
-        moneda="COP",
-        es_reembolsable=True,
-        disponibilidad=[
-            Disponibilidad(fecha=date(2026, 3, 15), cupos=5),
-        ],
-    )
 
 
 def _mock_use_case(return_value: list[Hospedaje] | None = None):
@@ -73,9 +49,8 @@ class TestHealthEndpoint:
 
 
 class TestSearchEndpoint:
-    def test_search_valid_request(self):
-        hospedaje = _sample_hospedaje()
-        use_case = _mock_use_case([hospedaje])
+    def test_search_valid_request(self, sample_hospedaje):
+        use_case = _mock_use_case([sample_hospedaje])
         app.dependency_overrides[get_use_case] = lambda: use_case
 
         client = TestClient(app, raise_server_exceptions=False)
@@ -181,9 +156,8 @@ class TestSearchEndpoint:
         )
         assert response.status_code == 422
 
-    def test_response_contains_coordenadas(self):
-        hospedaje = _sample_hospedaje()
-        use_case = _mock_use_case([hospedaje])
+    def test_response_contains_coordenadas(self, sample_hospedaje):
+        use_case = _mock_use_case([sample_hospedaje])
         app.dependency_overrides[get_use_case] = lambda: use_case
 
         client = TestClient(app, raise_server_exceptions=False)

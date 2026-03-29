@@ -65,51 +65,44 @@ class TestCoordenadas:
 # ── Hospedaje ────────────────────────────────────────────────────────────────
 
 
-def _make_hospedaje(**overrides) -> Hospedaje:
-    """Helper factory for creating Hospedaje with default values."""
-    defaults = dict(
-        id_propiedad=uuid4(),
-        id_categoria=uuid4(),
-        propiedad_nombre="Hotel Test",
-        categoria_nombre="Hotel",
-        imagen_principal_url="https://cdn.example.com/img.jpg",
-        amenidades_destacadas=["WiFi", "Pool"],
-        estrellas=4,
-        rating_promedio=4.5,
-        ciudad="Cartagena",
-        estado_provincia="Bolívar",
-        pais="Colombia",
-        coordenadas=Coordenadas(lat=10.39, lon=-75.53),
-        capacidad_pax=4,
-        precio_base=Decimal("350000"),
-        moneda="COP",
-        es_reembolsable=True,
-        disponibilidad=[
-            Disponibilidad(fecha=date(2026, 3, 15), cupos=5),
-            Disponibilidad(fecha=date(2026, 3, 16), cupos=3),
-        ],
-    )
-    defaults.update(overrides)
-    return Hospedaje(**defaults)
-
 
 class TestHospedaje:
-    def test_create_valid(self):
-        h = _make_hospedaje()
-        assert h.propiedad_nombre == "Hotel Test"
-        assert h.ciudad == "Cartagena"
-        assert len(h.disponibilidad) == 2
+    def test_create_valid(self, sample_hospedaje):
+        assert sample_hospedaje.propiedad_nombre == "Hotel Test"
+        assert sample_hospedaje.ciudad == "Cartagena"
+        assert len(sample_hospedaje.disponibilidad) == 1
 
-    def test_frozen(self):
-        h = _make_hospedaje()
+    def test_frozen(self, sample_hospedaje):
         with pytest.raises(AttributeError):
-            h.propiedad_nombre = "Changed"  # type: ignore[misc]
+            sample_hospedaje.propiedad_nombre = "Changed"  # type: ignore[misc]
 
     def test_empty_availability(self):
-        h = _make_hospedaje(disponibilidad=[])
+        h = Hospedaje(
+            id_propiedad=uuid4(), id_categoria=uuid4(),
+            propiedad_nombre="Hotel Test", categoria_nombre="Hotel",
+            imagen_principal_url="https://cdn.example.com/img.jpg",
+            amenidades_destacadas=[],
+            estrellas=3, rating_promedio=4.0,
+            ciudad="Bogotá", estado_provincia="", pais="Colombia",
+            coordenadas=Coordenadas(lat=4.61, lon=-74.08),
+            capacidad_pax=2, precio_base=Decimal("100000"),
+            moneda="COP", es_reembolsable=False,
+            disponibilidad=[],
+        )
         assert h.disponibilidad == []
 
     def test_precio_base_as_decimal(self):
-        h = _make_hospedaje(precio_base=Decimal("199999.99"))
+        h = Hospedaje(
+            id_propiedad=uuid4(), id_categoria=uuid4(),
+            propiedad_nombre="Hotel Test", categoria_nombre="Hotel",
+            imagen_principal_url="https://cdn.example.com/img.jpg",
+            amenidades_destacadas=[],
+            estrellas=3, rating_promedio=4.0,
+            ciudad="Bogotá", estado_provincia="", pais="Colombia",
+            coordenadas=Coordenadas(lat=4.61, lon=-74.08),
+            capacidad_pax=2, precio_base=Decimal("199999.99"),
+            moneda="COP", es_reembolsable=False,
+            disponibilidad=[],
+        )
         assert isinstance(h.precio_base, Decimal)
         assert h.precio_base == Decimal("199999.99")

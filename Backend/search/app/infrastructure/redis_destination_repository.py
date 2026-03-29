@@ -8,11 +8,11 @@ from typing import List
 from redis.asyncio import Redis
 
 
-DEST_INDEX_KEY = "search:destinations:index"
-DEST_DATA_KEY = "search:destinations:data"
+from app.application.ports import DestinationRepository
+from app.infrastructure.redis_keys import DEST_INDEX_KEY, DEST_DATA_KEY
 
 
-class RedisDestinationRepository:
+class RedisDestinationRepository(DestinationRepository):
     """Reads destination suggestions from Redis using lexicographic range queries.
 
     Data structures expected in Redis:

@@ -18,11 +18,12 @@ from app.domain.strategies import PriceFirstStrategy
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
 
-def _sample_hospedaje(**overrides) -> Hospedaje:
-    defaults = dict(
+def _hospedaje_named(nombre: str) -> Hospedaje:
+    """Create a Hospedaje with a custom propiedad_nombre for multi-result tests."""
+    return Hospedaje(
         id_propiedad=uuid4(),
         id_categoria=uuid4(),
-        propiedad_nombre="Hotel Test",
+        propiedad_nombre=nombre,
         categoria_nombre="Hotel",
         imagen_principal_url="https://cdn.example.com/img.jpg",
         amenidades_destacadas=["WiFi"],
@@ -36,25 +37,8 @@ def _sample_hospedaje(**overrides) -> Hospedaje:
         precio_base=Decimal("350000"),
         moneda="COP",
         es_reembolsable=True,
-        disponibilidad=[
-            Disponibilidad(fecha=date(2026, 3, 15), cupos=5),
-        ],
+        disponibilidad=[Disponibilidad(fecha=date(2026, 3, 15), cupos=5)],
     )
-    defaults.update(overrides)
-    return Hospedaje(**defaults)
-
-
-def _make_request(**overrides) -> SearchRequest:
-    defaults = dict(
-        ciudad="Cartagena",
-        estado_provincia="Bolívar",
-        pais="Colombia",
-        fecha_inicio=date(2026, 3, 15),
-        fecha_fin=date(2026, 3, 17),
-        huespedes=2,
-    )
-    defaults.update(overrides)
-    return SearchRequest(**defaults)
 
 
 # ── Tests ────────────────────────────────────────────────────────────────────
@@ -62,16 +46,14 @@ def _make_request(**overrides) -> SearchRequest:
 
 class TestBuscarHospedaje:
     @pytest.mark.asyncio
-    async def test_ejecutar_returns_results(self):
-        hospedaje = _sample_hospedaje()
+    async def test_ejecutar_returns_results(self, sample_hospedaje, sample_search_request):
         repo = AsyncMock()
-        repo.buscar.return_value = [hospedaje]
+        repo.buscar.return_value = [sample_hospedaje]
         strategy = PriceFirstStrategy()
 
         use_case = BuscarHospedaje(repository=repo, strategy=strategy)
-        request = _make_request()
 
-        result = await use_case.ejecutar(request)
+        result = await use_case.ejecutar(sample_search_request)
 
         assert isinstance(result, SearchResponse)
         assert result.total == 1
@@ -79,29 +61,27 @@ class TestBuscarHospedaje:
         assert result.resultados[0].ciudad == "Cartagena"
 
     @pytest.mark.asyncio
-    async def test_ejecutar_empty_results(self):
+    async def test_ejecutar_empty_results(self, sample_search_request):
         repo = AsyncMock()
         repo.buscar.return_value = []
         strategy = PriceFirstStrategy()
 
         use_case = BuscarHospedaje(repository=repo, strategy=strategy)
-        request = _make_request()
 
-        result = await use_case.ejecutar(request)
+        result = await use_case.ejecutar(sample_search_request)
 
         assert result.total == 0
         assert result.resultados == []
 
     @pytest.mark.asyncio
-    async def test_strategy_passed_to_repository(self):
+    async def test_strategy_passed_to_repository(self, sample_search_request):
         repo = AsyncMock()
         repo.buscar.return_value = []
         strategy = PriceFirstStrategy()
 
         use_case = BuscarHospedaje(repository=repo, strategy=strategy)
-        request = _make_request()
 
-        await use_case.ejecutar(request)
+        await use_case.ejecutar(sample_search_request)
 
         repo.buscar.assert_called_once_with(
             ciudad="Cartagena",
@@ -114,51 +94,46 @@ class TestBuscarHospedaje:
         )
 
     @pytest.mark.asyncio
-    async def test_response_excludes_disponibilidad(self):
-        hospedaje = _sample_hospedaje()
+    async def test_response_excludes_disponibilidad(self, sample_hospedaje, sample_search_request):
         repo = AsyncMock()
-        repo.buscar.return_value = [hospedaje]
+        repo.buscar.return_value = [sample_hospedaje]
         strategy = PriceFirstStrategy()
 
         use_case = BuscarHospedaje(repository=repo, strategy=strategy)
-        request = _make_request()
 
-        result = await use_case.ejecutar(request)
+        result = await use_case.ejecutar(sample_search_request)
 
         response_dict = result.resultados[0].model_dump()
         assert "disponibilidad" not in response_dict
 
     @pytest.mark.asyncio
-    async def test_multiple_results(self):
+    async def test_multiple_results(self, sample_search_request):
         hospedajes = [
-            _sample_hospedaje(propiedad_nombre="Hotel A"),
-            _sample_hospedaje(propiedad_nombre="Hotel B"),
-            _sample_hospedaje(propiedad_nombre="Hotel C"),
+            _hospedaje_named("Hotel A"),
+            _hospedaje_named("Hotel B"),
+            _hospedaje_named("Hotel C"),
         ]
         repo = AsyncMock()
         repo.buscar.return_value = hospedajes
         strategy = PriceFirstStrategy()
 
         use_case = BuscarHospedaje(repository=repo, strategy=strategy)
-        request = _make_request()
 
-        result = await use_case.ejecutar(request)
+        result = await use_case.ejecutar(sample_search_request)
 
         assert result.total == 3
         names = [r.propiedad_nombre for r in result.resultados]
         assert names == ["Hotel A", "Hotel B", "Hotel C"]
 
     @pytest.mark.asyncio
-    async def test_coordenadas_mapped_correctly(self):
-        hospedaje = _sample_hospedaje()
+    async def test_coordenadas_mapped_correctly(self, sample_hospedaje, sample_search_request):
         repo = AsyncMock()
-        repo.buscar.return_value = [hospedaje]
+        repo.buscar.return_value = [sample_hospedaje]
         strategy = PriceFirstStrategy()
 
         use_case = BuscarHospedaje(repository=repo, strategy=strategy)
-        request = _make_request()
 
-        result = await use_case.ejecutar(request)
+        result = await use_case.ejecutar(sample_search_request)
 
         coords = result.resultados[0].coordenadas
         assert coords.lat == 10.39
@@ -166,9 +141,8 @@ class TestBuscarHospedaje:
 
 
 class TestSearchRequest:
-    def test_valid_request(self):
-        req = _make_request()
-        assert req.ciudad == "Cartagena"
+    def test_valid_request(self, sample_search_request):
+        assert sample_search_request.ciudad == "Cartagena"
 
     def test_fecha_fin_before_fecha_inicio_raises(self):
         with pytest.raises(ValueError, match="fecha_fin must be >= fecha_inicio"):

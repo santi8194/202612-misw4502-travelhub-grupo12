@@ -64,13 +64,14 @@ class OpenSearchHospedajeRepository(HospedajeRepository):
         fecha_fin: date,
         huespedes: int,
     ) -> Dict[str, Any]:
-        """Build an OpenSearch bool query with exact term matching and
-        nested availability filters.
+        """
+        Construye una consulta booleana (bool query) de OpenSearch con coincidencia
+        de términos exactos y filtros de disponibilidad anidados.
 
-        Uses ``term`` queries on ``.keyword`` fields for exact matching
-        (the frontend now sends precise values from autocomplete).
-        For each day in [fecha_inicio, fecha_fin] we add a nested filter
-        that requires ``disponibilidad.fecha == day`` AND
+        Usa consultas ``term`` sobre campos ``.keyword`` para coincidencias exactas
+        (el frontend ahora envía valores precisos obtenidos del autocompletado).
+        Por cada día en el rango [fecha_inicio, fecha_fin] añadimos un filtro anidado
+        requiriendo que ``disponibilidad.fecha == day`` Y
         ``disponibilidad.cupos >= huespedes``.
         """
 

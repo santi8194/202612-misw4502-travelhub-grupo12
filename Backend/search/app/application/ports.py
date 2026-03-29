@@ -11,7 +11,9 @@ from app.domain.strategies import RankingStrategy
 
 
 class HospedajeRepository(ABC):
-    """Port for searching accommodations in the persistence layer."""
+    """
+    Puerto (Interfaz) para la búsqueda de hospedajes en la capa de persistencia.
+    """
 
     @abstractmethod
     async def buscar(
@@ -24,44 +26,48 @@ class HospedajeRepository(ABC):
         huespedes: int,
         strategy: RankingStrategy,
     ) -> List[Hospedaje]:
-        """Search accommodations matching the given criteria.
+        """
+        Busca hospedajes que coincidan con los criterios dados.
 
-        Parameters
+        Parámetros
         ----------
         ciudad:
-            Exact city name.
+            Nombre exacto de la ciudad.
         estado_provincia:
-            State or province (may be empty).
+            Estado o provincia (puede estar vacío).
         pais:
-            Exact country name.
+            Nombre exacto del país.
         fecha_inicio:
-            Check-in date (inclusive).
+            Fecha de entrada (inclusiva).
         fecha_fin:
-            Check-out date (inclusive).
+            Fecha de salida (inclusiva).
         huespedes:
-            Minimum number of guests that must be available each day.
+            Número mínimo de huéspedes que debe estar disponible cada día.
         strategy:
-            Ranking strategy providing the sort clause.
+            Estrategia de ranking que provee la cláusula de ordenamiento.
 
-        Returns
+        Retorna
         -------
-        List of matching :class:`Hospedaje` entities.
+        Lista de entidades :class:`Hospedaje` coincidentes.
         """
 
 
 class DestinationRepository(ABC):
-    """Port for querying destination autocomplete suggestions."""
+    """
+    Puerto (Interfaz) para sugerencias de autocompletado de destinos.
+    """
 
     @abstractmethod
     async def autocomplete(self, prefix: str) -> List[dict]:
-        """Return destination suggestions whose city name starts with *prefix*.
+        """
+        Retorna sugerencias de destinos cuyo nombre de ciudad comienza con *prefix*.
 
-        Parameters
+        Parámetros
         ----------
         prefix:
-            User-typed text (min 3 chars).
+            Texto (mínimo 3 caracteres).
 
-        Returns
+        Retorna
         -------
-        List of dicts with keys ``ciudad``, ``estado_provincia``, ``pais``.
+        Lista de diccionarios con claves ``ciudad``, ``estado_provincia``, ``pais``.
         """

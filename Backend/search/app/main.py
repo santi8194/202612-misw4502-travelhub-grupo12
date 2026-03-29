@@ -63,7 +63,9 @@ app = FastAPI(
 
 
 def get_use_case() -> BuscarHospedaje:
-    """Provide a fully-wired BuscarHospedaje use case."""
+    """
+    Provee una instancia del caso de uso BuscarHospedaje totalmente configurada.
+    """
     if not hasattr(app.state, "repository") or app.state.repository is None:
         raise HTTPException(
             status_code=503,
@@ -76,7 +78,9 @@ def get_use_case() -> BuscarHospedaje:
 
 
 def get_destination_repo() -> DestinationRepository:
-    """Provide the Redis-backed destination repository."""
+    """
+    Provee el repositorio de destinos respaldado por Redis.
+    """
     if not hasattr(app.state, "dest_repository") or app.state.dest_repository is None:
         raise HTTPException(
             status_code=503,
@@ -93,10 +97,11 @@ def validate_search_params(
     fecha_fin: date = Query(..., description="Check-out date (YYYY-MM-DD)"),
     huespedes: int = Query(..., ge=1, description="Number of guests"),
 ) -> SearchRequest:
-    """Parse and validate search query parameters.
+    """
+    Parsea y valida los parámetros de búsqueda.
 
-    Business-rule validation is delegated entirely to :class:`SearchRequest`.
-    Any ``ValueError`` raised by the DTO is translated to HTTP 422.
+    La validación de reglas de negocio se delega completamente a :class:`SearchRequest`.
+    Cualquier ``ValueError`` lanzado por el DTO se traduce a un HTTP 422.
     """
     try:
         return SearchRequest(
@@ -129,7 +134,9 @@ async def search(
     request: SearchRequest = Depends(validate_search_params),
     use_case: BuscarHospedaje = Depends(get_use_case),
 ) -> SearchResponse:
-    """Search accommodations by destination, dates and guest count."""
+    """
+    Busca hospedajes mediante destino, fechas y cantidad de huéspedes.
+    """
     return await use_case.ejecutar(request)
 
 
@@ -143,6 +150,8 @@ async def autocomplete_destinations(
     q: str = Query(..., min_length=3, description="Prefijo de búsqueda (mín. 3 caracteres)"),
     repo: DestinationRepository = Depends(get_destination_repo),
 ) -> DestinationResponse:
-    """Suggest destinations whose city name starts with the given prefix."""
+    """
+    Sugiere destinos (ciudad, provincia, país) cuyo nombre de ciudad comienza con el prefijo indicado.
+    """
     results = await repo.autocomplete(q)
     return DestinationResponse(results=results)

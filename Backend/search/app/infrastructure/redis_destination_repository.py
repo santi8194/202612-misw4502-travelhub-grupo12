@@ -26,17 +26,18 @@ class RedisDestinationRepository(DestinationRepository):
         self._client = client
 
     async def autocomplete(self, prefix: str) -> List[dict]:
-        """Return destination dicts whose city name starts with *prefix*.
+        """
+        Retorna los diccionarios de destino cuyo nombre de ciudad comienza con *prefix*.
 
-        Parameters
+        Parámetros
         ----------
         prefix:
-            User-typed text (min 3 chars). Converted to lowercase internally.
+            Texto ingresado por el usuario (mín 3 caracteres). Comvertido a minúsculas internamente.
 
-        Returns
+        Retorna
         -------
-        List of dicts with keys ``ciudad``, ``estado_provincia``, ``pais``.
-        Empty list if no matches.
+        Lista de diccionarios con claves ``ciudad``, ``estado_provincia``, ``pais``.
+        Lista vacía si no hay coincidencias.
         """
         prefix_lower = prefix.lower()
 

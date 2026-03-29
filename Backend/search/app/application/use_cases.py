@@ -29,7 +29,9 @@ class BuscarHospedaje:
         self._strategy = strategy
 
     async def ejecutar(self, request: SearchRequest) -> SearchResponse:
-        """Execute the search and return formatted results."""
+        """
+        Ejecuta la búsqueda y retorna los resultados formateados en un DTO.
+        """
 
         hospedajes = await self._repository.buscar(
             ciudad=request.ciudad,

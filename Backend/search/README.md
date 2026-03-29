@@ -53,15 +53,26 @@ uvicorn app.main:app --reload
 ```
 La API estará disponible en [http://localhost:8000](http://localhost:8000).
 
+## 📚 Documentación Interactiva (Swagger)
+
+Puedes explorar y probar los endpoints interactivamente a través de las siguientes URLs una vez que el servicio esté corriendo:
+
+- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
 ## 📡 API Endpoints
 
 | Método | Endpoint | Descripción |
 | :--- | :--- | :--- |
 | `GET` | `/health` | Estado del servicio. |
-| `GET` | `/api/v1/search` | Búsqueda con filtros de destino, fechas y huéspedes. |
+| `GET` | `/api/v1/search` | Búsqueda con filtros de ciudad, país, fechas y huéspedes. |
+| `GET` | `/api/v1/search/destinations` | Autocompletado de destinos (sugerencias por prefijo). |
 
 **Ejemplo de búsqueda:**
-`GET /api/v1/search?destino=Cartagena&fecha_inicio=2026-03-28&fecha_fin=2026-03-30&huespedes=2`
+`GET /api/v1/search?ciudad=Cartagena&pais=Colombia&fecha_inicio=2026-03-28&fecha_fin=2026-03-30&huespedes=2`
+
+**Ejemplo de autocompletado:**
+`GET /api/v1/search/destinations?q=car`
 
 ## 🧪 Pruebas
 El servicio cuenta con una cobertura exhaustiva (>90% en domain/application):

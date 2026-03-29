@@ -18,7 +18,7 @@ class Disponibilidad:
 
     def __post_init__(self) -> None:
         if self.cupos < 0:
-            raise ValueError("cupos must be >= 0")
+            raise ValueError("Los cupos deben ser mayores que 0")
 
 
 @dataclass(frozen=True)
@@ -30,9 +30,9 @@ class Coordenadas:
 
     def __post_init__(self) -> None:
         if not (-90 <= self.lat <= 90):
-            raise ValueError("lat must be between -90 and 90")
+            raise ValueError("Latitud debe estar entre -90 y 90")
         if not (-180 <= self.lon <= 180):
-            raise ValueError("lon must be between -180 and 180")
+            raise ValueError("Longitud debe estar entre -180 y 180")
 
 
 @dataclass(frozen=True)

@@ -65,7 +65,7 @@ def get_use_case() -> BuscarHospedaje:
     if _repository is None:
         raise HTTPException(
             status_code=503,
-            detail="Service not ready: repository not initialised",
+            detail="El servicio no está listo: el repositorio no ha sido inicializado",
         )
     return BuscarHospedaje(
         repository=_repository,
@@ -87,14 +87,14 @@ def validate_search_params(
     if fecha_fin < fecha_inicio:
         raise HTTPException(
             status_code=422,
-            detail="fecha_fin must be >= fecha_inicio",
+            detail="La fecha de fin debe ser mayor o igual a la fecha de inicio",
         )
 
     delta = (fecha_fin - fecha_inicio).days
     if delta > 30:
         raise HTTPException(
             status_code=422,
-            detail=f"Date range must not exceed 30 days (requested {delta} days)",
+            detail=f"El rango de fechas no debe exceder los 30 días (se solicitaron {delta} días)",
         )
 
     return SearchRequest(

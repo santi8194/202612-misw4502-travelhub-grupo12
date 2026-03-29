@@ -25,7 +25,7 @@ class TestDisponibilidad:
         assert d.cupos == 0
 
     def test_negative_cupos_raises(self):
-        with pytest.raises(ValueError, match="cupos must be >= 0"):
+        with pytest.raises(ValueError, match="Los cupos deben ser mayores que 0"):
             Disponibilidad(fecha=date(2026, 1, 1), cupos=-1)
 
     def test_frozen(self):
@@ -44,11 +44,11 @@ class TestCoordenadas:
         assert c.lon == -75.53
 
     def test_lat_out_of_range(self):
-        with pytest.raises(ValueError, match="lat must be between"):
+        with pytest.raises(ValueError, match="Latitud debe estar entre"):
             Coordenadas(lat=91.0, lon=0.0)
 
     def test_lon_out_of_range(self):
-        with pytest.raises(ValueError, match="lon must be between"):
+        with pytest.raises(ValueError, match="Longitud debe estar entre"):
             Coordenadas(lat=0.0, lon=181.0)
 
     def test_boundary_values(self):

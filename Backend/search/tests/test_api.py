@@ -82,7 +82,8 @@ class TestSearchEndpoint:
         response = client.get(
             "/api/v1/search",
             params={
-                "destino": "Cartagena",
+                "ciudad": "Cartagena",
+                "pais": "Colombia",
                 "fecha_inicio": "2026-03-15",
                 "fecha_fin": "2026-03-17",
                 "huespedes": 2,
@@ -100,7 +101,8 @@ class TestSearchEndpoint:
         response = client.get(
             "/api/v1/search",
             params={
-                "destino": "Inexistente",
+                "ciudad": "Inexistente",
+                "pais": "PaisX",
                 "fecha_inicio": "2026-03-15",
                 "fecha_fin": "2026-03-17",
                 "huespedes": 1,
@@ -112,7 +114,7 @@ class TestSearchEndpoint:
         assert data["total"] == 0
         assert data["resultados"] == []
 
-    def test_search_missing_destino(self):
+    def test_search_missing_ciudad(self):
         client = TestClient(app, raise_server_exceptions=False)
         response = client.get(
             "/api/v1/search",
@@ -129,7 +131,8 @@ class TestSearchEndpoint:
         response = client.get(
             "/api/v1/search",
             params={
-                "destino": "Cartagena",
+                "ciudad": "Cartagena",
+                "pais": "Colombia",
                 "fecha_inicio": "2026-03-15",
                 "fecha_fin": "2026-03-17",
             },
@@ -141,7 +144,8 @@ class TestSearchEndpoint:
         response = client.get(
             "/api/v1/search",
             params={
-                "destino": "Cartagena",
+                "ciudad": "Cartagena",
+                "pais": "Colombia",
                 "fecha_inicio": "2026-03-20",
                 "fecha_fin": "2026-03-15",
                 "huespedes": 2,
@@ -154,7 +158,8 @@ class TestSearchEndpoint:
         response = client.get(
             "/api/v1/search",
             params={
-                "destino": "Cartagena",
+                "ciudad": "Cartagena",
+                "pais": "Colombia",
                 "fecha_inicio": "2026-03-15",
                 "fecha_fin": "2026-03-17",
                 "huespedes": 0,
@@ -167,7 +172,8 @@ class TestSearchEndpoint:
         response = client.get(
             "/api/v1/search",
             params={
-                "destino": "Cartagena",
+                "ciudad": "Cartagena",
+                "pais": "Colombia",
                 "fecha_inicio": "2026-01-01",
                 "fecha_fin": "2026-03-01",
                 "huespedes": 1,
@@ -184,7 +190,8 @@ class TestSearchEndpoint:
         response = client.get(
             "/api/v1/search",
             params={
-                "destino": "Cartagena",
+                "ciudad": "Cartagena",
+                "pais": "Colombia",
                 "fecha_inicio": "2026-03-15",
                 "fecha_fin": "2026-03-17",
                 "huespedes": 2,

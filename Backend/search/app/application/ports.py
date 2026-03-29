@@ -16,7 +16,9 @@ class HospedajeRepository(ABC):
     @abstractmethod
     async def buscar(
         self,
-        destino: str,
+        ciudad: str,
+        estado_provincia: str,
+        pais: str,
         fecha_inicio: date,
         fecha_fin: date,
         huespedes: int,
@@ -26,8 +28,12 @@ class HospedajeRepository(ABC):
 
         Parameters
         ----------
-        destino:
-            City, state/province, or country name.
+        ciudad:
+            Exact city name.
+        estado_provincia:
+            State or province (may be empty).
+        pais:
+            Exact country name.
         fecha_inicio:
             Check-in date (inclusive).
         fecha_fin:

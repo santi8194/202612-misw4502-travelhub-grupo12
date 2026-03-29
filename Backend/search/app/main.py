@@ -93,7 +93,9 @@ def get_destination_repo() -> RedisDestinationRepository:
 
 
 def validate_search_params(
-    destino: str = Query(..., min_length=1, description="Destination"),
+    ciudad: str = Query(..., min_length=1, description="City name"),
+    estado_provincia: str = Query("", description="State or province"),
+    pais: str = Query(..., min_length=1, description="Country name"),
     fecha_inicio: date = Query(..., description="Check-in date (YYYY-MM-DD)"),
     fecha_fin: date = Query(..., description="Check-out date (YYYY-MM-DD)"),
     huespedes: int = Query(..., ge=1, description="Number of guests"),
@@ -117,7 +119,9 @@ def validate_search_params(
         )
 
     return SearchRequest(
-        destino=destino,
+        ciudad=ciudad,
+        estado_provincia=estado_provincia,
+        pais=pais,
         fecha_inicio=fecha_inicio,
         fecha_fin=fecha_fin,
         huespedes=huespedes,

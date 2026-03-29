@@ -18,7 +18,9 @@ MAX_RANGE_DAYS = 30
 class SearchRequest(BaseModel):
     """Query-parameter DTO for the search endpoint."""
 
-    destino: str = Field(..., min_length=1, description="City, state or country")
+    ciudad: str = Field(..., min_length=1, description="City name")
+    estado_provincia: str = Field("", description="State or province (optional)")
+    pais: str = Field(..., min_length=1, description="Country name")
     fecha_inicio: date = Field(..., description="Check-in date (inclusive)")
     fecha_fin: date = Field(..., description="Check-out date (inclusive)")
     huespedes: int = Field(..., ge=1, description="Number of guests (>= 1)")

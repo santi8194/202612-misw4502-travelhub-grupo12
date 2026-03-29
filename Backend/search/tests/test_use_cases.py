@@ -46,7 +46,9 @@ def _sample_hospedaje(**overrides) -> Hospedaje:
 
 def _make_request(**overrides) -> SearchRequest:
     defaults = dict(
-        destino="Cartagena",
+        ciudad="Cartagena",
+        estado_provincia="Bolívar",
+        pais="Colombia",
         fecha_inicio=date(2026, 3, 15),
         fecha_fin=date(2026, 3, 17),
         huespedes=2,
@@ -102,7 +104,9 @@ class TestBuscarHospedaje:
         await use_case.ejecutar(request)
 
         repo.buscar.assert_called_once_with(
-            destino="Cartagena",
+            ciudad="Cartagena",
+            estado_provincia="Bolívar",
+            pais="Colombia",
             fecha_inicio=date(2026, 3, 15),
             fecha_fin=date(2026, 3, 17),
             huespedes=2,
@@ -164,12 +168,14 @@ class TestBuscarHospedaje:
 class TestSearchRequest:
     def test_valid_request(self):
         req = _make_request()
-        assert req.destino == "Cartagena"
+        assert req.ciudad == "Cartagena"
 
     def test_fecha_fin_before_fecha_inicio_raises(self):
         with pytest.raises(ValueError, match="fecha_fin must be >= fecha_inicio"):
             SearchRequest(
-                destino="Bogotá",
+                ciudad="Bogotá",
+                pais="Colombia",
+                estado_provincia="",
                 fecha_inicio=date(2026, 3, 20),
                 fecha_fin=date(2026, 3, 15),
                 huespedes=1,
@@ -178,7 +184,9 @@ class TestSearchRequest:
     def test_range_exceeds_max_days_raises(self):
         with pytest.raises(ValueError, match="must not exceed 30 days"):
             SearchRequest(
-                destino="Medellín",
+                ciudad="Medellín",
+                pais="Colombia",
+                estado_provincia="",
                 fecha_inicio=date(2026, 1, 1),
                 fecha_fin=date(2026, 3, 1),
                 huespedes=1,
@@ -187,16 +195,20 @@ class TestSearchRequest:
     def test_huespedes_zero_raises(self):
         with pytest.raises(ValueError):
             SearchRequest(
-                destino="Cali",
+                ciudad="Cali",
+                pais="Colombia",
+                estado_provincia="",
                 fecha_inicio=date(2026, 3, 15),
                 fecha_fin=date(2026, 3, 16),
                 huespedes=0,
             )
 
-    def test_empty_destino_raises(self):
+    def test_empty_ciudad_raises(self):
         with pytest.raises(ValueError):
             SearchRequest(
-                destino="",
+                ciudad="",
+                pais="Colombia",
+                estado_provincia="",
                 fecha_inicio=date(2026, 3, 15),
                 fecha_fin=date(2026, 3, 16),
                 huespedes=2,
@@ -204,7 +216,9 @@ class TestSearchRequest:
 
     def test_same_day_is_valid(self):
         req = SearchRequest(
-            destino="Cartagena",
+            ciudad="Cartagena",
+            pais="Colombia",
+            estado_provincia="",
             fecha_inicio=date(2026, 3, 15),
             fecha_fin=date(2026, 3, 15),
             huespedes=1,
@@ -213,7 +227,9 @@ class TestSearchRequest:
 
     def test_max_30_days_is_valid(self):
         req = SearchRequest(
-            destino="Cartagena",
+            ciudad="Cartagena",
+            pais="Colombia",
+            estado_provincia="",
             fecha_inicio=date(2026, 3, 1),
             fecha_fin=date(2026, 3, 31),
             huespedes=1,

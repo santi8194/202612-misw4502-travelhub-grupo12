@@ -32,7 +32,9 @@ class BuscarHospedaje:
         """Execute the search and return formatted results."""
 
         hospedajes = await self._repository.buscar(
-            destino=request.destino,
+            ciudad=request.ciudad,
+            estado_provincia=request.estado_provincia,
+            pais=request.pais,
             fecha_inicio=request.fecha_inicio,
             fecha_fin=request.fecha_fin,
             huespedes=request.huespedes,

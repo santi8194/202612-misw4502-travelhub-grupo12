@@ -30,13 +30,15 @@ class OpenSearchHospedajeRepository(HospedajeRepository):
 
     async def buscar(
         self,
-        destino: str,
+        ciudad: str,
+        estado_provincia: str,
+        pais: str,
         fecha_inicio: date,
         fecha_fin: date,
         huespedes: int,
         strategy: RankingStrategy,
     ) -> List[Hospedaje]:
-        query = self._build_query(destino, fecha_inicio, fecha_fin, huespedes)
+        query = self._build_query(ciudad, estado_provincia, pais, fecha_inicio, fecha_fin, huespedes)
         sort = strategy.build_sort()
 
         body: Dict[str, Any] = {
@@ -55,28 +57,32 @@ class OpenSearchHospedajeRepository(HospedajeRepository):
 
     @staticmethod
     def _build_query(
-        destino: str,
+        ciudad: str,
+        estado_provincia: str,
+        pais: str,
         fecha_inicio: date,
         fecha_fin: date,
         huespedes: int,
     ) -> Dict[str, Any]:
-        """Build an OpenSearch bool query with nested availability filters.
+        """Build an OpenSearch bool query with exact term matching and
+        nested availability filters.
 
+        Uses ``term`` queries on ``.keyword`` fields for exact matching
+        (the frontend now sends precise values from autocomplete).
         For each day in [fecha_inicio, fecha_fin] we add a nested filter
         that requires ``disponibilidad.fecha == day`` AND
-        ``disponibilidad.cupos >= huespedes``.  Because all nested clauses
-        are inside ``bool.must``, OpenSearch guarantees that **every**
-        single day in the range satisfies the constraint.
+        ``disponibilidad.cupos >= huespedes``.
         """
 
         must_clauses: List[Dict[str, Any]] = [
-            {
-                "multi_match": {
-                    "query": destino,
-                    "fields": ["ciudad", "estado_provincia", "pais"],
-                }
-            }
+            {"term": {"ciudad.keyword": ciudad}},
+            {"term": {"pais.keyword": pais}},
         ]
+
+        if estado_provincia:
+            must_clauses.append(
+                {"term": {"estado_provincia.keyword": estado_provincia}}
+            )
 
         current = fecha_inicio
         while current <= fecha_fin:

@@ -30,7 +30,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/search?destino=Cartagena&fecha_inicio=2026-03-28&fecha_fin=2026-03-30&huespedes=2",
+					"raw": "{{base_url}}/api/v1/search?ciudad=Cartagena&estado_provincia=Bol%C3%ADvar&pais=Colombia&fecha_inicio=2026-03-28&fecha_fin=2026-03-30&huespedes=2",
 					"host": [
 						"{{base_url}}"
 					],
@@ -41,8 +41,16 @@
 					],
 					"query": [
 						{
-							"key": "destino",
+							"key": "ciudad",
 							"value": "Cartagena"
+						},
+						{
+							"key": "estado_provincia",
+							"value": "Bolívar"
+						},
+						{
+							"key": "pais",
+							"value": "Colombia"
 						},
 						{
 							"key": "fecha_inicio",
@@ -68,7 +76,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/search?destino=Medellín&fecha_inicio=2026-04-01&fecha_fin=2026-04-05&huespedes=4",
+					"raw": "{{base_url}}/api/v1/search?ciudad=Medell%C3%ADn&estado_provincia=Antioquia&pais=Colombia&fecha_inicio=2026-04-01&fecha_fin=2026-04-05&huespedes=4",
 					"host": [
 						"{{base_url}}"
 					],
@@ -79,8 +87,16 @@
 					],
 					"query": [
 						{
-							"key": "destino",
+							"key": "ciudad",
 							"value": "Medellín"
+						},
+						{
+							"key": "estado_provincia",
+							"value": "Antioquia"
+						},
+						{
+							"key": "pais",
+							"value": "Colombia"
 						},
 						{
 							"key": "fecha_inicio",
@@ -105,7 +121,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/search?destino=Bogotá&fecha_inicio=2026-01-01&fecha_fin=2026-02-15&huespedes=1",
+					"raw": "{{base_url}}/api/v1/search?ciudad=Bogot%C3%A1&pais=Colombia&fecha_inicio=2026-01-01&fecha_fin=2026-02-15&huespedes=1",
 					"host": [
 						"{{base_url}}"
 					],
@@ -116,8 +132,12 @@
 					],
 					"query": [
 						{
-							"key": "destino",
+							"key": "ciudad",
 							"value": "Bogotá"
+						},
+						{
+							"key": "pais",
+							"value": "Colombia"
 						},
 						{
 							"key": "fecha_inicio",
@@ -143,7 +163,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/search?destino=Cali&fecha_inicio=2026-03-20&fecha_fin=2026-03-15&huespedes=1",
+					"raw": "{{base_url}}/api/v1/search?ciudad=Cali&pais=Colombia&fecha_inicio=2026-03-20&fecha_fin=2026-03-15&huespedes=1",
 					"host": [
 						"{{base_url}}"
 					],
@@ -154,8 +174,12 @@
 					],
 					"query": [
 						{
-							"key": "destino",
+							"key": "ciudad",
 							"value": "Cali"
+						},
+						{
+							"key": "pais",
+							"value": "Colombia"
 						},
 						{
 							"key": "fecha_inicio",

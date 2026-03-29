@@ -1,0 +1,9 @@
+##Entender la logica
+compile_files.py
+contents_summary_4502.txt
+contents_summary.txt
+.agents
+
+.venv/
+venv/
+__pycache__/

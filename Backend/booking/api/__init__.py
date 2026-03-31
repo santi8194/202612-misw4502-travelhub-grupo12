@@ -15,9 +15,9 @@ def create_app(config_name=None):
     if all([db_user, db_password, db_host, db_name]):
         database_uri = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
     else:
-        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'database', 'db'))
-        #database_uri = f'sqlite:///{db_path}'
-        database_uri = "sqlite:///:memory:"
+        os.makedirs(app.instance_path, exist_ok=True)
+        db_path = os.path.join(app.instance_path, 'booking.db')
+        database_uri = f'sqlite:///{db_path}'
 
     app.config.from_mapping(
         SECRET_KEY='dev',
@@ -50,29 +50,8 @@ def create_app(config_name=None):
     
     with app.app_context():
         db.create_all()
-        # Inicializar la configuración de la Saga si no existe
-        from modulos.saga_reservas.infraestructura.dto import SagaDefinitionDTO, SagaStepsDefinitionDTO
-        
-        if not db.session.query(SagaDefinitionDTO).filter_by(id_flujo="RESERVA_ESTANDAR").first():
-            definicion = SagaDefinitionDTO(
-                id_flujo="RESERVA_ESTANDAR", 
-                version=1, 
-                nombre_descriptivo="Flujo actual (Cobro -> Bloqueo PMS -> Revisión Manual)", 
-                activo=True
-            )
-            db.session.add(definicion)
-
-            pasos = [
-                SagaStepsDefinitionDTO(index=0, id_flujo="RESERVA_ESTANDAR", version=1, comando="CrearReservaLocalCmd", evento="ReservaCreadaIntegracionEvt", error="ReservaCreadaFalloEvt", compensacion="CancelarReservaLocalCmd"),
-                SagaStepsDefinitionDTO(index=1, id_flujo="RESERVA_ESTANDAR", version=1, comando="ProcesarPagoCmd", evento="PagoExitosoEvt", error="PagoRechazadoEvt", compensacion="ReversarPagoCmd"),
-                SagaStepsDefinitionDTO(index=2, id_flujo="RESERVA_ESTANDAR", version=1, comando="ConfirmarReservaPmsCmd", evento="ConfirmacionPmsExitosaEvt", error="ReservaRechazadaPmsEvt", compensacion="CancelarReservaPmsCmd"),
-                SagaStepsDefinitionDTO(index=3, id_flujo="RESERVA_ESTANDAR", version=1, comando="SolicitarAprobacionManualCmd", evento="ReservaAprobadaManualEvt", error="ReservaRechazadaManualEvt", compensacion=None),
-                SagaStepsDefinitionDTO(index=4, id_flujo="RESERVA_ESTANDAR", version=1, comando="ConfirmarReservaLocalCmd", evento="ReservaConfirmadaEvt", error="FallaActualizacionLocalEvt", compensacion="CancelarReservaLocalCmd"),
-                SagaStepsDefinitionDTO(index=5, id_flujo="RESERVA_ESTANDAR", version=1, comando="MarcarSagaEsperandoVoucher", evento="VoucherEnviadoEvt", error="FalloEnvioVoucherEvt", compensacion="NotificarFalloTecnicoCmd")
-            ]
-            db.session.add_all(pasos)
-            db.session.commit()
-            print("[Booking API] Configuración de Saga Orquestada insertada en BD exitosamente.")
+        from config.seed import seed_saga_reservas
+        seed_saga_reservas()
 
     # Importar y registrar blueprints
     from modulos.reserva.infraestructura.api import reserva_api

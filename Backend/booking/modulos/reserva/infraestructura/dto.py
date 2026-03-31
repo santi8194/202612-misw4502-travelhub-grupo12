@@ -3,7 +3,7 @@ from config.db import db
 class ReservaDTO(db.Model):
     __tablename__ = "reservas"
     id = db.Column(db.String(40), primary_key=True)
-    id_usuario = db.Column(db.String(40), nullable=False)
+    usuario = db.Column(db.String(40), nullable=False)
     id_categoria = db.Column(db.String(40), nullable=False)
     codigo_confirmacion_ota = db.Column(db.String(100), nullable=True)
     codigo_localizador_pms = db.Column(db.String(100), nullable=True)

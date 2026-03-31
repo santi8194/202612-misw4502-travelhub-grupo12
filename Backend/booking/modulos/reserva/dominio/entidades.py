@@ -148,7 +148,7 @@ class Reserva(AgregacionRaiz):
         id_categoria: CategoriaHabitacion = None,
         codigo_confirmacion_ota: str = None,
         codigo_localizador_pms: str = None,
-        estado: EstadoReserva = None,
+        estado: EstadoReserva = EstadoReserva.HOLD,
         fecha_check_in: datetime.date = None,
         fecha_check_out: datetime.date = None,
         ocupacion: Pax = None,

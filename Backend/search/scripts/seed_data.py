@@ -14,13 +14,16 @@ The script will:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import random
 import urllib3
+import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 from uuid import uuid4, uuid5, NAMESPACE_DNS
 import redis as redis_lib
+import asyncpg
 
 from opensearchpy import OpenSearch
 
@@ -34,6 +37,7 @@ OS_USER = "admin"
 OS_PASS = "MyStr0ng!Pass#2026"
 INDEX = "hospedajes"
 REDIS_URL = "redis://localhost:6379/0"
+PG_URL = "postgresql://travelhub:travelhub@localhost:5432/travelhub"
 try:
     from app.infrastructure.redis_keys import DEST_INDEX_KEY, DEST_DATA_KEY
 except ImportError:
@@ -298,6 +302,77 @@ def _seed_redis_destinations() -> None:
     pipe.execute()
     print(f"   ✅  {count} destinos únicos insertados en Redis.")
 
+async def _seed_postgres_async(docs: list[dict]) -> None:
+    print("\n🐘  Poblando PostgreSQL con hospedajes...")
+    try:
+        conn = await asyncpg.connect(PG_URL)
+    except Exception as e:
+        print(f"   ⚠️  No se pudo conectar a PostgreSQL: {e}")
+        return
+
+    # Ensure table exists
+    await conn.execute("""
+        CREATE TABLE IF NOT EXISTS hospedajes (
+            id_propiedad UUID PRIMARY KEY,
+            id_categoria UUID,
+            propiedad_nombre TEXT,
+            categoria_nombre TEXT,
+            imagen_principal_url TEXT,
+            amenidades_destacadas JSONB,
+            estrellas INTEGER,
+            rating_promedio NUMERIC,
+            ciudad TEXT,
+            estado_provincia TEXT,
+            pais TEXT,
+            coordenadas JSONB,
+            capacidad_pax INTEGER,
+            precio_base NUMERIC,
+            moneda TEXT,
+            es_reembolsable BOOLEAN,
+            disponibilidad JSONB
+        );
+    """)
+
+    await conn.execute("TRUNCATE TABLE hospedajes;")
+
+    count = 0
+    for doc in docs:
+        await conn.execute("""
+            INSERT INTO hospedajes (
+                id_propiedad, id_categoria, propiedad_nombre, categoria_nombre,
+                imagen_principal_url, amenidades_destacadas, estrellas, rating_promedio,
+                ciudad, estado_provincia, pais, coordenadas, capacidad_pax,
+                precio_base, moneda, es_reembolsable, disponibilidad
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+            )
+        """,
+            uuid.UUID(doc["id_propiedad"]),
+            uuid.UUID(doc["id_categoria"]),
+            doc["propiedad_nombre"],
+            doc["categoria_nombre"],
+            doc["imagen_principal_url"],
+            json.dumps(doc["amenidades_destacadas"]),
+            doc["estrellas"],
+            doc["rating_promedio"],
+            doc["ciudad"],
+            doc["estado_provincia"],
+            doc["pais"],
+            json.dumps(doc["coordenadas"]),
+            doc["capacidad_pax"],
+            doc["precio_base"],
+            doc["moneda"],
+            doc["es_reembolsable"],
+            json.dumps(doc["disponibilidad"]),
+        )
+        count += 1
+    
+    await conn.close()
+    print(f"   ✅  {count} hospedajes insertados en PostgreSQL.")
+
+def _seed_postgres(docs: list[dict]) -> None:
+    asyncio.run(_seed_postgres_async(docs))
+
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
@@ -314,13 +389,18 @@ def main() -> None:
 
     # 3. Index documents
     print(f"📝  Indexing {len(PROPERTIES)} accommodations...")
+    docs_inserted = []
     for prop in PROPERTIES:
         doc = _build_document(prop)
         resp = client.index(index=INDEX, body=doc, refresh=True)
+        docs_inserted.append(doc)
         print(f"   ✅  {prop['nombre']} ({prop['ciudad']}) → {resp['_id']}")
 
     # 3b. Seed Redis with unique destinations
     _seed_redis_destinations()
+    
+    # 3c. Seed PostgreSQL
+    _seed_postgres(docs_inserted)
 
     # 4. Verify
     count = client.count(index=INDEX)["count"]

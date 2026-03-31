@@ -7,3 +7,5 @@ contents_summary.txt
 .venv/
 venv/
 __pycache__/
+.DS_Store
+*.jks

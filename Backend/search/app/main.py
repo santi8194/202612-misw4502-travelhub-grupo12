@@ -16,7 +16,9 @@ from app.application.use_cases import BuscarHospedaje
 from app.config import settings
 from app.domain.strategies import PriceFirstStrategy
 from app.infrastructure.opensearch_repository import OpenSearchHospedajeRepository
+from app.infrastructure.postgres_repository import PostgresHospedajeRepository
 from app.infrastructure.redis_destination_repository import RedisDestinationRepository
+import asyncpg
 
 
 
@@ -36,17 +38,25 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     redis_client = AsyncRedis.from_url(settings.redis_url, decode_responses=True)
 
     app.state.os_client = os_client
-    app.state.repository = OpenSearchHospedajeRepository(
-        client=os_client,
-        index_name=settings.opensearch_index,
-    )
     app.state.redis_client = redis_client
     app.state.dest_repository = RedisDestinationRepository(client=redis_client)
+
+    if settings.repository_type == "postgres":
+        pg_pool = await asyncpg.create_pool(settings.postgres_url)
+        app.state.pg_pool = pg_pool
+        app.state.repository = PostgresHospedajeRepository(pool=pg_pool)
+    else:
+        app.state.repository = OpenSearchHospedajeRepository(
+            client=os_client,
+            index_name=settings.opensearch_index,
+        )
 
     yield
 
     await os_client.close()
     await redis_client.aclose()
+    if getattr(app.state, "pg_pool", None):
+        await app.state.pg_pool.close()
 
 
 # ── App factory ──────────────────────────────────────────────────────────────

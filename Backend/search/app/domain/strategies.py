@@ -10,12 +10,16 @@ class RankingStrategy(ABC):
     """Abstract base class for ranking strategies.
 
     Each strategy acts as a Query Builder, producing the ``sort``
-    clause that will be injected into the OpenSearch query.
+    clause that will be injected into the OpenSearch or Postgres query.
     """
 
     @abstractmethod
     def build_sort(self) -> List[Dict[str, Any]]:
         """Return the OpenSearch sort clause."""
+
+    @abstractmethod
+    def build_sql_sort(self) -> str:
+        """Return the SQL ORDER BY clause (without 'ORDER BY' keyword)."""
 
 
 class PriceFirstStrategy(RankingStrategy):
@@ -23,3 +27,6 @@ class PriceFirstStrategy(RankingStrategy):
 
     def build_sort(self) -> List[Dict[str, Any]]:
         return [{"precio_base": {"order": "asc"}}]
+
+    def build_sql_sort(self) -> str:
+        return "precio_base ASC"

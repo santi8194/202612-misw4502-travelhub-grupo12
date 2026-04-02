@@ -67,4 +67,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileTitle => 'Profile Screen';
+
+  @override
+  String get headerSubtitle =>
+      'Discover your next destination in Latin America';
+
+  @override
+  String get searchWhere => 'Where do you want to go?';
+
+  @override
+  String get searchDates => 'DATES';
+
+  @override
+  String get searchGuests => 'GUESTS';
+
+  @override
+  String get searchButton => 'Search Hotels';
+
+  @override
+  String get destinationsTitle => 'Featured Destinations';
+
+  @override
+  String get viewAllText => 'See all >';
+
+  @override
+  String pricePerNight(String price) {
+    return '$price US\$ / night';
+  }
+
+  @override
+  String get resultsTitle => 'Search Results';
+
+  @override
+  String get specialOffer => 'Special Offer';
 }

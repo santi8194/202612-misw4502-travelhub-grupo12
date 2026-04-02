@@ -18,5 +18,22 @@
   "homeTitle": "Pantalla de Inicio",
   "searchTitle": "Pantalla de Búsqueda",
   "bookingsTitle": "Pantalla de Reservas",
-  "profileTitle": "Pantalla de Perfil"
+  "profileTitle": "Pantalla de Perfil",
+  "headerSubtitle": "Descubre tu próximo destino en América Latina",
+  "searchWhere": "¿A dónde quieres ir?",
+  "searchDates": "FECHAS",
+  "searchGuests": "HUÉSPEDES",
+  "searchButton": "Buscar Hoteles",
+  "destinationsTitle": "Destinos Destacados",
+  "viewAllText": "Ver todos >",
+  "pricePerNight": "{price} US$ / noche",
+  "@pricePerNight": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "resultsTitle": "Resultados de búsqueda",
+  "specialOffer": "Oferta Especial"
 }

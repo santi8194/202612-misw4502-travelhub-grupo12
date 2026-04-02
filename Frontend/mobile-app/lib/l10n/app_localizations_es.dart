@@ -67,4 +67,36 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profileTitle => 'Pantalla de Perfil';
+
+  @override
+  String get headerSubtitle => 'Descubre tu próximo destino en América Latina';
+
+  @override
+  String get searchWhere => '¿A dónde quieres ir?';
+
+  @override
+  String get searchDates => 'FECHAS';
+
+  @override
+  String get searchGuests => 'HUÉSPEDES';
+
+  @override
+  String get searchButton => 'Buscar Hoteles';
+
+  @override
+  String get destinationsTitle => 'Destinos Destacados';
+
+  @override
+  String get viewAllText => 'Ver todos >';
+
+  @override
+  String pricePerNight(String price) {
+    return '$price US\$ / noche';
+  }
+
+  @override
+  String get resultsTitle => 'Resultados de búsqueda';
+
+  @override
+  String get specialOffer => 'Oferta Especial';
 }

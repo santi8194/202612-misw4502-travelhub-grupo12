@@ -18,5 +18,22 @@
   "homeTitle": "Home Screen",
   "searchTitle": "Search Screen",
   "bookingsTitle": "Bookings Screen",
-  "profileTitle": "Profile Screen"
+  "profileTitle": "Profile Screen",
+  "headerSubtitle": "Discover your next destination in Latin America",
+  "searchWhere": "Where do you want to go?",
+  "searchDates": "DATES",
+  "searchGuests": "GUESTS",
+  "searchButton": "Search Hotels",
+  "destinationsTitle": "Featured Destinations",
+  "viewAllText": "See all >",
+  "pricePerNight": "{price} US$ / night",
+  "@pricePerNight": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "resultsTitle": "Search Results",
+  "specialOffer": "Special Offer"
 }

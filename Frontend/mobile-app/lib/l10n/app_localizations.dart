@@ -217,6 +217,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile Screen'**
   String get profileTitle;
+
+  /// No description provided for @headerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover your next destination in Latin America'**
+  String get headerSubtitle;
+
+  /// No description provided for @searchWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Where do you want to go?'**
+  String get searchWhere;
+
+  /// No description provided for @searchDates.
+  ///
+  /// In en, this message translates to:
+  /// **'DATES'**
+  String get searchDates;
+
+  /// No description provided for @searchGuests.
+  ///
+  /// In en, this message translates to:
+  /// **'GUESTS'**
+  String get searchGuests;
+
+  /// No description provided for @searchButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Hotels'**
+  String get searchButton;
+
+  /// No description provided for @destinationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured Destinations'**
+  String get destinationsTitle;
+
+  /// No description provided for @viewAllText.
+  ///
+  /// In en, this message translates to:
+  /// **'See all >'**
+  String get viewAllText;
+
+  /// No description provided for @pricePerNight.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} US\$ / night'**
+  String pricePerNight(String price);
+
+  /// No description provided for @resultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Results'**
+  String get resultsTitle;
+
+  /// No description provided for @specialOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Special Offer'**
+  String get specialOffer;
 }
 
 class _AppLocalizationsDelegate

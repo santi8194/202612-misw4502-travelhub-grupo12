@@ -1,4 +1,4 @@
-"""Integration tests for the FastAPI search endpoint."""
+"""Pruebas de integración para el endpoint de búsqueda de FastAPI."""
 
 from __future__ import annotations
 
@@ -12,7 +12,8 @@ from fastapi.testclient import TestClient
 from app.application.use_cases import BuscarHospedaje
 from app.domain.entities import Coordenadas, Disponibilidad, Hospedaje
 from app.domain.strategies import PriceFirstStrategy
-from app.main import app, get_use_case
+from app.main import app
+from app.dependencies import get_use_case
 
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────

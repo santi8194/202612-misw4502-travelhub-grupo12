@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Seed the local OpenSearch index with fake accommodation data.
+"""Pobla las fuentes de datos locales con hospedajes de prueba.
 
-Usage
------
-1. Start OpenSearch:  ``docker compose up -d``
-2. Wait ~30 s for the cluster to become green.
-3. Run this script:   ``python scripts/seed_data.py``
+Uso
+---
+1. Levantar la infraestructura:  ``docker compose up -d``
+2. Esperar ~10 s a que los contenedores estén listos.
+3. Ejecutar este script:         ``python scripts/seed_data.py``
 
-The script will:
-  - Create the ``hospedajes`` index with the correct nested mapping.
-  - Bulk-index a set of realistic fake properties.
+El script siempre ejecuta:
+  - Inserta 8 hospedajes colombianos en **PostgreSQL**.
+  - Inserta destinos únicos en **Redis** para autocompletado.
+
+Si OpenSearch está disponible (contenedor descomentado en docker-compose):
+  - Crea el índice ``hospedajes`` con el mapping ``nested`` correcto.
+  - Inserta los mismos documentos en OpenSearch.
+  En caso contrario, muestra una advertencia y continúa.
 """
 
 from __future__ import annotations
@@ -25,12 +30,10 @@ from uuid import uuid4, uuid5, NAMESPACE_DNS
 import redis as redis_lib
 import asyncpg
 
-from opensearchpy import OpenSearch
-
-# ── Suppress insecure-request warnings for local dev ─────────────────────────
+# ── Suprimir advertencias de certificados SSL en desarrollo ───────────────────
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# ── Configuration ────────────────────────────────────────────────────────────
+# ── Configuración ─────────────────────────────────────────────────────────────
 
 OS_HOST = "https://localhost:9200"
 OS_USER = "admin"
@@ -38,26 +41,19 @@ OS_PASS = "MyStr0ng!Pass#2026"
 INDEX = "hospedajes"
 REDIS_URL = "redis://localhost:6379/0"
 PG_URL = "postgresql://travelhub:travelhub@localhost:5432/travelhub"
+
 try:
     from app.infrastructure.redis_keys import DEST_INDEX_KEY, DEST_DATA_KEY
 except ImportError:
-    # Fallback when running the script standalone outside the app package
+    # Fallback cuando se ejecuta el script fuera del paquete app
     DEST_INDEX_KEY = "search:destinations:index"
     DEST_DATA_KEY = "search:destinations:data"
 
-# ── OpenSearch client (sync, for scripting) ──────────────────────────────────
-
-client = OpenSearch(
-    hosts=[OS_HOST],
-    http_auth=(OS_USER, OS_PASS),
-    use_ssl=True,
-    verify_certs=False,
-    ssl_show_warn=False,
-)
+# ── Cliente Redis ─────────────────────────────────────────────────────────────
 
 redis_client = redis_lib.Redis.from_url(REDIS_URL, decode_responses=True)
 
-# ── Index mapping ────────────────────────────────────────────────────────────
+# ── Mapping del índice OpenSearch ─────────────────────────────────────────────
 
 MAPPING = {
     "settings": {
@@ -96,7 +92,7 @@ MAPPING = {
     },
 }
 
-# ── Fake data ────────────────────────────────────────────────────────────────
+# ── Datos de prueba ───────────────────────────────────────────────────────────
 
 PROPERTIES = [
     {
@@ -222,8 +218,11 @@ PROPERTIES = [
 ]
 
 
+# ── Helpers de generación de datos ────────────────────────────────────────────
+
+
 def _generate_availability(base_date: date, days: int = 60) -> list[dict]:
-    """Generate daily availability starting from *base_date*."""
+    """Genera disponibilidad diaria a partir de *base_date* por *days* días."""
     availability = []
     for i in range(days):
         cupos = random.choice([0, 0, 1, 2, 3, 4, 5, 6, 8, 10])
@@ -237,7 +236,7 @@ def _generate_availability(base_date: date, days: int = 60) -> list[dict]:
 
 
 def _build_document(prop: dict) -> dict:
-    """Build an OpenSearch document from a property definition."""
+    """Construye un documento de hospedaje a partir de una definición de propiedad."""
     today = date.today()
     return {
         "id_propiedad": str(uuid4()),
@@ -260,13 +259,54 @@ def _build_document(prop: dict) -> dict:
     }
 
 
-def _seed_redis_destinations() -> None:
-    """Extract unique destinations from PROPERTIES and insert into Redis.
+# ── Funciones de seed por motor ───────────────────────────────────────────────
 
-    Each unique (ciudad, estado_provincia, pais) tuple gets a single entry.
-    Uses uuid5 for deterministic, stable IDs per destination.
+
+def _seed_opensearch(docs: list[dict]) -> None:
+    """Pobla el índice de OpenSearch.
+
+    Esta función es opcional: solo se ejecuta si OpenSearch está disponible.
+    El cliente se crea aquí dentro para evitar fallos al importar el módulo
+    cuando OpenSearch no está corriendo.
     """
-    print("🔴  Poblando Redis con destinos únicos...")
+    from opensearchpy import OpenSearch
+
+    os_client = OpenSearch(
+        hosts=[OS_HOST],
+        http_auth=(OS_USER, OS_PASS),
+        use_ssl=True,
+        verify_certs=False,
+        ssl_show_warn=False,
+    )
+
+    print(f"\n🔵  Poblando OpenSearch...")
+
+    # Eliminar índice existente si hay uno
+    if os_client.indices.exists(index=INDEX):
+        print(f"   🗑  Eliminando índice existente '{INDEX}'...")
+        os_client.indices.delete(index=INDEX)
+
+    # Crear índice con mapping nested
+    print(f"   📦  Creando índice '{INDEX}' con mapping nested...")
+    os_client.indices.create(index=INDEX, body=MAPPING)
+
+    # Indexar documentos
+    print(f"   📝  Indexando {len(docs)} hospedajes...")
+    for doc in docs:
+        resp = os_client.index(index=INDEX, body=doc, refresh=True)
+        print(f"      ✅  {doc['propiedad_nombre']} ({doc['ciudad']}) → {resp['_id']}")
+
+    count = os_client.count(index=INDEX)["count"]
+    print(f"   🎉  {count} documentos indexados en '{INDEX}'.")
+
+
+def _seed_redis_destinations() -> None:
+    """Extrae destinos únicos de PROPERTIES e inserta en Redis.
+
+    Cada combinación única (ciudad, estado_provincia, pais) obtiene un ID
+    determinista usando uuid5 para mantener estabilidad entre ejecuciones.
+    """
+    print("\n🔴  Poblando Redis con destinos únicos...")
     redis_client.delete(DEST_INDEX_KEY, DEST_DATA_KEY)
 
     seen: set[tuple[str, str, str]] = set()
@@ -287,10 +327,10 @@ def _seed_redis_destinations() -> None:
         dest_id = str(uuid5(NAMESPACE_DNS, f"{ciudad}|{estado_provincia}|{pais}"))
         ciudad_lower = ciudad.lower()
 
-        # A. Sorted Set — índice lexicográfico (score=0 para orden lexicográfico)
+        # Sorted Set — índice lexicográfico (score=0 para orden lexicográfico)
         pipe.zadd(DEST_INDEX_KEY, {f"{ciudad_lower}:{dest_id}": 0})
 
-        # B. Hash — payload completo como JSON
+        # Hash — payload completo como JSON
         payload = json.dumps({
             "ciudad": ciudad,
             "estado_provincia": estado_provincia,
@@ -302,7 +342,9 @@ def _seed_redis_destinations() -> None:
     pipe.execute()
     print(f"   ✅  {count} destinos únicos insertados en Redis.")
 
+
 async def _seed_postgres_async(docs: list[dict]) -> None:
+    """Inserta los hospedajes en PostgreSQL de forma asíncrona."""
     print("\n🐘  Poblando PostgreSQL con hospedajes...")
     try:
         conn = await asyncpg.connect(PG_URL)
@@ -310,7 +352,7 @@ async def _seed_postgres_async(docs: list[dict]) -> None:
         print(f"   ⚠️  No se pudo conectar a PostgreSQL: {e}")
         return
 
-    # Ensure table exists
+    # Crear tabla si no existe
     await conn.execute("""
         CREATE TABLE IF NOT EXISTS hospedajes (
             id_propiedad UUID PRIMARY KEY,
@@ -366,103 +408,42 @@ async def _seed_postgres_async(docs: list[dict]) -> None:
             json.dumps(doc["disponibilidad"]),
         )
         count += 1
-    
+
     await conn.close()
     print(f"   ✅  {count} hospedajes insertados en PostgreSQL.")
 
+
 def _seed_postgres(docs: list[dict]) -> None:
+    """Wrapper síncrono para la inserción asíncrona en PostgreSQL."""
     asyncio.run(_seed_postgres_async(docs))
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 
 def main() -> None:
-    # 1. Delete index if it already exists
-    if client.indices.exists(index=INDEX):
-        print(f"🗑  Deleting existing index '{INDEX}'...")
-        client.indices.delete(index=INDEX)
+    """Ejecuta el proceso de seed en todos los motores disponibles."""
 
-    # 2. Create index with nested mapping
-    print(f"📦  Creating index '{INDEX}' with nested mapping...")
-    client.indices.create(index=INDEX, body=MAPPING)
+    # 1. Generar los documentos de prueba
+    print(f"📝  Generando {len(PROPERTIES)} hospedajes de prueba...")
+    docs = [_build_document(prop) for prop in PROPERTIES]
+    for doc in docs:
+        print(f"   ✅  {doc['propiedad_nombre']} ({doc['ciudad']})")
 
-    # 3. Index documents
-    print(f"📝  Indexing {len(PROPERTIES)} accommodations...")
-    docs_inserted = []
-    for prop in PROPERTIES:
-        doc = _build_document(prop)
-        resp = client.index(index=INDEX, body=doc, refresh=True)
-        docs_inserted.append(doc)
-        print(f"   ✅  {prop['nombre']} ({prop['ciudad']}) → {resp['_id']}")
+    # 2. Intentar seed en OpenSearch (opcional: solo si el contenedor está corriendo)
+    try:
+        _seed_opensearch(docs)
+    except Exception as e:
+        print(f"\n⚠️  OpenSearch no está disponible, omitiendo: {e}")
+        print("   Para activarlo, descomenta los servicios en docker-compose.yml")
 
-    # 3b. Seed Redis with unique destinations
+    # 3. Seed Redis con destinos únicos (siempre)
     _seed_redis_destinations()
-    
-    # 3c. Seed PostgreSQL
-    _seed_postgres(docs_inserted)
 
-    # 4. Verify
-    count = client.count(index=INDEX)["count"]
-    print(f"\n🎉  Done! {count} documents indexed in '{INDEX}'.")
+    # 4. Seed PostgreSQL (siempre)
+    _seed_postgres(docs)
 
-    # 5. Show sample query
-    print("\n" + "=" * 60)
-    print("🔍  Sample query: Cartagena, 2 guests, next 3 days")
-    print("=" * 60)
-    today = date.today()
-    sample_query = {
-        "query": {
-            "bool": {
-                "must": [
-                    {"term": {"ciudad.keyword": "Cartagena"}},
-                    {"term": {"pais.keyword": "Colombia"}},
-                ]
-                + [
-                    {
-                        "nested": {
-                            "path": "disponibilidad",
-                            "query": {
-                                "bool": {
-                                    "must": [
-                                        {
-                                            "term": {
-                                                "disponibilidad.fecha": (
-                                                    today + timedelta(days=d)
-                                                ).isoformat()
-                                            }
-                                        },
-                                        {
-                                            "range": {
-                                                "disponibilidad.cupos": {"gte": 2}
-                                            }
-                                        },
-                                    ]
-                                }
-                            },
-                        }
-                    }
-                    for d in range(3)
-                ]
-            }
-        },
-        "sort": [{"precio_base": {"order": "asc"}}],
-    }
-
-    result = client.search(index=INDEX, body=sample_query)
-    hits = result["hits"]["hits"]
-    print(f"\n   Found {len(hits)} results:\n")
-    for hit in hits:
-        src = hit["_source"]
-        print(
-            f"   🏨  {src['propiedad_nombre']} | "
-            f"${src['precio_base']:,.0f} {src['moneda']} | "
-            f"⭐ {src['rating_promedio']} | "
-            f"{src['ciudad']}, {src['pais']}"
-        )
-
-    if not hits:
-        print("   (No results – availability is random, try again or edit seed data)")
+    print("\n🎉  Seed completado.")
 
 
 if __name__ == "__main__":

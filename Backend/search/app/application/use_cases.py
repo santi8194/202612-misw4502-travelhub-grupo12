@@ -1,4 +1,4 @@
-"""Application use cases for the search service."""
+"""Casos de uso de la capa de aplicación para el microservicio de búsqueda."""
 
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ from app.domain.strategies import RankingStrategy
 
 
 class BuscarHospedaje:
-    """Use case: search accommodations by destination, dates and guests.
+    """Caso de uso: busca hospedajes por destino, fechas y cantidad de huéspedes.
 
-    Orchestrates the call to the repository and maps domain entities
-    to response DTOs.
+    Orquesta la llamada al repositorio y mapea las entidades de dominio
+    a DTOs de respuesta.
     """
 
     def __init__(

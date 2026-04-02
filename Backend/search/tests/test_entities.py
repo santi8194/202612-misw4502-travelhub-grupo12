@@ -1,4 +1,4 @@
-"""Unit tests for domain entities."""
+"""Pruebas unitarias para las entidades de dominio."""
 
 from __future__ import annotations
 

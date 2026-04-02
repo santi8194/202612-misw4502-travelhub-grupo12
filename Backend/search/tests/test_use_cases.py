@@ -1,4 +1,4 @@
-"""Unit tests for the BuscarHospedaje use case."""
+"""Pruebas unitarias para el caso de uso BuscarHospedaje."""
 
 from __future__ import annotations
 

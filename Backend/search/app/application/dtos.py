@@ -1,4 +1,4 @@
-"""Pydantic v2 DTOs for request validation and response serialisation."""
+"""DTOs Pydantic v2 para la validación de solicitudes y serialización de respuestas."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ MAX_RANGE_DAYS = 30
 
 
 class SearchRequest(BaseModel):
-    """Query-parameter DTO for the search endpoint."""
+    """DTO de parámetros de consulta para el endpoint de búsqueda."""
 
     ciudad: str = Field(..., min_length=1, description="City name")
     estado_provincia: str = Field("", description="State or province (optional)")
@@ -47,7 +47,7 @@ class CoordenadasDTO(BaseModel):
 
 
 class HospedajeResponse(BaseModel):
-    """Single accommodation result."""
+    """DTO de respuesta para un resultado de hospedaje."""
 
     id_propiedad: UUID
     id_categoria: UUID
@@ -68,14 +68,14 @@ class HospedajeResponse(BaseModel):
 
 
 class SearchResponse(BaseModel):
-    """Response wrapper for search results."""
+    """Contenedor de la respuesta con los resultados de búsqueda."""
 
     resultados: List[HospedajeResponse]
     total: int
 
 
 class DestinationItem(BaseModel):
-    """Single destination suggestion for autocomplete."""
+    """Sugerencia de destino individual para el autocompletado."""
 
     ciudad: str
     estado_provincia: str
@@ -83,6 +83,6 @@ class DestinationItem(BaseModel):
 
 
 class DestinationResponse(BaseModel):
-    """Response wrapper for destination autocomplete."""
+    """Contenedor de la respuesta para el autocompletado de destinos."""
 
     results: List[DestinationItem]

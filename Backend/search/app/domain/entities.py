@@ -1,4 +1,4 @@
-"""Domain entities for the search service."""
+"""Entidades de dominio para el microservicio de búsqueda."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from uuid import UUID
 
 @dataclass(frozen=True)
 class Disponibilidad:
-    """Value Object representing availability for a specific date."""
+    """Objeto de Valor que representa la disponibilidad para una fecha específica."""
 
     fecha: date
     cupos: int
@@ -23,7 +23,7 @@ class Disponibilidad:
 
 @dataclass(frozen=True)
 class Coordenadas:
-    """Value Object representing geographical coordinates."""
+    """Objeto de Valor que representa las coordenadas geográficas de un hospedaje."""
 
     lat: float
     lon: float
@@ -37,7 +37,7 @@ class Coordenadas:
 
 @dataclass(frozen=True)
 class Hospedaje:
-    """Entity representing an accommodation in the search index."""
+    """Entidad que representa un hospedaje en el índice de búsqueda."""
 
     id_propiedad: UUID
     id_categoria: UUID

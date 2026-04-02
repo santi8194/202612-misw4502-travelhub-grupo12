@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for the search microservice test suite."""
+"""Fixtures compartidos de pytest para la suite de pruebas del microservicio de búsqueda."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from app.domain.entities import Coordenadas, Disponibilidad, Hospedaje
 
 @pytest.fixture
 def sample_hospedaje() -> Hospedaje:
-    """Return a valid Hospedaje entity with realistic default values."""
+    """Retorna una entidad Hospedaje válida con valores por defecto realistas."""
     return Hospedaje(
         id_propiedad=uuid4(),
         id_categoria=uuid4(),
@@ -40,7 +40,7 @@ def sample_hospedaje() -> Hospedaje:
 
 @pytest.fixture
 def sample_search_request() -> SearchRequest:
-    """Return a valid SearchRequest with realistic default values."""
+    """Retorna una SearchRequest válida con valores por defecto realistas."""
     return SearchRequest(
         ciudad="Cartagena",
         estado_provincia="Bolívar",

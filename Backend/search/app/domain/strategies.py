@@ -1,4 +1,4 @@
-"""Strategy pattern for ranking/sorting search results."""
+"""Patrón Strategy para el ordenamiento de resultados de búsqueda."""
 
 from __future__ import annotations
 
@@ -7,19 +7,19 @@ from typing import Any, Dict, List
 
 
 class RankingStrategy(ABC):
-    """Abstract base class for ranking strategies.
+    """Clase base abstracta para las estrategias de ordenamiento.
 
-    Each strategy acts as a Query Builder, producing the ``sort``
-    clause that will be injected into the OpenSearch or Postgres query.
+    Cada estrategia actúa como un Query Builder, produciendo la cláusula
+    de ordenamiento para el motor activo (OpenSearch o PostgreSQL).
     """
 
     @abstractmethod
     def build_sort(self) -> List[Dict[str, Any]]:
-        """Return the OpenSearch sort clause."""
+        """Retorna la cláusula ``sort`` de OpenSearch."""
 
     @abstractmethod
     def build_sql_sort(self) -> str:
-        """Return the SQL ORDER BY clause (without 'ORDER BY' keyword)."""
+        """Retorna la cláusula SQL ``ORDER BY`` (sin la palabra clave 'ORDER BY')."""
 
 
 class PriceFirstStrategy(RankingStrategy):

@@ -1,4 +1,4 @@
-"""Tests for the destination autocomplete endpoint."""
+"""Pruebas para el endpoint de autocompletado de destinos."""
 
 from __future__ import annotations
 
@@ -8,7 +8,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.application.ports import DestinationRepository
-from app.main import app, get_destination_repo
+from app.main import app
+from app.dependencies import get_destination_repo
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

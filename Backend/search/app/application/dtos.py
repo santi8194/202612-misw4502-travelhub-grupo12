@@ -7,7 +7,7 @@ from decimal import Decimal
 from typing import List
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_serializer, model_validator
 
 
 # ── Request ──────────────────────────────────────────────────────────────────
@@ -65,6 +65,12 @@ class HospedajeResponse(BaseModel):
     precio_base: Decimal
     moneda: str
     es_reembolsable: bool
+
+    @field_serializer("precio_base")
+    @classmethod
+    def _serialize_precio(cls, v: Decimal) -> str:
+        """Normaliza el Decimal para evitar notación científica (ej. '3.2E+5' → '320000.00')."""
+        return format(v, 'f')
 
 
 class SearchResponse(BaseModel):

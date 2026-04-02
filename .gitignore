@@ -1,0 +1,12 @@
+##Entender la logica
+compile_files.py
+contents_summary_4502.txt
+contents_summary.txt
+.agents
+.windsurf
+
+.venv/
+venv/
+__pycache__/
+.DS_Store
+*.jks

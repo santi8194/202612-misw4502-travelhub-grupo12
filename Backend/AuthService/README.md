@@ -12,6 +12,16 @@ Instala las dependencias:
 pip install -r requirements.txt
 ```
 
+## Pruebas y Cobertura
+
+Desde la carpeta `Backend/AuthService`, ejecuta:
+
+```bash
+python -m pytest --maxfail=1 --disable-warnings --cov=. --cov-report=term-missing --cov-fail-under=80
+```
+
+Este comando estandariza la validacion de pruebas y fuerza una cobertura minima del 80%.
+
 ## Ejecución
 
 Para iniciar el servidor en modo desarrollo:

@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+#  opensearch:
+#    image: opensearchproject/opensearch:2.17.1
+#    container_name: travelhub-opensearch
+#    environment:
+#      - discovery.type=single-node
+#      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=MyStr0ng!Pass#2026
+#      - plugins.security.ssl.http.enabled=true
+#      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+#    ports:
+#      - "9200:9200"
+#      - "9600:9600"
+#    volumes:
+#      - opensearch-data:/usr/share/opensearch/data
+#    networks:
+#      - travelhub-net
+#
+#  opensearch-dashboards:
+#    image: opensearchproject/opensearch-dashboards:2.17.1
+#    container_name: travelhub-dashboards
+#    environment:
+#      - OPENSEARCH_HOSTS=["https://opensearch:9200"]
+#    ports:
+#      - "5601:5601"
+#    depends_on:
+#      - opensearch
+#    networks:
+#      - travelhub-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: travelhub_redis_search
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - travelhub-net
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: travelhub-postgres-search
+    environment:
+      POSTGRES_USER: travelhub
+      POSTGRES_PASSWORD: travelhub
+      POSTGRES_DB: travelhub
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - travelhub-net
+
+#  redis-insight:
+#    image: redislabs/redisinsight:latest
+#    container_name: travelhub_redis_insight
+#    ports:
+#      - "8001:5540"      
+#    networks:
+#      - travelhub-net
+
+volumes:
+#  opensearch-data:
+  redis_data:
+  postgres_data:
+
+networks:
+  travelhub-net:
+    driver: bridge

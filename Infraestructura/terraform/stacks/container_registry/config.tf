@@ -9,12 +9,18 @@ provider "aws" {
 }
 
 terraform {
-  required_version = "~> 1.12.0" # Se requiere Terraform 1.12.0 mínimo.
+  required_version = ">= 1.10"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5"
     }
   }
-  backend "s3" {}
+  backend "s3" {
+    bucket       = "travelhub-tfstate-dev-us-east-1"
+    key          = "container_registry/dev/terraform.tfstate"
+    region       = "us-east-1"
+    use_lockfile = true
+    encrypt      = true
+  }
 }

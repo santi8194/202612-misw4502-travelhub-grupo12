@@ -1,0 +1,72 @@
+"""
+Propósito del archivo: Define los modelos ORM (SQLAlchemy) para usuarios, roles y su relación.
+Rol dentro del microservicio: Representa la estructura de datos persistente en PostgreSQL.
+"""
+
+import uuid
+from datetime import datetime
+from sqlalchemy import Column, String, DateTime, Table, ForeignKey, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from infrastructure.database import Base
+
+
+# Tabla de asociación many-to-many entre usuarios y roles
+user_roles_association = Table(
+    'user_roles',
+    Base.metadata,
+    Column('user_id', UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
+    Column('role_id', UUID(as_uuid=True), ForeignKey('roles.id', ondelete='CASCADE'), primary_key=True),
+    UniqueConstraint('user_id', 'role_id', name='uq_user_role'),
+)
+
+
+class Role(Base):
+    """
+    Modelo para roles (ADMIN_HOTEL, USER, etc.).
+    Permite un sistema flexible de permisos basado en roles.
+    """
+    __tablename__ = 'roles'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(50), unique=True, nullable=False, index=True)
+    description = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relación hacia usuarios
+    users = relationship(
+        'User',
+        secondary=user_roles_association,
+        back_populates='roles',
+        cascade='all, delete'
+    )
+    
+    def __repr__(self):
+        return f"<Role {self.name}>"
+
+
+class User(Base):
+    """
+    Modelo para usuarios del sistema.
+    Almacena credenciales, información de contacto y roles asignados.
+    """
+    __tablename__ = 'users'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    full_name = Column(String(255), nullable=True)
+    password_hash = Column(String(255), nullable=False)
+    is_active = Column(String(10), default='true', nullable=False)  # 'true' o 'false' para compatibilidad
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relación hacia roles
+    roles = relationship(
+        'Role',
+        secondary=user_roles_association,
+        back_populates='users',
+        cascade='all, delete'
+    )
+    
+    def __repr__(self):
+        return f"<User {self.email}>"

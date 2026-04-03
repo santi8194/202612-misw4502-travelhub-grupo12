@@ -24,6 +24,18 @@ class Settings(BaseSettings):
     MAX_LOGIN_ATTEMPTS: int = 5
     LOCKOUT_DURATION_MINUTES: int = 15
 
+    # Configuración de base de datos
+    DB_USER: str = "auth_user"
+    DB_PASSWORD: str = "auth_password"
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_NAME: str = "auth_db"
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        """Construye la URL de conexión a PostgreSQL"""
+        return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
     class Config:
         case_sensitive = True
         env_file = ".env"

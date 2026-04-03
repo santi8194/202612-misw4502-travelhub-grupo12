@@ -18,5 +18,32 @@
   "homeTitle": "Pantalla de Inicio",
   "searchTitle": "Pantalla de Búsqueda",
   "bookingsTitle": "Pantalla de Reservas",
-  "profileTitle": "Pantalla de Perfil"
+  "profileTitle": "Pantalla de Perfil",
+  "headerSubtitle": "Descubre tu próximo destino en América Latina",
+  "searchWhere": "¿A dónde quieres ir?",
+  "searchDates": "FECHAS",
+  "searchGuests": "HUÉSPEDES",
+  "searchButton": "Buscar Hoteles",
+  "resultsTitle": "Resultados de búsqueda",
+  "specialOffer": "Oferta Especial",
+  "noResultsTitle": "No hay propiedades disponibles",
+  "noResultsMessage": "No se encontraron propiedades que coincidan con tu búsqueda. Intenta ajustar el destino, las fechas o la cantidad de huéspedes.",
+  "guestCountLabel": "{count, plural, =1{1 huésped} other{{count} huéspedes}}",
+  "@guestCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchingButton": "Buscando...",
+  "anyDestination": "CUALQUIER DESTINO",
+  "openDates": "FECHAS ABIERTAS",
+  "tryAnotherSearch": "Intentar otra búsqueda",
+  "cachedResultsBanner": "Mostrando resultados en caché. Se actualizarán al recuperar conexión."
 }
+
+
+
+
+

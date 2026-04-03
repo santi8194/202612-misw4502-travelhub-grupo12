@@ -217,6 +217,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile Screen'**
   String get profileTitle;
+
+  /// No description provided for @headerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover your next destination in Latin America'**
+  String get headerSubtitle;
+
+  /// No description provided for @searchWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Where do you want to go?'**
+  String get searchWhere;
+
+  /// No description provided for @searchDates.
+  ///
+  /// In en, this message translates to:
+  /// **'DATES'**
+  String get searchDates;
+
+  /// No description provided for @searchGuests.
+  ///
+  /// In en, this message translates to:
+  /// **'GUESTS'**
+  String get searchGuests;
+
+  /// No description provided for @searchButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Hotels'**
+  String get searchButton;
+
+  /// No description provided for @resultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Results'**
+  String get resultsTitle;
+
+  /// No description provided for @specialOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Special Offer'**
+  String get specialOffer;
+
+  /// No description provided for @noResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No properties available'**
+  String get noResultsTitle;
+
+  /// No description provided for @noResultsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No properties were found matching your search. Try adjusting your destination, dates, or number of guests.'**
+  String get noResultsMessage;
+
+  /// No description provided for @guestCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 guest} other{{count} guests}}'**
+  String guestCountLabel(int count);
+
+  /// No description provided for @searchingButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching...'**
+  String get searchingButton;
+
+  /// No description provided for @anyDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'ANY DESTINATION'**
+  String get anyDestination;
+
+  /// No description provided for @openDates.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN DATES'**
+  String get openDates;
+
+  /// No description provided for @tryAnotherSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another search'**
+  String get tryAnotherSearch;
+
+  /// No description provided for @cachedResultsBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing cached results. They will be updated once connection is restored.'**
+  String get cachedResultsBanner;
 }
 
 class _AppLocalizationsDelegate

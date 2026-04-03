@@ -248,24 +248,6 @@ abstract class AppLocalizations {
   /// **'Search Hotels'**
   String get searchButton;
 
-  /// No description provided for @destinationsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Featured Destinations'**
-  String get destinationsTitle;
-
-  /// No description provided for @viewAllText.
-  ///
-  /// In en, this message translates to:
-  /// **'See all >'**
-  String get viewAllText;
-
-  /// No description provided for @pricePerNight.
-  ///
-  /// In en, this message translates to:
-  /// **'{price} US\$ / night'**
-  String pricePerNight(String price);
-
   /// No description provided for @resultsTitle.
   ///
   /// In en, this message translates to:
@@ -277,6 +259,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Special Offer'**
   String get specialOffer;
+
+  /// No description provided for @noResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No properties available'**
+  String get noResultsTitle;
+
+  /// No description provided for @noResultsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No properties were found matching your search. Try adjusting your destination, dates, or number of guests.'**
+  String get noResultsMessage;
+
+  /// No description provided for @guestCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 guest} other{{count} guests}}'**
+  String guestCountLabel(int count);
+
+  /// No description provided for @searchingButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching...'**
+  String get searchingButton;
+
+  /// No description provided for @anyDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'ANY DESTINATION'**
+  String get anyDestination;
+
+  /// No description provided for @openDates.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN DATES'**
+  String get openDates;
+
+  /// No description provided for @tryAnotherSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another search'**
+  String get tryAnotherSearch;
+
+  /// No description provided for @cachedResultsBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing cached results. They will be updated once connection is restored.'**
+  String get cachedResultsBanner;
 }
 
 class _AppLocalizationsDelegate

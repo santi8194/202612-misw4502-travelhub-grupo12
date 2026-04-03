@@ -24,16 +24,27 @@
   "searchDates": "DATES",
   "searchGuests": "GUESTS",
   "searchButton": "Search Hotels",
-  "destinationsTitle": "Featured Destinations",
-  "viewAllText": "See all >",
-  "pricePerNight": "{price} US$ / night",
-  "@pricePerNight": {
+  "resultsTitle": "Search Results",
+  "specialOffer": "Special Offer",
+  "noResultsTitle": "No properties available",
+  "noResultsMessage": "No properties were found matching your search. Try adjusting your destination, dates, or number of guests.",
+  "guestCountLabel": "{count, plural, =1{1 guest} other{{count} guests}}",
+  "@guestCountLabel": {
     "placeholders": {
-      "price": {
-        "type": "String"
+      "count": {
+        "type": "int"
       }
     }
   },
-  "resultsTitle": "Search Results",
-  "specialOffer": "Special Offer"
+  "searchingButton": "Searching...",
+  "anyDestination": "ANY DESTINATION",
+  "openDates": "OPEN DATES",
+  "tryAnotherSearch": "Try another search",
+  "cachedResultsBanner": "Showing cached results. They will be updated once connection is restored."
 }
+
+
+
+
+
+

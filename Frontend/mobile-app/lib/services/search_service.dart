@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/destination.dart';
 import '../models/hotel.dart';
 import '../models/location_suggestion.dart';
 import 'cache_service.dart';
@@ -35,10 +34,6 @@ class SearchService {
   SearchService({CacheService? cacheService, http.Client? httpClient})
     : _cacheService = cacheService ?? CacheService(),
       _httpClient = httpClient ?? http.Client();
-
-  Future<List<Destination>> getFeaturedDestinations() async {
-    return [];
-  }
 
   Future<List<Hotel>> searchHotels({
     required String query,

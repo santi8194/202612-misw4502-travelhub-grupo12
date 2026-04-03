@@ -24,16 +24,26 @@
   "searchDates": "FECHAS",
   "searchGuests": "HUÉSPEDES",
   "searchButton": "Buscar Hoteles",
-  "destinationsTitle": "Destinos Destacados",
-  "viewAllText": "Ver todos >",
-  "pricePerNight": "{price} US$ / noche",
-  "@pricePerNight": {
+  "resultsTitle": "Resultados de búsqueda",
+  "specialOffer": "Oferta Especial",
+  "noResultsTitle": "No hay propiedades disponibles",
+  "noResultsMessage": "No se encontraron propiedades que coincidan con tu búsqueda. Intenta ajustar el destino, las fechas o la cantidad de huéspedes.",
+  "guestCountLabel": "{count, plural, =1{1 huésped} other{{count} huéspedes}}",
+  "@guestCountLabel": {
     "placeholders": {
-      "price": {
-        "type": "String"
+      "count": {
+        "type": "int"
       }
     }
   },
-  "resultsTitle": "Resultados de búsqueda",
-  "specialOffer": "Oferta Especial"
+  "searchingButton": "Buscando...",
+  "anyDestination": "CUALQUIER DESTINO",
+  "openDates": "FECHAS ABIERTAS",
+  "tryAnotherSearch": "Intentar otra búsqueda",
+  "cachedResultsBanner": "Mostrando resultados en caché. Se actualizarán al recuperar conexión."
 }
+
+
+
+
+

@@ -7,14 +7,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
 
 import 'package:travel_hub/services/search_service.dart';
-import 'package:travel_hub/models/destination.dart';
 import 'package:travel_hub/models/hotel.dart';
 import 'package:travel_hub/models/location_suggestion.dart';
 
 class MockSearchService extends SearchService {
-  @override
-  Future<List<Destination>> getFeaturedDestinations() async => [];
-  
   @override
   Future<List<Hotel>> searchHotels({
     required query,

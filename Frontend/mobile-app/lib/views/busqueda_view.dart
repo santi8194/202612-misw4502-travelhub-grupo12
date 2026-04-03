@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -25,31 +26,26 @@ class _BusquedaViewState extends State<BusquedaView> {
   }
 
   String _formatDates(DateTimeRange? range) {
-    if (range == null) return '12 - 18 Mar';
+    final locale = Localizations.localeOf(context).toString();
+    final monthFormatter = DateFormat.MMM(locale);
+
+    if (range == null) {
+      // Default placeholder: "12 - 18 Mar"
+      final placeholderDate = DateTime(2026, 3, 12);
+      return '12 - 18 ${monthFormatter.format(placeholderDate)}';
+    }
+
     final start = range.start;
     final end = range.end;
-    final monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
+
     if (start.month == end.month) {
-      return '${start.day} - ${end.day} ${monthNames[start.month - 1]}';
+      return '${start.day} - ${end.day} ${monthFormatter.format(start)}';
     }
-    return '${start.day} ${monthNames[start.month - 1]} - ${end.day} ${monthNames[end.month - 1]}';
+    return '${start.day} ${monthFormatter.format(start)} - ${end.day} ${monthFormatter.format(end)}';
   }
 
   String _formatGuests(int count) {
-    return '$count adulto${count > 1 ? 's' : ''}';
+    return AppLocalizations.of(context)!.guestCountLabel(count);
   }
 
   Future<void> _selectDateRange(SearchViewModel vm) async {
@@ -479,7 +475,7 @@ class _BusquedaViewState extends State<BusquedaView> {
                               )
                             : const Icon(Icons.search),
                         label: Text(
-                          vm.isSearching ? 'Buscando...' : l10n.searchButton,
+                          vm.isSearching ? l10n.searchingButton : l10n.searchButton,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -498,168 +494,6 @@ class _BusquedaViewState extends State<BusquedaView> {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 40),
-
-              // Destinations Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.destinationsTitle,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    l10n.viewAllText,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // Destinations List
-              SizedBox(
-                height: 300,
-                child: vm.isLoadingDestinations
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: vm.featuredDestinations.length,
-                        itemBuilder: (context, index) {
-                          final dest = vm.featuredDestinations[index];
-                          return Container(
-                            width: 240,
-                            margin: const EdgeInsets.only(right: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(24),
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      Image.network(
-                                        dest.imageUrl,
-                                        height: 160,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      Positioned(
-                                        top: 12,
-                                        right: 12,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.star,
-                                                color: Colors.orange,
-                                                size: 16,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                dest.rating.toString(),
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        dest.title,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.location_on_outlined,
-                                            size: 16,
-                                            color: Colors.grey,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            dest.location,
-                                            style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      // Price
-                                      Text.rich(
-                                        TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: '${dest.price} US\$',
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                            const TextSpan(
-                                              text: ' / noche',
-                                              style: TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
               ),
               const SizedBox(height: 32),
             ],

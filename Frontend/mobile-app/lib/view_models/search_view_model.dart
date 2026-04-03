@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../models/destination.dart';
 import '../models/hotel.dart';
 import '../models/location_suggestion.dart';
 import '../services/connectivity_service.dart';
@@ -19,11 +18,9 @@ class SearchViewModel extends ChangeNotifier {
   int _guestCount = 2;
 
   // Data State
-  List<Destination> _featuredDestinations = [];
   List<Hotel> _searchResults = [];
 
   // Loading States
-  bool _isLoadingDestinations = false;
   bool _isSearching = false;
   bool _isDestinationError = false;
 
@@ -36,13 +33,12 @@ class SearchViewModel extends ChangeNotifier {
   String get destinationQuery => _destinationQuery;
   DateTimeRange? get selectedDateRange => _selectedDateRange;
   int get guestCount => _guestCount;
-  List<Destination> get featuredDestinations => _featuredDestinations;
   List<Hotel> get searchResults => _searchResults;
-  bool get isLoadingDestinations => _isLoadingDestinations;
   bool get isSearching => _isSearching;
   bool get isDestinationError => _isDestinationError;
   bool get isOffline => _isOffline;
   bool get isFromCache => _isFromCache;
+  bool get hasNoResults => _hasPerformedSearch && _searchResults.isEmpty && !_isSearching;
 
   SearchViewModel({
     SearchService? searchService,
@@ -51,7 +47,6 @@ class SearchViewModel extends ChangeNotifier {
        _connectivityService = connectivityService ?? ConnectivityService() {
     _isOffline = !_connectivityService.isOnline;
     _listenToConnectivity();
-    loadFeaturedDestinations();
   }
 
   void _listenToConnectivity() {
@@ -94,20 +89,6 @@ class SearchViewModel extends ChangeNotifier {
   }
 
   // API Actions
-  Future<void> loadFeaturedDestinations() async {
-    _isLoadingDestinations = true;
-    notifyListeners();
-
-    try {
-      _featuredDestinations = await _searchService.getFeaturedDestinations();
-    } catch (e) {
-      debugPrint('Error loading destinations: $e');
-    } finally {
-      _isLoadingDestinations = false;
-      notifyListeners();
-    }
-  }
-
   Future<List<LocationSuggestion>> fetchLocationSuggestions(
     String query,
   ) async {

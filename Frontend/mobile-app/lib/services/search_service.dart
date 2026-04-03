@@ -160,7 +160,7 @@ class SearchService {
         '$baseUrl/api/v1/search/destinations',
       ).replace(queryParameters: {'q': query});
 
-      final response = await http
+      final response = await _httpClient
           .get(
             uri,
             headers: {

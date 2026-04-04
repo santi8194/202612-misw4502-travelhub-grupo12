@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'Backend/AuthService/**'
+      - 'Backend/authservice/**'
       - 'Infraestructura/k8s/aws/authservice-*.yaml'
       - '.github/workflows/backend-cd.yml'
   workflow_dispatch:
@@ -19,8 +19,8 @@ permissions:
   id-token: write
 
 env:
-  SERVICE_FOLDER: Backend/AuthService
-  DOCKERFILE_PATH: Backend/AuthService/Dockerfile
+  SERVICE_FOLDER: Backend/authservice
+  DOCKERFILE_PATH: Backend/authservice/Dockerfile
   DEPLOYMENT_MANIFEST: Infraestructura/k8s/aws/authservice-deployment.yaml
   SERVICE_MANIFEST: Infraestructura/k8s/aws/authservice-service.yaml
   RENDERED_DEPLOYMENT_MANIFEST: /tmp/authservice-deployment.rendered.yaml
@@ -34,7 +34,7 @@ env:
 
 jobs:
   deploy-authservice:
-    name: Deploy AuthService to EKS
+    name: Deploy authservice to EKS
     runs-on: ubuntu-latest
     environment: dev
 
@@ -48,7 +48,7 @@ jobs:
           set -euo pipefail
 
           if [ ! -f "${DOCKERFILE_PATH}" ]; then
-            echo "::error file=${DOCKERFILE_PATH}::Missing Dockerfile for AuthService. Expected file '${DOCKERFILE_PATH}' was not found."
+            echo "::error file=${DOCKERFILE_PATH}::Missing Dockerfile for authservice. Expected file '${DOCKERFILE_PATH}' was not found."
             exit 1
           fi
 
@@ -170,7 +170,7 @@ jobs:
           if ! aws ecr describe-repositories \
             --repository-names "${ECR_REPOSITORY}" \
             --region "${AWS_REGION}" >/dev/null 2>&1; then
-            echo "::error::ECR repository '${ECR_REPOSITORY}' does not exist in region '${AWS_REGION}'. Create it before running this workflow."
+            echo "::error::ECR repository '${ECR_REPOSITORY}' does not exist in region '${AWS_REGION}'. Run infrastructure CD (Terraform) before backend deployment."
             exit 1
           fi
 

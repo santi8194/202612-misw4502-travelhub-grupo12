@@ -189,7 +189,7 @@ services:
 
   auth-api:
     build:
-      context: ../../Backend/AuthService
+      context: ../../Backend/authservice
       dockerfile: Dockerfile
     ports:
       - "8003:8000"

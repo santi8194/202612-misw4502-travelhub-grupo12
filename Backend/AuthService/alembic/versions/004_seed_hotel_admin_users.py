@@ -34,12 +34,16 @@ def upgrade() -> None:
     admin_hotel1_user_id = str(uuid.UUID("a90e8400-e29b-41d4-a716-446655440000"))
     admin_hotel2_user_id = str(uuid.UUID("b90e8400-e29b-41d4-a716-446655440000"))
 
+    # partner_id fijos y deterministas (mismos que en migración 002)
+    partner_id_hotel1 = str(uuid.UUID("cc0e8400-e29b-41d4-a716-446655440001"))
+    partner_id_hotel2 = str(uuid.UUID("cc0e8400-e29b-41d4-a716-446655440002"))
+
     now = datetime.utcnow()
     admin_password_hash = get_password_hash("123456")
 
     user_insert = sa.text("""
-    INSERT INTO users (id, email, full_name, password_hash, is_active, created_at, updated_at)
-    VALUES (:id, :email, :full_name, :password_hash, :is_active, :created_at, :updated_at)
+    INSERT INTO users (id, email, full_name, password_hash, is_active, partner_id, created_at, updated_at)
+    VALUES (:id, :email, :full_name, :password_hash, :is_active, :partner_id, :created_at, :updated_at)
     ON CONFLICT (email) DO NOTHING
     """)
 
@@ -52,6 +56,7 @@ def upgrade() -> None:
                 "full_name": "Admin Hotel 1",
                 "password_hash": admin_password_hash,
                 "is_active": True,
+                "partner_id": partner_id_hotel1,
                 "created_at": now,
                 "updated_at": now,
             },
@@ -61,6 +66,7 @@ def upgrade() -> None:
                 "full_name": "Admin Hotel 2",
                 "password_hash": admin_password_hash,
                 "is_active": True,
+                "partner_id": partner_id_hotel2,
                 "created_at": now,
                 "updated_at": now,
             },

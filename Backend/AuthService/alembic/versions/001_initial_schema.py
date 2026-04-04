@@ -39,12 +39,14 @@ def upgrade() -> None:
         sa.Column('full_name', sa.String(255), nullable=True),
         sa.Column('password_hash', sa.String(255), nullable=False),
         sa.Column('is_active', sa.String(10), nullable=False),
+        sa.Column('partner_id', postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('email', name='uq_users_email')
     )
     op.create_index('ix_users_email', 'users', ['email'])
+    op.create_index('ix_users_partner_id', 'users', ['partner_id'])
     
     # Crear tabla de asociación user_roles
     op.create_table(

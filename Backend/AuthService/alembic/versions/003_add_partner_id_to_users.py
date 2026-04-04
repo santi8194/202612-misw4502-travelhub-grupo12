@@ -17,15 +17,18 @@ depends_on = None
 
 
 def upgrade() -> None:
-    """Agregar columna partner_id nullable en users e índice para búsquedas."""
-    op.add_column(
-        'users',
-        sa.Column('partner_id', postgresql.UUID(as_uuid=True), nullable=True),
-    )
-    op.create_index('ix_users_partner_id', 'users', ['partner_id'])
+    """Agregar partner_id si no existe (idempotente: BD existentes sin la columna)."""
+    op.execute("""
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS partner_id UUID;
+    """)
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS ix_users_partner_id ON users (partner_id);
+    """)
 
 
 def downgrade() -> None:
     """Revertir columna partner_id e índice asociado."""
-    op.drop_index('ix_users_partner_id', table_name='users')
+    op.execute("DROP INDEX IF EXISTS ix_users_partner_id;")
+    op.execute("ALTER TABLE users DROP COLUMN IF EXISTS partner_id;")
     op.drop_column('users', 'partner_id')

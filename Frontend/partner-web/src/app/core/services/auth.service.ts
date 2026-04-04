@@ -7,6 +7,15 @@ export interface LoginResponse {
     token_type: string;
 }
 
+export interface UserProfile {
+    id: string;
+    email: string;
+    full_name: string;
+    is_active: boolean;
+    partner_id: string | null;
+    roles: string[];
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -42,6 +51,10 @@ export class AuthService {
 
     isAuthenticated(): boolean {
         return this.authStatusSubject.value;
+    }
+
+    getCurrentUser(): Observable<UserProfile> {
+        return this.http.get<UserProfile>(`${this.apiUrl}/me`);
     }
 
     private hasToken(): boolean {

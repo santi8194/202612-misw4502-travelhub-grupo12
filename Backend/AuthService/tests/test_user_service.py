@@ -32,11 +32,13 @@ class FakeSession:
 
 
 def test_get_user_by_email_with_role(monkeypatch):
+    partner_id = uuid4()
     fake_user = SimpleNamespace(
         id=uuid4(),
         email="admin@travelhub.com",
         password_hash="hashed",
         roles=[SimpleNamespace(name="ADMIN_HOTEL")],
+        partner_id=partner_id,
     )
     fake_session = FakeSession(result=fake_user)
     monkeypatch.setattr("modules.user_service.SessionLocal", lambda: fake_session)
@@ -45,6 +47,7 @@ def test_get_user_by_email_with_role(monkeypatch):
 
     assert user is not None
     assert user.rol == "ADMIN_HOTEL"
+    assert user.partner_id == partner_id
     assert fake_session.closed is True
 
 
@@ -54,6 +57,7 @@ def test_get_user_by_email_without_roles_defaults_user(monkeypatch):
         email="user@travelhub.com",
         password_hash="hashed",
         roles=[],
+        partner_id=None,
     )
     fake_session = FakeSession(result=fake_user)
     monkeypatch.setattr("modules.user_service.SessionLocal", lambda: fake_session)

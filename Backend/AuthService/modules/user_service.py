@@ -48,7 +48,7 @@ class UserService:
                 email=user.email,
                 password_hash=user.password_hash,
                 rol=rol,
-                partner_id=None  # Se definiría si existe concepto de partner
+                partner_id=user.partner_id
             )
         except Exception as e:
             logger.error(f"Error al consultar usuario {email}: {str(e)}")

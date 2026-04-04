@@ -16,11 +16,16 @@ export class HomeComponent implements OnInit {
     loading = true;
     error = false;
     showSessionInfo = true;
+    showLockoutInfo = true;
     sessionExpirationAt: Date | null = null;
     readonly sessionInfo: {
         accessTokenMinutes: number;
         idleTimeoutMinutes: number;
         refreshTokenDays: number;
+    };
+    readonly lockoutPolicyInfo = {
+        maxFailedAttempts: 5,
+        lockoutMinutes: 5,
     };
     private destroy$ = new Subject<void>();
 
@@ -54,6 +59,10 @@ export class HomeComponent implements OnInit {
 
     dismissSessionInfo(): void {
         this.showSessionInfo = false;
+    }
+
+    dismissLockoutInfo(): void {
+        this.showLockoutInfo = false;
     }
 
     ngOnDestroy(): void {

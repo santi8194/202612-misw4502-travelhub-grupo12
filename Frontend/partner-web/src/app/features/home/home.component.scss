@@ -14,6 +14,7 @@
 }
 
 .session-card,
+.lockout-card,
 .welcome-card {
     background: #ffffff;
     border-radius: 16px;
@@ -100,6 +101,69 @@
     color: #5c6784;
 }
 
+.lockout-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 32px;
+    border: 1px solid rgba(196, 77, 47, 0.18);
+    background: linear-gradient(180deg, #fff7f4 0%, #ffffff 65%);
+}
+
+.lockout-card-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.lockout-title {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #7a2f1a;
+}
+
+.lockout-close {
+    border: 0;
+    border-radius: 999px;
+    background: #fde8e2;
+    color: #9b3d22;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.lockout-message {
+    margin: 0;
+    color: #55372f;
+    font-size: 0.98rem;
+    line-height: 1.5;
+}
+
+.lockout-metrics {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.lockout-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #fff0ea;
+    border-radius: 14px;
+    padding: 14px 16px;
+    color: #5b2b1b;
+}
+
+.lockout-metric-label {
+    font-size: 0.84rem;
+    color: #9a5a45;
+}
+
 .welcome-card {
     display: flex;
     align-items: center;
@@ -162,11 +226,13 @@
 
 @media (max-width: 720px) {
     .session-card,
+    .lockout-card,
     .welcome-card {
         padding: 24px;
     }
 
     .session-card-header,
+    .lockout-card-header,
     .welcome-card {
         flex-direction: column;
         align-items: flex-start;
@@ -176,7 +242,15 @@
         align-self: flex-start;
     }
 
+    .lockout-close {
+        align-self: flex-start;
+    }
+
     .session-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .lockout-metrics {
         grid-template-columns: 1fr;
     }
 }

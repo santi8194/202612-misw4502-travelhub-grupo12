@@ -16,7 +16,6 @@ concurrency:
 
 permissions:
   contents: read
-  id-token: write
 
 env:
   SERVICE_FOLDER: Backend/authservice
@@ -28,7 +27,6 @@ env:
   ECR_REPOSITORY: authservice
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REGISTRY_DEV: ${{ vars.ECR_REGISTRY_DEV }}
-  AWS_ROLE_ARN_DEV: ${{ vars.AWS_ROLE_ARN_DEV }}
   EKS_CLUSTER_NAME_DEV: ${{ vars.EKS_CLUSTER_NAME_DEV }}
   K8S_NAMESPACE_DEV: ${{ vars.K8S_NAMESPACE_DEV }}
 
@@ -89,10 +87,6 @@ jobs:
             exit 1
           fi
 
-          if [ -z "${AWS_ROLE_ARN_DEV:-}" ]; then
-            echo "::error::Missing required GitHub variable 'AWS_ROLE_ARN_DEV'."
-            exit 1
-          fi
 
           if [ -z "${EKS_CLUSTER_NAME_DEV:-}" ]; then
             echo "::error::Missing required GitHub variable 'EKS_CLUSTER_NAME_DEV'."
@@ -158,8 +152,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN_DEV }}
-          role-session-name: gha-backend-cd-authservice-dev
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Validate ECR repository exists

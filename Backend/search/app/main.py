@@ -11,10 +11,10 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers.search import router
-
 
 # ── Lifespan ─────────────────────────────────────────────────────────────────
 
@@ -49,7 +49,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     else:
         # Importación lazy: no carga opensearch-py si se usa Postgres
         from opensearchpy import AsyncOpenSearch
-        from app.infrastructure.opensearch_repository import OpenSearchHospedajeRepository
+
+        from app.infrastructure.opensearch_repository import (
+            OpenSearchHospedajeRepository,
+        )
 
         os_client = AsyncOpenSearch(
             hosts=[settings.opensearch_endpoint],
@@ -79,6 +82,14 @@ app = FastAPI(
     version="0.1.0",
     description="Microservicio de búsqueda de hospedajes para TravelHub.",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(router)

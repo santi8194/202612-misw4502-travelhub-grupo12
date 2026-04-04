@@ -19,7 +19,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: travelhub-postgres-search
+    container_name: travelhub-postgres-db
     environment:
       POSTGRES_USER: travelhub
       POSTGRES_PASSWORD: travelhub

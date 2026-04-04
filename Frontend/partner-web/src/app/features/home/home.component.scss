@@ -1,24 +1,110 @@
 .home-container {
     width: 100%;
-    height: calc(100vh - 72px);
-    background-color: #f7f9fc;
+    min-height: calc(100vh - 72px);
+    background:
+        radial-gradient(circle at top left, rgba(26, 115, 232, 0.12), transparent 24%),
+        linear-gradient(180deg, #f8fbff 0%, #eef3f9 100%);
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 24px;
     padding: 48px 24px;
     box-sizing: border-box;
+}
+
+.session-card,
+.welcome-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    max-width: 640px;
+    width: 100%;
+}
+
+.session-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 28px 32px;
+    border: 1px solid rgba(26, 115, 232, 0.14);
+}
+
+.session-card-header {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.session-kicker {
+    margin: 0 0 4px;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1a73e8;
+    font-weight: 700;
+}
+
+.session-title {
+    margin: 0;
+    font-size: 1.35rem;
+    color: #1a1a2e;
+}
+
+.session-close {
+    border: 0;
+    border-radius: 999px;
+    background: #e8f0fe;
+    color: #1a73e8;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.session-message {
+    margin: 0;
+    color: #445;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.session-expiration {
+    margin: -8px 0 0;
+    color: #1a1a2e;
+    font-size: 0.96rem;
+    line-height: 1.5;
+}
+
+.session-metrics {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.session-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #f3f7fd;
+    border-radius: 14px;
+    padding: 16px;
+    color: #1a1a2e;
+}
+
+.session-metric-label {
+    font-size: 0.85rem;
+    color: #5c6784;
 }
 
 .welcome-card {
     display: flex;
     align-items: center;
     gap: 24px;
-    background: #ffffff;
-    border-radius: 16px;
     padding: 32px 40px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-    max-width: 640px;
-    width: 100%;
 }
 
 .welcome-icon {
@@ -72,4 +158,25 @@
     padding: 32px;
     font-size: 1rem;
     color: #888;
+}
+
+@media (max-width: 720px) {
+    .session-card,
+    .welcome-card {
+        padding: 24px;
+    }
+
+    .session-card-header,
+    .welcome-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .session-close {
+        align-self: flex-start;
+    }
+
+    .session-metrics {
+        grid-template-columns: 1fr;
+    }
 }

@@ -18,7 +18,9 @@ class Settings(BaseSettings):
     # Configuración principal para la seguridad con JWT
     SECRET_KEY: str = "super_secret_key_change_in_production_12345"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    SESSION_IDLE_TIMEOUT_MINUTES: int = 5
     
     # Políticas para el bloqueo por protección contra fuerza bruta
     MAX_LOGIN_ATTEMPTS: int = 5

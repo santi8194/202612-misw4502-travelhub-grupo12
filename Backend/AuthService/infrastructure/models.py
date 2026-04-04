@@ -3,8 +3,8 @@ Propósito del archivo: Define los modelos ORM (SQLAlchemy) para usuarios, roles
 Rol dentro del microservicio: Representa la estructura de datos persistente en PostgreSQL.
 """
 
-import uuid
 from datetime import datetime
+import uuid
 from sqlalchemy import Column, String, DateTime, Table, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -68,6 +68,28 @@ class User(Base):
         back_populates='users',
         cascade='all, delete'
     )
+    sessions = relationship('UserSession', back_populates='user', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f"<User {self.email}>"
+
+
+class UserSession(Base):
+    """
+    Modelo de sesión persistida para soportar expiración por inactividad y refresh tokens rotativos.
+    """
+    __tablename__ = 'user_sessions'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    refresh_token_hash = Column(String(64), nullable=False, unique=True, index=True)
+    last_activity_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    revoked_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    user = relationship('User', back_populates='sessions')
+
+    def __repr__(self):
+        return f"<UserSession {self.id}>"

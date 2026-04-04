@@ -14,9 +14,11 @@ def test_get_current_user_success(monkeypatch, sample_user):
         subject=str(sample_user.id_usuario),
         email=sample_user.email,
         rol=sample_user.rol,
+        session_id="session-123",
         expires_delta=timedelta(minutes=5),
     )
     monkeypatch.setattr("api.dependencies.auth.UserService.get_user_by_email", lambda _email: sample_user)
+    monkeypatch.setattr("api.dependencies.auth.SessionService.validate_session", lambda *_args, **_kwargs: True)
 
     current = get_current_user(token=token)
 
@@ -46,6 +48,7 @@ def test_get_current_user_user_not_found(monkeypatch):
         subject="123",
         email="missing@travelhub.com",
         rol="USER",
+        session_id="session-123",
         expires_delta=timedelta(minutes=5),
     )
     monkeypatch.setattr("api.dependencies.auth.UserService.get_user_by_email", lambda _email: None)
@@ -54,3 +57,20 @@ def test_get_current_user_user_not_found(monkeypatch):
         get_current_user(token=token)
 
     assert exc.value.status_code == 404
+
+
+def test_get_current_user_rejects_inactive_session(monkeypatch, sample_user):
+    token = create_access_token(
+        subject=str(sample_user.id_usuario),
+        email=sample_user.email,
+        rol=sample_user.rol,
+        session_id="session-123",
+        expires_delta=timedelta(minutes=5),
+    )
+    monkeypatch.setattr("api.dependencies.auth.UserService.get_user_by_email", lambda _email: sample_user)
+    monkeypatch.setattr("api.dependencies.auth.SessionService.validate_session", lambda *_args, **_kwargs: False)
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token=token)
+
+    assert exc.value.status_code == 401

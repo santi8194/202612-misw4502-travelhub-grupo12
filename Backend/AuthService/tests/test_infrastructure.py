@@ -1,7 +1,9 @@
 from types import SimpleNamespace
+from datetime import datetime, timedelta
+from uuid import uuid4
 
 from infrastructure import database
-from infrastructure.models import Role, User
+from infrastructure.models import Role, User, UserSession
 
 
 class DummySession:
@@ -44,6 +46,14 @@ def test_init_db_calls_create_all(monkeypatch):
 def test_model_repr():
     role = Role(name="ADMIN_HOTEL")
     user = User(email="admin@travelhub.com", password_hash="hash")
+    session = UserSession(
+        id=uuid4(),
+        user_id=uuid4(),
+        refresh_token_hash="abc123",
+        last_activity_at=datetime.utcnow(),
+        expires_at=datetime.utcnow() + timedelta(days=1),
+    )
 
     assert "ADMIN_HOTEL" in repr(role)
     assert "admin@travelhub.com" in repr(user)
+    assert "UserSession" in repr(session)

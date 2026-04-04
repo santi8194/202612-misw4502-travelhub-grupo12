@@ -1,13 +1,54 @@
 <app-navbar></app-navbar>
 <div class="home-container">
 
-    <div class="welcome-card" *ngIf="!loading && !error && user">
+    <div class="session-card" *ngIf="showSessionInfo">
+        <div class="session-card-header">
+           
+           
+        </div>
+
+        <p class="session-message">
+            Si no registras actividad durante
+            <strong>{{ sessionInfo.idleTimeoutMinutes }} minutos</strong>, la sesión se inactivará automáticamente.
+        </p>
+
+        <p class="session-expiration" *ngIf="sessionExpirationAt">
+            Con la actividad actual, esta sesión se cerrará a las
+            <strong>{{ sessionExpirationAt | date:'HH:mm:ss' }}</strong>.
+        </p>
+
+        <div class="session-metrics">
+            <div class="session-metric">
+                <span class="session-metric-label">Access token</span>
+                <strong>{{ sessionInfo.accessTokenMinutes }} min</strong>
+            </div>
+            <div class="session-metric">
+                <span class="session-metric-label">Inactividad máxima</span>
+                <strong>{{ sessionInfo.idleTimeoutMinutes }} min</strong>
+            </div>
+            <div class="session-metric">
+                <span class="session-metric-label">Refresh token</span>
+                <strong>{{ sessionInfo.refreshTokenDays }} días</strong>
+            </div>
+
+             <button
+                type="button"
+                class="session-close"
+                aria-label="Ocultar información de sesión"
+                (click)="dismissSessionInfo()"
+            >
+                Ocultar
+            </button>
+        </div>
+    </div>
+
+    <div class="welcome-card" *ngIf="!loading && !error && user as currentUser">
         <div class="welcome-icon">🏨</div>
         <div class="welcome-content">
-            <h2 class="welcome-title">¡Bienvenido, {{ user.email }}!</h2>
-            <p class="welcome-subtitle" *ngIf="user.partner_id; else noPartner">
+            <h2 class="welcome-title">¡Bienvenido, {{ currentUser.email }}!</h2>
+            <p class="welcome-subtitle" *ngIf="currentUser.partner_id; else noPartner">
                 Estás gestionando el hotel
-                <span class="partner-badge">{{ user.partner_id }}</span>
+                <span class="partner-badge">{{ currentUser.partner_id }}</span>
             </p>
             <ng-template #noPartner>
                 <p class="welcome-subtitle no-partner">

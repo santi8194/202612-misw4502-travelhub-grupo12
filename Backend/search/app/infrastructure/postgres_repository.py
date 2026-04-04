@@ -36,7 +36,7 @@ class PostgresHospedajeRepository(HospedajeRepository):
     ) -> List[Hospedaje]:
         """Busca hospedajes utilizando SQL y jsonb."""
         query_lines = [
-            "SELECT * FROM hospedajes h WHERE h.ciudad = $1 AND h.pais = $2"
+            "SELECT * FROM search.hospedajes h WHERE h.ciudad = $1 AND h.pais = $2"
         ]
         params: List[Any] = [ciudad, pais]
 

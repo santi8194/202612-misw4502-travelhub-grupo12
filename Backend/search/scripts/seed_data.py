@@ -291,99 +291,65 @@ def _seed_opensearch(docs: list[dict]) -> None:
 async def _seed_postgres_async(docs: list[dict]) -> None:
     """Inserta hospedajes y destinos en PostgreSQL de forma asíncrona.
 
-    Crea el esquema search si no existe, luego crea y puebla las tablas
-    search.hospedajes y search.destinos.
+    Reutiliza ensure_schema() para crear el esquema y las tablas si no existen,
+    garantizando que el DDL tenga una única fuente de verdad.
     """
+    import sys
+    import os
+    # Permitir importar desde el paquete app cuando se ejecuta el script directamente
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    from app.infrastructure.db_schema import ensure_schema
+
     print("\n🐘  Poblando PostgreSQL...")
     try:
-        conn = await asyncpg.connect(PG_URL)
+        pool = await asyncpg.create_pool(PG_URL)
     except Exception as e:
         print(f"   ⚠️  No se pudo conectar a PostgreSQL: {e}")
         return
 
-    # Crear esquema search si no existe
-    await conn.execute("CREATE SCHEMA IF NOT EXISTS search;")
-    print("   ✅  Esquema 'search' listo.")
+    # Crear esquema y tablas reutilizando la misma lógica que usa la aplicación
+    await ensure_schema(pool)
+    print("   ✅  Esquema 'search', tablas e índices listos.")
 
-    # Crear tabla search.hospedajes si no existe
-    await conn.execute("""
-        CREATE TABLE IF NOT EXISTS search.hospedajes (
-            id_propiedad UUID PRIMARY KEY,
-            id_categoria UUID,
-            propiedad_nombre TEXT,
-            categoria_nombre TEXT,
-            imagen_principal_url TEXT,
-            amenidades_destacadas JSONB,
-            estrellas INTEGER,
-            rating_promedio NUMERIC,
-            ciudad TEXT,
-            estado_provincia TEXT,
-            pais TEXT,
-            coordenadas JSONB,
-            capacidad_pax INTEGER,
-            precio_base NUMERIC,
-            moneda TEXT,
-            es_reembolsable BOOLEAN,
-            disponibilidad JSONB
-        );
-    """)
-
-    # Crear tabla search.destinos si no existe
-    await conn.execute("""
-        CREATE TABLE IF NOT EXISTS search.destinos (
-            id_destino UUID PRIMARY KEY,
-            ciudad TEXT NOT NULL,
-            ciudad_lower TEXT NOT NULL,
-            estado_provincia TEXT,
-            pais TEXT NOT NULL,
-            CONSTRAINT unq_destino UNIQUE (ciudad_lower, estado_provincia, pais)
-        );
-    """)
-
-    # Crear índice para autocompletado por prefijo (varchar_pattern_ops permite LIKE 'car%')
-    await conn.execute("""
-        CREATE INDEX IF NOT EXISTS idx_destinos_ciudad_prefix
-        ON search.destinos (ciudad_lower varchar_pattern_ops);
-    """)
-    print("   ✅  Tablas e índices del esquema 'search' listos.")
-
-    # Limpiar datos previos
-    await conn.execute("TRUNCATE TABLE search.hospedajes;")
-    await conn.execute("TRUNCATE TABLE search.destinos;")
+    # Limpiar datos previos para un seed limpio
+    async with pool.acquire() as conn:
+        await conn.execute("TRUNCATE TABLE search.hospedajes;")
+        await conn.execute("TRUNCATE TABLE search.destinos;")
 
     # Insertar hospedajes
     print(f"   📝  Insertando {len(docs)} hospedajes en search.hospedajes...")
     count_hospedajes = 0
-    for doc in docs:
-        await conn.execute("""
-            INSERT INTO search.hospedajes (
-                id_propiedad, id_categoria, propiedad_nombre, categoria_nombre,
-                imagen_principal_url, amenidades_destacadas, estrellas, rating_promedio,
-                ciudad, estado_provincia, pais, coordenadas, capacidad_pax,
-                precio_base, moneda, es_reembolsable, disponibilidad
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+    async with pool.acquire() as conn:
+        for doc in docs:
+            await conn.execute("""
+                INSERT INTO search.hospedajes (
+                    id_propiedad, id_categoria, propiedad_nombre, categoria_nombre,
+                    imagen_principal_url, amenidades_destacadas, estrellas, rating_promedio,
+                    ciudad, estado_provincia, pais, coordenadas, capacidad_pax,
+                    precio_base, moneda, es_reembolsable, disponibilidad
+                ) VALUES (
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+                )
+            """,
+                uuid.UUID(doc["id_propiedad"]),
+                uuid.UUID(doc["id_categoria"]),
+                doc["propiedad_nombre"],
+                doc["categoria_nombre"],
+                doc["imagen_principal_url"],
+                json.dumps(doc["amenidades_destacadas"]),
+                doc["estrellas"],
+                doc["rating_promedio"],
+                doc["ciudad"],
+                doc["estado_provincia"],
+                doc["pais"],
+                json.dumps(doc["coordenadas"]),
+                doc["capacidad_pax"],
+                doc["precio_base"],
+                doc["moneda"],
+                doc["es_reembolsable"],
+                json.dumps(doc["disponibilidad"]),
             )
-        """,
-            uuid.UUID(doc["id_propiedad"]),
-            uuid.UUID(doc["id_categoria"]),
-            doc["propiedad_nombre"],
-            doc["categoria_nombre"],
-            doc["imagen_principal_url"],
-            json.dumps(doc["amenidades_destacadas"]),
-            doc["estrellas"],
-            doc["rating_promedio"],
-            doc["ciudad"],
-            doc["estado_provincia"],
-            doc["pais"],
-            json.dumps(doc["coordenadas"]),
-            doc["capacidad_pax"],
-            doc["precio_base"],
-            doc["moneda"],
-            doc["es_reembolsable"],
-            json.dumps(doc["disponibilidad"]),
-        )
-        count_hospedajes += 1
+            count_hospedajes += 1
 
     print(f"   ✅  {count_hospedajes} hospedajes insertados en search.hospedajes.")
 
@@ -393,36 +359,37 @@ async def _seed_postgres_async(docs: list[dict]) -> None:
     seen: set[tuple[str, str, str]] = set()
     count_destinos = 0
 
-    for prop in PROPERTIES:
-        ciudad = prop["ciudad"]
-        estado_provincia = prop.get("estado_provincia", "")
-        pais = prop["pais"]
-        ciudad_lower = ciudad.lower()
-        key_tuple = (ciudad_lower, estado_provincia, pais)
+    async with pool.acquire() as conn:
+        for prop in PROPERTIES:
+            ciudad = prop["ciudad"]
+            estado_provincia = prop.get("estado_provincia", "")
+            pais = prop["pais"]
+            ciudad_lower = ciudad.lower()
+            key_tuple = (ciudad_lower, estado_provincia, pais)
 
-        if key_tuple in seen:
-            continue
-        seen.add(key_tuple)
+            if key_tuple in seen:
+                continue
+            seen.add(key_tuple)
 
-        # ID determinista para mantener estabilidad entre ejecuciones del seed
-        dest_id = uuid5(NAMESPACE_DNS, f"{ciudad}|{estado_provincia}|{pais}")
+            # ID determinista para mantener estabilidad entre ejecuciones del seed
+            dest_id = uuid5(NAMESPACE_DNS, f"{ciudad}|{estado_provincia}|{pais}")
 
-        await conn.execute("""
-            INSERT INTO search.destinos (id_destino, ciudad, ciudad_lower, estado_provincia, pais)
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT DO NOTHING
-        """,
-            dest_id,
-            ciudad,
-            ciudad_lower,
-            estado_provincia,
-            pais,
-        )
-        count_destinos += 1
+            await conn.execute("""
+                INSERT INTO search.destinos (id_destino, ciudad, ciudad_lower, estado_provincia, pais)
+                VALUES ($1, $2, $3, $4, $5)
+                ON CONFLICT DO NOTHING
+            """,
+                dest_id,
+                ciudad,
+                ciudad_lower,
+                estado_provincia,
+                pais,
+            )
+            count_destinos += 1
 
     print(f"   ✅  {count_destinos} destinos únicos insertados en search.destinos.")
 
-    await conn.close()
+    await pool.close()
 
 
 def _seed_postgres(docs: list[dict]) -> None:

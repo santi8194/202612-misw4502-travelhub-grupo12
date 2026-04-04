@@ -8,8 +8,9 @@ Uso
 3. Ejecutar este script:         ``python scripts/seed_data.py``
 
 El script siempre ejecuta:
-  - Inserta 8 hospedajes colombianos en **PostgreSQL**.
-  - Inserta destinos únicos en **Redis** para autocompletado.
+  - Crea el esquema ``search`` si no existe.
+  - Crea e inserta 8 hospedajes colombianos en **search.hospedajes**.
+  - Crea e inserta destinos únicos en **search.destinos** para autocompletado.
 
 Si OpenSearch está disponible (contenedor descomentado en docker-compose):
   - Crea el índice ``hospedajes`` con el mapping ``nested`` correcto.
@@ -27,7 +28,6 @@ import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 from uuid import uuid4, uuid5, NAMESPACE_DNS
-import redis as redis_lib
 import asyncpg
 
 # ── Suprimir advertencias de certificados SSL en desarrollo ───────────────────
@@ -39,19 +39,7 @@ OS_HOST = "https://localhost:9200"
 OS_USER = "admin"
 OS_PASS = "MyStr0ng!Pass#2026"
 INDEX = "hospedajes"
-REDIS_URL = "redis://localhost:6379/0"
 PG_URL = "postgresql://travelhub:travelhub@localhost:5432/travelhub"
-
-try:
-    from app.infrastructure.redis_keys import DEST_INDEX_KEY, DEST_DATA_KEY
-except ImportError:
-    # Fallback cuando se ejecuta el script fuera del paquete app
-    DEST_INDEX_KEY = "search:destinations:index"
-    DEST_DATA_KEY = "search:destinations:data"
-
-# ── Cliente Redis ─────────────────────────────────────────────────────────────
-
-redis_client = redis_lib.Redis.from_url(REDIS_URL, decode_responses=True)
 
 # ── Mapping del índice OpenSearch ─────────────────────────────────────────────
 
@@ -300,61 +288,26 @@ def _seed_opensearch(docs: list[dict]) -> None:
     print(f"   🎉  {count} documentos indexados en '{INDEX}'.")
 
 
-def _seed_redis_destinations() -> None:
-    """Extrae destinos únicos de PROPERTIES e inserta en Redis.
-
-    Cada combinación única (ciudad, estado_provincia, pais) obtiene un ID
-    determinista usando uuid5 para mantener estabilidad entre ejecuciones.
-    """
-    print("\n🔴  Poblando Redis con destinos únicos...")
-    redis_client.delete(DEST_INDEX_KEY, DEST_DATA_KEY)
-
-    seen: set[tuple[str, str, str]] = set()
-    pipe = redis_client.pipeline()
-    count = 0
-
-    for prop in PROPERTIES:
-        ciudad = prop["ciudad"]
-        estado_provincia = prop.get("estado_provincia", "")
-        pais = prop["pais"]
-        key_tuple = (ciudad, estado_provincia, pais)
-
-        if key_tuple in seen:
-            continue
-        seen.add(key_tuple)
-
-        # ID determinista basado en la combinación única
-        dest_id = str(uuid5(NAMESPACE_DNS, f"{ciudad}|{estado_provincia}|{pais}"))
-        ciudad_lower = ciudad.lower()
-
-        # Sorted Set — índice lexicográfico (score=0 para orden lexicográfico)
-        pipe.zadd(DEST_INDEX_KEY, {f"{ciudad_lower}:{dest_id}": 0})
-
-        # Hash — payload completo como JSON
-        payload = json.dumps({
-            "ciudad": ciudad,
-            "estado_provincia": estado_provincia,
-            "pais": pais,
-        })
-        pipe.hset(DEST_DATA_KEY, dest_id, payload)
-        count += 1
-
-    pipe.execute()
-    print(f"   ✅  {count} destinos únicos insertados en Redis.")
-
-
 async def _seed_postgres_async(docs: list[dict]) -> None:
-    """Inserta los hospedajes en PostgreSQL de forma asíncrona."""
-    print("\n🐘  Poblando PostgreSQL con hospedajes...")
+    """Inserta hospedajes y destinos en PostgreSQL de forma asíncrona.
+
+    Crea el esquema search si no existe, luego crea y puebla las tablas
+    search.hospedajes y search.destinos.
+    """
+    print("\n🐘  Poblando PostgreSQL...")
     try:
         conn = await asyncpg.connect(PG_URL)
     except Exception as e:
         print(f"   ⚠️  No se pudo conectar a PostgreSQL: {e}")
         return
 
-    # Crear tabla si no existe
+    # Crear esquema search si no existe
+    await conn.execute("CREATE SCHEMA IF NOT EXISTS search;")
+    print("   ✅  Esquema 'search' listo.")
+
+    # Crear tabla search.hospedajes si no existe
     await conn.execute("""
-        CREATE TABLE IF NOT EXISTS hospedajes (
+        CREATE TABLE IF NOT EXISTS search.hospedajes (
             id_propiedad UUID PRIMARY KEY,
             id_categoria UUID,
             propiedad_nombre TEXT,
@@ -375,12 +328,35 @@ async def _seed_postgres_async(docs: list[dict]) -> None:
         );
     """)
 
-    await conn.execute("TRUNCATE TABLE hospedajes;")
+    # Crear tabla search.destinos si no existe
+    await conn.execute("""
+        CREATE TABLE IF NOT EXISTS search.destinos (
+            id_destino UUID PRIMARY KEY,
+            ciudad TEXT NOT NULL,
+            ciudad_lower TEXT NOT NULL,
+            estado_provincia TEXT,
+            pais TEXT NOT NULL,
+            CONSTRAINT unq_destino UNIQUE (ciudad_lower, estado_provincia, pais)
+        );
+    """)
 
-    count = 0
+    # Crear índice para autocompletado por prefijo (varchar_pattern_ops permite LIKE 'car%')
+    await conn.execute("""
+        CREATE INDEX IF NOT EXISTS idx_destinos_ciudad_prefix
+        ON search.destinos (ciudad_lower varchar_pattern_ops);
+    """)
+    print("   ✅  Tablas e índices del esquema 'search' listos.")
+
+    # Limpiar datos previos
+    await conn.execute("TRUNCATE TABLE search.hospedajes;")
+    await conn.execute("TRUNCATE TABLE search.destinos;")
+
+    # Insertar hospedajes
+    print(f"   📝  Insertando {len(docs)} hospedajes en search.hospedajes...")
+    count_hospedajes = 0
     for doc in docs:
         await conn.execute("""
-            INSERT INTO hospedajes (
+            INSERT INTO search.hospedajes (
                 id_propiedad, id_categoria, propiedad_nombre, categoria_nombre,
                 imagen_principal_url, amenidades_destacadas, estrellas, rating_promedio,
                 ciudad, estado_provincia, pais, coordenadas, capacidad_pax,
@@ -407,10 +383,46 @@ async def _seed_postgres_async(docs: list[dict]) -> None:
             doc["es_reembolsable"],
             json.dumps(doc["disponibilidad"]),
         )
-        count += 1
+        count_hospedajes += 1
+
+    print(f"   ✅  {count_hospedajes} hospedajes insertados en search.hospedajes.")
+
+    # Insertar destinos únicos en search.destinos
+    # Se extraen combinaciones únicas (ciudad, estado_provincia, pais) de PROPERTIES
+    print("   📝  Insertando destinos únicos en search.destinos...")
+    seen: set[tuple[str, str, str]] = set()
+    count_destinos = 0
+
+    for prop in PROPERTIES:
+        ciudad = prop["ciudad"]
+        estado_provincia = prop.get("estado_provincia", "")
+        pais = prop["pais"]
+        ciudad_lower = ciudad.lower()
+        key_tuple = (ciudad_lower, estado_provincia, pais)
+
+        if key_tuple in seen:
+            continue
+        seen.add(key_tuple)
+
+        # ID determinista para mantener estabilidad entre ejecuciones del seed
+        dest_id = uuid5(NAMESPACE_DNS, f"{ciudad}|{estado_provincia}|{pais}")
+
+        await conn.execute("""
+            INSERT INTO search.destinos (id_destino, ciudad, ciudad_lower, estado_provincia, pais)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT DO NOTHING
+        """,
+            dest_id,
+            ciudad,
+            ciudad_lower,
+            estado_provincia,
+            pais,
+        )
+        count_destinos += 1
+
+    print(f"   ✅  {count_destinos} destinos únicos insertados en search.destinos.")
 
     await conn.close()
-    print(f"   ✅  {count} hospedajes insertados en PostgreSQL.")
 
 
 def _seed_postgres(docs: list[dict]) -> None:
@@ -437,10 +449,7 @@ def main() -> None:
         print(f"\n⚠️  OpenSearch no está disponible, omitiendo: {e}")
         print("   Para activarlo, descomenta los servicios en docker-compose.yml")
 
-    # 3. Seed Redis con destinos únicos (siempre)
-    _seed_redis_destinations()
-
-    # 4. Seed PostgreSQL (siempre)
+    # 3. Seed PostgreSQL (siempre — hospedajes y destinos)
     _seed_postgres(docs)
 
     print("\n🎉  Seed completado.")

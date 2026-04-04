@@ -11,10 +11,8 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from fastapi import FastAPI
-from redis.asyncio import Redis as AsyncRedis
 
 from app.config import settings
-from app.infrastructure.redis_destination_repository import RedisDestinationRepository
 from app.routers.search import router
 
 
@@ -25,24 +23,28 @@ from app.routers.search import router
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Crea los clientes compartidos al inicio y los cierra al finalizar.
 
-    El cliente OpenSearch se crea únicamente cuando `repository_type == 'opensearch'`,
+    El pool de PostgreSQL se crea siempre porque es necesario para el
+    autocompletado de destinos (search.destinos), independientemente del
+    motor configurado para la búsqueda de hospedajes.
+
+    El cliente OpenSearch solo se crea cuando ``repository_type == 'opensearch'``,
     evitando conexiones innecesarias al motor que no está activo.
     """
-    # Redis — siempre necesario para autocompletado de destinos
-    redis_client = AsyncRedis.from_url(settings.redis_url, decode_responses=True)
-    app.state.redis_client = redis_client
-    app.state.dest_repository = RedisDestinationRepository(client=redis_client)
+    import asyncpg
+    from app.infrastructure.postgres_destination_repository import PostgresDestinationRepository
+
+    # Pool de PostgreSQL — siempre necesario para el autocompletado de destinos
+    pg_pool = await asyncpg.create_pool(settings.postgres_url)
+    app.state.pg_pool = pg_pool
+    app.state.dest_repository = PostgresDestinationRepository(pool=pg_pool)
 
     # Variable para cleanup condicional al shutdown
     os_client = None
 
     if settings.repository_type == "postgres":
-        # Importación lazy: no carga asyncpg si se usa OpenSearch
-        import asyncpg
+        # El mismo pool de PG se reutiliza para la búsqueda de hospedajes
         from app.infrastructure.postgres_repository import PostgresHospedajeRepository
 
-        pg_pool = await asyncpg.create_pool(settings.postgres_url)
-        app.state.pg_pool = pg_pool
         app.state.repository = PostgresHospedajeRepository(pool=pg_pool)
     else:
         # Importación lazy: no carga opensearch-py si se usa Postgres
@@ -67,9 +69,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Cleanup ordenado al shutdown
     if os_client:
         await os_client.close()
-    await redis_client.aclose()
-    if getattr(app.state, "pg_pool", None):
-        await app.state.pg_pool.close()
+    await pg_pool.close()
 
 
 # ── App factory ───────────────────────────────────────────────────────────────

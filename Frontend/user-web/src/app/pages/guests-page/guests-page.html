@@ -1,0 +1,92 @@
+<div class="guests-page">
+
+  <app-header></app-header>
+
+  <div class="back-link">
+    <svg class="back-link-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span>Volver</span>
+  </div>
+
+  <div class="stepper-wrap">
+    <div class="step step-active">
+      <div class="step-icon step-icon-active">
+        <svg class="step-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+          <path d="M5 20c1.8-3.2 4.1-4.8 7-4.8s5.2 1.6 7 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </div>
+      <span class="step-label">Huéspedes</span>
+    </div>
+
+    <div class="step-line"></div>
+
+    <div class="step step-inactive">
+      <div class="step-icon">
+        <svg class="step-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3.5" y="6" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" />
+          <path d="M3.5 10h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M7.5 14.5h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </div>
+      <span class="step-label">Pago</span>
+    </div>
+
+    <div class="step-line"></div>
+
+    <div class="step step-inactive">
+      <div class="step-icon">
+        <svg class="step-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+          <path d="M8.3 12.2l2.4 2.4 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <span class="step-label">Confirmación</span>
+    </div>
+  </div>
+
+  <div class="details-card">
+
+    <h2 class="card-title">Detalles de los huéspedes</h2>
+
+    <div class="form-grid">
+      <div class="field-wrap">
+        <label class="field-label" for="name">Nombre(s)</label>
+        <input id="name" class="field-input" [(ngModel)]="form.name" />
+      </div>
+
+      <div class="field-wrap">
+        <label class="field-label" for="lastName">Apellido</label>
+        <input id="lastName" class="field-input" [(ngModel)]="form.lastName" />
+      </div>
+    </div>
+
+    <div class="field-wrap field-full">
+      <label class="field-label" for="email">Email</label>
+      <input id="email" class="field-input" [(ngModel)]="form.email" />
+    </div>
+
+    <div class="field-wrap field-full">
+      <label class="field-label" for="phone">Celular</label>
+      <input id="phone" class="field-input" [(ngModel)]="form.phone" />
+    </div>
+
+    <div class="field-wrap field-full">
+      <label class="field-label" for="request">Solicitud detallada (Opcional)</label>
+      <textarea id="request" class="field-textarea" [(ngModel)]="form.detailedRequest"></textarea>
+    </div>
+
+    <button
+      (click)="createHold()"
+      class="pay-btn">
+      Continuar con el pago
+    </button>
+  </div>
+
+  <div *ngIf="remainingTime > 0"
+       class="hold-timer">
+    ⏳ Tu reserva expira en {{ remainingTime }}s
+  </div>
+
+</div>

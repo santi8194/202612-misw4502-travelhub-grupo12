@@ -11,6 +11,9 @@ EVENT_EXCHANGE = "travelhub.events.exchange"
 class EventBus:
 
     def publish_event(self, routing_key, event_type, payload):
+        if not ENABLE_EVENTS:
+            print(f"[{event_type}] ENABLE_EVENTS=false, skipping publish to {routing_key}")
+            return
 
         connection = None
         try:

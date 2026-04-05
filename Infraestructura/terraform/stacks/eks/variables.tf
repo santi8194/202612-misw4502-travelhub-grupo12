@@ -1,4 +1,4 @@
-variable "region" { 
+variable "region" {
   description = "La región de AWS donde se desplegarán los recursos."
   type        = string
   nullable    = false
@@ -19,8 +19,41 @@ variable "cluster_endpoint_public_access" {
   type        = bool
 }
 
+variable "vpc_id" {
+  description = "El ID de la VPC donde se desplegará el clúster EKS."
+  type        = string
+  nullable    = false
+}
+
+variable "subnet_ids" {
+  description = "Lista de subnets donde se desplegará el clúster EKS y sus node groups."
+  type        = list(string)
+  nullable    = false
+}
+
+variable "node_instance_types" {
+  description = "Tipos de instancia EC2 permitidos para el managed node group."
+  type        = list(string)
+  nullable    = false
+}
+
+variable "node_desired_size" {
+  description = "Cantidad deseada de nodos en el managed node group."
+  type        = number
+}
+
+variable "node_min_size" {
+  description = "Cantidad mínima de nodos en el managed node group."
+  type        = number
+}
+
+variable "node_max_size" {
+  description = "Cantidad máxima de nodos en el managed node group."
+  type        = number
+}
+
 variable "owner" {
-  description = "Dueño de los recursos. Para propósito acadmémico."
+  description = "Dueño de los recursos. Para propósito académico."
   type        = string
   nullable    = false
 }

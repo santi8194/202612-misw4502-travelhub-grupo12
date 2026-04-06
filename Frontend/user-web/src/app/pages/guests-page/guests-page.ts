@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { BookingService } from '../../core/services/booking';
 import { BookingStore } from '../../core/store/booking-store';
 import { HeaderComponent } from '../../shared/components/header/header';
+import { FooterComponent } from '../../shared/components/footer/footer';
 
 @Component({
   selector: 'app-guests-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './guests-page.html',
   styleUrl: './guests-page.css'
 })

@@ -1,4 +1,7 @@
 import uuid
+from unittest.mock import MagicMock
+
+import modulos.reserva.infraestructura.api as reserva_api_mod
 
 def test_healthcheck(client):
     response = client.get('/health')
@@ -70,3 +73,81 @@ def test_create_reserva_hold_invalid_uuid_returns_400(client):
     body = response.json
     assert 'error' in body
     assert "badly formed hexadecimal UUID" in body['error'] or "badly formed hexadecimal UUID" in body['error'].lower()
+
+
+def test_create_reserva_hold_no_payload_returns_400(client):
+    response = client.post('/api/reserva', json={})
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert "No data provided" in response.json["error"]
+
+def test_formalizar_reserva_returns_200_when_handler_ok(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, comando):
+            return True
+
+    monkeypatch.setattr(reserva_api_mod, 'FormalizarReservaHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    id_reserva = str(uuid.uuid4())
+    response = client.post(f'/api/reserva/{id_reserva}/formalizar')
+
+    assert response.status_code == 200
+    assert response.is_json
+    assert "Reserva formalizada" in response.json["mensaje"]
+
+
+def test_formalizar_reserva_invalid_uuid_returns_400(client):
+    response = client.post('/api/reserva/uuid-invalido/formalizar')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert "badly formed hexadecimal UUID" in response.json["error"]
+
+
+def test_formalizar_reserva_handler_value_error_returns_400(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, comando):
+            raise ValueError("No se encontró la reserva")
+
+    monkeypatch.setattr(reserva_api_mod, 'FormalizarReservaHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    id_reserva = str(uuid.uuid4())
+    response = client.post(f'/api/reserva/{id_reserva}/formalizar')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert "No se encontró la reserva" in response.json["error"]
+
+
+def test_formalizar_reserva_unexpected_error_returns_500(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, comando):
+            raise RuntimeError("Error inesperado")
+
+    monkeypatch.setattr(reserva_api_mod, 'FormalizarReservaHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    id_reserva = str(uuid.uuid4())
+    response = client.post(f'/api/reserva/{id_reserva}/formalizar')
+
+    assert response.status_code == 500
+    assert response.is_json
+    assert "Error inesperado" in response.json["error"]

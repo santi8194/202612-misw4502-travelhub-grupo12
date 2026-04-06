@@ -1,6 +1,15 @@
 import pytest
+import sys
+from pathlib import Path
+
+BOOKING_ROOT = Path(__file__).resolve().parents[1]
+BACKEND_ROOT = BOOKING_ROOT.parent
+for path in (str(BACKEND_ROOT), str(BOOKING_ROOT)):
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
 from booking.api import create_app
-import config.uow as uow_mod
+import booking.config.uow as uow_mod
 
 
 class DummyDespachador:

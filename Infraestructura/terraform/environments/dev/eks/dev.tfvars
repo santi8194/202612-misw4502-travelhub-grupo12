@@ -19,7 +19,10 @@ cluster_name = "grupo12-travelhub-eks"
 
 # Required by Terraform.
 # Set explicitly so the cluster version does not depend on module/provider defaults.
-k8s_cluster_version = "1.29"
+# EKS upgrades only one minor version at a time. Since 1.29 reached end of
+# extended support on 2026-03-23, this setting moves dev to the next supported
+# version as the first upgrade hop.
+k8s_cluster_version = "1.30"
 
 # Required by Terraform.
 # Public endpoint access keeps the dev cluster reachable without extra private networking setup.

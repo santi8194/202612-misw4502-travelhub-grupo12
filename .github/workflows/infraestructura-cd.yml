@@ -120,7 +120,7 @@ jobs:
 
               aws logs tag-resource \
                 --resource-arn "${LOG_GROUP_ARN}" \
-                --tags owner=grupo12 managed-by=aws terraform-stack=eks
+                --tags '{"owner":"grupo12","managed-by":"aws","terraform-stack":"eks"}'
 
               echo "EKS log group reconciled: ${LOG_GROUP}"
               exit 0

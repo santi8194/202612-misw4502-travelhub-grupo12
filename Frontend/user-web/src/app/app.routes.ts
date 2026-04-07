@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { GuestsPage } from './pages/guests-page/guests-page';
 
 export const routes: Routes = [
   {
@@ -9,6 +8,7 @@ export const routes: Routes = [
   },
   {
     path: 'booking',
-    component: GuestsPage
+    loadComponent: () =>
+      import('./pages/guests-page/guests-page').then(m => m.GuestsPage),
   }
 ];

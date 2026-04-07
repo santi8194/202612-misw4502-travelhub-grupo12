@@ -2,14 +2,14 @@
 
   <app-header></app-header>
 
-  <div class="back-link">
+  <div class="back-link" data-testid="back-link">
     <svg class="back-link-icon" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
     <span>Volver</span>
   </div>
 
-  <div class="stepper-wrap">
+  <div class="stepper-wrap" data-testid="stepper">
     <div class="step step-active">
       <div class="step-icon step-icon-active">
         <svg class="step-svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -46,56 +46,59 @@
     </div>
   </div>
 
-  <div class="details-card">
+  <div class="details-card" data-testid="guest-details-card">
 
     <h2 class="card-title">Detalles de los huéspedes</h2>
 
     <div class="form-grid">
       <div class="field-wrap">
         <label class="field-label" for="name">Nombre(s)</label>
-        <input id="name" class="field-input" [(ngModel)]="form.name" />
+        <input id="name" class="field-input" [ngModel]="form().name" (ngModelChange)="updateField('name', $event)" data-testid="input-name" />
       </div>
 
       <div class="field-wrap">
         <label class="field-label" for="lastName">Apellido</label>
-        <input id="lastName" class="field-input" [(ngModel)]="form.lastName" />
+        <input id="lastName" class="field-input" [ngModel]="form().lastName" (ngModelChange)="updateField('lastName', $event)" data-testid="input-lastname" />
       </div>
     </div>
 
     <div class="field-wrap field-full">
       <label class="field-label" for="email">Email</label>
-      <input id="email" class="field-input" [(ngModel)]="form.email" />
+      <input id="email" class="field-input" [ngModel]="form().email" (ngModelChange)="updateField('email', $event)" data-testid="input-email" />
     </div>
 
     <div class="field-wrap field-full">
       <label class="field-label" for="phone">Celular</label>
-      <input id="phone" class="field-input" [(ngModel)]="form.phone" />
+      <input id="phone" class="field-input" [ngModel]="form().phone" (ngModelChange)="updateField('phone', $event)" data-testid="input-phone" />
     </div>
 
     <div class="field-wrap field-full">
       <label class="field-label" for="request">Solicitud detallada (Opcional)</label>
-      <textarea id="request" class="field-textarea" [(ngModel)]="form.detailedRequest"></textarea>
+      <textarea id="request" class="field-textarea" [ngModel]="form().detailedRequest" (ngModelChange)="updateField('detailedRequest', $event)" data-testid="input-request"></textarea>
     </div>
 
     <button
       (click)="createHold()"
-      class="pay-btn">
+      class="pay-btn"
+      data-testid="continue-payment-btn">
       Continuar con el pago
     </button>
   </div>
 
-  <div *ngIf="remainingTime > 0"
-       class="hold-timer">
-    ⏳ Tu reserva expira en {{ remainingTime }}s
-  </div>
+  @if (timerActive()) {
+    <div class="hold-timer" data-testid="hold-timer">
+      ⏳ Tu reserva expira en {{ remainingTime() }}s
+    </div>
+  }
 
-  <div class="summary-card">
+  <div class="summary-card" data-testid="booking-summary">
 
     <h3 class="summary-title">Resumen de Reserva</h3>
 
-    <img 
+    <img
       src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"
       class="summary-image"
+      alt="Bourdeaux Getaway"
     />
 
     <div class="summary-info">
@@ -137,7 +140,7 @@
 
     <div class="divider"></div>
 
-    <div class="summary-total">
+    <div class="summary-total" data-testid="booking-total">
       <span>Total</span>
       <span>$580</span>
     </div>

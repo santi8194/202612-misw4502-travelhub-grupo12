@@ -57,3 +57,15 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+---
+
+## 🏛 Arquitectura y Reglas del Proyecto (TravelHub)
+
+Este proyecto ha sido migrado y adaptado para correr en un entorno estricto de **Angular 20**, priorizando una arquitectura **Client-Side Only**, orientada a Signals reactivos y desarrollo Standalone (libre de NgModules).
+
+Todos los desarrolladores deben revisar la normativa documentada de forma obligatoria antes de estructurar o codificar nuevos flujos, componentes y vistas en él:
+
+1. **[Decisiones de Arquitectura](./front-rules/actualizacion-arquitectura.md)**: Explicación de los cimientos (Tailwind vs Material CSS, Estructura de componentes y dependencias HTTP).
+2. **[Reglas de Desarrollo](./front-rules/actualizacion-rules.md)**: Convenciones estandarizadas para el día a día, control flow sin asteriscos, tipado inamovible (Prohibición estricta de `any`) e inyección moderna con `inject()`.
+3. **[Políticas de Pruebas / Testing](./front-rules/actualizacion-testing-rules.md)**: Cómo sostener una estructura de aserción agnóstica a modas (Testing mediante `data-testid`), el uso de simuladores modernos contra la app y cuota mínima (`> 80% coverage`).

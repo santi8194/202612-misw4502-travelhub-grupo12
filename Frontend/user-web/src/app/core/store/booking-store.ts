@@ -1,24 +1,20 @@
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable } from '@angular/core';
+import { HoldResponse } from '../../models/hold.interface';
 
 @Injectable({ providedIn: 'root' })
 export class BookingStore {
+  private readonly HOLD_KEY = 'hold';
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
-
-  private get storage(): Storage | null {
-    return isPlatformBrowser(this.platformId) ? localStorage : null;
+  setHold(hold: HoldResponse): void {
+    localStorage.setItem(this.HOLD_KEY, JSON.stringify(hold));
   }
 
-  setHold(hold: any) {
-    this.storage?.setItem('hold', JSON.stringify(hold));
+  getHold(): HoldResponse | null {
+    const raw = localStorage.getItem(this.HOLD_KEY);
+    return raw ? JSON.parse(raw) as HoldResponse : null;
   }
 
-  getHold() {
-    return JSON.parse(this.storage?.getItem('hold') || 'null');
-  }
-
-  clear() {
-    this.storage?.removeItem('hold');
+  clear(): void {
+    localStorage.removeItem(this.HOLD_KEY);
   }
 }

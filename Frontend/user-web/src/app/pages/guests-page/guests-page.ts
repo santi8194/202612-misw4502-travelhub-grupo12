@@ -1,75 +1,93 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, inject, signal, computed, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BookingService } from '../../core/services/booking';
 import { BookingStore } from '../../core/store/booking-store';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
+import { GuestForm } from '../../models/guest.interface';
+import { HoldRequest } from '../../models/hold.interface';
 
 @Component({
   selector: 'app-guests-page',
-  standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
+  imports: [FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './guests-page.html',
   styleUrl: './guests-page.css'
 })
-export class GuestsPage implements OnInit {
+export class GuestsPage implements OnDestroy {
+  private readonly bookingService = inject(BookingService);
+  private readonly store = inject(BookingStore);
 
-  private bookingService = inject(BookingService);
-  private store = inject(BookingStore);
-
-  form = {
+  form = signal<GuestForm>({
     name: '',
     lastName: '',
     email: '',
     phone: '',
     detailedRequest: ''
-  };
+  });
 
-  remainingTime = 0;
-  interval: any;
+  remainingTime = signal(0);
+  timerActive = computed(() => this.remainingTime() > 0);
 
-  ngOnInit() {
+  updateField(field: keyof GuestForm, value: string): void {
+    this.form.update(current => ({ ...current, [field]: value }));
+  }
+
+  private intervalId: ReturnType<typeof setInterval> | null = null;
+
+  constructor() {
     this.loadHold();
   }
 
-  async createHold() {
-    try {
-      const response = await this.bookingService.createHold({
-        categoryId: 1,
-        checkIn: '2026-10-10',
-        checkOut: '2026-10-15',
-        guests: 2
-      });
+  createHold(): void {
+    const request: HoldRequest = {
+      categoryId: 1,
+      checkIn: '2026-10-10',
+      checkOut: '2026-10-15',
+      guests: 2
+    };
 
-      this.store.setHold(response);
-      this.startTimer(response.expiresAt);
-
-    } catch (e: any) {
-      alert('No hay cupos disponibles');
-    }
+    this.bookingService.createHold(request).subscribe({
+      next: (response) => {
+        this.store.setHold(response);
+        this.startTimer(response.expiresAt);
+      },
+      error: () => {
+        alert('No hay cupos disponibles');
+      }
+    });
   }
 
-  loadHold() {
+  private loadHold(): void {
     const hold = this.store.getHold();
-
     if (hold) {
       this.startTimer(hold.expiresAt);
     }
   }
 
-  startTimer(expiresAt: number) {
-    this.interval = setInterval(() => {
+  private startTimer(expiresAt: number): void {
+    this.clearTimer();
+    this.intervalId = setInterval(() => {
       const diff = Math.floor((expiresAt - Date.now()) / 1000);
 
       if (diff <= 0) {
-        clearInterval(this.interval);
-        this.remainingTime = 0;
+        this.clearTimer();
+        this.remainingTime.set(0);
         this.store.clear();
         alert('El hold expiró');
       } else {
-        this.remainingTime = diff;
+        this.remainingTime.set(diff);
       }
     }, 1000);
+  }
+
+  private clearTimer(): void {
+    if (this.intervalId !== null) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.clearTimer();
   }
 }

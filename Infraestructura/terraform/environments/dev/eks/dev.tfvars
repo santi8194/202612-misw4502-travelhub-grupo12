@@ -51,3 +51,6 @@ node_min_size = 1
 # Added to avoid hidden defaults.
 # Prevent accidental scale-out cost in dev.
 node_max_size = 1
+
+# Added to keep the persistent EKS control plane log group low-cost in dev.
+eks_log_retention_in_days = 7

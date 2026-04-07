@@ -75,6 +75,14 @@ terraform -chdir="$PWD\terraform\stacks\eks" apply -var-file="$PWD\terraform\env
 
 terraform -chdir="$PWD\terraform\stacks\eks" destroy -var-file="$PWD\terraform\environments\dev\eks\terraform.tfvars"
 
+### CloudWatch Logs del control plane
+
+El log group `/aws/eks/grupo12-travelhub-eks/cluster` es persistente por diseno.
+No se destruye como parte del stack de EKS y puede permanecer despues de `terraform destroy`.
+Ese comportamiento es esperado: evita conflictos en futuros redeploys cuando AWS recrea el log group fuera de Terraform.
+El pipeline de CD reconcilia su retencion y tags despues de desplegar el cluster.
+El principal AWS usado por GitHub Actions necesita `logs:DescribeLogGroups`, `logs:PutRetentionPolicy` y `logs:TagResource`.
+
 
 # Imagen Booking
 Repo: aws ecr create-repository --repository-name booking

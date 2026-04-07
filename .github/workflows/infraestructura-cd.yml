@@ -59,6 +59,7 @@ jobs:
       - name: Terraform apply
         run: terraform apply -input=false -auto-approve tfplan
 
+
   deploy-eks:
     name: Deploy eks
     runs-on: ubuntu-latest
@@ -94,3 +95,38 @@ jobs:
 
       - name: Terraform apply
         run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Reconcile EKS control plane log group
+        env:
+          CLUSTER_NAME: grupo12-travelhub-eks
+          RETENTION_DAYS: "7"
+        run: |
+          set -euo pipefail
+
+          # Required AWS IAM actions for the workflow principal:
+          # logs:DescribeLogGroups, logs:PutRetentionPolicy, logs:TagResource
+          LOG_GROUP="/aws/eks/${CLUSTER_NAME}/cluster"
+
+          for i in $(seq 1 30); do
+            LOG_GROUP_ARN=$(aws logs describe-log-groups \
+              --log-group-name-prefix "${LOG_GROUP}" \
+              --query "logGroups[?logGroupName=='${LOG_GROUP}'].logGroupArn | [0]" \
+              --output text)
+
+            if [ "${LOG_GROUP_ARN}" != "None" ] && [ -n "${LOG_GROUP_ARN}" ]; then
+              aws logs put-retention-policy \
+                --log-group-name "${LOG_GROUP}" \
+                --retention-in-days "${RETENTION_DAYS}"
+
+              aws logs tag-resource \
+                --resource-arn "${LOG_GROUP_ARN}" \
+                --tags owner=grupo12 managed-by=aws terraform-stack=eks
+
+              echo "EKS log group reconciled: ${LOG_GROUP}"
+              exit 0
+            fi
+
+            sleep 10
+          done
+
+          echo "Log group ${LOG_GROUP} not found yet; skipping reconciliation without failing deploy."

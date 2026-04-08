@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     opensearch_verify_certs: bool = False
     opensearch_user: str = "admin"
     opensearch_password: str = "MyStr0ng!Pass#2026"
-    # "opensearch" or "postgres"
+    # "opensearch", "postgres", or "memory"
     repository_type: str = "postgres"
     postgres_url: str = "postgresql://travelhub:travelhub@localhost:5432/travelhub"
 

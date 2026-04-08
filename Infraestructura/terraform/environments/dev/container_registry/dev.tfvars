@@ -14,9 +14,9 @@ region = "us-east-1"
 owner = "grupo12"
 
 # Required by Terraform.
-# The current stack creates a single ECR repository per execution.
-# "authservice" matches the MVP runtime naming used by the CD pipeline and Kubernetes manifests.
-repository_name = "authservice"
+# Each repository name must match the runtime naming used by the CD pipeline and Kubernetes manifests.
+authservice_repository_name = "authservice"
+search_repository_name      = "search"
 
 # Added to avoid hidden defaults.
 # The stack has a default of 5, but dev should set retention explicitly to control storage cost.

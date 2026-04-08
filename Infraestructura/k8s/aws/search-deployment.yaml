@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search
+  labels:
+    app: search
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search
+  template:
+    metadata:
+      labels:
+        app: search
+    spec:
+      containers:
+        - name: search
+          image: ${ECR_REGISTRY_DEV}/search:${GITHUB_SHA}
+          ports:
+            - containerPort: 8000
+          env:
+            - name: REPOSITORY_TYPE
+              value: "postgres"
+            - name: POSTGRES_URL
+              value: "postgresql://travelhub:travelhub@search-postgres:5432/travelhub"
+            - name: REDIS_URL
+              value: "redis://search-redis:6379/0"
+            - name: OPENSEARCH_ENDPOINT
+              value: "https://search-opensearch:9200"
+            - name: OPENSEARCH_INDEX
+              value: "hospedajes"
+            - name: OPENSEARCH_VERIFY_CERTS
+              value: "false"
+            - name: OPENSEARCH_USER
+              value: "admin"
+            - name: OPENSEARCH_PASSWORD
+              value: "admin"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10

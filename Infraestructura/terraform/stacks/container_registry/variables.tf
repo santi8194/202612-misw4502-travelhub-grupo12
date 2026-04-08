@@ -4,8 +4,14 @@ variable "keep_tags_number" {
   default     = 5
 }
 
-variable "repository_name" {
-  description = "The name of the repository in the Amazon ECR service."
+variable "authservice_repository_name" {
+  description = "The name of the authservice repository in the Amazon ECR service."
+  type        = string
+  nullable    = false
+}
+
+variable "search_repository_name" {
+  description = "The name of the search repository in the Amazon ECR service."
   type        = string
   nullable    = false
 }

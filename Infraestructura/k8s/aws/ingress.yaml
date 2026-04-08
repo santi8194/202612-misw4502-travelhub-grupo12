@@ -48,3 +48,11 @@ spec:
                 name: partnermanagement-service
                 port:
                   number: 80
+
+          - path: /search(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: search
+                port:
+                  number: 80

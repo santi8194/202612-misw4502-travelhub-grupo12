@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../models/hotel.dart';
+import '../models/habitacion.dart';
 import '../models/location_suggestion.dart';
 import '../services/connectivity_service.dart';
 import '../services/search_service.dart';
@@ -18,7 +18,7 @@ class SearchViewModel extends ChangeNotifier {
   int _guestCount = 2;
 
   // Data State
-  List<Hotel> _searchResults = [];
+  List<Habitacion> _searchResults = [];
 
   // Loading States
   bool _isSearching = false;
@@ -33,12 +33,13 @@ class SearchViewModel extends ChangeNotifier {
   String get destinationQuery => _destinationQuery;
   DateTimeRange? get selectedDateRange => _selectedDateRange;
   int get guestCount => _guestCount;
-  List<Hotel> get searchResults => _searchResults;
+  List<Habitacion> get searchResults => _searchResults;
   bool get isSearching => _isSearching;
   bool get isDestinationError => _isDestinationError;
   bool get isOffline => _isOffline;
   bool get isFromCache => _isFromCache;
-  bool get hasNoResults => _hasPerformedSearch && _searchResults.isEmpty && !_isSearching;
+  bool get hasNoResults =>
+      _hasPerformedSearch && _searchResults.isEmpty && !_isSearching;
 
   SearchViewModel({
     SearchService? searchService,

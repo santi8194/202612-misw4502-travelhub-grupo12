@@ -1,7 +1,8 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/hotel.dart';
+import '../models/habitacion.dart';
 import '../models/location_suggestion.dart';
 
 /// Local cache manager backed by SharedPreferences.
@@ -44,7 +45,7 @@ class CacheService {
     required String fechaInicio,
     required String fechaFin,
     required int huespedes,
-    required List<Hotel> results,
+    required List<Habitacion> results,
   }) async {
     final prefs = await _preferences;
     final key = _searchCacheKey(
@@ -59,7 +60,7 @@ class CacheService {
   }
 
   /// Retrieves cached search results, or null if not found.
-  Future<List<Hotel>?> getCachedSearchResults({
+  Future<List<Habitacion>?> getCachedSearchResults({
     required String ciudad,
     required String pais,
     required String fechaInicio,
@@ -78,20 +79,26 @@ class CacheService {
     if (cached == null) return null;
 
     final List<dynamic> decoded = json.decode(cached);
-    return decoded.map((j) => Hotel.fromJson(j as Map<String, dynamic>)).toList();
+    return decoded
+        .map((j) => Habitacion.fromJson(j as Map<String, dynamic>))
+        .toList();
   }
 
   // ── Destination Suggestions Cache ─────────────────────────────────────
 
   /// Caches the full list of destination suggestions.
-  Future<void> cacheDestinationSuggestions(List<LocationSuggestion> suggestions) async {
+  Future<void> cacheDestinationSuggestions(
+    List<LocationSuggestion> suggestions,
+  ) async {
     final prefs = await _preferences;
     final jsonList = suggestions.map((s) => s.toJson()).toList();
     await prefs.setString(_destinationsKey, json.encode(jsonList));
   }
 
   /// Retrieves cached suggestions and filters them locally by [query].
-  Future<List<LocationSuggestion>> getCachedDestinationSuggestions(String query) async {
+  Future<List<LocationSuggestion>> getCachedDestinationSuggestions(
+    String query,
+  ) async {
     final prefs = await _preferences;
     final cached = prefs.getString(_destinationsKey);
     if (cached == null) return [];
@@ -112,7 +119,9 @@ class CacheService {
   }
 
   /// Merges new suggestions into the existing cached list (deduplication by ciudad+pais).
-  Future<void> mergeDestinationSuggestions(List<LocationSuggestion> newSuggestions) async {
+  Future<void> mergeDestinationSuggestions(
+    List<LocationSuggestion> newSuggestions,
+  ) async {
     final prefs = await _preferences;
     final cached = prefs.getString(_destinationsKey);
 
@@ -147,7 +156,8 @@ class CacheService {
   Future<void> clearCache() async {
     final prefs = await _preferences;
     final keys = prefs.getKeys().where(
-        (k) => k.startsWith(_searchPrefix) || k == _destinationsKey);
+      (k) => k.startsWith(_searchPrefix) || k == _destinationsKey,
+    );
     for (final key in keys) {
       await prefs.remove(key);
     }

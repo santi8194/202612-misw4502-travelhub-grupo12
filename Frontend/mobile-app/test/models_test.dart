@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:travel_hub/models/hotel.dart';
+import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/models/location_suggestion.dart';
 
 void main() {
@@ -13,7 +13,7 @@ void main() {
         'isSpecialOffer': true,
       };
 
-      final hotel = Hotel.fromJson(json);
+      final hotel = Habitacion.fromJson(json);
 
       expect(hotel.imageUrl, 'test.jpg');
       expect(hotel.title, 'Test Hotel');
@@ -23,7 +23,7 @@ void main() {
     });
 
     test('Hotel.toJson returns a valid map', () {
-      final hotel = Hotel(
+      final hotel = Habitacion(
         imageUrl: 'test.jpg',
         title: 'Test Hotel',
         location: 'Test City',

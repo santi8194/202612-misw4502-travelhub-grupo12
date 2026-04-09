@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/hotel.dart';
+import '../models/habitacion.dart';
 import '../models/location_suggestion.dart';
 import 'cache_service.dart';
 
@@ -35,7 +35,7 @@ class SearchService {
     : _cacheService = cacheService ?? CacheService(),
       _httpClient = httpClient ?? http.Client();
 
-  Future<List<Hotel>> searchHotels({
+  Future<List<Habitacion>> searchHotels({
     required String query,
     required DateTime? startDate,
     required DateTime? endDate,
@@ -74,7 +74,7 @@ class SearchService {
 
         final hotels = resultados
             .map(
-              (j) => Hotel(
+              (j) => Habitacion(
                 imageUrl: j['imagen_principal_url'] ?? '',
                 title: j['propiedad_nombre'] ?? '',
                 location: '${j['ciudad']}, ${j['pais']}',
@@ -133,7 +133,7 @@ class SearchService {
     }
   }
 
-  Future<List<Hotel>> _fallbackToCache({
+  Future<List<Habitacion>> _fallbackToCache({
     required String ciudad,
     required String pais,
     required String fechaInicio,

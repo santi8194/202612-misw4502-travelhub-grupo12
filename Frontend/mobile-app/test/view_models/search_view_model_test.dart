@@ -1,18 +1,19 @@
 import 'dart:async';
-import 'package:flutter_test/flutter_test.dart';
+
 import 'package:flutter/material.dart';
-import 'package:travel_hub/view_models/search_view_model.dart';
-import 'package:travel_hub/services/search_service.dart';
-import 'package:travel_hub/services/connectivity_service.dart';
-import 'package:travel_hub/services/cache_service.dart';
-import 'package:travel_hub/models/hotel.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/models/location_suggestion.dart';
+import 'package:travel_hub/services/cache_service.dart';
+import 'package:travel_hub/services/connectivity_service.dart';
+import 'package:travel_hub/services/search_service.dart';
+import 'package:travel_hub/view_models/search_view_model.dart';
 
 class MockSearchService extends SearchService {
   MockSearchService() : super(cacheService: CacheService());
 
   @override
-  Future<List<Hotel>> searchHotels({
+  Future<List<Habitacion>> searchHotels({
     required String query,
     required DateTime? startDate,
     required DateTime? endDate,
@@ -20,13 +21,13 @@ class MockSearchService extends SearchService {
   }) async {
     if (query == 'empty') return [];
     return [
-      Hotel(
+      Habitacion(
         imageUrl: 'url',
         title: 'Mock Hotel',
         location: 'Mock Loc',
         amenities: [],
         isSpecialOffer: false,
-      )
+      ),
     ];
   }
 
@@ -34,7 +35,11 @@ class MockSearchService extends SearchService {
   Future<List<LocationSuggestion>> getLocationSuggestions(String query) async {
     if (query.toLowerCase() == 'bog') {
       return [
-        const LocationSuggestion(ciudad: 'Bogotá', estadoProvincia: 'Bogotá D.C.', pais: 'Colombia'),
+        const LocationSuggestion(
+          ciudad: 'Bogotá',
+          estadoProvincia: 'Bogotá D.C.',
+          pais: 'Colombia',
+        ),
       ];
     }
     return [];
@@ -46,7 +51,7 @@ class OfflineMockSearchService extends SearchService {
   OfflineMockSearchService() : super(cacheService: CacheService());
 
   @override
-  Future<List<Hotel>> searchHotels({
+  Future<List<Habitacion>> searchHotels({
     required String query,
     required DateTime? startDate,
     required DateTime? endDate,
@@ -54,13 +59,13 @@ class OfflineMockSearchService extends SearchService {
   }) async {
     isFromCache = true;
     return [
-      Hotel(
+      Habitacion(
         imageUrl: 'cached_url',
         title: 'Cached Hotel',
         location: 'Cached Loc',
         amenities: ['WiFi'],
         isSpecialOffer: false,
-      )
+      ),
     ];
   }
 
@@ -68,19 +73,24 @@ class OfflineMockSearchService extends SearchService {
   Future<List<LocationSuggestion>> getLocationSuggestions(String query) async {
     isFromCache = true;
     return [
-      const LocationSuggestion(ciudad: 'Bogotá', estadoProvincia: 'Cundinamarca', pais: 'Colombia'),
+      const LocationSuggestion(
+        ciudad: 'Bogotá',
+        estadoProvincia: 'Cundinamarca',
+        pais: 'Colombia',
+      ),
     ];
   }
 }
 
 /// A mock ConnectivityService that uses the test constructor to avoid platform channels.
 class MockConnectivityService extends ConnectivityService {
-  final StreamController<bool> _mockController = StreamController<bool>.broadcast();
+  final StreamController<bool> _mockController =
+      StreamController<bool>.broadcast();
   bool _mockOnline;
 
   MockConnectivityService({bool online = true})
-      : _mockOnline = online,
-        super.test(online: online);
+    : _mockOnline = online,
+      super.test(online: online);
 
   @override
   bool get isOnline => _mockOnline;
@@ -145,7 +155,10 @@ void main() {
     });
 
     test('updateDateRange updates value', () {
-      final range = DateTimeRange(start: DateTime(2025), end: DateTime(2025, 1, 5));
+      final range = DateTimeRange(
+        start: DateTime(2025),
+        end: DateTime(2025, 1, 5),
+      );
       viewModel.updateDateRange(range);
       expect(viewModel.selectedDateRange, range);
     });
@@ -247,7 +260,7 @@ void main() {
       mockConnectivity.setOnline(true);
       await Future.delayed(const Duration(milliseconds: 100));
 
-      // Verification is indirect since we are using mocks, but it confirms the flow doesn't crash 
+      // Verification is indirect since we are using mocks, but it confirms the flow doesn't crash
       // and internal flags are updated correctly.
     });
   });

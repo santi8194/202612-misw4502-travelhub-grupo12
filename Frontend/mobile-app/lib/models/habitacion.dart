@@ -1,11 +1,11 @@
-class Hotel {
+class Habitacion {
   final String imageUrl;
   final String title;
   final String location;
   final List<String> amenities;
   final bool isSpecialOffer;
 
-  Hotel({
+  Habitacion({
     required this.imageUrl,
     required this.title,
     required this.location,
@@ -13,8 +13,8 @@ class Hotel {
     this.isSpecialOffer = false,
   });
 
-  factory Hotel.fromJson(Map<String, dynamic> json) {
-    return Hotel(
+  factory Habitacion.fromJson(Map<String, dynamic> json) {
+    return Habitacion(
       imageUrl: json['imageUrl'] as String? ?? '',
       title: json['title'] as String? ?? '',
       location: json['location'] as String? ?? '',

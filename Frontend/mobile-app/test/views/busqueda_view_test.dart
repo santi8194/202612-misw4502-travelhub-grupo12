@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:travel_hub/views/busqueda_view.dart';
-import 'package:travel_hub/view_models/search_view_model.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
-
-import 'package:travel_hub/services/search_service.dart';
-import 'package:travel_hub/models/hotel.dart';
+import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/models/location_suggestion.dart';
+import 'package:travel_hub/services/search_service.dart';
+import 'package:travel_hub/view_models/search_view_model.dart';
+import 'package:travel_hub/views/busqueda_view.dart';
 
 class MockSearchService extends SearchService {
   @override
-  Future<List<Hotel>> searchHotels({
+  Future<List<Habitacion>> searchHotels({
     required query,
     required startDate,
     required endDate,
@@ -21,12 +20,20 @@ class MockSearchService extends SearchService {
 
   @override
   Future<List<LocationSuggestion>> getLocationSuggestions(String query) async {
-    return [const LocationSuggestion(ciudad: 'Bogotá', estadoProvincia: 'Bogotá D.C.', pais: 'Colombia')];
+    return [
+      const LocationSuggestion(
+        ciudad: 'Bogotá',
+        estadoProvincia: 'Bogotá D.C.',
+        pais: 'Colombia',
+      ),
+    ];
   }
 }
 
 void main() {
-  testWidgets('BusquedaView UI acts on tap and triggers validations', (WidgetTester tester) async {
+  testWidgets('BusquedaView UI acts on tap and triggers validations', (
+    WidgetTester tester,
+  ) async {
     final viewModel = SearchViewModel(searchService: MockSearchService());
 
     await tester.pumpWidget(
@@ -41,10 +48,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('es', ''),
-            Locale('en', ''),
-          ],
+          supportedLocales: const [Locale('es', ''), Locale('en', '')],
           home: const BusquedaView(),
         ),
       ),

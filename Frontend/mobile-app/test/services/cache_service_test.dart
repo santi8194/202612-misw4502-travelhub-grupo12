@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:travel_hub/models/hotel.dart';
+import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/models/location_suggestion.dart';
 import 'package:travel_hub/services/cache_service.dart';
 
@@ -20,7 +20,7 @@ void main() {
 
   group('CacheService Tests', () {
     test('cacheSearchResults stores JSON in SharedPreferences', () async {
-      final hotel = Hotel(
+      final hotel = Habitacion(
         imageUrl: 'url',
         title: 'Title',
         location: 'Loc',

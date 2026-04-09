@@ -16,11 +16,11 @@ Se creó un bucket en AWS S3 para almacenar el archivo terraform.tfstate.
 
 ## Bucket
 
-*terraform-state-grupo12*
+*travelhub-tfstate-dev-us-east-1*
 
 El nombre del bucket debe ser único a nivel global en AWS.
 
-Comando: aws s3api create-bucket --bucket terraform-state-grupo12 --region us-east-1 --debug
+Comando: aws s3api create-bucket --bucket travelhub-tfstate-dev-us-east-1 --region us-east-1 --debug
 
 # Despliegue del Stack: Container Registry (ECR)
 
@@ -172,3 +172,14 @@ Probar:
 /pmsintegration/health
 /payment/health
 /notification/health
+
+# RDS
+
+## Inicialice su stack ejecutando
+
+terraform -chdir="$PWD\terraform\stacks\database" init  -backend-config="$PWD\terraform\environments\dev\database\backend.tfvars"
+
+Cree el plan de despliegue para el stack de la base de datos.
+
+terraform -chdir="$PWD\terraform\stacks\database" plan -var-file="$PWD\terraform\environments\dev\database\terraform.tfvars"
+

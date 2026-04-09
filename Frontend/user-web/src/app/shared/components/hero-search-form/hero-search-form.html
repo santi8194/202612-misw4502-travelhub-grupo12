@@ -1,17 +1,29 @@
 <form class="hero-search" data-testid="hero-search-form" (ngSubmit)="onSearch()">
 
-  <div class="search-field">
+  <div class="search-field" style="position: relative;">
     <label class="search-field-label" for="location">Ubicación</label>
     <input
       id="location"
+      name="location"
       class="search-field-input"
       type="text"
       placeholder="¿A dónde vamos?"
       autocomplete="off"
       [ngModel]="form().location"
-      (ngModelChange)="updateField('location', $event)"
+      (ngModelChange)="onLocationInput($event)"
       data-testid="input-location"
     />
+
+    @if (suggestions().length > 0) {
+      <ul class="suggestions-dropdown" data-testid="suggestions-dropdown">
+        @for (dest of suggestions(); track dest.ciudad) {
+          <li class="suggestion-item" (click)="selectDestination(dest)" data-testid="suggestion-item">
+            <span class="suggestion-city">{{ dest.ciudad }}</span>
+            <span class="suggestion-detail">{{ dest.estado_provincia ? dest.estado_provincia + ', ' : '' }}{{ dest.pais }}</span>
+          </li>
+        }
+      </ul>
+    }
   </div>
 
   <div class="search-divider" aria-hidden="true"></div>
@@ -20,6 +32,7 @@
     <label class="search-field-label" for="checkin">Ingreso</label>
     <input
       id="checkin"
+      name="checkin"
       class="search-field-input"
       type="date"
       [ngModel]="form().checkIn"
@@ -34,6 +47,7 @@
     <label class="search-field-label" for="checkout">Salida</label>
     <input
       id="checkout"
+      name="checkout"
       class="search-field-input"
       type="date"
       [ngModel]="form().checkOut"
@@ -48,6 +62,7 @@
     <label class="search-field-label" for="guests">Huéspedes</label>
     <input
       id="guests"
+      name="guests"
       class="search-field-input"
       type="number"
       min="1"

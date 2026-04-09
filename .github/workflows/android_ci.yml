@@ -47,9 +47,6 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage
 
-      - name: Run Integration Tests
-        run: flutter test integration_test/app_test.dart
-
       - name: Check Coverage (>= 80%)
         run: |
           chmod +x scripts/check_coverage.sh

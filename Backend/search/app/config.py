@@ -22,8 +22,6 @@ class Settings(BaseSettings):
     opensearch_verify_certs: bool = False
     opensearch_user: str = "admin"
     opensearch_password: str = "MyStr0ng!Pass#2026"
-    redis_url: str = "redis://localhost:6379/0"
-    
     # "opensearch" or "postgres"
     repository_type: str = "postgres"
     postgres_url: str = "postgresql://travelhub:travelhub@localhost:5432/travelhub"

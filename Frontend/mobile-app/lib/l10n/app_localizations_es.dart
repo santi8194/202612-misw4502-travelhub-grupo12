@@ -67,4 +67,59 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profileTitle => 'Pantalla de Perfil';
+
+  @override
+  String get headerSubtitle => 'Descubre tu próximo destino en América Latina';
+
+  @override
+  String get searchWhere => '¿A dónde quieres ir?';
+
+  @override
+  String get searchDates => 'FECHAS';
+
+  @override
+  String get searchGuests => 'HUÉSPEDES';
+
+  @override
+  String get searchButton => 'Buscar Hoteles';
+
+  @override
+  String get resultsTitle => 'Resultados de búsqueda';
+
+  @override
+  String get specialOffer => 'Oferta Especial';
+
+  @override
+  String get noResultsTitle => 'No hay propiedades disponibles';
+
+  @override
+  String get noResultsMessage =>
+      'No se encontraron propiedades que coincidan con tu búsqueda. Intenta ajustar el destino, las fechas o la cantidad de huéspedes.';
+
+  @override
+  String guestCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count huéspedes',
+      one: '1 huésped',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get searchingButton => 'Buscando...';
+
+  @override
+  String get anyDestination => 'CUALQUIER DESTINO';
+
+  @override
+  String get openDates => 'FECHAS ABIERTAS';
+
+  @override
+  String get tryAnotherSearch => 'Intentar otra búsqueda';
+
+  @override
+  String get cachedResultsBanner =>
+      'Mostrando resultados en caché. Se actualizarán al recuperar conexión.';
 }

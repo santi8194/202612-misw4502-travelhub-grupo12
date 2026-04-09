@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 
+import 'busqueda_view.dart';
+
 class MainNavigationView extends StatefulWidget {
   const MainNavigationView({super.key});
 
@@ -23,10 +25,9 @@ class _MainNavigationViewState extends State<MainNavigationView> {
     final l10n = AppLocalizations.of(context)!;
 
     final List<Widget> pages = [
-      Center(child: Text(l10n.homeTitle)),
-      Center(child: Text(l10n.searchTitle)),
-      Center(child: Text(l10n.bookingsTitle)),
-      Center(child: Text(l10n.profileTitle)),
+      const BusquedaView(),
+      Center(child: Text(l10n.navBookings)),
+      Center(child: Text(l10n.navProfile)),
     ];
 
     return Scaffold(
@@ -35,24 +36,22 @@ class _MainNavigationViewState extends State<MainNavigationView> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.blue[800],
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+        unselectedItemColor: Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
         items: [
           BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
-            label: l10n.navHome,
-          ),
-          BottomNavigationBarItem(
             icon: const Icon(Icons.search),
-            label: l10n.navSearch,
+            label: l10n.navSearch, // Using Search l10n for Búsqueda
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_today),
-            label: l10n.navBookings,
+            icon: const Icon(Icons.card_travel),
+            label: l10n.navBookings, // Using Bookings l10n for Mis Reservas
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.person),
-            label: l10n.navProfile,
+            icon: const Icon(Icons.person_outline),
+            label: l10n.navProfile, // Using Profile l10n for Perfil
           ),
         ],
       ),

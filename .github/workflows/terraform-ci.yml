@@ -78,5 +78,13 @@ jobs:
       - name: Terraform validate
         run: terraform validate -no-color
 
+      - name: Guardrail for persistent EKS log group
+        if: matrix.stack.name == 'eks'
+        run: |
+          if grep -R -n 'resource "aws_cloudwatch_log_group" "eks"' .; then
+            echo "::error::The EKS control plane log group must remain outside direct Terraform ownership."
+            exit 1
+          fi
+
       - name: Terraform plan
         run: terraform plan -input=false -lock=false -no-color -var-file="${{ matrix.stack.tfvars_file }}"

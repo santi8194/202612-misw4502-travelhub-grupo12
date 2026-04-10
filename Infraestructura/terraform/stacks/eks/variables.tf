@@ -4,6 +4,12 @@ variable "region" {
   nullable    = false
 }
 
+variable "eks_log_retention_in_days" {
+  description = "Retencion deseada del log group de control plane de EKS."
+  type        = number
+  default     = 7
+}
+
 variable "cluster_name" {
   description = "El nombre del clúster EKS."
   type        = string

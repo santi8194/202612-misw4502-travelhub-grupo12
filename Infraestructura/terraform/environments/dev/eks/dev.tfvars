@@ -19,7 +19,10 @@ cluster_name = "grupo12-travelhub-eks"
 
 # Required by Terraform.
 # Set explicitly so the cluster version does not depend on module/provider defaults.
-k8s_cluster_version = "1.29"
+# EKS upgrades only one minor version at a time. Since 1.29 reached end of
+# extended support on 2026-03-23, this setting moves dev to the next supported
+# version as the first upgrade hop.
+k8s_cluster_version = "1.30"
 
 # Required by Terraform.
 # Public endpoint access keeps the dev cluster reachable without extra private networking setup.
@@ -35,7 +38,7 @@ subnet_ids = ["subnet-072a1bac7455c1476", "subnet-0612f6b53a6445dd4"]
 
 # Added to avoid hidden defaults.
 # Small instance type for a cost-optimized dev environment.
-node_instance_types = ["t3.medium"]
+node_instance_types = ["t3.small"]
 
 # Added to avoid hidden defaults.
 # Single-node dev footprint to minimize cost.
@@ -48,3 +51,6 @@ node_min_size = 1
 # Added to avoid hidden defaults.
 # Prevent accidental scale-out cost in dev.
 node_max_size = 1
+
+# Added to keep the persistent EKS control plane log group low-cost in dev.
+eks_log_retention_in_days = 7

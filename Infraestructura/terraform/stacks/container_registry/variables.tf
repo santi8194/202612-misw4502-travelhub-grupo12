@@ -4,9 +4,9 @@ variable "keep_tags_number" {
   default     = 5
 }
 
-variable "repository_name" {
-  description = "The name of the repository in the Amazon ECR service."
-  type        = string
+variable "repository_names" {
+  description = "The names of the repositories in the Amazon ECR service."
+  type        = list(string)
   nullable    = false
 }
 

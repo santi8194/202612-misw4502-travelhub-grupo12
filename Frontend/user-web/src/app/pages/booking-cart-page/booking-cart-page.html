@@ -23,7 +23,10 @@
     </div>
   }
 
-  <app-booking-cart-summary></app-booking-cart-summary>
+  <app-booking-cart-summary
+    [data]="summary()"
+    [isLoading]="isLoadingSummary()">
+  </app-booking-cart-summary>
 
   <app-footer></app-footer>
 

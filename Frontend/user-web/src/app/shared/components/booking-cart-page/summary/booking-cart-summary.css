@@ -1,7 +1,7 @@
 .summary-card {
   width: calc(100% - (2 * var(--content-side-margin)));
   max-width: calc(var(--content-max-width) - (2 * var(--content-side-margin)));
-  margin: 20px auto 0;
+  margin: 30px auto 30px;
   box-sizing: border-box;
   background: #fff;
   border-radius: 16px;

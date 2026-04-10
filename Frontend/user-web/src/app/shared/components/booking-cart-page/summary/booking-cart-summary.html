@@ -1,53 +1,59 @@
 <div class="summary-card" data-testid="booking-summary">
-  <h3 class="summary-title">Resumen de Reserva</h3>
 
-  <img
-    src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"
-    class="summary-image"
-    alt="Bourdeaux Getaway"
-  />
-
-  <div class="summary-info">
-    <div class="summary-name">Bourdeaux Getaway</div>
-    <div class="summary-location">Bourdeaux, Francia</div>
-  </div>
-
-  <div class="summary-details">
-    <div class="row">
-      <span>Llegada</span>
-      <span>Mar 07, 2026</span>
+  @if (isLoading) {
+    <div class="skeleton-wrap">
+      <div class="skeleton skeleton-image"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-text skeleton-text--short"></div>
     </div>
-    <div class="row">
-      <span>Salida</span>
-      <span>Mar 10, 2026</span>
-    </div>
-    <div class="row">
-      <span>Huéspedes</span>
-      <span>2</span>
-    </div>
-    <div class="row">
-      <span>Noches</span>
-      <span>3</span>
-    </div>
-  </div>
+  } @else {
+    <h3 class="summary-title">Resumen de Reserva</h3>
 
-  <div class="divider"></div>
+    <img [src]="data.imageUrl" class="summary-image" [alt]="data.propertyName" />
 
-  <div class="summary-prices">
-    <div class="row">
-      <span>$345 x 3 noches</span>
-      <span>$525</span>
+    <div class="summary-info">
+      <div class="summary-name">{{ data.propertyName }}</div>
+      <div class="summary-location">{{ data.location }}</div>
     </div>
-    <div class="row">
-      <span>Tarifa de servicio</span>
-      <span>$83</span>
+
+    <div class="summary-details">
+      <div class="row">
+        <span>Llegada</span>
+        <span>{{ data.checkIn }}</span>
+      </div>
+      <div class="row">
+        <span>Salida</span>
+        <span>{{ data.checkOut }}</span>
+      </div>
+      <div class="row">
+        <span>Huéspedes</span>
+        <span>{{ data.guests }}</span>
+      </div>
+      <div class="row">
+        <span>Noches</span>
+        <span>{{ data.nights }}</span>
+      </div>
     </div>
-  </div>
 
-  <div class="divider"></div>
+    <div class="divider"></div>
 
-  <div class="summary-total" data-testid="booking-total">
-    <span>Total</span>
-    <span>$580</span>
-  </div>
+    <div class="summary-prices">
+      <div class="row">
+        <span>${{ data.pricePerNight }} x {{ data.nights }} noches</span>
+        <span>${{ data.subtotal }}</span>
+      </div>
+      <div class="row">
+        <span>Tarifa de servicio</span>
+        <span>${{ data.serviceFee }}</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="summary-total" data-testid="booking-total">
+      <span>Total</span>
+      <span>${{ data.total }}</span>
+    </div>
+  }
+
 </div>

@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -58,7 +58,7 @@ class UpdateInventoryRequest(BaseModel):
 def crear_propiedad(request: CreatePropertyRequest):
 	"""Crea una nueva propiedad."""
 	command = CreateProperty(repository, event_bus)
-	id_propiedad = UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479")  # Generar UUID en el cliente
+	id_propiedad = uuid4()  # Generar UUID automáticamente
 	return command.execute(
 		id_propiedad=id_propiedad,
 		nombre=request.nombre,

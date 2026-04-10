@@ -1,0 +1,32 @@
+# Entorno virtual local
+.venv/
+
+# Caches de Python
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Tests y cobertura
+.pytest_cache/
+tests/
+.coverage
+htmlcov/
+
+# Scripts de seed (no deben ir en producción)
+scripts/
+
+# Variables de entorno locales (nunca en la imagen)
+.env
+.env.*
+
+# Archivos de documentación y utilidades locales
+*.md
+compile_files.py
+contents_summary.txt
+postman_collection.json
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml

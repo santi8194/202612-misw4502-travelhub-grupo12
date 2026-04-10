@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { BookingStore } from './booking-store';
 import { HoldResponse } from '../../models/hold.interface';
 
@@ -6,7 +7,9 @@ describe('BookingStore', () => {
   let store: BookingStore;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection()],
+    });
     store = TestBed.inject(BookingStore);
     localStorage.clear();
   });

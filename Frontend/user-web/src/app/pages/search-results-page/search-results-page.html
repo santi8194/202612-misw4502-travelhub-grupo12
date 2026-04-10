@@ -1,0 +1,41 @@
+<div class="search-results-page">
+
+  <app-header></app-header>
+
+  <main class="results-main" data-testid="results-main">
+
+    <!-- Encabezado de resultados -->
+    <section class="results-header" data-testid="results-header">
+      <h1 class="results-title" data-testid="results-title">
+        Stays in {{ ciudadBusqueda() }}
+      </h1>
+      <p class="results-subtitle" data-testid="results-subtitle">
+        {{ totalResultados() }}+ stays in {{ ciudadBusqueda() }}
+      </p>
+    </section>
+
+    <hr class="results-divider" data-testid="results-divider" />
+
+    <!-- Grid de hospedajes o estado vacío -->
+    @if (hospedajes().length > 0) {
+      <section class="results-grid" data-testid="results-grid">
+        @for (hospedaje of hospedajes(); track hospedaje.id_propiedad) {
+          <app-hospedaje-card [hospedaje]="hospedaje" />
+        }
+      </section>
+    } @else if (!loading()) {
+      <section class="results-empty" data-testid="results-empty">
+        <p class="results-empty__message" data-testid="results-empty-message">
+          No se encontraron hospedajes para las fechas seleccionadas.
+        </p>
+        <a routerLink="/" class="results-empty__link" data-testid="results-empty-link">
+          Volver a TravelHub
+        </a>
+      </section>
+    }
+
+  </main>
+
+  <app-footer></app-footer>
+
+</div>

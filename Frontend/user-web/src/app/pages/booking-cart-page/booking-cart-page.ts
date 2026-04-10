@@ -1,19 +1,27 @@
-import { Component, OnDestroy, inject, signal, computed, WritableSignal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { BookingService } from '../../core/services/booking';
 import { BookingStore } from '../../core/store/booking-store';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
+import { BookingCartFormComponent } from '../../shared/components/booking-cart-page/form/booking-cart-form';
+import { BookingCartSummaryComponent } from '../../shared/components/booking-cart-page/summary/booking-cart-summary';
+import { BookingCartStepperComponent } from '../../shared/components/booking-cart-page/stepper/booking-cart-stepper';
 import { GuestForm } from '../../models/guest.interface';
 import { HoldRequest } from '../../models/hold.interface';
 
 @Component({
-  selector: 'app-guests-page',
-  imports: [FormsModule, HeaderComponent, FooterComponent],
-  templateUrl: './guests-page.html',
-  styleUrl: './guests-page.css'
+  selector: 'app-booking-cart-page',
+  imports: [
+    HeaderComponent,
+    FooterComponent,
+    BookingCartStepperComponent,
+    BookingCartFormComponent,
+    BookingCartSummaryComponent,
+  ],
+  templateUrl: './booking-cart-page.html',
+  styleUrl: './booking-cart-page.css'
 })
-export class GuestsPage implements OnDestroy {
+export class BookingCartPage implements OnDestroy {
   private readonly bookingService = inject(BookingService);
   private readonly store = inject(BookingStore);
 
@@ -30,6 +38,10 @@ export class GuestsPage implements OnDestroy {
 
   updateField(field: keyof GuestForm, value: string): void {
     this.form.update(current => ({ ...current, [field]: value }));
+  }
+
+  onFieldChange(event: { field: keyof GuestForm; value: string }): void {
+    this.updateField(event.field, event.value);
   }
 
   private intervalId: ReturnType<typeof setInterval> | null = null;

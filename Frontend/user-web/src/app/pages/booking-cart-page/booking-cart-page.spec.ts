@@ -2,15 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { GuestsPage } from './guests-page';
+import { BookingCartPage } from './booking-cart-page';
 
-describe('GuestsPage', () => {
-  let component: GuestsPage;
-  let fixture: ComponentFixture<GuestsPage>;
+describe('BookingCartPage', () => {
+  let component: BookingCartPage;
+  let fixture: ComponentFixture<BookingCartPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GuestsPage],
+      imports: [BookingCartPage],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -18,7 +18,7 @@ describe('GuestsPage', () => {
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(GuestsPage);
+    fixture = TestBed.createComponent(BookingCartPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

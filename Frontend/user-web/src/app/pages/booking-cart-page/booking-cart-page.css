@@ -1,0 +1,41 @@
+.booking-cart-page {
+  --page-gutter: clamp(24px, 2.4vw, 40px);
+  --content-side-margin: clamp(32px, 4vw, 72px);
+  --content-max-width: 1480px;
+  --step-icon-size: clamp(52px, 6vw, 66px);
+  min-height: 100vh;
+  background: #fff;
+  padding: var(--page-gutter);
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 24px;
+  width: max-content;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.back-link-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.hold-timer {
+  text-align: center;
+  margin-top: 20px;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .booking-cart-page {
+    --page-gutter: 14px;
+    --content-side-margin: 0px;
+  }
+}

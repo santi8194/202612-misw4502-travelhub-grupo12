@@ -14,6 +14,6 @@ export const routes: Routes = [
   {
     path: 'booking',
     loadComponent: () =>
-      import('./pages/guests-page/guests-page').then(m => m.GuestsPage),
+      import('./pages/booking-cart-page/booking-cart-page').then(m => m.BookingCartPage),
   },
 ];

@@ -1,0 +1,30 @@
+<div class="booking-cart-page">
+
+  <app-header></app-header>
+
+  <div class="back-link" data-testid="back-link">
+    <svg class="back-link-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span>Volver</span>
+  </div>
+
+  <app-booking-cart-stepper></app-booking-cart-stepper>
+
+  <app-booking-cart-form
+    [form]="form()"
+    (fieldChange)="onFieldChange($event)"
+    (continuePayment)="createHold()">
+  </app-booking-cart-form>
+
+  @if (timerActive()) {
+    <div class="hold-timer" data-testid="hold-timer">
+      ⏳ Tu reserva expira en {{ remainingTime() }}s
+    </div>
+  }
+
+  <app-booking-cart-summary></app-booking-cart-summary>
+
+  <app-footer></app-footer>
+
+</div>

@@ -23,6 +23,10 @@ class SearchService {
 
   String get baseUrl {
     try {
+      // Preference: 1. Dart define, 2. Env file, 3. Default
+      const fromDefine = String.fromEnvironment('SEARCH_API_BASE_URL');
+      if (fromDefine.isNotEmpty) return fromDefine;
+
       final fromEnv = dotenv.env['SEARCH_API_BASE_URL'];
       if (fromEnv != null) return fromEnv;
     } catch (_) {}

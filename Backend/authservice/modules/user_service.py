@@ -1,32 +1,24 @@
 """
 Propósito del archivo: Integración e interacción simulada (Mock) con el microservicio de Usuarios.
-Rol dentro del microservicio: Sirve de intermediario para obtener los registros y contraseñas (hasheadas) de un usuario dado su email sin que el AuthService dependa de la base de datos de usuarios.
+Rol dentro del microservicio: Sirve de intermediario para obtener los registros y contraseñas de un usuario dado su email desde la base de datos PostgreSQL del microservicio.
 """
 
-import uuid
 from typing import Optional
+from sqlalchemy import select
 from data.user import UserInDB
-from config.security import get_password_hash
+from infrastructure.database import new_session
+from infrastructure.models import UserModel
 
-# Base de datos en memoria para propósitos de demostración.
-# Simula lo que respondería el microservicio de Usuarios con un GET interno.
-MOCK_USERS_DB = [
-    {
-        "id_usuario": uuid.uuid4(),
-        "email": "admin@hotel.com",
-        # Default password is "123456"
-        "password_hash": get_password_hash("123456"), 
-        "rol": "ADMIN_HOTEL",
-        "partner_id": uuid.uuid4(),
-    },
-    {
-        "id_usuario": uuid.uuid4(),
-        "email": "user@hotel.com",
-        "password_hash": get_password_hash("user123"), 
-        "rol": "USER",
-        "partner_id": None
-    }
-]
+
+def _to_user_in_db(user: UserModel) -> UserInDB:
+    return UserInDB(
+        id_usuario=user.id_usuario,
+        email=user.email,
+        password_hash=user.password_hash,
+        rol=user.rol,
+        partner_id=user.partner_id,
+    )
+
 
 class UserService:
     """
@@ -37,8 +29,7 @@ class UserService:
     @staticmethod
     def get_user_by_email(email: str) -> Optional[UserInDB]:
         """
-        Consulta un usuario utilizando su correo electrónico.
-        Simula llamar al microservicio externo 'Usuario Service'.
+        Consulta un usuario utilizando su correo electrónico desde PostgreSQL.
 
         Parámetros:
         - email (str): correo del usuario a buscar.
@@ -47,7 +38,11 @@ class UserService:
         - Optional[UserInDB]: Esquema con datos completos del usuario, incluyendo el hash de su clave, 
           o None si el usuario no existe.
         """
-        for user_data in MOCK_USERS_DB:
-            if user_data["email"] == email:
-                return UserInDB(**user_data)
-        return None
+        with new_session() as session:
+            statement = select(UserModel).where(UserModel.email == str(email))
+            user = session.execute(statement).scalar_one_or_none()
+
+            if user is None:
+                return None
+
+            return _to_user_in_db(user)

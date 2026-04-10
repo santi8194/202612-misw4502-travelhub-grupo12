@@ -87,11 +87,11 @@ El principal AWS usado por GitHub Actions necesita `logs:DescribeLogGroups`, `lo
 # Imagen Booking
 Repo: aws ecr create-repository --repository-name booking
 Img:
-docker build --no-cache -t booking:1.0.2 ./src/Booking
+docker build --no-cache -t booking:1.0.3 ./Backend/booking
 Tag:
-docker tag booking:1.0.2 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.2
+docker tag booking:1.0.2 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.3
 Push
-docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.2
+docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.3
 
 # Imagen Notification
 Repo: aws ecr create-repository --repository-name notification
@@ -120,6 +120,13 @@ Repo: aws ecr create-repository --repository-name partnermanagement
 docker build --no-cache -t partnermanagement:1.0.1 ./src/PartnerManagement
 docker tag partnermanagement:1.0.1 962273458546.dkr.ecr.us-east-1.amazonaws.com/partnermanagement:1.0.1
 docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/partnermanagement:1.0.1
+
+
+# Imagen Catalog
+Repo: aws ecr create-repository --repository-name catalog
+docker build --no-cache -t catalog:1.0.1 ./Backend/catalog
+docker tag catalog:1.0.1 962273458546.dkr.ecr.us-east-1.amazonaws.com/catalog:1.0.1
+docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/catalog:1.0.1
 
 
 # Imagen AuthService

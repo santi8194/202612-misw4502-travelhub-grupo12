@@ -1,6 +1,6 @@
 # Auth Service
 
-Microservicio de autenticación para la plataforma hotelera. Genera tokens JWT stateless integrándose de forma mockeada con el servicio de Usuarios.
+Microservicio de autenticación para la plataforma hotelera. Genera tokens JWT stateless y persiste usuarios en PostgreSQL.
 
 ## Requisitos
 
@@ -10,6 +10,22 @@ Instala las dependencias:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Variables de entorno requeridas para la base de datos:
+
+```bash
+DB_HOST=travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com
+DB_PORT=5432
+DB_NAME=authservice_db
+DB_USER=<usuario_rds>
+DB_PASSWORD=<password_rds>
+```
+
+También puedes usar una sola variable:
+
+```bash
+DATABASE_URL=postgresql+psycopg2://<usuario_rds>:<password_rds>@travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com:5432/authservice_db
 ```
 
 ## Ejecución
@@ -65,11 +81,11 @@ curl -X 'POST' \
   -H 'Authorization: Bearer <TOKEN_AQUI>'
 ```
 
-## Usuarios Mockeados por Defecto
+## Usuarios Iniciales
 
-En `app/services/user_service.py` se incluyeron los siguientes usuarios de prueba:
+Cuando la tabla `users` está vacía, el servicio crea estos usuarios de prueba automáticamente:
 
-- **Admin/Partner**: `admin@hotel.com` / `admin123`
+- **Admin/Partner**: `admin@hotel.com` / `123456`
 - **Usuario Normal**: `user@hotel.com` / `user123`
 
 ## Protección contra Fuerza Bruta

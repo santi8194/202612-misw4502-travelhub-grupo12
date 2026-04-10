@@ -16,11 +16,11 @@ Se creó un bucket en AWS S3 para almacenar el archivo terraform.tfstate.
 
 ## Bucket
 
-*terraform-state-grupo12*
+*travelhub-tfstate-dev-us-east-1*
 
 El nombre del bucket debe ser único a nivel global en AWS.
 
-Comando: aws s3api create-bucket --bucket terraform-state-grupo12 --region us-east-1 --debug
+Comando: aws s3api create-bucket --bucket travelhub-tfstate-dev-us-east-1 --region us-east-1 --debug
 
 # Despliegue del Stack: Container Registry (ECR)
 
@@ -122,6 +122,13 @@ docker tag partnermanagement:1.0.1 962273458546.dkr.ecr.us-east-1.amazonaws.com/
 docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/partnermanagement:1.0.1
 
 
+# Imagen AuthService
+Repo: aws ecr create-repository --repository-name authservice
+docker build --no-cache -t authservice:1.0.0 ./Backend/authservice
+docker tag authservice:1.0.0 392789866980.dkr.ecr.us-east-1.amazonaws.com/authservice:1.0.0
+docker push 392789866980.dkr.ecr.us-east-1.amazonaws.com/authservice:1.0.0
+
+
 
 # Coenctar y Actualizar kubeconfig
 
@@ -154,6 +161,13 @@ kubectl apply -f ./k8s/aws/partnermanagement-deployment.yaml
 kubectl apply -f ./k8s/aws/partnermanagement-service.yaml
 kubectl rollout restart deployment partnermanagement-deployment
 
+## Desplegar authService
+
+kubectl apply -f ./k8s/aws/authservice-deployment.yaml
+kubectl apply -f ./k8s/aws/partnermanagement-service.yaml
+kubectl rollout restart deployment partnermanagement-deployment
+
+
 # Vuelve a loguear
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 962273458546.dkr.ecr.us-east-1.amazonaws.com
 
@@ -172,3 +186,24 @@ Probar:
 /pmsintegration/health
 /payment/health
 /notification/health
+
+# RDS
+
+## Inicialice su stack ejecutando
+
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" init  -backend-config="$PWD\Infraestructura\terraform\environments\dev\database\backend.tfvars"
+
+Cree el plan de despliegue para el stack de la base de datos.
+
+terraform -chdir="$PWD\terraform\stacks\database" plan -var-file="$PWD\terraform\environments\dev\database\terraform.tfvars"
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" plan -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars"
+
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" apply -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars"
+
+Accesos: travelhub Grupo12.2026
+
+rds_address = "travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com"
+rds_db_name = "authservice_db"
+rds_engine = "postgres"
+rds_port = 5432
+secrets_manager_secret_arn = "arn:aws:secretsmanager:us-east-1:392789866980:secret:travelhub/dev/authservice/db-credentials56136a2a-U6c3k2"

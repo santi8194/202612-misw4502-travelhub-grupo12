@@ -28,6 +28,29 @@ variable "db_name" {
   type        = string
 }
 
+variable "db_host" {
+  description = "Endpoint host de la instancia RDS para operaciones SQL administrativas."
+  type        = string
+}
+
+variable "db_port" {
+  description = "Puerto de conexión PostgreSQL para operaciones SQL administrativas."
+  type        = number
+  default     = 5432
+}
+
+variable "db_admin_database" {
+  description = "Base administrativa usada para conectarse y crear bases lógicas adicionales."
+  type        = string
+  default     = "postgres"
+}
+
+variable "additional_db_names" {
+  description = "Lista de bases de datos adicionales a crear en la misma instancia RDS."
+  type        = list(string)
+  default     = []
+}
+
 variable "db_username" {
   description = "Usuario administrador para la base de datos RDS."
   type        = string

@@ -4,5 +4,7 @@ sg_ingress_cidr_blocks   = ["0.0.0.0/0"] # para pruebas, no recomendado en produ
 secret_name              = "travelhub/dev/authservice/db-credentials"
 db_allocated_storage_gib = 20 # Almacenamiento inicial en GB https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html
 db_name                  = "authservice_db"
+db_host                  = "travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com"
+additional_db_names      = ["search_db"]
 db_identifier            = "travelhub-dev-authservice"
 owner                    = "grupo12"

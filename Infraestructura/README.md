@@ -67,9 +67,9 @@ terraform -chdir="$PWD\terraform\stacks\container_registry" destroy -var-file="$
 
 # CLUSTER EKS
 
-terraform -chdir="$PWD\terraform\stacks\eks" init -backend-config="$PWD\terraform\environments\dev\eks\backend.tfvars"
-terraform -chdir="$PWD\terraform\stacks\eks" plan -var-file="$PWD\terraform\environments\dev\eks\terraform.tfvars"
-terraform -chdir="$PWD\terraform\stacks\eks" apply -var-file="$PWD\terraform\environments\dev\eks\terraform.tfvars"
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\eks" init
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\eks" plan -var-file="$PWD\Infraestructura\terraform\environments\dev\eks\dev.tfvars"
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\eks" apply -var-file="$PWD\Infraestructura\terraform\environments\dev\eks\dev.tfvars"
 
 ## Destry para que no genere cobros
 
@@ -163,9 +163,9 @@ kubectl rollout restart deployment partnermanagement-deployment
 
 ## Desplegar authService
 
-kubectl apply -f ./k8s/aws/authservice-deployment.yaml
-kubectl apply -f ./k8s/aws/partnermanagement-service.yaml
-kubectl rollout restart deployment partnermanagement-deployment
+kubectl apply -f ./Infraestructura/k8s/aws/authservice-deployment.yaml
+kubectl apply -f ./Infraestructura/k8s/aws/authservice-service.yaml
+kubectl rollout restart deployment authservice-deployment
 
 
 # Vuelve a loguear
@@ -188,7 +188,6 @@ Probar:
 /notification/health
 
 # RDS
-
 ## Inicialice su stack ejecutando
 
 terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" init  -backend-config="$PWD\Infraestructura\terraform\environments\dev\database\backend.tfvars"

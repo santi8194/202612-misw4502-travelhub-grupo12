@@ -24,3 +24,14 @@ module "secrets_manager" {
     module.rds
   ]
 }
+
+resource "postgresql_database" "additional_databases" {
+  for_each = toset(var.additional_db_names)
+
+  name  = each.value
+  owner = var.db_username
+
+  depends_on = [
+    module.rds
+  ]
+}

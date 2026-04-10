@@ -22,3 +22,8 @@ output "secrets_manager_secret_arn" {
   description = "ARN del secreto de AWS Secrets Manager."
   value       = module.secrets_manager.secret_arn
 }
+
+output "additional_databases" {
+  description = "Nombres de bases de datos lógicas adicionales creadas en la instancia RDS."
+  value       = [for db in postgresql_database.additional_databases : db.name]
+}

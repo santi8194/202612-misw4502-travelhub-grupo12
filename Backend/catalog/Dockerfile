@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Exponemos puerto
-EXPOSE 8005
+EXPOSE 80
 
 # Comando para ejecutar el servicio
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8005"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]

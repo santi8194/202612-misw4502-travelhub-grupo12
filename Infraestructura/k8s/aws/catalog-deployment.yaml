@@ -19,3 +19,32 @@ spec:
         image: 962273458546.dkr.ecr.us-east-1.amazonaws.com/catalog:1.0.0
         ports:
         - containerPort: 80
+        env:
+        - name: DB_HOST
+          value: "travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "authservice_db"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: authservice-db-secret
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: authservice-db-secret
+              key: DB_PASSWORD
+        readinessProbe:
+          httpGet:
+            path: /docs
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /docs
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10

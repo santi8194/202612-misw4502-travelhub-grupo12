@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: booking-deployment
+  name: booking
   labels:
     app: booking
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: booking
@@ -15,7 +15,19 @@ spec:
         app: booking
     spec:
       containers:
-      - name: booking
-        image: 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.2
-        ports:
-        - containerPort: 80
+        - name: booking
+          image: ${ECR_REGISTRY_DEV}/booking:${GITHUB_SHA}
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10

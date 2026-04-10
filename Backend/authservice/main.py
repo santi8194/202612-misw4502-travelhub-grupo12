@@ -40,7 +40,7 @@ def startup_event() -> None:
     init_db()
 
 
-@app.get("/")
+@app.get("/health")
 def root():
     """
     Endpoint de bienvenida y comprobación de salud básica.

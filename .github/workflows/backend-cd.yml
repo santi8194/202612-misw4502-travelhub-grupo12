@@ -6,13 +6,12 @@ on:
       - main
       - develop
     paths:
-      - 'Backend/authservice/**'
-      - 'Backend/search/**'
-      - 'Infraestructura/k8s/aws/authservice-*.yaml'
-      - 'Infraestructura/k8s/aws/search-*.yaml'
+      - 'Backend/**'
+      - 'Infraestructura/k8s/aws/*-deployment.yaml'
+      - 'Infraestructura/k8s/aws/*-service.yaml'
       - 'Infraestructura/k8s/aws/ingress.yaml'
       - '.github/workflows/backend-cd.yml'
-      - '.github/backend-cd.services.json'
+      - '.github/backend-cd.exclusions.json'
   workflow_dispatch:
 
 permissions:
@@ -24,7 +23,7 @@ env:
   EKS_CLUSTER_NAME_DEV: ${{ vars.EKS_CLUSTER_NAME_DEV }}
   K8S_NAMESPACE_DEV: ${{ vars.K8S_NAMESPACE_DEV }}
   INGRESS_MANIFEST: Infraestructura/k8s/aws/ingress.yaml
-  SERVICE_CATALOG_FILE: .github/backend-cd.services.json
+  SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
 
 jobs:
   discover-services:
@@ -51,25 +50,26 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          from pathlib import Path
           import subprocess
           import sys
 
-          catalog_path = os.environ["SERVICE_CATALOG_FILE"]
+          exclusions_path = os.environ["SERVICE_EXCLUSIONS_FILE"]
           event_name = os.environ["EVENT_NAME"]
           base_sha = os.environ.get("BASE_SHA", "")
           head_sha = os.environ["HEAD_SHA"]
+          repo_root = Path.cwd()
+          backend_dir = repo_root / "Backend"
+          manifests_dir = repo_root / "Infraestructura" / "k8s" / "aws"
 
           try:
-              with open(catalog_path, "r", encoding="utf-8") as fh:
-                  catalog = json.load(fh)
+              with open(exclusions_path, "r", encoding="utf-8") as fh:
+                  exclusions = json.load(fh)
           except Exception as exc:
-              print(f"::error file={catalog_path}::Failed to load service catalog: {exc}")
+              print(f"::error file={exclusions_path}::Failed to load exclusion list: {exc}")
               sys.exit(1)
 
-          services = catalog.get("services", [])
-          if not services:
-              print(f"::error file={catalog_path}::The service catalog is empty.")
-              sys.exit(1)
+          excluded_services = set(exclusions.get("exclude", []))
 
           deploy_all = False
           changed_files: list[str] = []
@@ -87,22 +87,70 @@ jobs:
               )
               changed_files = [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
+          discovered_services = []
+          for service_dir in sorted(path for path in backend_dir.iterdir() if path.is_dir()):
+              service_name = service_dir.name
+              if service_name in excluded_services:
+                  continue
+
+              dockerfile = service_dir / "Dockerfile"
+              deployment_manifest = manifests_dir / f"{service_name}-deployment.yaml"
+              service_manifest = manifests_dir / f"{service_name}-service.yaml"
+
+              has_dockerfile = dockerfile.is_file()
+              has_deployment = deployment_manifest.is_file()
+              has_service = service_manifest.is_file()
+
+              if not has_dockerfile:
+                  continue
+
+              if not has_deployment or not has_service:
+                  missing = []
+                  if not has_deployment:
+                      missing.append(str(deployment_manifest.relative_to(repo_root)).replace("\\", "/"))
+                  if not has_service:
+                      missing.append(str(service_manifest.relative_to(repo_root)).replace("\\", "/"))
+                  missing_paths = ", ".join(missing)
+                  print(
+                      f"::warning::Service '{service_name}' has a Dockerfile but is not CD-supported because these manifests are missing: {missing_paths}"
+                  )
+                  continue
+
+              discovered_services.append(service_name)
+
+          if not discovered_services:
+              print("::warning::No CD-supported services were discovered under Backend/.")
+
           selected_services = []
           global_change_prefixes = [
               ".github/workflows/backend-cd.yml",
-              ".github/backend-cd.services.json",
+              ".github/backend-cd.exclusions.json",
               "Infraestructura/k8s/aws/ingress.yaml",
           ]
 
-          for service in services:
+          for service_name in discovered_services:
+              service = {
+                  "service_name": service_name,
+                  "service_folder": f"Backend/{service_name}",
+                  "dockerfile_path": f"Backend/{service_name}/Dockerfile",
+                  "ecr_repository": service_name,
+                  "deployment_manifest": f"Infraestructura/k8s/aws/{service_name}-deployment.yaml",
+                  "service_manifest": f"Infraestructura/k8s/aws/{service_name}-service.yaml",
+              }
+
               if deploy_all:
                   selected_services.append(service)
                   continue
 
-              watch_paths = service.get("watch_paths", [])
               if any(path in changed_files for path in global_change_prefixes):
                   selected_services.append(service)
                   continue
+
+              watch_paths = [
+                  f"Backend/{service_name}/",
+                  f"Infraestructura/k8s/aws/{service_name}-deployment.yaml",
+                  f"Infraestructura/k8s/aws/{service_name}-service.yaml",
+              ]
 
               if any(
                   changed.startswith(prefix)
@@ -137,7 +185,7 @@ jobs:
       RENDERED_DEPLOYMENT_MANIFEST: /tmp/${{ matrix.service_name }}-deployment.rendered.yaml
       SERVICE_NAME: ${{ matrix.service_name }}
       ECR_REPOSITORY: ${{ matrix.ecr_repository }}
-      HEALTHCHECK_PATH: ${{ matrix.healthcheck_path }}
+      HEALTHCHECK_PATH: /health
 
     steps:
       - name: Checkout repository

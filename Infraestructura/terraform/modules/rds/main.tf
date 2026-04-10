@@ -32,18 +32,18 @@ resource "aws_security_group" "rds_sg" {
 #####################################
 
 resource "aws_db_instance" "mi_rds_postgres" {
-  identifier             = var.db_identifier
-  allocated_storage      = var.db_allocated_storage_gib
-  engine                 = "postgres"
-  engine_version         = "17.4" 
-  instance_class         = "db.t3.micro" 
-  db_name                = var.db_name
-  username               = var.db_username
-  password               = var.db_password
-  skip_final_snapshot    = true
-  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
-  vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  publicly_accessible    = var.db_publicly_accessible
+  identifier              = var.db_identifier
+  allocated_storage       = var.db_allocated_storage_gib
+  engine                  = "postgres"
+  engine_version          = "17.4"
+  instance_class          = "db.t3.micro"
+  db_name                 = var.db_name
+  username                = var.db_username
+  password                = var.db_password
+  skip_final_snapshot     = true
+  db_subnet_group_name    = aws_db_subnet_group.rds_subnet_group.name
+  vpc_security_group_ids  = [aws_security_group.rds_sg.id]
+  publicly_accessible     = var.db_publicly_accessible
   backup_retention_period = 1
   storage_type            = "gp3"
 }

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeroSearchFormComponent } from '../../shared/components/hero-search-form/hero-search-form';
@@ -12,9 +13,20 @@ import { SearchForm } from '../../models/search-form.interface';
   styleUrl: './home-page.css',
 })
 export class HomePage {
+  private readonly router = inject(Router);
+
   onSearch(form: SearchForm): void {
-    // Hito 1: sin conexión al backend
-    // Hito 2: navegar a /resultados con los query params
-    console.log('[HomePage] Search submitted:', form);
+    if (!form.selectedDestination) return;
+
+    this.router.navigate(['/resultados'], {
+      queryParams: {
+        ciudad: form.selectedDestination.ciudad,
+        estado_provincia: form.selectedDestination.estado_provincia,
+        pais: form.selectedDestination.pais,
+        fecha_inicio: form.checkIn,
+        fecha_fin: form.checkOut,
+        huespedes: form.guests ?? 1,
+      },
+    });
   }
 }

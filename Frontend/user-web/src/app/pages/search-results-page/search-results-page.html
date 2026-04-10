@@ -16,12 +16,23 @@
 
     <hr class="results-divider" data-testid="results-divider" />
 
-    <!-- Grid de hospedajes -->
-    <section class="results-grid" data-testid="results-grid">
-      @for (hospedaje of hospedajes(); track hospedaje.id_propiedad) {
-        <app-hospedaje-card [hospedaje]="hospedaje" />
-      }
-    </section>
+    <!-- Grid de hospedajes o estado vacío -->
+    @if (hospedajes().length > 0) {
+      <section class="results-grid" data-testid="results-grid">
+        @for (hospedaje of hospedajes(); track hospedaje.id_propiedad) {
+          <app-hospedaje-card [hospedaje]="hospedaje" />
+        }
+      </section>
+    } @else if (!loading()) {
+      <section class="results-empty" data-testid="results-empty">
+        <p class="results-empty__message" data-testid="results-empty-message">
+          No se encontraron hospedajes para las fechas seleccionadas.
+        </p>
+        <a routerLink="/" class="results-empty__link" data-testid="results-empty-link">
+          Volver a TravelHub
+        </a>
+      </section>
+    }
 
   </main>
 

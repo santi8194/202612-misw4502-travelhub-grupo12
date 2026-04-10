@@ -1,11 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { HomePage } from './home-page';
+import { SearchForm } from '../../models/search-form.interface';
 
 describe('HomePage', () => {
   let component: HomePage;
   let fixture: ComponentFixture<HomePage>;
+  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -13,11 +17,14 @@ describe('HomePage', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomePage);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
@@ -51,12 +58,69 @@ describe('HomePage', () => {
     expect(footer).toBeTruthy();
   });
 
-  it('should log search data when onSearch is called', () => {
-    spyOn(console, 'log');
-    const mockForm = { location: 'París', checkIn: '2026-05-01', checkOut: '2026-05-07', guests: 2 };
+  it('should navigate to /resultados with query params when selectedDestination is set', () => {
+    const navigateSpy = spyOn(router, 'navigate');
+
+    const mockForm: SearchForm = {
+      location: 'Bordeaux, Nouvelle-Aquitaine, Francia',
+      checkIn: '2026-05-01',
+      checkOut: '2026-05-07',
+      guests: 2,
+      selectedDestination: {
+        ciudad: 'Bordeaux',
+        estado_provincia: 'Nouvelle-Aquitaine',
+        pais: 'Francia',
+      },
+    };
 
     component.onSearch(mockForm);
 
-    expect(console.log).toHaveBeenCalledWith('[HomePage] Search submitted:', mockForm);
+    expect(navigateSpy).toHaveBeenCalledWith(['/resultados'], {
+      queryParams: {
+        ciudad: 'Bordeaux',
+        estado_provincia: 'Nouvelle-Aquitaine',
+        pais: 'Francia',
+        fecha_inicio: '2026-05-01',
+        fecha_fin: '2026-05-07',
+        huespedes: 2,
+      },
+    });
+  });
+
+  it('should NOT navigate if selectedDestination is undefined', () => {
+    const navigateSpy = spyOn(router, 'navigate');
+
+    const mockForm: SearchForm = {
+      location: 'Bordeaux',
+      checkIn: '2026-05-01',
+      checkOut: '2026-05-07',
+      guests: 2,
+      selectedDestination: undefined,
+    };
+
+    component.onSearch(mockForm);
+
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('should default guests to 1 when null', () => {
+    const navigateSpy = spyOn(router, 'navigate');
+
+    const mockForm: SearchForm = {
+      location: 'Bordeaux, Nouvelle-Aquitaine, Francia',
+      checkIn: '2026-05-01',
+      checkOut: '2026-05-07',
+      guests: null,
+      selectedDestination: {
+        ciudad: 'Bordeaux',
+        estado_provincia: 'Nouvelle-Aquitaine',
+        pais: 'Francia',
+      },
+    };
+
+    component.onSearch(mockForm);
+
+    const callArgs = navigateSpy.calls.mostRecent().args;
+    expect(callArgs[1]?.queryParams?.['huespedes']).toBe(1);
   });
 });

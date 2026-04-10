@@ -109,4 +109,17 @@ describe('HeroSearchFormComponent', () => {
     component.selectDestination({ ciudad: 'Bogotá', estado_provincia: '', pais: 'Colombia' });
     expect(component.form().location).toBe('Bogotá, Colombia');
   });
+
+  it('should store selectedDestination when a suggestion is clicked', () => {
+    const dest = { ciudad: 'Bordeaux', estado_provincia: 'Nouvelle-Aquitaine', pais: 'Francia' };
+    component.selectDestination(dest);
+    expect(component.form().selectedDestination).toEqual(dest);
+  });
+
+  it('should update selectedDestination when a different suggestion is clicked', () => {
+    component.selectDestination({ ciudad: 'Paris', estado_provincia: 'Île-de-France', pais: 'Francia' });
+    component.selectDestination({ ciudad: 'Bogotá', estado_provincia: '', pais: 'Colombia' });
+    expect(component.form().selectedDestination?.ciudad).toBe('Bogotá');
+  });
 });
+

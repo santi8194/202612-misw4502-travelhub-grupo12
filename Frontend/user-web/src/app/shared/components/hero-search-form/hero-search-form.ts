@@ -23,6 +23,7 @@ export class HeroSearchFormComponent {
     checkIn: '',
     checkOut: '',
     guests: null,
+    selectedDestination: undefined,
   });
 
   private locationQuerySubject = new Subject<string>();
@@ -57,7 +58,11 @@ export class HeroSearchFormComponent {
     const locationString = [dest.ciudad, dest.estado_provincia, dest.pais]
       .filter(Boolean)
       .join(', ');
-    this.updateField('location', locationString);
+    this.form.update(current => ({
+      ...current,
+      location: locationString,
+      selectedDestination: dest,
+    }));
     this.locationQuerySubject.next(''); // Clear dropdown
   }
 

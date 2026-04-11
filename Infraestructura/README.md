@@ -177,6 +177,8 @@ Se configuró un Ingress Controller (NGINX) en el cluster EKS para exponer todos
 
 Los microservicios backend quedan expuestos internamente como `ClusterIP` y el unico `LoadBalancer` externo debe ser el del controller `ingress-nginx`.
 
+Nota: `authservice` se mantiene en `authservice-ingress.yaml` y no en `backend-ingress.yaml` porque sus rutas ya viven internamente bajo el prefijo `/auth`. Como `backend-ingress.yaml` aplica `rewrite-target`, incluirlo allí rompería rutas como `/auth/login`.
+
 kubectl apply -f ./k8s/aws/backend-ingress.yaml
 kubectl apply -f ./k8s/aws/authservice-ingress.yaml
 kubectl get svc -n ingress-nginx ingress-nginx-controller -w

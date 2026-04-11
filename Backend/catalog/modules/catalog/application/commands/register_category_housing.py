@@ -1,5 +1,6 @@
 from decimal import Decimal
 from uuid import UUID
+import uuid
 
 from modules.catalog.domain.entities import (
 	CategoriaHabitacion,
@@ -21,7 +22,6 @@ class RegisterCategoryHousing:
 	def execute(
 		self,
 		id_propiedad: UUID,
-		id_categoria: str,
 		codigo_mapeo_pms: str,
 		nombre_comercial: str,
 		descripcion: str,
@@ -38,7 +38,6 @@ class RegisterCategoryHousing:
 
 		Args:
 			id_propiedad: UUID de la propiedad
-			id_categoria: ID único de la categoría
 			codigo_mapeo_pms: Código para sincronización PMS
 			nombre_comercial: Nombre comercial de la categoría
 			descripcion: Descripción detallada
@@ -60,6 +59,9 @@ class RegisterCategoryHousing:
 				"error": "Property not found",
 				"id_propiedad": str(id_propiedad),
 			}
+
+		# Generar ID único de categoría como UUID
+		id_categoria = str(uuid.uuid4())
 
 		# Verificar que la categoría no exista
 		categoria_existente = propiedad.obtener_categoria(id_categoria)

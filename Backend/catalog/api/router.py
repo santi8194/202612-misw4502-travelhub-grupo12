@@ -34,7 +34,6 @@ class CreatePropertyRequest(BaseModel):
 
 class RegisterCategoryRequest(BaseModel):
 	id_propiedad: UUID
-	id_categoria: str
 	codigo_mapeo_pms: str
 	nombre_comercial: str
 	descripcion: str
@@ -82,7 +81,6 @@ def registrar_categoria(id_propiedad: UUID, request: RegisterCategoryRequest):
 	command = RegisterCategoryHousing(repository, event_bus)
 	return command.execute(
 		id_propiedad=id_propiedad,
-		id_categoria=request.id_categoria,
 		codigo_mapeo_pms=request.codigo_mapeo_pms,
 		nombre_comercial=request.nombre_comercial,
 		descripcion=request.descripcion,

@@ -2,6 +2,7 @@ import pytest
 from decimal import Decimal
 from uuid import UUID
 from unittest.mock import Mock
+import uuid
 from catalog.modules.catalog.application.commands.create_property import CreateProperty
 from catalog.modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from catalog.modules.catalog.application.commands.update_inventory import UpdateInventory
@@ -109,7 +110,6 @@ class TestRegisterCategoryHousing:
 		command = RegisterCategoryHousing(mock_repository, mock_event_bus)
 		result = command.execute(
 			id_propiedad=property_id,
-			id_categoria="deluxe-001",
 			codigo_mapeo_pms="ROOM-DLX-01",
 			nombre_comercial="Habitación Deluxe",
 			descripcion="Habitación de lujo",
@@ -122,7 +122,8 @@ class TestRegisterCategoryHousing:
 			foto_portada_url="https://cdn.example.com/deluxe-portada.jpg",
 		)
 
-		assert result["id_categoria"] == "deluxe-001"
+		assert result["id_categoria"]
+		uuid.UUID(result["id_categoria"])
 		assert result["foto_portada_url"] == "https://cdn.example.com/deluxe-portada.jpg"
 		assert result["precio_base"]["cargo_servicio"] == "25000.00"
 		assert result["event_generated"] == "CategoriaHabitacionRegistrada"
@@ -135,7 +136,6 @@ class TestRegisterCategoryHousing:
 		command = RegisterCategoryHousing(mock_repository, mock_event_bus)
 		result = command.execute(
 			id_propiedad=property_id,
-			id_categoria="deluxe-001",
 			codigo_mapeo_pms="ROOM-DLX-01",
 			nombre_comercial="Habitación Deluxe",
 			descripcion="Habitación de lujo",
@@ -151,14 +151,15 @@ class TestRegisterCategoryHousing:
 		assert result["error"] == "Property not found"
 		assert not mock_repository.save.called
 
-	def test_register_category_already_exists(self, mock_repository, mock_event_bus, property_id):
+	def test_register_category_already_exists(self, mock_repository, mock_event_bus, property_id, monkeypatch):
 		# Crear propiedad con categoría
+		fixed_id_categoria = "deluxe-001"
 		coords = Coordenadas(lat=10.42, lng=-75.54)
 		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
 		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
 		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
 		categoria = CategoriaHabitacion(
-			id_categoria="deluxe-001",
+			id_categoria=fixed_id_categoria,
 			codigo_mapeo_pms="ROOM-DLX-01",
 			nombre_comercial="Habitación Deluxe",
 			descripcion="Habitación de lujo",
@@ -175,11 +176,15 @@ class TestRegisterCategoryHousing:
 			categorias_habitacion=[categoria],
 		)
 		mock_repository.obtain.return_value = propiedad
+		monkeypatch.setattr(
+			"catalog.modules.catalog.application.commands.register_category_housing.uuid.uuid4",
+			lambda: uuid.UUID("00000000-0000-0000-0000-000000000001"),
+		)
+		propiedad.categorias_habitacion[0].id_categoria = "00000000-0000-0000-0000-000000000001"
 
 		command = RegisterCategoryHousing(mock_repository, mock_event_bus)
 		result = command.execute(
 			id_propiedad=property_id,
-			id_categoria="deluxe-001",
 			codigo_mapeo_pms="ROOM-DLX-01",
 			nombre_comercial="Habitación Deluxe",
 			descripcion="Habitación de lujo",
@@ -193,6 +198,7 @@ class TestRegisterCategoryHousing:
 		)
 
 		assert result["message"] == "Category already registered"
+		assert result["id_categoria"] == "00000000-0000-0000-0000-000000000001"
 		assert not mock_repository.save.called
 
 

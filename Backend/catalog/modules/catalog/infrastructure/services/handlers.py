@@ -46,7 +46,6 @@ def handle_create_property(data):
 def handle_register_category_housing(data):
 	"""Maneja el comando para registrar una categoría de habitación."""
 	id_propiedad = UUID(data["id_propiedad"])
-	id_categoria = data["id_categoria"]
 	codigo_mapeo_pms = data["codigo_mapeo_pms"]
 	nombre_comercial = data["nombre_comercial"]
 	descripcion = data["descripcion"]
@@ -69,7 +68,6 @@ def handle_register_category_housing(data):
 
 	result = use_case.execute(
 		id_propiedad=id_propiedad,
-		id_categoria=id_categoria,
 		codigo_mapeo_pms=codigo_mapeo_pms,
 		nombre_comercial=nombre_comercial,
 		descripcion=descripcion,

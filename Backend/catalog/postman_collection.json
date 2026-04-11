@@ -119,7 +119,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"id_categoria\": \"deluxe-001\",\n  \"codigo_mapeo_pms\": \"ROOM-DLX-01\",\n  \"nombre_comercial\": \"Habitación Deluxe con Vista al Mar\",\n  \"descripcion\": \"Amplia habitación de 40m2 con balcón privado y vistas panorámicas\",\n  \"monto_precio_base\": 350000.00,\n  \"cargo_servicio\": 25000.00,\n  \"moneda_precio_base\": \"COP\",\n  \"capacidad_pax\": 4,\n  \"dias_anticipacion\": 5,\n  \"porcentaje_penalidad\": 50.0,\n  \"foto_portada_url\": \"https://cdn.example.com/deluxe-portada.jpg\"\n}"
+              "raw": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"codigo_mapeo_pms\": \"ROOM-DLX-01\",\n  \"nombre_comercial\": \"Habitación Deluxe con Vista al Mar\",\n  \"descripcion\": \"Amplia habitación de 40m2 con balcón privado y vistas panorámicas\",\n  \"monto_precio_base\": 350000.00,\n  \"cargo_servicio\": 25000.00,\n  \"moneda_precio_base\": \"COP\",\n  \"capacidad_pax\": 4,\n  \"dias_anticipacion\": 5,\n  \"porcentaje_penalidad\": 50.0,\n  \"foto_portada_url\": \"https://cdn.example.com/deluxe-portada.jpg\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}/categories",

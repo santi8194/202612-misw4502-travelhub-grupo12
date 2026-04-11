@@ -1,0 +1,167 @@
+{
+	"info": {
+		"_postman_id": "a918db47-f033-4f93-b6ea-ce8108cdb6ed",
+		"name": "TravelHub - Booking APIs",
+		"description": "Colección de endpoints para el microservicio de Booking (solo booking).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Healthcheck",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Verifica que el servicio de Booking esté levantado y respondiendo."
+			},
+			"response": []
+		},
+		{
+			"name": "1. Crear Reserva (HOLD)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id_usuario\": \"{{$randomUUID}}\",\n    \"id_categoria\": \"{{$randomUUID}}\",\n    \"fecha_check_in\": \"2026-04-01\",\n    \"fecha_check_out\": \"2026-04-05\",\n    \"ocupacion\": {\n        \"adultos\": 2,\n        \"ninos\": 1,\n        \"infantes\": 0\n    }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/reserva",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva"
+					]
+				},
+				"description": "Crea una reserva temporal en HOLD. Devuelve el `id_reserva` que se necesita para formalizar la reserva."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Formalizar Reserva",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/reserva/:id_reserva/formalizar",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva",
+						":id_reserva",
+						"formalizar"
+					],
+					"variable": [
+						{
+							"key": "id_reserva",
+							"value": "REEMPLAZA_CON_EL_ID_DE_LA_RESERVA_AQUI",
+							"description": "UUID generado en el paso 1"
+						}
+					]
+				},
+				"description": "Formaliza la reserva en estado HOLD y actualiza su estado en la base de datos."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Expirar Reserva",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/reserva/:id_reserva/expirar",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva",
+						":id_reserva",
+						"expirar"
+					],
+					"variable": [
+						{
+							"key": "id_reserva",
+							"value": "REEMPLAZA_CON_EL_ID_DE_LA_RESERVA_AQUI",
+							"description": "UUID de la reserva en estado HOLD a expirar"
+						}
+					]
+				},
+				"description": "Marca una reserva HOLD como EXPIRADA. Este flujo ahora lo dispara el frontend."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Obtener Reserva por ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/reserva/:id_reserva",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva",
+						":id_reserva"
+					],
+					"variable": [
+						{
+							"key": "id_reserva",
+							"value": "REEMPLAZA_CON_EL_ID_DE_LA_RESERVA_AQUI",
+							"description": "UUID de la reserva a consultar"
+						}
+					]
+				},
+				"description": "Consulta una reserva por su id_reserva. Devuelve 404 si no existe."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5001",
+			"type": "string"
+		}
+	]
+}

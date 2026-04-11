@@ -132,6 +132,7 @@ jobs:
           echo "Log group ${LOG_GROUP} not found yet; skipping reconciliation without failing deploy."
 
   deploy-database:
+    if: ${{ false }}
     name: Deploy database
     runs-on: ubuntu-latest
     environment: dev

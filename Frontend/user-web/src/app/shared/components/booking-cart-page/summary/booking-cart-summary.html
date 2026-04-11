@@ -6,10 +6,15 @@
       <div class="skeleton skeleton-text"></div>
       <div class="skeleton skeleton-text skeleton-text--short"></div>
     </div>
+  } @else if (!data) {
+    <h3 class="summary-title">Resumen de Reserva</h3>
+    <p>No se pudo cargar la reserva desde el backend.</p>
   } @else {
     <h3 class="summary-title">Resumen de Reserva</h3>
 
-    <img [src]="data.imageUrl" class="summary-image" [alt]="data.propertyName" />
+    @if (data.imageUrl) {
+      <img [src]="data.imageUrl" class="summary-image" [alt]="data.propertyName" />
+    }
 
     <div class="summary-info">
       <div class="summary-name">{{ data.propertyName }}</div>

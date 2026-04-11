@@ -1,24 +1,46 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { Observable, catchError, tap, throwError } from 'rxjs';
 import { HoldRequest, HoldResponse } from '../../models/hold.interface';
 
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiBaseUrl}/booking`;
-  private readonly catalogUrl = `${environment.apiBaseUrl}/catalog`;
+  private readonly apiUrl = `http://localhost:5001/api/reserva`;
+  private readonly catalogUrl = `http://localhost:8005/catalog`;
 
   createHold(request: HoldRequest): Observable<HoldResponse> {
-    return this.http.post<HoldResponse>(`${this.apiUrl}/hold`, request);
+    console.info('[BookingService] POST', `${this.apiUrl}`, request);
+    return this.http.post<HoldResponse>(`${this.apiUrl}`, request).pipe(
+      tap((response) => console.info('[BookingService] createHold success', response)),
+      catchError((error) => {
+        console.error('[BookingService] createHold error', { request, error });
+        return throwError(() => error);
+      })
+    );
   }
 
   getBookingById(idReserva: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${idReserva}`);
+    const url = `${this.apiUrl}/${idReserva}`;
+    console.info('[BookingService] GET', url);
+    return this.http.get<any>(url).pipe(
+      tap((response) => console.info('[BookingService] getBookingById success', response)),
+      catchError((error) => {
+        console.error('[BookingService] getBookingById error', { idReserva, error });
+        return throwError(() => error);
+      })
+    );
   }
 
   getCatalogByCategoryId(idCategoria: string): Observable<any> {
-    return this.http.get<any>(`${this.catalogUrl}/properties?category=${idCategoria}`);
+    const url = `${this.catalogUrl}/properties/by-category/${idCategoria}`;
+    console.info('[BookingService] GET', url);
+    return this.http.get<any>(url).pipe(
+      tap((response) => console.info('[BookingService] getCatalogByCategoryId success', response)),
+      catchError((error) => {
+        console.error('[BookingService] getCatalogByCategoryId error', { idCategoria, error });
+        return throwError(() => error);
+      })
+    );
   }
 }

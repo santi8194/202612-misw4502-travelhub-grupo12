@@ -12,19 +12,29 @@ import { GuestForm } from '../../models/guest.interface';
 import { HoldRequest } from '../../models/hold.interface';
 import { BookingSummaryData } from '../../models/booking-summary.interface';
 
-const DUMMY_SUMMARY: BookingSummaryData = {
-  propertyName: 'Bourdeaux Getaway',
-  location: 'Bourdeaux, Francia',
-  imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2',
-  checkIn: 'Mar 07, 2026',
-  checkOut: 'Mar 10, 2026',
-  guests: 2,
-  nights: 3,
-  pricePerNight: 175,
-  subtotal: 525,
-  serviceFee: 55,
-  total: 580,
-};
+interface BookingData {
+  id_usuario?: string;
+  id_categoria?: string;
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  fecha_check_in?: string;
+  fecha_check_out?: string;
+  num_huespedes?: number;
+  ocupacion?: {
+    adultos?: number;
+    ninos?: number;
+    infantes?: number;
+  };
+}
+
+interface CatalogData {
+  nombre?: string;
+  propiedad_nombre?: string;
+  ciudad?: string;
+  pais?: string;
+  imagen_principal_url?: string;
+  precio_base?: string;
+}
 
 @Component({
   selector: 'app-booking-cart-page',
@@ -51,8 +61,9 @@ export class BookingCartPage implements OnDestroy {
     detailedRequest: ''
   });
 
-  summary = signal<BookingSummaryData>(DUMMY_SUMMARY);
+  summary = signal<BookingSummaryData | null>(null);
   isLoadingSummary = signal(true);
+  private bookingData = signal<BookingData | null>(null);
 
   remainingTime = signal(0);
   timerActive = computed(() => this.remainingTime() > 0);
@@ -74,73 +85,153 @@ export class BookingCartPage implements OnDestroy {
 
   private loadSummary(): void {
     const idReserva = this.route.snapshot.paramMap.get('id_reserva');
+    console.info('[BookingCartPage] loadSummary start', { idReserva });
+
     if (!idReserva) {
+      console.warn('[BookingCartPage] Missing id_reserva in route params');
       this.isLoadingSummary.set(false);
       return;
     }
 
     this.bookingService.getBookingById(idReserva).pipe(
-      switchMap((booking) =>
-        this.bookingService.getCatalogByCategoryId(booking.id_categoria).pipe(
-          catchError(() => of(null)),
-          switchMap((catalog) => of({ booking, catalog }))
-        )
-      ),
-      catchError(() => of(null))
+      switchMap((booking: BookingData) => {
+        console.info('[BookingCartPage] Booking loaded', booking);
+        const categoryId = booking?.id_categoria;
+
+        if (!categoryId) {
+          console.warn('[BookingCartPage] Booking does not contain id_categoria', booking);
+          return of({ booking, catalog: null });
+        }
+
+        return this.bookingService.getCatalogByCategoryId(categoryId).pipe(
+          switchMap((catalog: CatalogData) => {
+            console.info('[BookingCartPage] Catalog loaded', catalog);
+            return of({ booking, catalog });
+          }),
+          catchError((error) => {
+            console.error('[BookingCartPage] Catalog request failed', { categoryId, error });
+            return of({ booking, catalog: null });
+          })
+        );
+      }),
+      catchError((error) => {
+        console.error('[BookingCartPage] Booking request failed', { idReserva, error });
+        return of(null);
+      })
     ).subscribe((result) => {
       if (result?.booking) {
         const { booking, catalog } = result;
-        const nights = this.calcNights(booking.fecha_inicio, booking.fecha_fin);
-        const pricePerNight = catalog?.precio_base ? parseFloat(catalog.precio_base) : DUMMY_SUMMARY.pricePerNight;
-        const subtotal = pricePerNight * nights;
+        this.bookingData.set(booking);
+
+        const checkIn = this.extractCheckIn(booking);
+        const checkOut = this.extractCheckOut(booking);
+        const guests = this.extractGuests(booking);
+        const nights = this.calcNights(checkIn, checkOut);
+        const pricePerNight = Number.parseFloat(catalog?.precio_base ?? '0');
+        const safePricePerNight = Number.isFinite(pricePerNight) ? pricePerNight : 0;
+        const subtotal = safePricePerNight * nights;
         const serviceFee = Math.round(subtotal * 0.1);
+
         this.summary.set({
-          propertyName: catalog?.propiedad_nombre ?? catalog?.nombre ?? DUMMY_SUMMARY.propertyName,
-          location: catalog ? `${catalog.ciudad}, ${catalog.pais}` : DUMMY_SUMMARY.location,
-          imageUrl: catalog?.imagen_principal_url ?? DUMMY_SUMMARY.imageUrl,
-          checkIn: booking.fecha_inicio ?? DUMMY_SUMMARY.checkIn,
-          checkOut: booking.fecha_fin ?? DUMMY_SUMMARY.checkOut,
-          guests: booking.num_huespedes ?? DUMMY_SUMMARY.guests,
+          propertyName: catalog?.propiedad_nombre ?? catalog?.nombre ?? 'N/A',
+          location: catalog ? `${catalog.ciudad ?? 'N/A'}, ${catalog.pais ?? 'N/A'}` : 'N/A',
+          imageUrl: catalog?.imagen_principal_url ?? '',
+          checkIn,
+          checkOut,
+          guests,
           nights,
-          pricePerNight,
+          pricePerNight: safePricePerNight,
           subtotal,
           serviceFee,
           total: subtotal + serviceFee,
         });
+        console.info('[BookingCartPage] Summary computed', this.summary());
+      } else {
+        this.summary.set(null);
+        console.warn('[BookingCartPage] Summary not available because booking was not loaded');
       }
+
       this.isLoadingSummary.set(false);
     });
   }
 
   private calcNights(from: string, to: string): number {
+    if (!from || !to) {
+      return 0;
+    }
+
     const diff = new Date(to).getTime() - new Date(from).getTime();
     const nights = Math.round(diff / (1000 * 60 * 60 * 24));
-    return nights > 0 ? nights : DUMMY_SUMMARY.nights;
+    return nights > 0 ? nights : 0;
   }
 
-  private static readonly OPTIMISTIC_HOLD_MS = 10 * 60 * 1000; // 10 min fallback
+  private extractCheckIn(booking: BookingData): string {
+    return booking.fecha_inicio ?? booking.fecha_check_in ?? '';
+  }
+
+  private extractCheckOut(booking: BookingData): string {
+    return booking.fecha_fin ?? booking.fecha_check_out ?? '';
+  }
+
+  private extractGuests(booking: BookingData): number {
+    if (typeof booking.num_huespedes === 'number') {
+      return booking.num_huespedes;
+    }
+
+    const ocupacion = booking.ocupacion;
+    if (!ocupacion) {
+      return 0;
+    }
+
+    return (ocupacion.adultos ?? 0) + (ocupacion.ninos ?? 0) + (ocupacion.infantes ?? 0);
+  }
 
   createHold(): void {
-    const request: HoldRequest = {
-      categoryId: 1,
-      checkIn: '2026-10-10',
-      checkOut: '2026-10-15',
-      guests: 2
-    };
+    const booking = this.bookingData();
+    if (!booking) {
+      console.warn('[BookingCartPage] createHold blocked because booking data is missing');
+      alert('No se pudo cargar la reserva desde backend');
+      return;
+    }
 
-    // Optimistic: show timer immediately with an estimated expiry
-    const optimisticExpiresAt = Date.now() + BookingCartPage.OPTIMISTIC_HOLD_MS;
-    this.store.setHold({ id: 'optimistic', expiresAt: optimisticExpiresAt });
-    this.startTimer(optimisticExpiresAt);
+    const categoryId = booking.id_categoria;
+    const checkIn = this.extractCheckIn(booking);
+    const checkOut = this.extractCheckOut(booking);
+    const guests = this.extractGuests(booking);
+
+    if (!categoryId || !checkIn || !checkOut || guests <= 0) {
+      console.error('[BookingCartPage] createHold blocked due to invalid backend booking data', {
+        categoryId,
+        checkIn,
+        checkOut,
+        guests,
+        booking,
+      });
+      alert('La reserva no tiene todos los datos necesarios para crear el hold');
+      return;
+    }
+
+    const request: HoldRequest = {
+      categoryId,
+      checkIn,
+      checkOut,
+      guests
+    };
+    console.info('[BookingCartPage] createHold request', request);
 
     this.bookingService.createHold(request).subscribe({
       next: (response) => {
-        // Reconcile with real server expiry
-        this.store.setHold(response);
-        this.startTimer(response.expiresAt);
+        console.info('[BookingCartPage] createHold response', response);
+        if (typeof response.expiresAt === 'number') {
+          this.store.setHold(response);
+          this.startTimer(response.expiresAt);
+          return;
+        }
+
+        console.warn('[BookingCartPage] Hold response without expiresAt. Timer was not started.', response);
       },
-      error: () => {
-        // Roll back optimistic hold
+      error: (error) => {
+        console.error('[BookingCartPage] createHold failed', { request, error });
         this.clearTimer();
         this.remainingTime.set(0);
         this.store.clear();
@@ -151,11 +242,18 @@ export class BookingCartPage implements OnDestroy {
 
   private loadHold(): void {
     const hold = this.store.getHold();
-    if (!hold) return;
+    if (!hold) {
+      return;
+    }
+
+    if (typeof hold.expiresAt !== 'number') {
+      console.warn('[BookingCartPage] Stored hold has no expiresAt, clearing local hold', hold);
+      this.store.clear();
+      return;
+    }
 
     const diff = Math.floor((hold.expiresAt - Date.now()) / 1000);
     if (diff <= 0) {
-      // Expired while the user was away
       this.store.clear();
       return;
     }

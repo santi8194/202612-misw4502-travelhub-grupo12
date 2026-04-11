@@ -1,5 +1,5 @@
 export interface HoldRequest {
-  categoryId: number;
+  categoryId: number | string;
   checkIn: string;
   checkOut: string;
   guests: number;

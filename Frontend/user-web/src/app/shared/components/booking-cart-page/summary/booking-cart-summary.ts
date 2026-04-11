@@ -10,6 +10,6 @@ import { BookingSummaryData } from '../../../../models/booking-summary.interface
   styleUrl: './booking-cart-summary.css'
 })
 export class BookingCartSummaryComponent {
-  @Input({ required: true }) data!: BookingSummaryData;
+  @Input({ required: true }) data: BookingSummaryData | null = null;
   @Input() isLoading = false;
 }

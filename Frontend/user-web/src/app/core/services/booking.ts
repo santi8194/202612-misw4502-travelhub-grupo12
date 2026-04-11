@@ -72,6 +72,18 @@ export class BookingService {
     );
   }
 
+  expireBookingById(idReserva: string): Observable<any> {
+    const url = `${this.apiUrl}/${idReserva}/expirar`;
+    console.info('[BookingService] POST', url);
+    return this.http.post<any>(url, {}).pipe(
+      tap((response) => console.info('[BookingService] expireBookingById success', response)),
+      catchError((error) => {
+        console.error('[BookingService] expireBookingById error', { idReserva, error });
+        return throwError(() => error);
+      })
+    );
+  }
+
   getCatalogByCategoryId(idCategoria: string): Observable<any> {
     const url = `${this.catalogUrl}/properties/by-category/${idCategoria}`;
     console.info('[BookingService] GET', url);

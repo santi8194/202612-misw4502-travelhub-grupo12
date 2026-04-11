@@ -79,6 +79,7 @@ export class BookingCartPage implements OnDestroy {
   private readonly store = inject(BookingStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private hasSentExpireRequest = false;
 
   form = signal<GuestForm>({
     name: '',
@@ -399,11 +400,34 @@ export class BookingCartPage implements OnDestroy {
         this.clearTimer();
         this.remainingTime.set(0);
         this.store.clear();
+        this.expireReservationIfNeeded();
         alert('El hold expiró');
       } else {
         this.remainingTime.set(diff);
       }
     }, 1000);
+  }
+
+  private expireReservationIfNeeded(): void {
+    if (this.hasSentExpireRequest) {
+      return;
+    }
+
+    const idReserva = this.route.snapshot.paramMap.get('id_reserva');
+    if (!idReserva) {
+      console.warn('[BookingCartPage] Cannot expire reservation: missing id_reserva in route');
+      return;
+    }
+
+    this.hasSentExpireRequest = true;
+    this.bookingService.expireBookingById(idReserva).subscribe({
+      next: (response) => {
+        console.info('[BookingCartPage] Reservation expired in backend', { idReserva, response });
+      },
+      error: (error) => {
+        console.error('[BookingCartPage] Failed to expire reservation in backend', { idReserva, error });
+      }
+    });
   }
 
   private clearTimer(): void {

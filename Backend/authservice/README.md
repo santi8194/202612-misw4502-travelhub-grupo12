@@ -1,6 +1,6 @@
 # Auth Service
 
-Microservicio de autenticación para la plataforma hotelera. Genera tokens JWT stateless y persiste usuarios en PostgreSQL.
+Microservicio de autenticacion para la plataforma hotelera. Genera tokens JWT stateless y persiste usuarios en PostgreSQL.
 
 ## Requisitos
 
@@ -12,23 +12,24 @@ Instala las dependencias:
 pip install -r requirements.txt
 ```
 
-Variables de entorno requeridas para la base de datos:
+Variables de entorno requeridas:
 
 ```bash
-DB_HOST=travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com
+SECRET_KEY=<jwt_secret>
+DB_HOST=<rds_endpoint>
 DB_PORT=5432
 DB_NAME=authservice_db
 DB_USER=<usuario_rds>
 DB_PASSWORD=<password_rds>
 ```
 
-También puedes usar una sola variable:
+Tambien puedes usar una sola variable para la conexion:
 
 ```bash
-DATABASE_URL=postgresql+psycopg2://<usuario_rds>:<password_rds>@travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com:5432/authservice_db
+DATABASE_URL=postgresql+psycopg2://<usuario_rds>:<password_rds>@<rds_endpoint>:5432/authservice_db
 ```
 
-## Ejecución
+## Ejecucion
 
 Para iniciar el servidor en modo desarrollo:
 
@@ -36,11 +37,11 @@ Para iniciar el servidor en modo desarrollo:
 uvicorn main:app --reload --port 8000
 ```
 
-La documentación interactiva (Swagger) estará disponible en: [http://localhost:8000/docs](http://localhost:8000/docs)
+La documentacion interactiva (Swagger) estara disponible en: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## Ejemplos de Uso
 
-### 1. Iniciar Sesión (Login JSON request)
+### 1. Iniciar Sesion (Login JSON request)
 
 ```bash
 curl -X 'POST' \
@@ -83,13 +84,13 @@ curl -X 'POST' \
 
 ## Usuarios Iniciales
 
-Cuando la tabla `users` está vacía, el servicio crea estos usuarios de prueba automáticamente:
+Cuando la tabla `users` esta vacia, el servicio crea estos usuarios de prueba automaticamente:
 
 - **Admin/Partner**: `admin@hotel.com` / `123456`
 - **Usuario Normal**: `user@hotel.com` / `user123`
 
-## Protección contra Fuerza Bruta
+## Proteccion contra Fuerza Bruta
 
 El servicio incorpora un mecanismo sencillo en memoria para bloqueo de cuentas tras varios intentos fallidos.
-- **Límite**: 5 intentos fallidos
-- **Bloqueo**: 15 minutos (configurable en `.env` o `config.py`)
+- **Limite**: 5 intentos fallidos
+- **Bloqueo**: 15 minutos (configurable en `.env` o variables de entorno)

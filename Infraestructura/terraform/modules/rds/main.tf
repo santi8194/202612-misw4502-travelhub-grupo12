@@ -4,25 +4,38 @@
 
 resource "aws_db_subnet_group" "rds_subnet_group" {
   name       = "${var.db_identifier}-subnet-group"
-  subnet_ids = data.aws_subnets.all.ids
+  subnet_ids = var.subnet_ids
 }
 
 resource "aws_security_group" "rds_sg" {
   name        = "${var.db_identifier}-sg"
   description = "Permitir trafico de entrada a Postgres"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = var.vpc_id
 
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = var.sg_ingress_cidr_blocks
+  dynamic "ingress" {
+    for_each = toset(var.allowed_security_group_ids)
+    content {
+      from_port       = 5432
+      to_port         = 5432
+      protocol        = "tcp"
+      security_groups = [ingress.value]
+    }
+  }
+
+  dynamic "ingress" {
+    for_each = toset(var.allowed_cidr_blocks)
+    content {
+      from_port   = 5432
+      to_port     = 5432
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "all" # Changed from "-1" to "all" for clarity
+    protocol    = "all"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -46,4 +59,11 @@ resource "aws_db_instance" "mi_rds_postgres" {
   publicly_accessible     = var.db_publicly_accessible
   backup_retention_period = 1
   storage_type            = "gp3"
+
+  lifecycle {
+    precondition {
+      condition     = length(var.allowed_security_group_ids) > 0 || length(var.allowed_cidr_blocks) > 0
+      error_message = "RDS requiere al menos un security group o CIDR autorizado para PostgreSQL."
+    }
+  }
 }

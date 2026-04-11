@@ -22,3 +22,8 @@ output "secrets_manager_secret_arn" {
   description = "ARN del secreto de AWS Secrets Manager."
   value       = module.secrets_manager.secret_arn
 }
+
+output "secrets_manager_secret_name" {
+  description = "Nombre del secreto de AWS Secrets Manager."
+  value       = module.secrets_manager.secret_name
+}

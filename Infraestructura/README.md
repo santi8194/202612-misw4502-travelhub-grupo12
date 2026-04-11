@@ -207,10 +207,10 @@ terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" plan -var-file
 
 terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" apply -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars"
 
-Accesos: travelhub Grupo12.2026
+Obtenga los datos de conexion y el nombre del secreto desde Terraform:
 
-rds_address = "travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com"
-rds_db_name = "authservice_db"
-rds_engine = "postgres"
-rds_port = 5432
-secrets_manager_secret_arn = "arn:aws:secretsmanager:us-east-1:392789866980:secret:travelhub/dev/authservice/db-credentials56136a2a-U6c3k2"
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_address
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_db_name
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_engine
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_port
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output secrets_manager_secret_name

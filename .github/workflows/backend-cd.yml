@@ -6,36 +6,188 @@ on:
       - main
       - develop
     paths:
-      - 'Backend/authservice/**'
-      - 'Infraestructura/k8s/aws/authservice-*.yaml'
+      - 'Backend/**'
+      - 'Infraestructura/k8s/aws/*-deployment.yaml'
+      - 'Infraestructura/k8s/aws/*-service.yaml'
+      - 'Infraestructura/k8s/aws/ingress.yaml'
       - '.github/workflows/backend-cd.yml'
+      - '.github/backend-cd.exclusions.json'
   workflow_dispatch:
-
-concurrency:
-  group: backend-cd-authservice-dev
-  cancel-in-progress: true
 
 permissions:
   contents: read
 
 env:
-  SERVICE_FOLDER: Backend/authservice
-  DOCKERFILE_PATH: Backend/authservice/Dockerfile
-  DEPLOYMENT_MANIFEST: Infraestructura/k8s/aws/authservice-deployment.yaml
-  SERVICE_MANIFEST: Infraestructura/k8s/aws/authservice-service.yaml
-  RENDERED_DEPLOYMENT_MANIFEST: /tmp/authservice-deployment.rendered.yaml
-  SERVICE_NAME: authservice
-  ECR_REPOSITORY: authservice
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REGISTRY_DEV: ${{ vars.ECR_REGISTRY_DEV }}
   EKS_CLUSTER_NAME_DEV: ${{ vars.EKS_CLUSTER_NAME_DEV }}
   K8S_NAMESPACE_DEV: ${{ vars.K8S_NAMESPACE_DEV }}
+  AUTHSERVICE_DB_SECRET_NAME_DEV: travelhub/dev/authservice/db-credentials
+  INGRESS_MANIFEST: Infraestructura/k8s/aws/ingress.yaml
+  SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
 
 jobs:
-  deploy-authservice:
-    name: Deploy authservice to EKS
+  discover-services:
+    name: Discover changed services
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+      service_count: ${{ steps.discover.outputs.service_count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build deployment matrix
+        id: discover
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          exclusions_path = os.environ["SERVICE_EXCLUSIONS_FILE"]
+          event_name = os.environ["EVENT_NAME"]
+          base_sha = os.environ.get("BASE_SHA", "")
+          head_sha = os.environ["HEAD_SHA"]
+          repo_root = Path.cwd()
+          backend_dir = repo_root / "Backend"
+          manifests_dir = repo_root / "Infraestructura" / "k8s" / "aws"
+
+          try:
+              with open(exclusions_path, "r", encoding="utf-8") as fh:
+                  exclusions = json.load(fh)
+          except Exception as exc:
+              print(f"::error file={exclusions_path}::Failed to load exclusion list: {exc}")
+              sys.exit(1)
+
+          excluded_services = set(exclusions.get("exclude", []))
+
+          deploy_all = False
+          changed_files: list[str] = []
+
+          if event_name == "workflow_dispatch":
+              deploy_all = True
+          elif not base_sha or base_sha == "0000000000000000000000000000000000000000":
+              deploy_all = True
+          else:
+              result = subprocess.run(
+                  ["git", "diff", "--name-only", base_sha, head_sha],
+                  check=True,
+                  capture_output=True,
+                  text=True,
+              )
+              changed_files = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+          discovered_services = []
+          for service_dir in sorted(path for path in backend_dir.iterdir() if path.is_dir()):
+              service_name = service_dir.name
+              if service_name in excluded_services:
+                  continue
+
+              dockerfile = service_dir / "Dockerfile"
+              deployment_manifest = manifests_dir / f"{service_name}-deployment.yaml"
+              service_manifest = manifests_dir / f"{service_name}-service.yaml"
+
+              has_dockerfile = dockerfile.is_file()
+              has_deployment = deployment_manifest.is_file()
+              has_service = service_manifest.is_file()
+
+              if not has_dockerfile:
+                  continue
+
+              if not has_deployment or not has_service:
+                  missing = []
+                  if not has_deployment:
+                      missing.append(str(deployment_manifest.relative_to(repo_root)).replace("\\", "/"))
+                  if not has_service:
+                      missing.append(str(service_manifest.relative_to(repo_root)).replace("\\", "/"))
+                  missing_paths = ", ".join(missing)
+                  print(
+                      f"::warning::Service '{service_name}' has a Dockerfile but is not CD-supported because these manifests are missing: {missing_paths}"
+                  )
+                  continue
+
+              discovered_services.append(service_name)
+
+          if not discovered_services:
+              print("::warning::No CD-supported services were discovered under Backend/.")
+
+          selected_services = []
+          global_change_prefixes = [
+              ".github/workflows/backend-cd.yml",
+              ".github/backend-cd.exclusions.json",
+              "Infraestructura/k8s/aws/ingress.yaml",
+          ]
+
+          for service_name in discovered_services:
+              service = {
+                  "service_name": service_name,
+                  "service_folder": f"Backend/{service_name}",
+                  "dockerfile_path": f"Backend/{service_name}/Dockerfile",
+                  "ecr_repository": service_name,
+                  "deployment_manifest": f"Infraestructura/k8s/aws/{service_name}-deployment.yaml",
+                  "service_manifest": f"Infraestructura/k8s/aws/{service_name}-service.yaml",
+              }
+
+              if deploy_all:
+                  selected_services.append(service)
+                  continue
+
+              if any(path in changed_files for path in global_change_prefixes):
+                  selected_services.append(service)
+                  continue
+
+              watch_paths = [
+                  f"Backend/{service_name}/",
+                  f"Infraestructura/k8s/aws/{service_name}-deployment.yaml",
+                  f"Infraestructura/k8s/aws/{service_name}-service.yaml",
+              ]
+
+              if any(
+                  changed.startswith(prefix)
+                  for changed in changed_files
+                  for prefix in watch_paths
+              ):
+                  selected_services.append(service)
+
+          output_path = os.environ["GITHUB_OUTPUT"]
+          with open(output_path, "a", encoding="utf-8") as fh:
+              fh.write(f"matrix={json.dumps({'include': selected_services})}\n")
+              fh.write(f"service_count={len(selected_services)}\n")
+          PY
+
+  deploy-service:
+    name: Deploy ${{ matrix.service_name }} to EKS
     runs-on: ubuntu-latest
     environment: dev
+    needs: discover-services
+    if: ${{ needs.discover-services.outputs.service_count != '0' }}
+    concurrency:
+      group: backend-cd-${{ matrix.service_name }}-dev
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.discover-services.outputs.matrix) }}
+    env:
+      SERVICE_FOLDER: ${{ matrix.service_folder }}
+      DOCKERFILE_PATH: ${{ matrix.dockerfile_path }}
+      DEPLOYMENT_MANIFEST: ${{ matrix.deployment_manifest }}
+      SERVICE_MANIFEST: ${{ matrix.service_manifest }}
+      RENDERED_DEPLOYMENT_MANIFEST: /tmp/${{ matrix.service_name }}-deployment.rendered.yaml
+      SERVICE_NAME: ${{ matrix.service_name }}
+      ECR_REPOSITORY: ${{ matrix.ecr_repository }}
+      HEALTHCHECK_PATH: /health
+      AUTHSERVICE_SECRET_KEY_DEV: ${{ secrets.AUTHSERVICE_SECRET_KEY_DEV }}
 
     steps:
       - name: Checkout repository
@@ -47,7 +199,7 @@ jobs:
           set -euo pipefail
 
           if [ ! -f "${DOCKERFILE_PATH}" ]; then
-            echo "::error file=${DOCKERFILE_PATH}::Missing Dockerfile for authservice. Expected file '${DOCKERFILE_PATH}' was not found."
+            echo "::error file=${DOCKERFILE_PATH}::Missing Dockerfile for service '${SERVICE_NAME}'. Expected file '${DOCKERFILE_PATH}' was not found."
             exit 1
           fi
 
@@ -58,6 +210,11 @@ jobs:
 
           if [ ! -f "${SERVICE_MANIFEST}" ]; then
             echo "::error file=${SERVICE_MANIFEST}::Missing Kubernetes Service manifest. Expected file '${SERVICE_MANIFEST}' was not found."
+            exit 1
+          fi
+
+          if [ ! -f "${INGRESS_MANIFEST}" ]; then
+            echo "::error file=${INGRESS_MANIFEST}::Missing Kubernetes Ingress manifest. Expected file '${INGRESS_MANIFEST}' was not found."
             exit 1
           fi
 
@@ -88,7 +245,6 @@ jobs:
             exit 1
           fi
 
-
           if [ -z "${EKS_CLUSTER_NAME_DEV:-}" ]; then
             echo "::error::Missing required GitHub variable 'EKS_CLUSTER_NAME_DEV'."
             exit 1
@@ -99,18 +255,24 @@ jobs:
             exit 1
           fi
 
+          if [ "${SERVICE_NAME}" = "authservice" ] && [ -z "${AUTHSERVICE_SECRET_KEY_DEV:-}" ]; then
+            echo "::error::Missing required GitHub secret 'AUTHSERVICE_SECRET_KEY_DEV' for authservice deployment."
+            exit 1
+          fi
+
       - name: Validate manifest naming and image template
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
+          import os
           import sys
           import yaml
 
-          expected = "authservice"
-          expected_image = "${ECR_REGISTRY_DEV}/authservice:${GITHUB_SHA}"
-          deployment_file = "Infraestructura/k8s/aws/authservice-deployment.yaml"
-          service_file = "Infraestructura/k8s/aws/authservice-service.yaml"
+          expected = os.environ["SERVICE_NAME"]
+          expected_image = "${ECR_REGISTRY_DEV}/" + expected + ":${GITHUB_SHA}"
+          deployment_file = os.environ["DEPLOYMENT_MANIFEST"]
+          service_file = os.environ["SERVICE_MANIFEST"]
 
           try:
               with open(deployment_file, "r", encoding="utf-8") as f:
@@ -209,8 +371,8 @@ jobs:
           import os
           import sys
 
-          src = "Infraestructura/k8s/aws/authservice-deployment.yaml"
-          dst = "/tmp/authservice-deployment.rendered.yaml"
+          src = os.environ["DEPLOYMENT_MANIFEST"]
+          dst = os.environ["RENDERED_DEPLOYMENT_MANIFEST"]
           registry = os.environ.get("ECR_REGISTRY_DEV", "")
           sha = os.environ.get("GITHUB_SHA", "")
 
@@ -273,6 +435,64 @@ jobs:
             fi
           fi
 
+      - name: Reconcile authservice secrets
+        if: ${{ matrix.service_name == 'authservice' }}
+        shell: bash
+        env:
+          DB_SECRET_ENV_FILE: /tmp/authservice-db-secret.env
+        run: |
+          set -euo pipefail
+
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${AUTHSERVICE_DB_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          if [ -z "${SECRET_JSON:-}" ] || [ "${SECRET_JSON}" = "None" ]; then
+            echo "::error::Secrets Manager secret '${AUTHSERVICE_DB_SECRET_NAME_DEV}' is empty or unavailable."
+            exit 1
+          fi
+
+          export SECRET_JSON DB_SECRET_ENV_FILE
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          secret = json.loads(os.environ["SECRET_JSON"])
+          env_file = os.environ["DB_SECRET_ENV_FILE"]
+          required_keys = {
+              "DB_HOST": secret.get("host"),
+              "DB_PORT": secret.get("port"),
+              "DB_NAME": secret.get("dbname"),
+              "DB_USER": secret.get("username"),
+              "DB_PASSWORD": secret.get("password"),
+          }
+          missing = [key for key, value in required_keys.items() if value in (None, "")]
+          if missing:
+              print(
+                  "::error::Secrets Manager secret is missing required keys for authservice: "
+                  + ", ".join(missing)
+              )
+              sys.exit(1)
+
+          with open(env_file, "w", encoding="utf-8") as fh:
+              for key, value in required_keys.items():
+                  fh.write(f"{key}={value}\n")
+          PY
+
+          kubectl create secret generic authservice-db-secret \
+            --namespace "${K8S_NAMESPACE_DEV}" \
+            --from-env-file="${DB_SECRET_ENV_FILE}" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+          kubectl create secret generic authservice-app-secret \
+            --namespace "${K8S_NAMESPACE_DEV}" \
+            --from-literal=SECRET_KEY="${AUTHSERVICE_SECRET_KEY_DEV}" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
       - name: Apply Kubernetes manifests
         shell: bash
         run: |
@@ -288,15 +508,20 @@ jobs:
             exit 1
           fi
 
+          if ! kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${INGRESS_MANIFEST}"; then
+            echo "::error file=${INGRESS_MANIFEST}::Failed to apply Ingress manifest."
+            exit 1
+          fi
+
       - name: Wait for rollout
         shell: bash
         run: |
           set -euo pipefail
 
-          if ! kubectl rollout status deployment/authservice \
+          if ! kubectl rollout status "deployment/${SERVICE_NAME}" \
             --namespace "${K8S_NAMESPACE_DEV}" \
             --timeout=300s; then
-            echo "::error::Rollout did not complete successfully for deployment 'authservice' in namespace '${K8S_NAMESPACE_DEV}'."
+            echo "::error::Rollout did not complete successfully for deployment '${SERVICE_NAME}' in namespace '${K8S_NAMESPACE_DEV}'."
             exit 1
           fi
 
@@ -305,7 +530,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          kubectl port-forward svc/authservice 8080:80 -n "${K8S_NAMESPACE_DEV}" &
+          kubectl port-forward "svc/${SERVICE_NAME}" 8080:80 -n "${K8S_NAMESPACE_DEV}" &
           PF_PID=$!
 
           cleanup() {
@@ -316,7 +541,7 @@ jobs:
 
           sleep 5
 
-          if ! curl -f http://localhost:8080/; then
-            echo "::error::Service did not respond correctly on / endpoint"
+          if ! curl -f "http://localhost:8080${HEALTHCHECK_PATH}"; then
+            echo "::error::Service '${SERVICE_NAME}' did not respond correctly on endpoint '${HEALTHCHECK_PATH}'."
             exit 1
           fi

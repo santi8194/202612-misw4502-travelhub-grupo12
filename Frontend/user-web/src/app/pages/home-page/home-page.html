@@ -1,0 +1,14 @@
+<div class="home-page">
+
+  <app-header></app-header>
+
+  <section class="hero" data-testid="hero-section">
+    <div class="hero-overlay">
+      <h1 class="hero-title" data-testid="hero-title">¿A dónde quieres ir hoy?</h1>
+      <app-hero-search-form (search)="onSearch($event)"></app-hero-search-form>
+    </div>
+  </section>
+
+  <app-footer></app-footer>
+
+</div>

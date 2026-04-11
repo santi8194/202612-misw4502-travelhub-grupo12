@@ -1,0 +1,83 @@
+<form class="hero-search" data-testid="hero-search-form" (ngSubmit)="onSearch()">
+
+  <div class="search-field" style="position: relative;">
+    <label class="search-field-label" for="location">Ubicación</label>
+    <input
+      id="location"
+      name="location"
+      class="search-field-input"
+      type="text"
+      placeholder="¿A dónde vamos?"
+      autocomplete="off"
+      [ngModel]="form().location"
+      (ngModelChange)="onLocationInput($event)"
+      data-testid="input-location"
+    />
+
+    @if (suggestions().length > 0) {
+      <ul class="suggestions-dropdown" data-testid="suggestions-dropdown">
+        @for (dest of suggestions(); track dest.ciudad) {
+          <li class="suggestion-item" (click)="selectDestination(dest)" data-testid="suggestion-item">
+            <span class="suggestion-city">{{ dest.ciudad }}</span>
+            <span class="suggestion-detail">{{ dest.estado_provincia ? dest.estado_provincia + ', ' : '' }}{{ dest.pais }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <div class="search-divider" aria-hidden="true"></div>
+
+  <div class="search-field">
+    <label class="search-field-label" for="checkin">Ingreso</label>
+    <input
+      id="checkin"
+      name="checkin"
+      class="search-field-input"
+      type="date"
+      [ngModel]="form().checkIn"
+      (ngModelChange)="updateField('checkIn', $event)"
+      data-testid="input-checkin"
+    />
+  </div>
+
+  <div class="search-divider" aria-hidden="true"></div>
+
+  <div class="search-field">
+    <label class="search-field-label" for="checkout">Salida</label>
+    <input
+      id="checkout"
+      name="checkout"
+      class="search-field-input"
+      type="date"
+      [ngModel]="form().checkOut"
+      (ngModelChange)="updateField('checkOut', $event)"
+      data-testid="input-checkout"
+    />
+  </div>
+
+  <div class="search-divider" aria-hidden="true"></div>
+
+  <div class="search-field">
+    <label class="search-field-label" for="guests">Huéspedes</label>
+    <input
+      id="guests"
+      name="guests"
+      class="search-field-input"
+      type="number"
+      min="1"
+      placeholder="Agregar huésped"
+      [ngModel]="form().guests"
+      (ngModelChange)="updateField('guests', $event ? +$event : null)"
+      data-testid="input-guests"
+    />
+  </div>
+
+  <button type="submit" class="search-btn" data-testid="btn-search" aria-label="Buscar">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.9"/>
+      <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+</form>

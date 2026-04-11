@@ -1,6 +1,6 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { switchMap, catchError, of } from 'rxjs';
+import { switchMap, catchError, of, forkJoin } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
 import { BookingStore } from '../../core/store/booking-store';
 import { HeaderComponent } from '../../shared/components/header/header';
@@ -28,12 +28,34 @@ interface BookingData {
 }
 
 interface CatalogData {
+  id_propiedad?: string;
   nombre?: string;
   propiedad_nombre?: string;
   ciudad?: string;
   pais?: string;
   imagen_principal_url?: string;
   precio_base?: string;
+}
+
+interface CategoryData {
+  id_propiedad?: string;
+  nombre_comercial?: string;
+  foto_portada_url?: string;
+  monto_precio_base?: string | number;
+  moneda_precio_base?: string;
+  precio_base?: {
+    monto?: string | number;
+    moneda?: string;
+  };
+}
+
+interface PropertyData {
+  id_propiedad?: string;
+  nombre?: string;
+  ubicacion?: {
+    ciudad?: string;
+    pais?: string;
+  };
 }
 
 @Component({
@@ -100,17 +122,46 @@ export class BookingCartPage implements OnDestroy {
 
         if (!categoryId) {
           console.warn('[BookingCartPage] Booking does not contain id_categoria', booking);
-          return of({ booking, catalog: null });
+          return of({ booking, catalog: null, category: null, property: null });
         }
 
-        return this.bookingService.getCatalogByCategoryId(categoryId).pipe(
-          switchMap((catalog: CatalogData) => {
+        return forkJoin({
+          catalog: this.bookingService.getCatalogByCategoryId(categoryId).pipe(
+            catchError((error) => {
+              console.error('[BookingCartPage] Catalog request failed', { categoryId, error });
+              return of(null);
+            })
+          ),
+          category: this.bookingService.getCategoryById(categoryId).pipe(
+            catchError((error) => {
+              console.error('[BookingCartPage] Category request failed', { categoryId, error });
+              return of(null);
+            })
+          )
+        }).pipe(
+          switchMap(({ catalog, category }) => {
             console.info('[BookingCartPage] Catalog loaded', catalog);
-            return of({ booking, catalog });
-          }),
-          catchError((error) => {
-            console.error('[BookingCartPage] Catalog request failed', { categoryId, error });
-            return of({ booking, catalog: null });
+            console.info('[BookingCartPage] Category loaded', category);
+            return of({ booking, catalog, category });
+          })
+        ).pipe(
+          switchMap(({ booking, catalog, category }) => {
+            const propertyId = category?.id_propiedad ?? catalog?.id_propiedad;
+            if (!propertyId) {
+              console.warn('[BookingCartPage] Property id not found in category/catalog payloads');
+              return of({ booking, catalog, category, property: null });
+            }
+
+            return this.bookingService.getPropertyById(propertyId).pipe(
+              switchMap((property: PropertyData) => {
+                console.info('[BookingCartPage] Property loaded', property);
+                return of({ booking, catalog, category, property });
+              }),
+              catchError((error) => {
+                console.error('[BookingCartPage] Property request failed', { propertyId, error });
+                return of({ booking, catalog, category, property: null });
+              })
+            );
           })
         );
       }),
@@ -120,22 +171,33 @@ export class BookingCartPage implements OnDestroy {
       })
     ).subscribe((result) => {
       if (result?.booking) {
-        const { booking, catalog } = result;
+        const { booking, catalog, category, property } = result;
         this.bookingData.set(booking);
 
         const checkIn = this.extractCheckIn(booking);
         const checkOut = this.extractCheckOut(booking);
         const guests = this.extractGuests(booking);
         const nights = this.calcNights(checkIn, checkOut);
-        const pricePerNight = Number.parseFloat(catalog?.precio_base ?? '0');
+
+        const categoryAmount = category?.precio_base?.monto ?? category?.monto_precio_base;
+        const fallbackCategoryAmount = category?.precio_base;
+        const pricePerNight = Number.parseFloat(
+          String(categoryAmount ?? fallbackCategoryAmount ?? catalog?.precio_base ?? '0')
+        );
         const safePricePerNight = Number.isFinite(pricePerNight) ? pricePerNight : 0;
         const subtotal = safePricePerNight * nights;
         const serviceFee = Math.round(subtotal * 0.1);
+        const categoryName = category?.nombre_comercial;
+        const propertyName = property?.nombre ?? catalog?.propiedad_nombre ?? catalog?.nombre ?? 'N/A';
+        const city = property?.ubicacion?.ciudad ?? catalog?.ciudad ?? 'N/A';
+        const country = property?.ubicacion?.pais ?? catalog?.pais ?? 'N/A';
 
         this.summary.set({
-          propertyName: catalog?.propiedad_nombre ?? catalog?.nombre ?? 'N/A',
-          location: catalog ? `${catalog.ciudad ?? 'N/A'}, ${catalog.pais ?? 'N/A'}` : 'N/A',
-          imageUrl: catalog?.imagen_principal_url ?? '',
+          propertyName: categoryName
+            ? `${propertyName} - ${categoryName}`
+            : propertyName,
+          location: `${city}, ${country}`,
+          imageUrl: category?.foto_portada_url ?? catalog?.imagen_principal_url ?? '',
           checkIn,
           checkOut,
           guests,

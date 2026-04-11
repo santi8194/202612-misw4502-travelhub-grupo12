@@ -91,6 +91,8 @@
 
             @if (loadingCategories()) {
               <p class="category-help">Cargando categorias disponibles...</p>
+            } @else if (categoriesError()) {
+              <p class="category-help">{{ categoriesError() }}</p>
             } @else if (categories().length === 0) {
               <p class="category-help">No hay categorias disponibles para los filtros seleccionados.</p>
             } @else {
@@ -104,7 +106,7 @@
                     data-testid="property-category-card"
                   >
                     <div class="category-card__title">{{ category.categoria_nombre }}</div>
-                    <div class="category-card__meta">ID: {{ category.id_categoria }}</div>
+                    <div class="category-card__meta">Codigo PMS: {{ category.codigo_mapeo_pms }}</div>
                     <div class="category-card__meta">Capacidad: {{ category.capacidad_pax }} huespedes</div>
                     <div class="category-card__price">{{ currencySymbol(category.moneda) }} {{ category.precio_base }} / noche</div>
                   </button>

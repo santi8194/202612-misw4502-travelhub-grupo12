@@ -32,8 +32,25 @@ interface PropertyDetailData {
   capacidad_pax?: number;
 }
 
+interface PropertyApiResponse {
+  id_propiedad?: string;
+  nombre?: string;
+  estrellas?: number;
+  ubicacion?: {
+    ciudad?: string;
+    pais?: string;
+    coordenadas?: {
+      lat?: number;
+      lon?: number;
+    };
+  };
+  porcentaje_impuesto?: string;
+  categorias_habitacion?: number;
+}
+
 interface CategoryCardData {
   id_categoria: string;
+  codigo_mapeo_pms: string;
   categoria_nombre: string;
   precio_base: number;
   moneda: string;
@@ -58,6 +75,7 @@ export class PropertyDetailPage {
   readonly creatingBooking = signal(false);
   readonly loadingCategories = signal(false);
   readonly error = signal<string | null>(null);
+  readonly categoriesError = signal<string | null>(null);
   readonly property = signal<PropertyDetailData | null>(null);
   readonly categories = signal<CategoryCardData[]>([]);
   readonly selectedCategoryId = signal('');
@@ -107,10 +125,12 @@ export class PropertyDetailPage {
         return of(null);
       }),
       finalize(() => this.loading.set(false))
-    ).subscribe((propertyResponse) => {
+    ).subscribe((propertyResponse: PropertyApiResponse | null) => {
       if (!propertyResponse) {
         return;
       }
+
+      console.info('[PropertyDetailPage] Raw property response', propertyResponse);
 
       const fallbackData: PropertyDetailData = {
         id_propiedad: propertyId,
@@ -120,22 +140,43 @@ export class PropertyDetailPage {
         moneda: this.route.snapshot.queryParamMap.get('moneda') ?? undefined,
       };
 
-      this.property.set({
-        ...fallbackData,
-        ...propertyResponse,
-      });
+      this.property.set(this.normalizePropertyResponse(propertyResponse, fallbackData));
 
       console.info('[PropertyDetailPage] Property detail loaded', this.property());
       this.loadCategories(propertyId);
     });
   }
 
+  private normalizePropertyResponse(
+    response: PropertyApiResponse,
+    fallbackData: PropertyDetailData
+  ): PropertyDetailData {
+    const locationSource = response?.ubicacion as any;
+    const city = locationSource?.ciudad ?? (response as any)?.ciudad;
+    const country = locationSource?.pais ?? (response as any)?.pais;
+    const coordinates = locationSource?.coordenadas ?? (response as any)?.coordenadas;
+
+    return {
+      ...fallbackData,
+      ...response,
+      ubicacion: {
+        ciudad: city ?? fallbackData.ubicacion?.ciudad ?? 'N/A',
+        pais: country ?? fallbackData.ubicacion?.pais ?? 'N/A',
+      },
+      coordenadas: {
+        lat: coordinates?.lat,
+        lon: coordinates?.lon ?? coordinates?.lng,
+      },
+    };
+  }
+
   private loadCategories(propertyId: string): void {
     this.loadingCategories.set(true);
+    this.categoriesError.set(null);
     this.bookingService.getPropertyCategories(propertyId).pipe(
       catchError((error) => {
         console.error('[PropertyDetailPage] getPropertyCategories failed', { propertyId, error });
-        this.error.set('No fue posible cargar las categorias de esta propiedad.');
+        this.categoriesError.set('No fue posible cargar las categorias de esta propiedad.');
         return of([]);
       }),
       finalize(() => this.loadingCategories.set(false))
@@ -163,6 +204,7 @@ export class PropertyDetailPage {
     return rawCategories
       .map((item: any) => ({
         id_categoria: String(item?.id_categoria ?? item?.idCategoria ?? ''),
+        codigo_mapeo_pms: String(item?.codigo_mapeo_pms ?? item?.codigoMapeoPms ?? 'N/A'),
         categoria_nombre: String(item?.categoria_nombre ?? item?.nombre_comercial ?? item?.nombre ?? 'Categoria'),
         precio_base: this.normalizeCategoryAmount(item),
         moneda: this.normalizeCategoryCurrency(item),

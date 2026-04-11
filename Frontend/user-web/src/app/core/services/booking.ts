@@ -84,14 +84,46 @@ export class BookingService {
     );
   }
 
-  getPropertyById(propertyId: string): Observable<any> {
-    const url = `${this.catalogUrl}/properties/${propertyId}`;
+  getCategoryById(idCategoria: string): Observable<any> {
+    const url = `${this.catalogUrl}/categories/${idCategoria}`;
     console.info('[BookingService] GET', url);
     return this.http.get<any>(url).pipe(
-      tap((response) => console.info('[BookingService] getPropertyById success', response)),
+      tap((response) => console.info('[BookingService] getCategoryById success', response)),
       catchError((error) => {
-        console.error('[BookingService] getPropertyById error', { propertyId, error });
+        console.error('[BookingService] getCategoryById error', { idCategoria, error });
         return throwError(() => error);
+      })
+    );
+  }
+
+  getPropertyById(propertyId: string): Observable<any> {
+    const primaryUrl = `${this.catalogUrl}/properties/${propertyId}`;
+    const fallbackUrl = `${this.catalogUrl}/property/${propertyId}`;
+
+    console.info('[BookingService] GET', primaryUrl);
+    return this.http.get<any>(primaryUrl).pipe(
+      tap((response) => console.info('[BookingService] getPropertyById success', response)),
+      catchError((primaryError) => {
+        console.warn('[BookingService] getPropertyById primary path failed, trying fallback', {
+          propertyId,
+          primaryUrl,
+          primaryError,
+        });
+
+        console.info('[BookingService] GET', fallbackUrl);
+        return this.http.get<any>(fallbackUrl).pipe(
+          tap((response) => console.info('[BookingService] getPropertyById fallback success', response)),
+          catchError((fallbackError) => {
+            console.error('[BookingService] getPropertyById error on both paths', {
+              propertyId,
+              primaryUrl,
+              fallbackUrl,
+              primaryError,
+              fallbackError,
+            });
+            return throwError(() => fallbackError);
+          })
+        );
       })
     );
   }

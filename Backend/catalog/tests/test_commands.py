@@ -5,6 +5,8 @@ from unittest.mock import Mock
 from catalog.modules.catalog.application.commands.create_property import CreateProperty
 from catalog.modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from catalog.modules.catalog.application.commands.update_inventory import UpdateInventory
+from catalog.modules.catalog.application.commands.obtain_property_by_category_id import ObtainPropertyByCategoryId
+from catalog.modules.catalog.application.commands.obtain_category_by_id import ObtainCategoryById
 from catalog.modules.catalog.domain.entities import (
 	Coordenadas,
 	VODireccion,
@@ -267,3 +269,69 @@ class TestUpdateInventory:
 
 		assert result["error"] == "Category not found"
 		assert not mock_repository.save.called
+
+
+class TestObtainPropertyByCategoryId:
+	"""Pruebas para el comando ObtainPropertyByCategoryId"""
+
+	def test_obtain_property_by_category_id_success(self, mock_repository):
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		propiedad = construir_propiedad(
+			id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+		)
+		mock_repository.obtain_by_category_id.return_value = propiedad
+
+		command = ObtainPropertyByCategoryId(mock_repository)
+		result = command.execute("deluxe-001")
+
+		assert result["id_categoria"] == "deluxe-001"
+		assert result["id_propiedad"] == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+		assert result["nombre"] == "Hotel Test"
+
+	def test_obtain_property_by_category_id_not_found(self, mock_repository):
+		mock_repository.obtain_by_category_id.return_value = None
+
+		command = ObtainPropertyByCategoryId(mock_repository)
+		result = command.execute("unknown-category")
+
+		assert result["error"] == "Property not found for category"
+		assert result["id_categoria"] == "unknown-category"
+
+
+class TestObtainCategoryById:
+	"""Pruebas para el comando ObtainCategoryById"""
+
+	def test_obtain_category_by_id_success(self, mock_repository):
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		categoria = CategoriaHabitacion(
+			id_categoria="deluxe-001",
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			precio_base=precio,
+			capacidad_pax=4,
+			politica_cancelacion=regla,
+		)
+		mock_repository.obtain_category_by_id.return_value = categoria
+
+		command = ObtainCategoryById(mock_repository)
+		result = command.execute("deluxe-001")
+
+		assert result["id_categoria"] == "deluxe-001"
+		assert result["codigo_mapeo_pms"] == "ROOM-DLX-01"
+		assert result["precio_base"]["moneda"] == "COP"
+
+	def test_obtain_category_by_id_not_found(self, mock_repository):
+		mock_repository.obtain_category_by_id.return_value = None
+
+		command = ObtainCategoryById(mock_repository)
+		result = command.execute("unknown-category")
+
+		assert result["error"] == "Category not found"
+		assert result["id_categoria"] == "unknown-category"

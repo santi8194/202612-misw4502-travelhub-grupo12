@@ -66,6 +66,34 @@
       "name": "Categories",
       "item": [
         {
+          "name": "Get Property by Category ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/properties/by-category/{{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["properties", "by-category", "{{category_id}}"]
+            },
+            "description": "Obtiene la propiedad asociada a un ID de categoría"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/categories/{{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["categories", "{{category_id}}"]
+            },
+            "description": "Obtiene una categoría por su ID"
+          },
+          "response": []
+        },
+        {
           "name": "Register Category Housing",
           "request": {
             "method": "POST",

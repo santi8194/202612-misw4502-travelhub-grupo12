@@ -10,6 +10,8 @@ from modules.catalog.infrastructure.services.event_bus import EventBus
 from modules.catalog.application.commands.create_property import CreateProperty
 from modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from modules.catalog.application.commands.update_inventory import UpdateInventory
+from modules.catalog.application.commands.obtain_property_by_category_id import ObtainPropertyByCategoryId
+from modules.catalog.application.commands.obtain_category_by_id import ObtainCategoryById
 
 router = APIRouter()
 repository = PropertyRepository()
@@ -125,6 +127,20 @@ def obtener_propiedad(id_propiedad: UUID):
 		"porcentaje_impuesto": str(propiedad.porcentaje_impuesto),
 		"categorias_habitacion": len(propiedad.categorias_habitacion),
 	}
+
+
+@router.get("/properties/by-category/{id_categoria}")
+def obtener_propiedad_por_categoria(id_categoria: str):
+	"""Obtiene la propiedad asociada a una categoría de habitación."""
+	command = ObtainPropertyByCategoryId(repository)
+	return command.execute(id_categoria)
+
+
+@router.get("/categories/{id_categoria}")
+def obtener_categoria_por_id(id_categoria: str):
+	"""Obtiene una categoría de habitación por su ID."""
+	command = ObtainCategoryById(repository)
+	return command.execute(id_categoria)
 
 
 @router.get("/properties/{id_propiedad}/categories/{id_categoria}/availability/{fecha}")

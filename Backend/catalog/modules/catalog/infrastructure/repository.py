@@ -119,6 +119,58 @@ class PropertyRepository:
 		finally:
 			db.close()
 
+	def obtain_by_category_id(self, id_categoria: str) -> Propiedad | None:
+		"""
+		Obtiene la propiedad asociada a una categoría de habitación.
+
+		Args:
+			id_categoria: ID de categoría
+
+		Returns:
+			Propiedad asociada si existe, None en caso contrario
+		"""
+		db: Session = SessionLocal()
+
+		try:
+			categoria_model = db.query(CategoriaHabitacionModel).filter(
+				CategoriaHabitacionModel.id_categoria == id_categoria
+			).first()
+
+			if not categoria_model:
+				return None
+
+			propiedad_model = categoria_model.propiedad
+			if not propiedad_model:
+				return None
+
+			return self._model_to_entity(propiedad_model)
+		finally:
+			db.close()
+
+	def obtain_category_by_id(self, id_categoria: str) -> CategoriaHabitacion | None:
+		"""
+		Obtiene una categoría de habitación por su ID.
+
+		Args:
+			id_categoria: ID de categoría
+
+		Returns:
+			Categoría si existe, None en caso contrario
+		"""
+		db: Session = SessionLocal()
+
+		try:
+			categoria_model = db.query(CategoriaHabitacionModel).filter(
+				CategoriaHabitacionModel.id_categoria == id_categoria
+			).first()
+
+			if not categoria_model:
+				return None
+
+			return self._category_model_to_entity(categoria_model)
+		finally:
+			db.close()
+
 	def delete(self, id_propiedad: UUID) -> bool:
 		"""
 		Elimina una propiedad.
@@ -167,43 +219,7 @@ class PropertyRepository:
 		)
 
 		# Reconstruir categorías de habitación
-		categorias = []
-		for cat_model in propiedad_model.categorias_habitacion:
-			# Reconstruir objetos de valor
-			precio_base = VODinero(
-				monto=cat_model.precio_base_monto,
-				moneda=cat_model.precio_base_moneda,
-			)
-			politica = VORegla(
-				dias_anticipacion=cat_model.dias_anticipacion,
-				porcentaje_penalidad=cat_model.porcentaje_penalidad,
-			)
-
-			# Reconstruir inventario
-			inventario_list = [
-				Inventario(
-					id_inventario=inv_model.id_inventario,
-					fecha=date.fromisoformat(inv_model.fecha),
-					cupos_totales=inv_model.cupos_totales,
-					cupos_disponibles=inv_model.cupos_disponibles,
-				)
-				for inv_model in cat_model.inventario
-			]
-
-			# Crear categoría
-			categoria = CategoriaHabitacion(
-				id_categoria=cat_model.id_categoria,
-				codigo_mapeo_pms=cat_model.codigo_mapeo_pms,
-				nombre_comercial=cat_model.nombre_comercial,
-				descripcion=cat_model.descripcion,
-				precio_base=precio_base,
-				capacidad_pax=cat_model.capacidad_pax,
-				politica_cancelacion=politica,
-				media=[],
-				amenidades=[],
-				inventario=inventario_list,
-			)
-			categorias.append(categoria)
+		categorias = [self._category_model_to_entity(cat_model) for cat_model in propiedad_model.categorias_habitacion]
 
 		# Crear propiedad
 		return Propiedad(
@@ -213,4 +229,37 @@ class PropertyRepository:
 			ubicacion=ubicacion,
 			porcentaje_impuesto=Decimal(str(propiedad_model.porcentaje_impuesto)),
 			categorias_habitacion=categorias,
+		)
+
+	def _category_model_to_entity(self, cat_model: CategoriaHabitacionModel) -> CategoriaHabitacion:
+		precio_base = VODinero(
+			monto=cat_model.precio_base_monto,
+			moneda=cat_model.precio_base_moneda,
+		)
+		politica = VORegla(
+			dias_anticipacion=cat_model.dias_anticipacion,
+			porcentaje_penalidad=cat_model.porcentaje_penalidad,
+		)
+
+		inventario_list = [
+			Inventario(
+				id_inventario=inv_model.id_inventario,
+				fecha=date.fromisoformat(inv_model.fecha),
+				cupos_totales=inv_model.cupos_totales,
+				cupos_disponibles=inv_model.cupos_disponibles,
+			)
+			for inv_model in cat_model.inventario
+		]
+
+		return CategoriaHabitacion(
+			id_categoria=cat_model.id_categoria,
+			codigo_mapeo_pms=cat_model.codigo_mapeo_pms,
+			nombre_comercial=cat_model.nombre_comercial,
+			descripcion=cat_model.descripcion,
+			precio_base=precio_base,
+			capacidad_pax=cat_model.capacidad_pax,
+			politica_cancelacion=politica,
+			media=[],
+			amenidades=[],
+			inventario=inventario_list,
 		)

@@ -35,14 +35,14 @@ def get_use_case(request: Request) -> BuscarHospedaje:
 
 def get_destination_repo(request: Request) -> DestinationRepository:
     """
-    Provee el repositorio de destinos respaldado por Redis.
+    Provee el repositorio de destinos respaldado por PostgreSQL.
     Accede al repositorio desde el estado de la aplicación inyectado en el lifespan.
     """
     dest_repository = getattr(request.app.state, "dest_repository", None)
     if dest_repository is None:
         raise HTTPException(
             status_code=503,
-            detail="El servicio no está listo: Redis no ha sido inicializado",
+            detail="El servicio no está listo: el repositorio de destinos no ha sido inicializado",
         )
     return dest_repository
 

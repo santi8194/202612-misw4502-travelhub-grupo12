@@ -71,11 +71,11 @@ class TestAutocompleteDestinations:
 
         assert response.status_code == 422
 
-    def test_autocomplete_redis_unavailable(self):
-        # Remove dependency override to exercise the real guard in get_destination_repo
+    def test_autocomplete_repositorio_no_disponible(self):
+        # Eliminar el override para ejercer el guard real en get_destination_repo
         app.dependency_overrides.pop(get_destination_repo, None)
 
-        # Temporarily clear dest_repository from app.state to simulate Redis being down
+        # Limpiar dest_repository del estado de la app para simular que el repositorio no está listo
         original = getattr(app.state, "dest_repository", None)
         app.state.dest_repository = None
         try:

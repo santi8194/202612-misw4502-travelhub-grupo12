@@ -10,3 +10,11 @@ venv/
 __pycache__/
 .DS_Store
 *.jks
+
+# Variables de entorno — nunca versionar
+.env
+.env.*
+
+#mobile
+.angular/
+node_modules/

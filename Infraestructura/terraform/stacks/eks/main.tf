@@ -1,17 +1,3 @@
-resource "aws_cloudwatch_log_group" "eks" {
-  name              = "/aws/eks/${var.cluster_name}/cluster"
-  retention_in_days = 7
-
-  tags = {
-    owner     = var.owner
-    terraform = "true"
-  }
-
-  lifecycle {
-    prevent_destroy = false
-  }
-}
-
 module "my_eks_cluster" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 18.31"
@@ -23,7 +9,8 @@ module "my_eks_cluster" {
 
   cluster_endpoint_public_access = var.cluster_endpoint_public_access
   cluster_enabled_log_types      = ["api", "audit", "authenticator"]
-  create_cloudwatch_log_group    = false
+  # AWS may recreate this log group outside Terraform, so we keep it persistent.
+  create_cloudwatch_log_group = false
 
   create_iam_role = true
 

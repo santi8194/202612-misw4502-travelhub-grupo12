@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from app.infrastructure.postgres_destination_repository import PostgresDestinationRepository
 
     # Pool de PostgreSQL — siempre necesario para el autocompletado de destinos
-    pg_pool = await asyncpg.create_pool(settings.postgres_url)
+    pg_pool = await asyncpg.create_pool(settings.database_url)
     app.state.pg_pool = pg_pool
 
     # Garantizar que el esquema search y sus tablas existan al arrancar

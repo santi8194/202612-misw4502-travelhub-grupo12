@@ -24,6 +24,21 @@ class Settings(BaseSettings):
     opensearch_password: str = "MyStr0ng!Pass#2026"
     # "opensearch" or "postgres"
     repository_type: str = "postgres"
-    postgres_url: str = "postgresql://travelhub:travelhub@localhost:5432/travelhub"
+
+    # Configuración de PostgreSQL — variables estandarizadas
+    db_host: str = "localhost"
+    db_port: int = 5432
+    db_name: str = "travelhub"
+    db_user: str = "travelhub"
+    db_password: str = "travelhub"
+
+    @property
+    def database_url(self) -> str:
+        """Construye la URL de conexión asyncpg a partir de variables individuales."""
+        return (
+            f"postgresql://{self.db_user}:{self.db_password}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
+
 
 settings = Settings()

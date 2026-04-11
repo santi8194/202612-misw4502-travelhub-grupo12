@@ -1,3 +1,5 @@
+from venv import logger
+
 from modulos.reserva.infraestructura.mapeadores_dto import MapeadorReservaDTO
 from seedwork.dominio.repositorios import Repositorio
 from modulos.reserva.dominio.entidades import Reserva, Usuario, CategoriaHabitacion
@@ -19,7 +21,7 @@ class RepositorioReservas(Repositorio):
     def actualizar(self, entidad: Reserva):
         reserva_dto = db.session.query(ReservaDTO).filter_by(id=str(entidad.id)).first()
         if reserva_dto:
-            reserva_dto.id_usuario = str(entidad.usuario.id) if entidad.usuario and entidad.usuario.id else reserva_dto.id_usuario
+            reserva_dto.usuario = str(entidad.usuario.id) if entidad.usuario and entidad.usuario.id else reserva_dto.usuario
             reserva_dto.id_categoria = str(entidad.id_categoria) if entidad.id_categoria else None
             reserva_dto.codigo_confirmacion_ota = entidad.codigo_confirmacion_ota
             reserva_dto.codigo_localizador_pms = entidad.codigo_localizador_pms
@@ -35,9 +37,12 @@ class RepositorioReservas(Repositorio):
         db.session.query(ReservaDTO).filter_by(id=entidad_id).delete()
 
     def obtener_por_id(self, id: str) -> Reserva:
+        logger.info(f"Obteniendo reserva por ID: {id}")
         reserva_dto = db.session.query(ReservaDTO).filter_by(id=id).first()
         if not reserva_dto:
+            logger.warning(f"No se encontró ninguna reserva con ID: {id}")
             return None
+        logger.info(f"Reserva encontrada: {reserva_dto}")
         return self._mapeador.dto_a_entidad(reserva_dto)
 
     def obtener_todos(self) -> list[Reserva]:

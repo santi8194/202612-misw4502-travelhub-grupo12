@@ -151,3 +151,47 @@ def test_formalizar_reserva_unexpected_error_returns_500(client, monkeypatch):
     assert response.status_code == 500
     assert response.is_json
     assert "Error inesperado" in response.json["error"]
+
+
+def test_get_reserva_by_id_returns_200(client):
+    payload = {
+        'id_usuario': str(uuid.uuid4()),
+        'id_categoria': str(uuid.uuid4()),
+        'fecha_check_in': '2026-04-01',
+        'fecha_check_out': '2026-04-05',
+        'ocupacion': {
+            'adultos': 2,
+            'ninos': 1,
+            'infantes': 0
+        }
+    }
+
+    create_response = client.post('/api/reserva', json=payload)
+    assert create_response.status_code == 201
+    id_reserva = create_response.json['id_reserva']
+
+    get_response = client.get(f'/api/reserva/{id_reserva}')
+
+    assert get_response.status_code == 200
+    assert get_response.is_json
+    body = get_response.json
+    assert body['id_reserva'] == id_reserva
+    assert body['id_categoria'] == payload['id_categoria']
+    assert body['fecha_check_in'] == payload['fecha_check_in']
+    assert body['fecha_check_out'] == payload['fecha_check_out']
+
+
+def test_get_reserva_by_id_not_found_returns_404(client):
+    response = client.get(f'/api/reserva/{uuid.uuid4()}')
+
+    assert response.status_code == 404
+    assert response.is_json
+    assert 'No se encontró la reserva' in response.json['error']
+
+
+def test_get_reserva_by_id_invalid_uuid_returns_400(client):
+    response = client.get('/api/reserva/uuid-invalido')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert 'badly formed hexadecimal UUID' in response.json['error']

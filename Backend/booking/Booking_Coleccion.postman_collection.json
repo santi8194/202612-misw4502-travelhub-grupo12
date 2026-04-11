@@ -80,6 +80,33 @@
 				"description": "Formaliza la reserva en estado HOLD y actualiza su estado en la base de datos."
 			},
 			"response": []
+		},
+		{
+			"name": "3. Obtener Reserva por ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/reserva/:id_reserva",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva",
+						":id_reserva"
+					],
+					"variable": [
+						{
+							"key": "id_reserva",
+							"value": "REEMPLAZA_CON_EL_ID_DE_LA_RESERVA_AQUI",
+							"description": "UUID de la reserva a consultar"
+						}
+					]
+				},
+				"description": "Consulta una reserva por su id_reserva. Devuelve 404 si no existe."
+			},
+			"response": []
 		}
 	],
 	"event": [
@@ -105,7 +132,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:5000",
+			"value": "http://localhost:5001",
 			"type": "string"
 		}
 	]

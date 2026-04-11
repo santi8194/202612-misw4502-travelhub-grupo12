@@ -81,6 +81,16 @@ class FormalizarReservaHandler(Handler):
             logger.info(f"Reserva {reserva.id} formalizada (PENDIENTE) y evento despachado.")
         return True
 
+
+class ObtenerReservaPorIdHandler(Handler):
+    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
+        self.repositorio = repositorio
+        self.uow = uow
+
+    def handle(self, id_reserva: uuid.UUID) -> Reserva | None:
+        with self.uow:
+            return self.repositorio.obtener_por_id(str(id_reserva))
+
 class ConfirmarReservaLocalHandler(Handler):
     def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
         self.repositorio = repositorio

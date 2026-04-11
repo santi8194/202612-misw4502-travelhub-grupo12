@@ -12,12 +12,12 @@ export const routes: Routes = [
       import('./pages/search-results-page/search-results-page').then(m => m.SearchResultsPage),
   },
   {
-    path: 'booking/:id_reserva',
+    path: 'property/:property_id',
     loadComponent: () =>
-      import('./pages/booking-cart-page/booking-cart-page').then(m => m.BookingCartPage),
+      import('./pages/property-detail-page/property-detail-page').then(m => m.PropertyDetailPage),
   },
   {
-    path: 'booking',
+    path: 'booking/:id_reserva',
     loadComponent: () =>
       import('./pages/booking-cart-page/booking-cart-page').then(m => m.BookingCartPage),
   },

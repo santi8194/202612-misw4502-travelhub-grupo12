@@ -1,9 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: travelhub-ingress
+  name: travelhub-backend-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:
@@ -16,7 +17,6 @@ spec:
                 name: booking
                 port:
                   number: 80
-
           - path: /notification(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -24,7 +24,6 @@ spec:
                 name: notification-service
                 port:
                   number: 80
-
           - path: /payment(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -32,7 +31,6 @@ spec:
                 name: payment-service
                 port:
                   number: 80
-
           - path: /pmsintegration(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -40,7 +38,6 @@ spec:
                 name: pmsintegration-service
                 port:
                   number: 80
-
           - path: /partner(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -48,7 +45,6 @@ spec:
                 name: partnermanagement-service
                 port:
                   number: 80
-
           - path: /search(/|$)(.*)
             pathType: ImplementationSpecific
             backend:

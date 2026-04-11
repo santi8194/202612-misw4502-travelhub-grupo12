@@ -9,7 +9,6 @@ on:
       - 'Backend/**'
       - 'Infraestructura/k8s/aws/*-deployment.yaml'
       - 'Infraestructura/k8s/aws/*-service.yaml'
-      - 'Infraestructura/k8s/aws/ingress.yaml'
       - '.github/workflows/backend-cd.yml'
       - '.github/backend-cd.exclusions.json'
   workflow_dispatch:
@@ -23,7 +22,6 @@ env:
   EKS_CLUSTER_NAME_DEV: ${{ vars.EKS_CLUSTER_NAME_DEV }}
   K8S_NAMESPACE_DEV: ${{ vars.K8S_NAMESPACE_DEV }}
   AUTHSERVICE_DB_SECRET_NAME_DEV: travelhub/dev/authservice/db-credentials
-  INGRESS_MANIFEST: Infraestructura/k8s/aws/ingress.yaml
   SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
 
 jobs:
@@ -126,7 +124,6 @@ jobs:
           global_change_prefixes = [
               ".github/workflows/backend-cd.yml",
               ".github/backend-cd.exclusions.json",
-              "Infraestructura/k8s/aws/ingress.yaml",
           ]
 
           for service_name in discovered_services:
@@ -210,11 +207,6 @@ jobs:
 
           if [ ! -f "${SERVICE_MANIFEST}" ]; then
             echo "::error file=${SERVICE_MANIFEST}::Missing Kubernetes Service manifest. Expected file '${SERVICE_MANIFEST}' was not found."
-            exit 1
-          fi
-
-          if [ ! -f "${INGRESS_MANIFEST}" ]; then
-            echo "::error file=${INGRESS_MANIFEST}::Missing Kubernetes Ingress manifest. Expected file '${INGRESS_MANIFEST}' was not found."
             exit 1
           fi
 
@@ -505,11 +497,6 @@ jobs:
 
           if ! kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${RENDERED_DEPLOYMENT_MANIFEST}"; then
             echo "::error file=${RENDERED_DEPLOYMENT_MANIFEST}::Failed to apply rendered Deployment manifest."
-            exit 1
-          fi
-
-          if ! kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${INGRESS_MANIFEST}"; then
-            echo "::error file=${INGRESS_MANIFEST}::Failed to apply Ingress manifest."
             exit 1
           fi
 

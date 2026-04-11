@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: booking
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: booking
   ports:

@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: pmsintegration-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: pmsintegration
   ports:

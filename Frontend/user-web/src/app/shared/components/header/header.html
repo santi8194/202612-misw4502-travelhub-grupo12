@@ -2,7 +2,11 @@
 	<div class="header-content">
 		<div class="brand">TravelHub</div>
 
-		<app-search-bar></app-search-bar>
+		@if (mode() === 'compact') {
+			<app-compact-search-bar />
+		} @else {
+			<app-search-bar />
+		}
 
 		<div class="actions" aria-label="Preferencias de usuario">
 			<button class="action-text">

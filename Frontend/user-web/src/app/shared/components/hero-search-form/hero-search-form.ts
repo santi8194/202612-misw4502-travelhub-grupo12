@@ -5,6 +5,7 @@ import { Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, filter, catchError, map } from 'rxjs/operators';
 import { SearchForm } from '../../../models/search-form.interface';
 import { SearchService } from '../../../core/services/search';
+import { SearchStateService } from '../../../core/services/search-state';
 import { DestinationItem } from '../../../models/destination.interface';
 
 @Component({
@@ -16,15 +17,18 @@ import { DestinationItem } from '../../../models/destination.interface';
 })
 export class HeroSearchFormComponent {
   private readonly searchService = inject(SearchService);
+  private readonly searchStateService = inject(SearchStateService);
   readonly search = output<SearchForm>();
 
-  form = signal<SearchForm>({
-    location: '',
-    checkIn: '',
-    checkOut: '',
-    guests: 1,
-    selectedDestination: undefined,
-  });
+  form = signal<SearchForm>(
+    this.searchStateService.currentSearch() ?? {
+      location: '',
+      checkIn: '',
+      checkOut: '',
+      guests: 1,
+      selectedDestination: undefined,
+    }
+  );
 
   formErrors = signal({
     location: false,

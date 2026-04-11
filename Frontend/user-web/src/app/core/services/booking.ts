@@ -96,6 +96,18 @@ export class BookingService {
     );
   }
 
+  getPropertyCategories(propertyId: string): Observable<any> {
+    const url = `${this.catalogUrl}/properties/${propertyId}/categories`;
+    console.info('[BookingService] GET', url);
+    return this.http.get<any>(url).pipe(
+      tap((response) => console.info('[BookingService] getPropertyCategories success', response)),
+      catchError((error) => {
+        console.error('[BookingService] getPropertyCategories error', { propertyId, error });
+        return throwError(() => error);
+      })
+    );
+  }
+
   createBooking(request: CreateBookingRequest): Observable<CreateBookingResponse> {
     console.info('[BookingService] POST', `${this.apiUrl}`, request);
     return this.http.post<CreateBookingResponse>(`${this.apiUrl}`, request).pipe(

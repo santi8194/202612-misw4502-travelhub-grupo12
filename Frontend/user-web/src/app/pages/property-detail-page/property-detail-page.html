@@ -106,7 +106,7 @@
                     <div class="category-card__title">{{ category.categoria_nombre }}</div>
                     <div class="category-card__meta">ID: {{ category.id_categoria }}</div>
                     <div class="category-card__meta">Capacidad: {{ category.capacidad_pax }} huespedes</div>
-                    <div class="category-card__price">{{ category.moneda }}{{ category.precio_base }} / noche</div>
+                    <div class="category-card__price">{{ currencySymbol(category.moneda) }} {{ category.precio_base }} / noche</div>
                   </button>
                 }
               </div>

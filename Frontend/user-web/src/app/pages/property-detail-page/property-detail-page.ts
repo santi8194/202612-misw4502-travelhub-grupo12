@@ -3,8 +3,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
-import { SearchService } from '../../core/services/search';
-import { Hospedaje } from '../../models/hospedaje.interface';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 
@@ -37,7 +35,7 @@ interface PropertyDetailData {
 interface CategoryCardData {
   id_categoria: string;
   categoria_nombre: string;
-  precio_base: string;
+  precio_base: number;
   moneda: string;
   capacidad_pax: number;
   imagen_principal_url: string;
@@ -55,7 +53,6 @@ export class PropertyDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookingService = inject(BookingService);
-  private readonly searchService = inject(SearchService);
 
   readonly loading = signal(true);
   readonly creatingBooking = signal(false);
@@ -112,8 +109,6 @@ export class PropertyDetailPage {
       finalize(() => this.loading.set(false))
     ).subscribe((propertyResponse) => {
       if (!propertyResponse) {
-        this.categories.set(this.buildFallbackCategories());
-        this.ensureSelectedCategory();
         return;
       }
 
@@ -136,48 +131,16 @@ export class PropertyDetailPage {
   }
 
   private loadCategories(propertyId: string): void {
-    const ciudad = this.route.snapshot.queryParamMap.get('ciudad') ?? this.property()?.ubicacion?.ciudad ?? '';
-    const estadoProvincia = this.route.snapshot.queryParamMap.get('estado_provincia') ?? '';
-    const pais = this.route.snapshot.queryParamMap.get('pais') ?? this.property()?.ubicacion?.pais ?? '';
-    const checkIn = this.checkInInput();
-    const checkOut = this.checkOutInput();
-    const huespedes = this.guestsInput();
-
-    if (!ciudad || !pais || !checkIn || !checkOut || huespedes <= 0) {
-      console.warn('[PropertyDetailPage] Missing data to load categories from search endpoint, using fallback query category');
-      this.categories.set(this.buildFallbackCategories());
-      this.ensureSelectedCategory();
-      return;
-    }
-
     this.loadingCategories.set(true);
-    this.searchService.searchHospedajes({
-      ciudad,
-      estado_provincia: estadoProvincia,
-      pais,
-      fecha_inicio: checkIn,
-      fecha_fin: checkOut,
-      huespedes,
-    }).pipe(
+    this.bookingService.getPropertyCategories(propertyId).pipe(
       catchError((error) => {
-        console.error('[PropertyDetailPage] searchHospedajes failed while loading categories', { propertyId, error });
-        return of({ resultados: [] as Hospedaje[], total: 0 });
+        console.error('[PropertyDetailPage] getPropertyCategories failed', { propertyId, error });
+        this.error.set('No fue posible cargar las categorias de esta propiedad.');
+        return of([]);
       }),
       finalize(() => this.loadingCategories.set(false))
     ).subscribe((response) => {
-      const matchedCategories = response.resultados
-        .filter((item) => item.id_propiedad === propertyId)
-        .map((item) => ({
-          id_categoria: item.id_categoria,
-          categoria_nombre: item.categoria_nombre,
-          precio_base: item.precio_base,
-          moneda: item.moneda,
-          capacidad_pax: item.capacidad_pax,
-          imagen_principal_url: item.imagen_principal_url,
-          amenidades_destacadas: item.amenidades_destacadas,
-        }));
-
-      const categories = matchedCategories.length > 0 ? matchedCategories : this.buildFallbackCategories();
+      const categories = this.normalizeCategoriesResponse(response);
       this.categories.set(categories);
       this.ensureSelectedCategory();
 
@@ -188,23 +151,52 @@ export class PropertyDetailPage {
     });
   }
 
-  private buildFallbackCategories(): CategoryCardData[] {
-    const fallbackCategoryId = this.route.snapshot.queryParamMap.get('id_categoria') ?? '';
-    if (!fallbackCategoryId) {
+  private normalizeCategoriesResponse(response: any): CategoryCardData[] {
+    const rawCategories = Array.isArray(response)
+      ? response
+      : response?.categorias ?? response?.categories ?? response?.resultados ?? [];
+
+    if (!Array.isArray(rawCategories)) {
       return [];
     }
 
-    return [
-      {
-        id_categoria: fallbackCategoryId,
-        categoria_nombre: this.route.snapshot.queryParamMap.get('categoria_nombre') ?? 'Categoria',
-        precio_base: this.route.snapshot.queryParamMap.get('precio_base') ?? '0',
-        moneda: this.route.snapshot.queryParamMap.get('moneda') ?? '$',
-        capacidad_pax: Number(this.route.snapshot.queryParamMap.get('huespedes') ?? '1') || 1,
-        imagen_principal_url: this.route.snapshot.queryParamMap.get('imagen_principal_url') ?? '',
-        amenidades_destacadas: [],
-      },
-    ];
+    return rawCategories
+      .map((item: any) => ({
+        id_categoria: String(item?.id_categoria ?? item?.idCategoria ?? ''),
+        categoria_nombre: String(item?.categoria_nombre ?? item?.nombre_comercial ?? item?.nombre ?? 'Categoria'),
+        precio_base: this.normalizeCategoryAmount(item),
+        moneda: this.normalizeCategoryCurrency(item),
+        capacidad_pax: Number(item?.capacidad_pax ?? item?.capacidad ?? 1) || 1,
+        imagen_principal_url: String(item?.imagen_principal_url ?? this.property()?.imagen_principal_url ?? ''),
+        amenidades_destacadas: Array.isArray(item?.amenidades_destacadas) ? item.amenidades_destacadas : [],
+      }))
+      .filter((item: CategoryCardData) => item.id_categoria.length > 0);
+  }
+
+  private normalizeCategoryAmount(item: any): number {
+    const rawPrice = item?.precio_base;
+
+    if (typeof rawPrice === 'object' && rawPrice !== null) {
+      const amount = Number(rawPrice?.monto ?? rawPrice?.amount ?? 0);
+      return Number.isFinite(amount) ? amount : 0;
+    }
+
+    const amount = Number(rawPrice ?? item?.monto_precio_base ?? item?.precio ?? 0);
+    return Number.isFinite(amount) ? amount : 0;
+  }
+
+  private normalizeCategoryCurrency(item: any): string {
+    const rawPrice = item?.precio_base;
+
+    if (typeof rawPrice === 'object' && rawPrice !== null) {
+      return String(rawPrice?.moneda ?? rawPrice?.currency ?? item?.moneda ?? item?.moneda_precio_base ?? '$');
+    }
+
+    return String(item?.moneda ?? item?.moneda_precio_base ?? '$');
+  }
+
+  currencySymbol(moneda: string): string {
+    return moneda === 'USD' ? '$' : moneda;
   }
 
   private ensureSelectedCategory(): void {

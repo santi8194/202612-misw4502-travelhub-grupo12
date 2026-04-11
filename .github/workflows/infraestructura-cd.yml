@@ -5,7 +5,6 @@ on:
     branches:
       - develop
       - main
-      - infra/rds
     paths:
       - 'Infraestructura/terraform/**'
   workflow_dispatch:
@@ -130,40 +129,3 @@ jobs:
           done
 
           echo "Log group ${LOG_GROUP} not found yet; skipping reconciliation without failing deploy."
-
-  deploy-database:
-    if: ${{ false }}
-    name: Deploy database
-    runs-on: ubuntu-latest
-    environment: dev
-    needs: deploy-eks
-    defaults:
-      run:
-        shell: bash
-        working-directory: Infraestructura/terraform/stacks/database
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          terraform_wrapper: false
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Terraform init
-        run: terraform init -reconfigure -backend-config="../../environments/dev/database/backend.tfvars"
-
-      - name: Terraform plan
-        run: terraform plan -input=false -no-color -var-file="../../environments/dev/database/terraform.tfvars" -out=tfplan
-
-      - name: Terraform apply
-        run: terraform apply -input=false -auto-approve tfplan

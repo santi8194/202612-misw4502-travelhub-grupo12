@@ -44,6 +44,7 @@ class VODireccion:
 class VODinero:
 	monto: Decimal
 	moneda: str
+	cargo_servicio: Decimal = Decimal("0.00")
 
 	def __post_init__(self) -> None:
 		try:
@@ -51,13 +52,21 @@ class VODinero:
 		except (InvalidOperation, TypeError) as error:
 			raise ValueError("El monto debe ser un valor decimal valido") from error
 
+		try:
+			normalized_service_charge = Decimal(self.cargo_servicio)
+		except (InvalidOperation, TypeError) as error:
+			raise ValueError("El cargo por servicio debe ser un valor decimal valido") from error
+
 		if normalized_amount <= Decimal("0"):
 			raise ValueError("El monto debe ser mayor a cero")
+		if normalized_service_charge < Decimal("0"):
+			raise ValueError("El cargo por servicio no puede ser negativo")
 		if len(self.moneda.strip()) != 3:
 			raise ValueError("La moneda debe tener 3 caracteres")
 
 		object.__setattr__(self, "monto", normalized_amount.quantize(Decimal("0.01")))
 		object.__setattr__(self, "moneda", self.moneda.strip().upper())
+		object.__setattr__(self, "cargo_servicio", normalized_service_charge.quantize(Decimal("0.01")))
 
 
 @dataclass(frozen=True, slots=True)

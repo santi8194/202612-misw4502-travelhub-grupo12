@@ -38,10 +38,12 @@ class RegisterCategoryRequest(BaseModel):
 	nombre_comercial: str
 	descripcion: str
 	monto_precio_base: Decimal
+	cargo_servicio: Decimal
 	moneda_precio_base: str
 	capacidad_pax: int
 	dias_anticipacion: int
 	porcentaje_penalidad: Decimal
+	foto_portada_url: str
 
 
 class UpdateInventoryRequest(BaseModel):
@@ -84,10 +86,12 @@ def registrar_categoria(id_propiedad: UUID, request: RegisterCategoryRequest):
 		nombre_comercial=request.nombre_comercial,
 		descripcion=request.descripcion,
 		monto_precio_base=request.monto_precio_base,
+		cargo_servicio=request.cargo_servicio,
 		moneda_precio_base=request.moneda_precio_base,
 		capacidad_pax=request.capacidad_pax,
 		dias_anticipacion=request.dias_anticipacion,
 		porcentaje_penalidad=request.porcentaje_penalidad,
+		foto_portada_url=request.foto_portada_url,
 	)
 
 

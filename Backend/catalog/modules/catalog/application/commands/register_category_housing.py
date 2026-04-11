@@ -3,6 +3,8 @@ from uuid import UUID
 
 from modules.catalog.domain.entities import (
 	CategoriaHabitacion,
+	Media,
+	TipoMedia,
 	VODinero,
 	VORegla,
 )
@@ -24,10 +26,12 @@ class RegisterCategoryHousing:
 		nombre_comercial: str,
 		descripcion: str,
 		monto_precio_base: Decimal,
+		cargo_servicio: Decimal,
 		moneda_precio_base: str,
 		capacidad_pax: int,
 		dias_anticipacion: int,
 		porcentaje_penalidad: Decimal,
+		foto_portada_url: str,
 	) -> dict:
 		"""
 		Registra una nueva categoría de habitación en una propiedad.
@@ -39,10 +43,12 @@ class RegisterCategoryHousing:
 			nombre_comercial: Nombre comercial de la categoría
 			descripcion: Descripción detallada
 			monto_precio_base: Monto del precio base
+			cargo_servicio: Cargo por servicio aplicado al precio base
 			moneda_precio_base: Moneda (ej. COP, USD)
 			capacidad_pax: Capacidad máxima de personas
 			dias_anticipacion: Días de anticipación para cancelación
 			porcentaje_penalidad: Porcentaje de penalidad
+			foto_portada_url: URL de la foto portada de la categoría
 
 		Returns:
 			Dict con información de la categoría registrada y evento generado
@@ -64,10 +70,20 @@ class RegisterCategoryHousing:
 			}
 
 		# Crear objetos de valor
-		precio_base = VODinero(monto=monto_precio_base, moneda=moneda_precio_base)
+		precio_base = VODinero(
+			monto=monto_precio_base,
+			moneda=moneda_precio_base,
+			cargo_servicio=cargo_servicio,
+		)
 		politica_cancelacion = VORegla(
 			dias_anticipacion=dias_anticipacion,
 			porcentaje_penalidad=porcentaje_penalidad,
+		)
+		foto_portada = Media(
+			id_media=f"{id_categoria}-foto-portada",
+			url_full=foto_portada_url,
+			tipo=TipoMedia.FOTO_PORTADA,
+			orden=1,
 		)
 
 		# Crear categoría de habitación
@@ -79,6 +95,7 @@ class RegisterCategoryHousing:
 			precio_base=precio_base,
 			capacidad_pax=capacidad_pax,
 			politica_cancelacion=politica_cancelacion,
+			media=[foto_portada],
 		)
 
 		# Registrar categoría en la propiedad
@@ -110,7 +127,9 @@ class RegisterCategoryHousing:
 			"precio_base": {
 				"monto": str(categoria.precio_base.monto),
 				"moneda": categoria.precio_base.moneda,
+				"cargo_servicio": str(categoria.precio_base.cargo_servicio),
 			},
+			"foto_portada_url": foto_portada.url_full,
 			"capacidad_pax": categoria.capacidad_pax,
 			"politica_cancelacion": {
 				"dias_anticipacion": categoria.politica_cancelacion.dias_anticipacion,

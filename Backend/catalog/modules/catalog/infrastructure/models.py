@@ -30,6 +30,7 @@ class CategoriaHabitacionModel(Base):
 	descripcion = Column(String, nullable=False)
 	precio_base_monto = Column(Numeric(12, 2), nullable=False)
 	precio_base_moneda = Column(String(3), nullable=False)
+	precio_base_cargo_servicio = Column(Numeric(12, 2), nullable=False, default=0)
 	capacidad_pax = Column(Integer, nullable=False)
 	dias_anticipacion = Column(Integer, nullable=False)
 	porcentaje_penalidad = Column(Numeric(5, 2), nullable=False)

@@ -7,6 +7,7 @@ from .database import SessionLocal
 from .models import (
 	PropiedadModel,
 	CategoriaHabitacionModel,
+	MediaModel,
 	InventarioModel,
 )
 from modules.catalog.domain.entities import (
@@ -14,6 +15,7 @@ from modules.catalog.domain.entities import (
 	CategoriaHabitacion,
 	Inventario,
 	Media,
+	TipoMedia,
 	Amenidad,
 	Coordenadas,
 	VODireccion,
@@ -57,10 +59,21 @@ class PropertyRepository:
 					descripcion=categoria.descripcion,
 					precio_base_monto=categoria.precio_base.monto,
 					precio_base_moneda=categoria.precio_base.moneda,
+					precio_base_cargo_servicio=categoria.precio_base.cargo_servicio,
 					capacidad_pax=categoria.capacidad_pax,
 					dias_anticipacion=categoria.politica_cancelacion.dias_anticipacion,
 					porcentaje_penalidad=categoria.politica_cancelacion.porcentaje_penalidad,
 				)
+
+				for media in categoria.media:
+					media_model = MediaModel(
+						id_media=media.id_media,
+						id_categoria=categoria.id_categoria,
+						url_full=media.url_full,
+						tipo=media.tipo.value,
+						orden=media.orden,
+					)
+					categoria_model.media.append(media_model)
 
 				# Guardar inventario
 				for inventario in categoria.inventario:
@@ -235,6 +248,7 @@ class PropertyRepository:
 		precio_base = VODinero(
 			monto=cat_model.precio_base_monto,
 			moneda=cat_model.precio_base_moneda,
+			cargo_servicio=cat_model.precio_base_cargo_servicio,
 		)
 		politica = VORegla(
 			dias_anticipacion=cat_model.dias_anticipacion,
@@ -251,6 +265,16 @@ class PropertyRepository:
 			for inv_model in cat_model.inventario
 		]
 
+		media_list = [
+			Media(
+				id_media=media_model.id_media,
+				url_full=media_model.url_full,
+				tipo=TipoMedia(media_model.tipo),
+				orden=media_model.orden,
+			)
+			for media_model in sorted(cat_model.media, key=lambda m: m.orden)
+		]
+
 		return CategoriaHabitacion(
 			id_categoria=cat_model.id_categoria,
 			codigo_mapeo_pms=cat_model.codigo_mapeo_pms,
@@ -259,7 +283,7 @@ class PropertyRepository:
 			precio_base=precio_base,
 			capacidad_pax=cat_model.capacidad_pax,
 			politica_cancelacion=politica,
-			media=[],
+			media=media_list,
 			amenidades=[],
 			inventario=inventario_list,
 		)

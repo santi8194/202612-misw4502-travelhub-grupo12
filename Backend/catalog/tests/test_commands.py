@@ -13,6 +13,8 @@ from catalog.modules.catalog.domain.entities import (
 	VODinero,
 	VORegla,
 	CategoriaHabitacion,
+	Media,
+	TipoMedia,
 	Propiedad,
 	construir_propiedad,
 )
@@ -111,13 +113,17 @@ class TestRegisterCategoryHousing:
 			nombre_comercial="Habitación Deluxe",
 			descripcion="Habitación de lujo",
 			monto_precio_base=Decimal("350000.00"),
+			cargo_servicio=Decimal("25000.00"),
 			moneda_precio_base="COP",
 			capacidad_pax=4,
 			dias_anticipacion=5,
 			porcentaje_penalidad=Decimal("50.0"),
+			foto_portada_url="https://cdn.example.com/deluxe-portada.jpg",
 		)
 
 		assert result["id_categoria"] == "deluxe-001"
+		assert result["foto_portada_url"] == "https://cdn.example.com/deluxe-portada.jpg"
+		assert result["precio_base"]["cargo_servicio"] == "25000.00"
 		assert result["event_generated"] == "CategoriaHabitacionRegistrada"
 		assert mock_repository.save.called
 		assert mock_event_bus.publish_event.called
@@ -133,10 +139,12 @@ class TestRegisterCategoryHousing:
 			nombre_comercial="Habitación Deluxe",
 			descripcion="Habitación de lujo",
 			monto_precio_base=Decimal("350000.00"),
+			cargo_servicio=Decimal("25000.00"),
 			moneda_precio_base="COP",
 			capacidad_pax=4,
 			dias_anticipacion=5,
 			porcentaje_penalidad=Decimal("50.0"),
+			foto_portada_url="https://cdn.example.com/deluxe-portada.jpg",
 		)
 
 		assert result["error"] == "Property not found"
@@ -175,10 +183,12 @@ class TestRegisterCategoryHousing:
 			nombre_comercial="Habitación Deluxe",
 			descripcion="Habitación de lujo",
 			monto_precio_base=Decimal("350000.00"),
+			cargo_servicio=Decimal("25000.00"),
 			moneda_precio_base="COP",
 			capacidad_pax=4,
 			dias_anticipacion=5,
 			porcentaje_penalidad=Decimal("50.0"),
+			foto_portada_url="https://cdn.example.com/deluxe-portada.jpg",
 		)
 
 		assert result["message"] == "Category already registered"
@@ -307,7 +317,7 @@ class TestObtainCategoryById:
 	"""Pruebas para el comando ObtainCategoryById"""
 
 	def test_obtain_category_by_id_success(self, mock_repository):
-		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP", cargo_servicio=Decimal("25000.00"))
 		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
 		categoria = CategoriaHabitacion(
 			id_categoria="deluxe-001",
@@ -317,6 +327,14 @@ class TestObtainCategoryById:
 			precio_base=precio,
 			capacidad_pax=4,
 			politica_cancelacion=regla,
+			media=[
+				Media(
+					id_media="deluxe-001-foto-portada",
+					url_full="https://cdn.example.com/deluxe-portada.jpg",
+					tipo=TipoMedia.FOTO_PORTADA,
+					orden=1,
+				)
+			],
 		)
 		mock_repository.obtain_category_by_id.return_value = categoria
 
@@ -326,6 +344,8 @@ class TestObtainCategoryById:
 		assert result["id_categoria"] == "deluxe-001"
 		assert result["codigo_mapeo_pms"] == "ROOM-DLX-01"
 		assert result["precio_base"]["moneda"] == "COP"
+		assert result["precio_base"]["cargo_servicio"] == "25000.00"
+		assert result["foto_portada_url"] == "https://cdn.example.com/deluxe-portada.jpg"
 
 	def test_obtain_category_by_id_not_found(self, mock_repository):
 		mock_repository.obtain_category_by_id.return_value = None

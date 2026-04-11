@@ -51,10 +51,12 @@ def handle_register_category_housing(data):
 	nombre_comercial = data["nombre_comercial"]
 	descripcion = data["descripcion"]
 	monto_precio_base = Decimal(str(data["monto_precio_base"]))
+	cargo_servicio = Decimal(str(data["cargo_servicio"]))
 	moneda_precio_base = data["moneda_precio_base"]
 	capacidad_pax = data["capacidad_pax"]
 	dias_anticipacion = data["dias_anticipacion"]
 	porcentaje_penalidad = Decimal(str(data["porcentaje_penalidad"]))
+	foto_portada_url = data["foto_portada_url"]
 
 	print(
 		f"[CATALOG] Command received: RegisterCategoryHousing {nombre_comercial} in property {id_propiedad}"
@@ -72,10 +74,12 @@ def handle_register_category_housing(data):
 		nombre_comercial=nombre_comercial,
 		descripcion=descripcion,
 		monto_precio_base=monto_precio_base,
+		cargo_servicio=cargo_servicio,
 		moneda_precio_base=moneda_precio_base,
 		capacidad_pax=capacidad_pax,
 		dias_anticipacion=dias_anticipacion,
 		porcentaje_penalidad=porcentaje_penalidad,
+		foto_portada_url=foto_portada_url,
 	)
 
 	print("[CATALOG] Result:", result)

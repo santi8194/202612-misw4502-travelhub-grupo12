@@ -1,3 +1,6 @@
+from modules.catalog.domain.entities import TipoMedia
+
+
 class ObtainCategoryById:
 	"""Comando para obtener una categoria por su id."""
 
@@ -12,6 +15,12 @@ class ObtainCategoryById:
 				"id_categoria": id_categoria,
 			}
 
+		foto_portada_url = None
+		for media in categoria.media:
+			if media.tipo == TipoMedia.FOTO_PORTADA:
+				foto_portada_url = media.url_full
+				break
+
 		return {
 			"id_categoria": categoria.id_categoria,
 			"codigo_mapeo_pms": categoria.codigo_mapeo_pms,
@@ -20,7 +29,9 @@ class ObtainCategoryById:
 			"precio_base": {
 				"monto": str(categoria.precio_base.monto),
 				"moneda": categoria.precio_base.moneda,
+				"cargo_servicio": str(categoria.precio_base.cargo_servicio),
 			},
+			"foto_portada_url": foto_portada_url,
 			"capacidad_pax": categoria.capacidad_pax,
 			"politica_cancelacion": {
 				"dias_anticipacion": categoria.politica_cancelacion.dias_anticipacion,

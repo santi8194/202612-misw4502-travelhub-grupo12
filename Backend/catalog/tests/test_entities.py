@@ -53,9 +53,10 @@ class TestVODinero:
 	"""Pruebas para el value object VODinero"""
 
 	def test_dinero_valido(self):
-		dinero = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		dinero = VODinero(monto=Decimal("350000.00"), moneda="COP", cargo_servicio=Decimal("25000.00"))
 		assert dinero.monto == Decimal("350000.00")
 		assert dinero.moneda == "COP"
+		assert dinero.cargo_servicio == Decimal("25000.00")
 
 	def test_dinero_monto_negativo(self):
 		with pytest.raises(ValueError, match="monto debe ser mayor a cero"):
@@ -68,6 +69,14 @@ class TestVODinero:
 	def test_dinero_moneda_normalizada(self):
 		dinero = VODinero(monto=Decimal("350000.00"), moneda="cop")
 		assert dinero.moneda == "COP"
+
+	def test_dinero_cargo_servicio_por_defecto(self):
+		dinero = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		assert dinero.cargo_servicio == Decimal("0.00")
+
+	def test_dinero_cargo_servicio_negativo(self):
+		with pytest.raises(ValueError, match="cargo por servicio no puede ser negativo"):
+			VODinero(monto=Decimal("350000.00"), moneda="COP", cargo_servicio=Decimal("-1.00"))
 
 
 class TestVORegla:

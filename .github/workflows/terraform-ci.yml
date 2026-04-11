@@ -51,10 +51,6 @@ jobs:
             working_directory: Infraestructura/terraform/stacks/eks
             tfvars_file: ../../environments/dev/eks/dev.tfvars
             backend_config: ""
-          - name: database
-            working_directory: Infraestructura/terraform/stacks/database
-            tfvars_file: ../../environments/dev/database/terraform.tfvars
-            backend_config: ../../environments/dev/database/backend.tfvars
 
     defaults:
       run:

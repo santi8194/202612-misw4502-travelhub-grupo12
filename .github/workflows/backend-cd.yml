@@ -22,6 +22,7 @@ env:
   ECR_REGISTRY_DEV: ${{ vars.ECR_REGISTRY_DEV }}
   EKS_CLUSTER_NAME_DEV: ${{ vars.EKS_CLUSTER_NAME_DEV }}
   K8S_NAMESPACE_DEV: ${{ vars.K8S_NAMESPACE_DEV }}
+  AUTHSERVICE_DB_SECRET_NAME_DEV: travelhub/dev/authservice/db-credentials
   INGRESS_MANIFEST: Infraestructura/k8s/aws/ingress.yaml
   SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
 
@@ -186,6 +187,7 @@ jobs:
       SERVICE_NAME: ${{ matrix.service_name }}
       ECR_REPOSITORY: ${{ matrix.ecr_repository }}
       HEALTHCHECK_PATH: /health
+      AUTHSERVICE_SECRET_KEY_DEV: ${{ secrets.AUTHSERVICE_SECRET_KEY_DEV }}
 
     steps:
       - name: Checkout repository
@@ -250,6 +252,11 @@ jobs:
 
           if [ -z "${K8S_NAMESPACE_DEV:-}" ]; then
             echo "::error::Missing required GitHub variable 'K8S_NAMESPACE_DEV'."
+            exit 1
+          fi
+
+          if [ "${SERVICE_NAME}" = "authservice" ] && [ -z "${AUTHSERVICE_SECRET_KEY_DEV:-}" ]; then
+            echo "::error::Missing required GitHub secret 'AUTHSERVICE_SECRET_KEY_DEV' for authservice deployment."
             exit 1
           fi
 
@@ -427,6 +434,64 @@ jobs:
               exit 1
             fi
           fi
+
+      - name: Reconcile authservice secrets
+        if: ${{ matrix.service_name == 'authservice' }}
+        shell: bash
+        env:
+          DB_SECRET_ENV_FILE: /tmp/authservice-db-secret.env
+        run: |
+          set -euo pipefail
+
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${AUTHSERVICE_DB_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          if [ -z "${SECRET_JSON:-}" ] || [ "${SECRET_JSON}" = "None" ]; then
+            echo "::error::Secrets Manager secret '${AUTHSERVICE_DB_SECRET_NAME_DEV}' is empty or unavailable."
+            exit 1
+          fi
+
+          export SECRET_JSON DB_SECRET_ENV_FILE
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          secret = json.loads(os.environ["SECRET_JSON"])
+          env_file = os.environ["DB_SECRET_ENV_FILE"]
+          required_keys = {
+              "DB_HOST": secret.get("host"),
+              "DB_PORT": secret.get("port"),
+              "DB_NAME": secret.get("dbname"),
+              "DB_USER": secret.get("username"),
+              "DB_PASSWORD": secret.get("password"),
+          }
+          missing = [key for key, value in required_keys.items() if value in (None, "")]
+          if missing:
+              print(
+                  "::error::Secrets Manager secret is missing required keys for authservice: "
+                  + ", ".join(missing)
+              )
+              sys.exit(1)
+
+          with open(env_file, "w", encoding="utf-8") as fh:
+              for key, value in required_keys.items():
+                  fh.write(f"{key}={value}\n")
+          PY
+
+          kubectl create secret generic authservice-db-secret \
+            --namespace "${K8S_NAMESPACE_DEV}" \
+            --from-env-file="${DB_SECRET_ENV_FILE}" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+          kubectl create secret generic authservice-app-secret \
+            --namespace "${K8S_NAMESPACE_DEV}" \
+            --from-literal=SECRET_KEY="${AUTHSERVICE_SECRET_KEY_DEV}" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
 
       - name: Apply Kubernetes manifests
         shell: bash

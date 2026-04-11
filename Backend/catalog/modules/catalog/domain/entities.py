@@ -98,9 +98,6 @@ class Media:
 	def __post_init__(self) -> None:
 		if not self.id_media.strip():
 			raise ValueError("El ID de media es obligatorio")
-		parsed_url = urlparse(self.url_full)
-		if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
-			raise ValueError("La URL del recurso multimedia debe ser valida")
 		if self.orden < 1:
 			raise ValueError("El orden de la media debe ser mayor o igual a 1")
 

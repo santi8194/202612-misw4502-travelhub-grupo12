@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva
-from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler
+from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva, ExpirarReserva
+from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ExpirarReservaHandler
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
 from config.uow import UnidadTrabajoHibrida
 import uuid
@@ -44,7 +44,7 @@ def iniciar_reserva_hold():
         
         id_reserva = handler.handle(comando)
         
-        return jsonify({"mensaje": "Reserva creada en estado HOLD (15 min)", "id_reserva": str(id_reserva)}), 201
+        return jsonify({"mensaje": "Reserva creada en estado HOLD", "id_reserva": str(id_reserva)}), 201
 
     except Exception as e:
         import traceback
@@ -100,6 +100,25 @@ def obtener_reserva_por_id(id_reserva):
             "fecha_creacion": reserva.fecha_creacion.isoformat() if reserva.fecha_creacion else None,
             "fecha_actualizacion": reserva.fecha_actualizacion.isoformat() if reserva.fecha_actualizacion else None,
         }), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@reserva_api.route('/reserva/<id_reserva>/expirar', methods=['POST'])
+def expirar_reserva(id_reserva):
+    try:
+        comando = ExpirarReserva(id_reserva=uuid.UUID(id_reserva))
+
+        uow = UnidadTrabajoHibrida()
+        repositorio = RepositorioReservas()
+        handler = ExpirarReservaHandler(repositorio=repositorio, uow=uow)
+
+        handler.handle(comando)
+
+        return jsonify({"mensaje": "Reserva marcada como EXPIRADA"}), 200
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

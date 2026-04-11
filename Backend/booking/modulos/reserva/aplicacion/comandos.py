@@ -28,3 +28,8 @@ class ConfirmarReservaLocalCmd(Comando):
 @dataclass
 class CancelarReservaLocalCmd(Comando):
     id_reserva: uuid.UUID
+
+
+@dataclass
+class ExpirarReserva(Comando):
+    id_reserva: uuid.UUID

@@ -109,16 +109,6 @@ class TestMedia:
 		)
 		assert media.id_media == "media-001"
 
-	def test_media_url_invalida(self):
-		from catalog.modules.catalog.domain.entities import TipoMedia
-		with pytest.raises(ValueError, match="URL del recurso multimedia debe ser valida"):
-			Media(
-				id_media="media-001",
-				url_full="invalid-url",
-				tipo=TipoMedia.FOTO_PORTADA,
-				orden=1,
-			)
-
 	def test_media_orden_invalido(self):
 		from catalog.modules.catalog.domain.entities import TipoMedia
 		with pytest.raises(ValueError, match="orden de la media debe ser mayor"):

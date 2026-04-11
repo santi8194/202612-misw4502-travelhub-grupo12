@@ -82,7 +82,35 @@
 			"response": []
 		},
 		{
-			"name": "3. Obtener Reserva por ID",
+			"name": "3. Expirar Reserva",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/reserva/:id_reserva/expirar",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva",
+						":id_reserva",
+						"expirar"
+					],
+					"variable": [
+						{
+							"key": "id_reserva",
+							"value": "REEMPLAZA_CON_EL_ID_DE_LA_RESERVA_AQUI",
+							"description": "UUID de la reserva en estado HOLD a expirar"
+						}
+					]
+				},
+				"description": "Marca una reserva HOLD como EXPIRADA. Este flujo ahora lo dispara el frontend."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Obtener Reserva por ID",
 			"request": {
 				"method": "GET",
 				"header": [],

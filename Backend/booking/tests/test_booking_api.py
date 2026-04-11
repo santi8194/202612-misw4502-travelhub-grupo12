@@ -29,7 +29,7 @@ def test_create_reserva_hold_returns_201_and_id(client):
     assert response.is_json
     body = response.json
     assert 'id_reserva' in body
-    assert body['mensaje'] == 'Reserva creada en estado HOLD (15 min)'
+    assert body['mensaje'] == 'Reserva creada en estado HOLD'
     assert uuid.UUID(body['id_reserva'])
 
 
@@ -151,6 +151,56 @@ def test_formalizar_reserva_unexpected_error_returns_500(client, monkeypatch):
     assert response.status_code == 500
     assert response.is_json
     assert "Error inesperado" in response.json["error"]
+
+
+def test_expirar_reserva_returns_200_when_handler_ok(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, comando):
+            return True
+
+    monkeypatch.setattr(reserva_api_mod, 'ExpirarReservaHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    id_reserva = str(uuid.uuid4())
+    response = client.post(f'/api/reserva/{id_reserva}/expirar')
+
+    assert response.status_code == 200
+    assert response.is_json
+    assert response.json["mensaje"] == "Reserva marcada como EXPIRADA"
+
+
+def test_expirar_reserva_invalid_uuid_returns_400(client):
+    response = client.post('/api/reserva/uuid-invalido/expirar')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert "badly formed hexadecimal UUID" in response.json["error"]
+
+
+def test_expirar_reserva_handler_value_error_returns_400(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, comando):
+            raise ValueError("La reserva debe estar en HOLD para marcarse como EXPIRADA")
+
+    monkeypatch.setattr(reserva_api_mod, 'ExpirarReservaHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    id_reserva = str(uuid.uuid4())
+    response = client.post(f'/api/reserva/{id_reserva}/expirar')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert "EXPIRADA" in response.json["error"]
 
 
 def test_get_reserva_by_id_returns_200(client):

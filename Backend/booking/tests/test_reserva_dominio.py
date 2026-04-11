@@ -7,6 +7,7 @@ from modulos.reserva.dominio.entidades import Notificacion, Pago, Reserva, Resen
 from modulos.reserva.dominio.eventos import (
 	ReservaCancelada,
 	ReservaConfirmada,
+	ReservaExpirada,
 	ReservaIniciada,
 	ReservaPendiente,
 )
@@ -43,15 +44,13 @@ def test_formalizar_desde_hold_pasa_a_pendiente_y_emite_evento():
 	assert isinstance(reserva.eventos[-1], ReservaPendiente)
 
 
-def test_formalizar_con_hold_expirada_cancela_y_falla():
+def test_formalizar_no_expira_por_tiempo_en_backend():
 	reserva = crear_reserva_en_hold()
 	reserva.fecha_creacion = datetime.datetime.now() - datetime.timedelta(minutes=16)
+	reserva.formalizar_y_pagar()
 
-	with pytest.raises(ValueError, match="ha expirado"):
-		reserva.formalizar_y_pagar()
-
-	assert reserva.estado == EstadoReserva.EXPIRADA
-	assert isinstance(reserva.eventos[-1], ReservaCancelada)
+	assert reserva.estado == EstadoReserva.PENDIENTE
+	assert isinstance(reserva.eventos[-1], ReservaPendiente)
 
 
 def test_formalizar_sin_hold_lanza_error():
@@ -86,6 +85,23 @@ def test_cancelar_reserva_cambia_estado_y_emite_evento():
 
 	assert reserva.estado == EstadoReserva.CANCELADA
 	assert isinstance(reserva.eventos[-1], ReservaCancelada)
+
+
+def test_expirar_reserva_desde_hold_cambia_estado_y_emite_evento():
+	reserva = crear_reserva_en_hold()
+
+	reserva.expirar_reserva()
+
+	assert reserva.estado == EstadoReserva.EXPIRADA
+	assert isinstance(reserva.eventos[-1], ReservaExpirada)
+
+
+def test_expirar_reserva_fuera_de_hold_lanza_error():
+	reserva = crear_reserva_en_hold()
+	reserva.estado = EstadoReserva.PENDIENTE
+
+	with pytest.raises(ValueError, match="HOLD"):
+		reserva.expirar_reserva()
 
 
 def test_helpers_de_agregacion_y_actualizacion_estado():

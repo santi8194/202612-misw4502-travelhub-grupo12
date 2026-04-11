@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 from seedwork.aplicacion.comandos import Handler
 from modulos.reserva.aplicacion.comandos import (
     CrearReservaHold, FormalizarReserva, 
-    ConfirmarReservaLocalCmd, CancelarReservaLocalCmd
+    ConfirmarReservaLocalCmd, CancelarReservaLocalCmd, ExpirarReserva
 )
 from modulos.reserva.dominio.entidades import Reserva, Usuario, CategoriaHabitacion
 from modulos.reserva.dominio.objetos_valor import EstadoReserva, Pax
@@ -90,6 +90,26 @@ class ObtenerReservaPorIdHandler(Handler):
     def handle(self, id_reserva: uuid.UUID) -> Reserva | None:
         with self.uow:
             return self.repositorio.obtener_por_id(str(id_reserva))
+
+
+class ExpirarReservaHandler(Handler):
+    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
+        self.repositorio = repositorio
+        self.uow = uow
+
+    def handle(self, comando: ExpirarReserva) -> bool:
+        with self.uow:
+            reserva: Reserva = self.repositorio.obtener_por_id(str(comando.id_reserva))
+            if not reserva:
+                raise ValueError(f"No se encontró la reserva con ID: {comando.id_reserva}")
+
+            reserva.expirar_reserva()
+
+            self.uow.agregar_eventos(reserva.eventos)
+            self.repositorio.actualizar(reserva)
+            self.uow.commit()
+            logger.info(f"Reserva {reserva.id} marcada como EXPIRADA.")
+        return True
 
 class ConfirmarReservaLocalHandler(Handler):
     def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):

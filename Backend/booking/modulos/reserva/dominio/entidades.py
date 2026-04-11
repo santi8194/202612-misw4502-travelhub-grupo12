@@ -10,7 +10,8 @@ from modulos.reserva.dominio.eventos import (
     ReservaIniciada,
     ReservaPendiente,
     ReservaConfirmada,
-    ReservaCancelada
+    ReservaCancelada,
+    ReservaExpirada
 )
 @dataclass(frozen=True)
 class Direccion(ObjetoValor):
@@ -176,16 +177,6 @@ class Reserva(AgregacionRaiz):
         if self.estado != EstadoReserva.HOLD:
             raise ValueError("La reserva debe estar en estado HOLD para ser formalizada")
 
-        tiempo_transcurrido = datetime.datetime.now() - self.fecha_creacion
-        if tiempo_transcurrido.total_seconds() > 900:
-            self.estado = EstadoReserva.EXPIRADA
-            self.fecha_actualizacion = datetime.datetime.now()
-            self.agregar_evento(ReservaCancelada(
-                id_reserva=self.id,
-                fecha_actualizacion=self.fecha_actualizacion
-            ))
-            raise ValueError("El tiempo de bloqueo (15 minutos) ha expirado")
-
         self.estado = EstadoReserva.PENDIENTE
         self.fecha_actualizacion = datetime.datetime.now()
         self.agregar_evento(ReservaPendiente(
@@ -209,6 +200,17 @@ class Reserva(AgregacionRaiz):
         self.estado = EstadoReserva.CANCELADA
         self.fecha_actualizacion = datetime.datetime.now()
         self.agregar_evento(ReservaCancelada(
+            id_reserva=self.id,
+            fecha_actualizacion=self.fecha_actualizacion
+        ))
+
+    def expirar_reserva(self):
+        if self.estado != EstadoReserva.HOLD:
+            raise ValueError("La reserva debe estar en HOLD para marcarse como EXPIRADA")
+
+        self.estado = EstadoReserva.EXPIRADA
+        self.fecha_actualizacion = datetime.datetime.now()
+        self.agregar_evento(ReservaExpirada(
             id_reserva=self.id,
             fecha_actualizacion=self.fecha_actualizacion
         ))

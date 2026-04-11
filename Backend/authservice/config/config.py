@@ -1,31 +1,38 @@
 """
-Propósito del archivo: Definición de variables de configuración general.
-Rol dentro del microservicio: Provee todas las constantes globales y variables de entorno requeridas, como la llave secreta, el algoritmo JWT y políticas de bloqueo.
+Configuracion global del auth service.
+
+Todas las variables sensibles deben llegar por entorno o archivo .env.
 """
 
 from urllib.parse import quote_plus
+
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """
-    Clase de configuración que maneja las variables globales.
-    Usa BaseSettings para poder ser inicializada a través de un archivo .env si se requiere.
-    """
+    """Configuracion centralizada del servicio."""
+
+    model_config = ConfigDict(
+        case_sensitive=True,
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
+
     PROJECT_NAME: str = "Auth Service"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/auth"
-    
-    # Configuración principal para la seguridad con JWT
-    SECRET_KEY: str = "super_secret_key_change_in_production_12345"
+
+    # Configuracion principal para la seguridad con JWT
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
-    # Políticas para el bloqueo por protección contra fuerza bruta
+
+    # Politicas para el bloqueo por proteccion contra fuerza bruta
     MAX_LOGIN_ATTEMPTS: int = 5
     LOCKOUT_DURATION_MINUTES: int = 15
 
-    # Configuración de la base de datos
+    # Configuracion de la base de datos
     DB_DRIVER: str = "postgresql+psycopg2"
     DB_HOST: str | None = None
     DB_PORT: int = 5432
@@ -35,10 +42,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str | None = None
 
     def get_database_url(self) -> str:
-        """
-        Obtiene la URL de conexión de SQLAlchemy.
-        Prioriza DATABASE_URL completa y, si no existe, la construye a partir de variables separadas.
-        """
+        """Obtiene la URL de conexion de SQLAlchemy."""
         if self.DATABASE_URL:
             return self.DATABASE_URL
 
@@ -61,10 +65,5 @@ class Settings(BaseSettings):
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
 
-
-# Instancia singleton para ser importada en el resto de la aplicación
 settings = Settings()

@@ -1,16 +1,27 @@
 variable "aws_region" {
-  description = "La región de AWS donde se desplegarán los recursos."
+  description = "La region de AWS donde se desplegaran los recursos."
   type        = string
 }
 
 variable "db_publicly_accessible" {
-  description = "Indica si la BD debe ser accesible públicamente."
+  description = "Indica si la BD debe ser accesible publicamente."
   type        = bool
 }
 
-variable "sg_ingress_cidr_blocks" {
-  description = "Lista de bloques CIDR permitidos para acceder a la instancia RDS PostgreSQL."
+variable "vpc_id" {
+  description = "VPC donde se desplegara la base de datos."
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "Subnets donde se desplegara la base de datos."
   type        = list(string)
+}
+
+variable "allowed_cidr_blocks" {
+  description = "CIDR blocks autorizados para exponer PostgreSQL."
+  type        = list(string)
+  default     = []
 }
 
 variable "secret_name" {
@@ -35,7 +46,7 @@ variable "db_username" {
 }
 
 variable "db_password" {
-  description = "Contraseña para el usuario administrador de la base de datos RDS."
+  description = "Contrasena para el usuario administrador de la base de datos RDS."
   type        = string
   sensitive   = true
 }
@@ -46,6 +57,6 @@ variable "owner" {
 }
 
 variable "db_identifier" {
-  description = "Identificador único de la instancia RDS. Se usa como prefijo en nombres de recursos relacionados."
+  description = "Identificador unico de la instancia RDS. Se usa como prefijo en nombres de recursos relacionados."
   type        = string
 }

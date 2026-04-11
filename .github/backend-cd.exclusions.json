@@ -1,0 +1,8 @@
+{
+  "exclude": [
+    "notification",
+    "payment",
+    "partner-management",
+    "pms-integration"
+  ]
+}

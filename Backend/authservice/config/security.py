@@ -4,6 +4,8 @@ Rol dentro del microservicio: Centraliza el hasheo y verificación de contraseñ
 """
 
 from datetime import datetime, timedelta
+import hashlib
+import secrets
 from typing import Any, Union
 from jose import jwt
 from passlib.context import CryptContext
@@ -44,7 +46,8 @@ def create_access_token(
     subject: Union[str, Any], 
     email: str, 
     rol: str, 
-    partner_id: str = None, 
+    partner_id: str = None,
+    session_id: str = None,
     expires_delta: timedelta = None
 ) -> str:
     """
@@ -80,7 +83,24 @@ def create_access_token(
     # Inclusión dinámica del partner_id solo si existe
     if partner_id:
         to_encode["partner_id"] = partner_id
+
+    if session_id:
+        to_encode["sid"] = session_id
         
     # Lógica Crítica: Firma y codificación final del JWT usando la llave secreta provista en el archivo .env
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+
+def create_refresh_token() -> str:
+    """
+    Genera un refresh token aleatorio de alta entropía para mantener sesiones seguras.
+    """
+    return secrets.token_urlsafe(48)
+
+
+def hash_token(token: str) -> str:
+    """
+    Hashea el refresh token antes de persistirlo para evitar almacenarlo en texto plano.
+    """
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()

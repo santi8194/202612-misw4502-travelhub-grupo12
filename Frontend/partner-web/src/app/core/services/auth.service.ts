@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
@@ -26,8 +27,8 @@ export class AuthService {
     readonly idleTimeoutMinutes = 5;
     readonly refreshTokenDays = 7;
 
-    // Conexión con el backend Auth-Service expuesto en puertos de Docker
-    private apiUrl = 'http://localhost:8003/auth';
+    // Conexión con el backend Auth-Service usando environment
+    private apiUrl = environment.apiBaseUrl;
     private sessionExpiryStorageKey = 'session_expiry_at';
     private lastActivityStorageKey = 'session_last_activity_at';
     private inactivityTimeoutId: number | null = null;

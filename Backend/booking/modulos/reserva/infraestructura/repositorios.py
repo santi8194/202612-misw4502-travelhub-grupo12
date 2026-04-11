@@ -1,13 +1,14 @@
-from venv import logger
-
 from modulos.reserva.infraestructura.mapeadores_dto import MapeadorReservaDTO
 from seedwork.dominio.repositorios import Repositorio
 from modulos.reserva.dominio.entidades import Reserva, Usuario, CategoriaHabitacion
 from modulos.reserva.dominio.objetos_valor import EstadoReserva, Pax
 from modulos.reserva.infraestructura.dto import ReservaDTO
 from config.db import db
+import logging
 import uuid
 import datetime
+
+logger = logging.getLogger(__name__)
 
 class RepositorioReservas(Repositorio):
 

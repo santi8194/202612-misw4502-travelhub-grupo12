@@ -72,3 +72,14 @@ class InventarioActualizado(DomainEvent):
 	@property
 	def routing_key(self) -> str:
 		return "catalog.inventory.updated"
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class CategoriasPropiedadConsultadas(DomainEvent):
+	"""Evento emitido cuando se consultan todas las categorias de una propiedad."""
+	id_propiedad: UUID
+	total_categorias: int
+
+	@property
+	def routing_key(self) -> str:
+		return "catalog.property.categories.requested"

@@ -94,6 +94,20 @@
           "response": []
         },
         {
+          "name": "Get Categories by Property ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/properties/{{property_id}}/categories",
+              "host": ["{{base_url}}"],
+              "path": ["properties", "{{property_id}}", "categories"]
+            },
+            "description": "Obtiene todas las categorías asociadas a una propiedad"
+          },
+          "response": []
+        },
+        {
           "name": "Register Category Housing",
           "request": {
             "method": "POST",

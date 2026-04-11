@@ -12,6 +12,7 @@ from modules.catalog.application.commands.register_category_housing import Regis
 from modules.catalog.application.commands.update_inventory import UpdateInventory
 from modules.catalog.application.commands.obtain_property_by_category_id import ObtainPropertyByCategoryId
 from modules.catalog.application.commands.obtain_category_by_id import ObtainCategoryById
+from modules.catalog.application.commands.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
 
 router = APIRouter()
 repository = PropertyRepository()
@@ -93,6 +94,13 @@ def registrar_categoria(id_propiedad: UUID, request: RegisterCategoryRequest):
 		porcentaje_penalidad=request.porcentaje_penalidad,
 		foto_portada_url=request.foto_portada_url,
 	)
+
+
+@router.get("/properties/{id_propiedad}/categories")
+def obtener_categorias_de_propiedad(id_propiedad: UUID):
+	"""Obtiene todas las categorías de una propiedad por su ID."""
+	command = ObtainCategoriesByPropertyId(repository, event_bus)
+	return command.execute(id_propiedad)
 
 
 @router.put("/properties/{id_propiedad}/categories/{id_categoria}/inventory")

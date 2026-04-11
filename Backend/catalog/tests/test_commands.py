@@ -7,6 +7,7 @@ from catalog.modules.catalog.application.commands.register_category_housing impo
 from catalog.modules.catalog.application.commands.update_inventory import UpdateInventory
 from catalog.modules.catalog.application.commands.obtain_property_by_category_id import ObtainPropertyByCategoryId
 from catalog.modules.catalog.application.commands.obtain_category_by_id import ObtainCategoryById
+from catalog.modules.catalog.application.commands.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
 from catalog.modules.catalog.domain.entities import (
 	Coordenadas,
 	VODireccion,
@@ -355,3 +356,60 @@ class TestObtainCategoryById:
 
 		assert result["error"] == "Category not found"
 		assert result["id_categoria"] == "unknown-category"
+
+
+class TestObtainCategoriesByPropertyId:
+	"""Pruebas para el comando ObtainCategoriesByPropertyId"""
+
+	def test_obtain_categories_by_property_id_success(self, mock_repository, mock_event_bus):
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP", cargo_servicio=Decimal("25000.00"))
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		categoria = CategoriaHabitacion(
+			id_categoria="deluxe-001",
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			precio_base=precio,
+			capacidad_pax=4,
+			politica_cancelacion=regla,
+			media=[
+				Media(
+					id_media="deluxe-001-foto-portada",
+					url_full="https://cdn.example.com/deluxe-portada.jpg",
+					tipo=TipoMedia.FOTO_PORTADA,
+					orden=1,
+				)
+			],
+		)
+		propiedad = construir_propiedad(
+			id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+			categorias_habitacion=[categoria],
+		)
+		mock_repository.obtain.return_value = propiedad
+
+		command = ObtainCategoriesByPropertyId(mock_repository, mock_event_bus)
+		result = command.execute(UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
+
+		assert result["id_propiedad"] == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+		assert result["total_categorias"] == 1
+		assert result["categorias"][0]["id_categoria"] == "deluxe-001"
+		assert result["categorias"][0]["foto_portada_url"] == "https://cdn.example.com/deluxe-portada.jpg"
+		assert result["categorias"][0]["precio_base"]["cargo_servicio"] == "25000.00"
+		assert result["event_generated"] == "CategoriasPropiedadConsultadas"
+		assert mock_event_bus.publish_event.called
+
+	def test_obtain_categories_by_property_id_not_found(self, mock_repository, mock_event_bus):
+		mock_repository.obtain.return_value = None
+
+		command = ObtainCategoriesByPropertyId(mock_repository, mock_event_bus)
+		result = command.execute(UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
+
+		assert result["error"] == "Property not found"
+		assert result["id_propiedad"] == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+		assert not mock_event_bus.publish_event.called

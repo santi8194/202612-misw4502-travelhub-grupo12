@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import auth
 from config.config import settings
+from infrastructure.database import init_db
 
 # Inicialización de la aplicación FastAPI con metadata general
 app = FastAPI(
@@ -31,7 +32,15 @@ app.add_middleware(
 app.include_router(auth.router, prefix=settings.API_V1_STR, tags=["auth"])
 
 
-@app.get("/")
+@app.on_event("startup")
+def startup_event() -> None:
+    """
+    Inicializa la conexión a la base de datos y asegura la creación de tablas base.
+    """
+    init_db()
+
+
+@app.get("/health")
 def root():
     """
     Endpoint de bienvenida y comprobación de salud básica.

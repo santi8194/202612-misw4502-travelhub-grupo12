@@ -1,6 +1,6 @@
 # Auth Service
 
-Microservicio de autenticación para la plataforma hotelera. Genera tokens JWT stateless integrándose de forma mockeada con el servicio de Usuarios.
+Microservicio de autenticacion para la plataforma hotelera. Genera tokens JWT stateless y persiste usuarios en PostgreSQL.
 
 ## Requisitos
 
@@ -12,7 +12,24 @@ Instala las dependencias:
 pip install -r requirements.txt
 ```
 
-## Ejecución
+Variables de entorno requeridas:
+
+```bash
+SECRET_KEY=<jwt_secret>
+DB_HOST=<rds_endpoint>
+DB_PORT=5432
+DB_NAME=authservice_db
+DB_USER=<usuario_rds>
+DB_PASSWORD=<password_rds>
+```
+
+Tambien puedes usar una sola variable para la conexion:
+
+```bash
+DATABASE_URL=postgresql+psycopg2://<usuario_rds>:<password_rds>@<rds_endpoint>:5432/authservice_db
+```
+
+## Ejecucion
 
 Para iniciar el servidor en modo desarrollo:
 
@@ -20,11 +37,11 @@ Para iniciar el servidor en modo desarrollo:
 uvicorn main:app --reload --port 8000
 ```
 
-La documentación interactiva (Swagger) estará disponible en: [http://localhost:8000/docs](http://localhost:8000/docs)
+La documentacion interactiva (Swagger) estara disponible en: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## Ejemplos de Uso
 
-### 1. Iniciar Sesión (Login JSON request)
+### 1. Iniciar Sesion (Login JSON request)
 
 ```bash
 curl -X 'POST' \
@@ -65,15 +82,15 @@ curl -X 'POST' \
   -H 'Authorization: Bearer <TOKEN_AQUI>'
 ```
 
-## Usuarios Mockeados por Defecto
+## Usuarios Iniciales
 
-En `app/services/user_service.py` se incluyeron los siguientes usuarios de prueba:
+Cuando la tabla `users` esta vacia, el servicio crea estos usuarios de prueba automaticamente:
 
-- **Admin/Partner**: `admin@hotel.com` / `admin123`
+- **Admin/Partner**: `admin@hotel.com` / `123456`
 - **Usuario Normal**: `user@hotel.com` / `user123`
 
-## Protección contra Fuerza Bruta
+## Proteccion contra Fuerza Bruta
 
 El servicio incorpora un mecanismo sencillo en memoria para bloqueo de cuentas tras varios intentos fallidos.
-- **Límite**: 5 intentos fallidos
-- **Bloqueo**: 15 minutos (configurable en `.env` o `config.py`)
+- **Limite**: 5 intentos fallidos
+- **Bloqueo**: 15 minutos (configurable en `.env` o variables de entorno)

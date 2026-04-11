@@ -46,9 +46,11 @@ jobs:
           - name: container_registry
             working_directory: Infraestructura/terraform/stacks/container_registry
             tfvars_file: ../../environments/dev/container_registry/dev.tfvars
+            backend_config: ""
           - name: eks
             working_directory: Infraestructura/terraform/stacks/eks
             tfvars_file: ../../environments/dev/eks/dev.tfvars
+            backend_config: ""
 
     defaults:
       run:
@@ -73,7 +75,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform init
-        run: terraform init -reconfigure
+        run: |
+          if [ -n "${{ matrix.stack.backend_config }}" ]; then
+            terraform init -reconfigure -backend-config="${{ matrix.stack.backend_config }}"
+          else
+            terraform init -reconfigure
+          fi
 
       - name: Terraform validate
         run: terraform validate -no-color

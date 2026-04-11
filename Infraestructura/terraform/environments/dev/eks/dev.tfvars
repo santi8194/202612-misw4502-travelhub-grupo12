@@ -38,7 +38,7 @@ subnet_ids = ["subnet-072a1bac7455c1476", "subnet-0612f6b53a6445dd4"]
 
 # Added to avoid hidden defaults.
 # Small instance type for a cost-optimized dev environment.
-node_instance_types = ["t3.medium"]
+node_instance_types = ["t3.small"]
 
 # Added to avoid hidden defaults.
 # Single-node dev footprint to minimize cost.

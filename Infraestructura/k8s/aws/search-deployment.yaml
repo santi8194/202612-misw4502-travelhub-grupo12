@@ -1,24 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: booking
+  name: search
   labels:
-    app: booking
+    app: search
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: booking
+      app: search
   template:
     metadata:
       labels:
-        app: booking
+        app: search
     spec:
       containers:
-        - name: booking
-          image: ${ECR_REGISTRY_DEV}/booking:${GITHUB_SHA}
+        - name: search
+          image: ${ECR_REGISTRY_DEV}/search:${GITHUB_SHA}
           ports:
             - containerPort: 8000
+          env:
+            - name: REPOSITORY_TYPE
+              value: "memory"
           readinessProbe:
             httpGet:
               path: /health

@@ -19,15 +19,46 @@ spec:
           image: ${ECR_REGISTRY_DEV}/authservice:${GITHUB_SHA}
           ports:
             - containerPort: 8000
+          env:
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: authservice-app-secret
+                  key: SECRET_KEY
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: authservice-db-secret
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: authservice-db-secret
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: authservice-db-secret
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: authservice-db-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: authservice-db-secret
+                  key: DB_PASSWORD
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 8000
             initialDelaySeconds: 10
             periodSeconds: 10

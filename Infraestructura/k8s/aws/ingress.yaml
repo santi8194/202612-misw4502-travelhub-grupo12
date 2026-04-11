@@ -13,7 +13,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: booking-service
+                name: booking
                 port:
                   number: 80
 
@@ -46,5 +46,13 @@ spec:
             backend:
               service:
                 name: partnermanagement-service
+                port:
+                  number: 80
+
+          - path: /search(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: search
                 port:
                   number: 80

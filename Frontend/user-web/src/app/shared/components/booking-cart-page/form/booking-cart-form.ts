@@ -11,6 +11,7 @@ import { GuestForm } from '../../../../models/guest.interface';
 })
 export class BookingCartFormComponent {
   @Input({ required: true }) form!: GuestForm;
+  @Input() disableContinue = false;
 
   @Output() fieldChange = new EventEmitter<{ field: keyof GuestForm; value: string }>();
   @Output() continuePayment = new EventEmitter<void>();
@@ -20,6 +21,9 @@ export class BookingCartFormComponent {
   }
 
   onContinuePayment(): void {
+    if (this.disableContinue) {
+      return;
+    }
     this.continuePayment.emit();
   }
 }

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { switchMap, catchError, of, forkJoin } from 'rxjs';
+import { Router } from '@angular/router';
+import { switchMap, catchError, of, forkJoin, finalize } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
 import { BookingStore } from '../../core/store/booking-store';
 import { HeaderComponent } from '../../shared/components/header/header';
@@ -71,9 +72,13 @@ interface PropertyData {
   styleUrl: './booking-cart-page.css'
 })
 export class BookingCartPage implements OnDestroy {
+  private static readonly HOLD_DURATION_MS = 15 * 60 * 1000;
+  private static readonly OPTIMISTIC_HOLD_ID = 'optimistic-hold';
+
   private readonly bookingService = inject(BookingService);
   private readonly store = inject(BookingStore);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   form = signal<GuestForm>({
     name: '',
@@ -85,10 +90,19 @@ export class BookingCartPage implements OnDestroy {
 
   summary = signal<BookingSummaryData | null>(null);
   isLoadingSummary = signal(true);
+  isSubmittingPayment = signal(false);
   private bookingData = signal<BookingData | null>(null);
+  private propertyIdForBack = signal<string | null>(null);
 
   remainingTime = signal(0);
   timerActive = computed(() => this.remainingTime() > 0);
+  isHoldExpiringSoon = computed(() => this.remainingTime() > 0 && this.remainingTime() <= 120);
+  formattedRemainingTime = computed(() => {
+    const total = Math.max(this.remainingTime(), 0);
+    const minutes = Math.floor(total / 60).toString().padStart(2, '0');
+    const seconds = (total % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  });
 
   updateField(field: keyof GuestForm, value: string): void {
     this.form.update(current => ({ ...current, [field]: value }));
@@ -173,6 +187,7 @@ export class BookingCartPage implements OnDestroy {
       if (result?.booking) {
         const { booking, catalog, category, property } = result;
         this.bookingData.set(booking);
+        this.propertyIdForBack.set(property?.id_propiedad ?? category?.id_propiedad ?? catalog?.id_propiedad ?? null);
 
         const checkIn = this.extractCheckIn(booking);
         const checkOut = this.extractCheckOut(booking);
@@ -217,6 +232,29 @@ export class BookingCartPage implements OnDestroy {
     });
   }
 
+  goBack(): void {
+    const propertyId = this.propertyIdForBack();
+    const booking = this.bookingData();
+    const checkIn = booking ? this.extractCheckIn(booking) : '';
+    const checkOut = booking ? this.extractCheckOut(booking) : '';
+    const guests = booking ? this.extractGuests(booking) : 1;
+
+    if (propertyId) {
+      this.router.navigate(['/property', propertyId], {
+        queryParams: {
+          id_categoria: booking?.id_categoria ?? '',
+          fecha_inicio: checkIn,
+          fecha_fin: checkOut,
+          huespedes: guests,
+        },
+      });
+      return;
+    }
+
+    console.warn('[BookingCartPage] Property id unavailable for back navigation, redirecting to resultados');
+    this.router.navigate(['/resultados']);
+  }
+
   private calcNights(from: string, to: string): number {
     if (!from || !to) {
       return 0;
@@ -249,6 +287,16 @@ export class BookingCartPage implements OnDestroy {
   }
 
   createHold(): void {
+    if (!this.timerActive()) {
+      console.warn('[BookingCartPage] createHold blocked because optimistic hold has expired');
+      alert('El tiempo de hold expiró. Debes volver a seleccionar la reserva.');
+      return;
+    }
+
+    if (this.isSubmittingPayment()) {
+      return;
+    }
+
     const booking = this.bookingData();
     if (!booking) {
       console.warn('[BookingCartPage] createHold blocked because booking data is missing');
@@ -280,23 +328,23 @@ export class BookingCartPage implements OnDestroy {
       guests
     };
     console.info('[BookingCartPage] createHold request', request);
+    this.isSubmittingPayment.set(true);
 
-    this.bookingService.createHold(request).subscribe({
+    this.bookingService.createHold(request).pipe(
+      finalize(() => this.isSubmittingPayment.set(false))
+    ).subscribe({
       next: (response) => {
         console.info('[BookingCartPage] createHold response', response);
-        if (typeof response.expiresAt === 'number') {
+        if (typeof response.expiresAt === 'number' && response.expiresAt > Date.now()) {
           this.store.setHold(response);
           this.startTimer(response.expiresAt);
           return;
         }
 
-        console.warn('[BookingCartPage] Hold response without expiresAt. Timer was not started.', response);
+        console.warn('[BookingCartPage] Hold response without valid expiresAt. Keeping optimistic hold timer.', response);
       },
       error: (error) => {
         console.error('[BookingCartPage] createHold failed', { request, error });
-        this.clearTimer();
-        this.remainingTime.set(0);
-        this.store.clear();
         alert('No hay cupos disponibles');
       }
     });
@@ -305,22 +353,32 @@ export class BookingCartPage implements OnDestroy {
   private loadHold(): void {
     const hold = this.store.getHold();
     if (!hold) {
+      this.initializeOptimisticHold();
       return;
     }
 
     if (typeof hold.expiresAt !== 'number') {
       console.warn('[BookingCartPage] Stored hold has no expiresAt, clearing local hold', hold);
       this.store.clear();
+      this.initializeOptimisticHold();
       return;
     }
 
     const diff = Math.floor((hold.expiresAt - Date.now()) / 1000);
     if (diff <= 0) {
       this.store.clear();
+      this.initializeOptimisticHold();
       return;
     }
 
     this.startTimer(hold.expiresAt);
+  }
+
+  private initializeOptimisticHold(): void {
+    const expiresAt = Date.now() + BookingCartPage.HOLD_DURATION_MS;
+    this.store.setHold({ id: BookingCartPage.OPTIMISTIC_HOLD_ID, expiresAt });
+    this.startTimer(expiresAt);
+    console.info('[BookingCartPage] Optimistic hold initialized', { expiresAt });
   }
 
   private startTimer(expiresAt: number): void {

@@ -67,6 +67,11 @@
   cursor: pointer;
 }
 
+.pay-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
   .form-grid {
     grid-template-columns: 1fr;

@@ -31,6 +31,7 @@
   <button
     (click)="onContinuePayment()"
     class="pay-btn"
+    [disabled]="disableContinue"
     data-testid="continue-payment-btn">
     Continuar con el pago
   </button>

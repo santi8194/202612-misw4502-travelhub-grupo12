@@ -2,7 +2,7 @@
 
   <app-header></app-header>
 
-  <div class="back-link" data-testid="back-link">
+  <div class="back-link" data-testid="back-link" (click)="goBack()" role="button" tabindex="0">
     <svg class="back-link-icon" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
@@ -13,13 +13,19 @@
 
   <app-booking-cart-form
     [form]="form()"
+    [disableContinue]="!timerActive() || isSubmittingPayment()"
     (fieldChange)="onFieldChange($event)"
     (continuePayment)="createHold()">
   </app-booking-cart-form>
 
   @if (timerActive()) {
-    <div class="hold-timer" data-testid="hold-timer">
-      ⏳ Tu reserva expira en {{ remainingTime() }}s
+    <div class="hold-timer" [class.hold-timer--warning]="isHoldExpiringSoon()" data-testid="hold-timer">
+      <span class="hold-timer__label">Tu hold expira en</span>
+      <span class="hold-timer__value">{{ formattedRemainingTime() }}</span>
+    </div>
+  } @else {
+    <div class="hold-timer hold-timer--expired" data-testid="hold-timer-expired">
+      El tiempo de hold expiró. Ya no puedes continuar con el pago.
     </div>
   }
 

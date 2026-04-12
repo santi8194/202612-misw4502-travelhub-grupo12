@@ -61,6 +61,18 @@ variable "db_identifier" {
   type        = string
 }
 
+variable "db_subnet_group_name_override" {
+  description = "Nombre explicito del DB subnet group para conservar la infraestructura actual."
+  type        = string
+  default     = null
+}
+
+variable "db_security_group_name_override" {
+  description = "Nombre explicito del security group para conservar la infraestructura actual."
+  type        = string
+  default     = null
+}
+
 variable "service_databases" {
   description = "Configuracion no sensible de bases y secretos por servicio."
   type = map(object({

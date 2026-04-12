@@ -7,6 +7,8 @@ admin_secret_name        = "travelhub/dev/rds/admin-credentials"
 db_allocated_storage_gib = 20 # Almacenamiento inicial en GB https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html
 db_name                  = "authservice_db"
 db_identifier            = "travelhub-rds-dev"
+db_subnet_group_name_override = "travelhub-dev-authservice-subnet-group"
+db_security_group_name_override = "travelhub-dev-authservice-sg"
 owner                    = "grupo12"
 
 service_databases = {

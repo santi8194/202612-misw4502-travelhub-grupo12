@@ -4,6 +4,18 @@ variable "db_identifier" {
   type        = string
 }
 
+variable "db_subnet_group_name_override" {
+  description = "Nombre explicito para conservar el DB subnet group existente."
+  type        = string
+  default     = null
+}
+
+variable "db_security_group_name_override" {
+  description = "Nombre explicito para conservar el security group existente."
+  type        = string
+  default     = null
+}
+
 variable "vpc_id" {
   description = "VPC donde se desplegara la instancia RDS."
   type        = string

@@ -3,12 +3,16 @@
 #####################################
 
 resource "aws_db_subnet_group" "rds_subnet_group" {
-  name       = "${var.db_identifier}-subnet-group"
+  name       = coalesce(var.db_subnet_group_name_override, "${var.db_identifier}-subnet-group")
   subnet_ids = var.subnet_ids
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_security_group" "rds_sg" {
-  name        = "${var.db_identifier}-sg"
+  name        = coalesce(var.db_security_group_name_override, "${var.db_identifier}-sg")
   description = "Permitir trafico de entrada a Postgres"
   vpc_id      = var.vpc_id
 
@@ -37,6 +41,10 @@ resource "aws_security_group" "rds_sg" {
     to_port     = 0
     protocol    = "all"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 

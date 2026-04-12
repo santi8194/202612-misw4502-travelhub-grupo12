@@ -16,9 +16,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiamos el resto del proyecto
 COPY . .
+RUN chmod +x /app/entrypoint.sh
 
 # Exponemos puerto
 EXPOSE 80
 
 # Comando para ejecutar el servicio
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+ENTRYPOINT ["/app/entrypoint.sh"]

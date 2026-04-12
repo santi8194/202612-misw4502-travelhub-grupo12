@@ -63,6 +63,6 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: catalog-service
+            name: catalog
             port:
               number: 80

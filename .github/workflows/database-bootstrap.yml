@@ -1,0 +1,75 @@
+name: Database Bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      db_host:
+        description: "Endpoint de la instancia RDS"
+        required: true
+        type: string
+      db_port:
+        description: "Puerto PostgreSQL"
+        required: false
+        default: "5432"
+        type: string
+      admin_username:
+        description: "Usuario administrador de RDS"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    name: Bootstrap service databases
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      PGPASSWORD: ${{ secrets.RDS_ADMIN_PASSWORD_DEV }}
+      AUTHSERVICE_DB_PASSWORD_DEV: ${{ secrets.AUTHSERVICE_DB_PASSWORD_DEV }}
+      BOOKING_DB_PASSWORD_DEV: ${{ secrets.BOOKING_DB_PASSWORD_DEV }}
+      CATALOG_DB_PASSWORD_DEV: ${{ secrets.CATALOG_DB_PASSWORD_DEV }}
+      SEARCH_DB_PASSWORD_DEV: ${{ secrets.SEARCH_DB_PASSWORD_DEV }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for secret_name in \
+            PGPASSWORD \
+            AUTHSERVICE_DB_PASSWORD_DEV \
+            BOOKING_DB_PASSWORD_DEV \
+            CATALOG_DB_PASSWORD_DEV \
+            SEARCH_DB_PASSWORD_DEV
+          do
+            if [ -z "${!secret_name:-}" ]; then
+              echo "::error::Missing required GitHub secret '${secret_name}'."
+              exit 1
+            fi
+          done
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Bootstrap logical databases and roles
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          psql \
+            "host=${{ inputs.db_host }} port=${{ inputs.db_port }} dbname=postgres user=${{ inputs.admin_username }} sslmode=require" \
+            -v authservice_password="${AUTHSERVICE_DB_PASSWORD_DEV}" \
+            -v booking_password="${BOOKING_DB_PASSWORD_DEV}" \
+            -v catalog_password="${CATALOG_DB_PASSWORD_DEV}" \
+            -v search_password="${SEARCH_DB_PASSWORD_DEV}" \
+            -f Infraestructura/sql/rds/bootstrap_service_databases.sql

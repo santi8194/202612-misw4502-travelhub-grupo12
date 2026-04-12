@@ -18,12 +18,28 @@ output "rds_db_name" {
   value       = module.rds.db_name
 }
 
-output "secrets_manager_secret_arn" {
-  description = "ARN del secreto de AWS Secrets Manager."
-  value       = module.secrets_manager.secret_arn
+output "admin_secrets_manager_secret_arn" {
+  description = "ARN del secreto admin de AWS Secrets Manager."
+  value       = module.admin_secrets_manager.secret_arn
 }
 
-output "secrets_manager_secret_name" {
-  description = "Nombre del secreto de AWS Secrets Manager."
-  value       = module.secrets_manager.secret_name
+output "admin_secrets_manager_secret_name" {
+  description = "Nombre del secreto admin de AWS Secrets Manager."
+  value       = module.admin_secrets_manager.secret_name
+}
+
+output "service_secrets_manager_secret_arns" {
+  description = "ARNs de secretos de AWS Secrets Manager por servicio."
+  value = {
+    for service_name, service_module in module.service_secrets_manager :
+    service_name => service_module.secret_arn
+  }
+}
+
+output "service_secrets_manager_secret_names" {
+  description = "Nombres de secretos de AWS Secrets Manager por servicio."
+  value = {
+    for service_name, service_module in module.service_secrets_manager :
+    service_name => service_module.secret_name
+  }
 }

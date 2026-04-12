@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: catalog-deployment
+  name: catalog
   labels:
     app: catalog
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: catalog
@@ -16,35 +16,44 @@ spec:
     spec:
       containers:
       - name: catalog
-        image: 962273458546.dkr.ecr.us-east-1.amazonaws.com/catalog:1.0.0
+        image: ${ECR_REGISTRY_DEV}/catalog:${GITHUB_SHA}
         ports:
         - containerPort: 80
         env:
         - name: DB_HOST
-          value: "travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com"
+          valueFrom:
+            secretKeyRef:
+              name: catalog-db-secret
+              key: DB_HOST
         - name: DB_PORT
-          value: "5432"
+          valueFrom:
+            secretKeyRef:
+              name: catalog-db-secret
+              key: DB_PORT
         - name: DB_NAME
-          value: "authservice_db"
+          valueFrom:
+            secretKeyRef:
+              name: catalog-db-secret
+              key: DB_NAME
         - name: DB_USER
           valueFrom:
             secretKeyRef:
-              name: authservice-db-secret
+              name: catalog-db-secret
               key: DB_USER
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: authservice-db-secret
+              name: catalog-db-secret
               key: DB_PASSWORD
         readinessProbe:
           httpGet:
-            path: /docs
+            path: /health
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
         livenessProbe:
           httpGet:
-            path: /docs
+            path: /health
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 10

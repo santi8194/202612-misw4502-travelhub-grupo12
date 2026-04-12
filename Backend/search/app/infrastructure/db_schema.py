@@ -1,67 +1,73 @@
-"""Módulo de inicialización del esquema de base de datos.
-
-Contiene la función ``ensure_schema`` que crea el esquema search y todas
-sus tablas e índices si no existen. Es segura de ejecutar en cada arranque
-de la aplicación gracias al uso de IF NOT EXISTS en todas las sentencias.
-"""
+"""Helpers para aplicar migraciones SQL versionadas del servicio search."""
 
 from __future__ import annotations
 
+import asyncio
+from pathlib import Path
+
 import asyncpg
+
+from app.config import settings
+
+MIGRATIONS_DIR = Path(__file__).resolve().parents[2] / "db" / "migrations"
+
+
+def _migration_files() -> list[Path]:
+    return sorted(path for path in MIGRATIONS_DIR.glob("*.sql") if path.is_file())
+
+
+async def _ensure_migration_table(conn: asyncpg.Connection) -> None:
+    await conn.execute("CREATE SCHEMA IF NOT EXISTS search;")
+    await conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS search.schema_migrations (
+            version TEXT PRIMARY KEY,
+            filename TEXT NOT NULL,
+            applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        """
+    )
+
+
+async def run_migrations(pool: asyncpg.Pool) -> None:
+    """Aplica una sola vez cada archivo SQL versionado en ``db/migrations``."""
+
+    async with pool.acquire() as conn:
+        await _ensure_migration_table(conn)
+        rows = await conn.fetch("SELECT version FROM search.schema_migrations;")
+        applied_versions = {row["version"] for row in rows}
+
+        for migration_path in _migration_files():
+            version = migration_path.stem.split("_", 1)[0]
+            if version in applied_versions:
+                continue
+
+            sql = migration_path.read_text(encoding="utf-8")
+            async with conn.transaction():
+                await conn.execute(sql)
+                await conn.execute(
+                    """
+                    INSERT INTO search.schema_migrations (version, filename)
+                    VALUES ($1, $2)
+                    """,
+                    version,
+                    migration_path.name,
+                )
 
 
 async def ensure_schema(pool: asyncpg.Pool) -> None:
-    """Crea el esquema search y las tablas necesarias si no existen.
+    """Compatibilidad temporal para flujos que aún invocan el nombre anterior."""
 
-    Función idempotente: segura de ejecutar en cada arranque de la aplicación.
-    Si el esquema y las tablas ya existen, todas las sentencias son no-ops.
+    await run_migrations(pool)
 
-    Parámetros
-    ----------
-    pool:
-        Pool de conexiones asyncpg ya inicializado.
-    """
-    async with pool.acquire() as conn:
-        # Crear esquema search si no existe
-        await conn.execute("CREATE SCHEMA IF NOT EXISTS search;")
 
-        # Crear tabla de hospedajes con todos sus campos
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS search.hospedajes (
-                id_propiedad          UUID PRIMARY KEY,
-                id_categoria          UUID,
-                propiedad_nombre      TEXT,
-                categoria_nombre      TEXT,
-                imagen_principal_url  TEXT,
-                amenidades_destacadas JSONB,
-                estrellas             INTEGER,
-                rating_promedio       NUMERIC,
-                ciudad                TEXT,
-                estado_provincia      TEXT,
-                pais                  TEXT,
-                coordenadas           JSONB,
-                capacidad_pax         INTEGER,
-                precio_base           NUMERIC,
-                moneda                TEXT,
-                es_reembolsable       BOOLEAN,
-                disponibilidad        JSONB
-            );
-        """)
+async def migrate_database_from_env() -> None:
+    pool = await asyncpg.create_pool(settings.database_url)
+    try:
+        await run_migrations(pool)
+    finally:
+        await pool.close()
 
-        # Crear tabla de destinos para autocompletado
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS search.destinos (
-                id_destino       UUID PRIMARY KEY,
-                ciudad           TEXT NOT NULL,
-                ciudad_lower     TEXT NOT NULL,
-                estado_provincia TEXT,
-                pais             TEXT NOT NULL,
-                CONSTRAINT unq_destino UNIQUE (ciudad_lower, estado_provincia, pais)
-            );
-        """)
 
-        # Crear índice de prefijo para el autocompletado eficiente (LIKE 'car%')
-        await conn.execute("""
-            CREATE INDEX IF NOT EXISTS idx_destinos_ciudad_prefix
-            ON search.destinos (ciudad_lower varchar_pattern_ops);
-        """)
+if __name__ == "__main__":
+    asyncio.run(migrate_database_from_env())

@@ -22,6 +22,9 @@ env:
   EKS_CLUSTER_NAME_DEV: ${{ vars.EKS_CLUSTER_NAME_DEV }}
   K8S_NAMESPACE_DEV: ${{ vars.K8S_NAMESPACE_DEV }}
   AUTHSERVICE_DB_SECRET_NAME_DEV: travelhub/dev/authservice/db-credentials
+  BOOKING_DB_SECRET_NAME_DEV: travelhub/dev/booking/db-credentials
+  CATALOG_DB_SECRET_NAME_DEV: travelhub/dev/catalog/db-credentials
+  SEARCH_DB_SECRET_NAME_DEV: travelhub/dev/search/db-credentials
   SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
 
 jobs:
@@ -427,21 +430,49 @@ jobs:
             fi
           fi
 
-      - name: Reconcile authservice secrets
-        if: ${{ matrix.service_name == 'authservice' }}
+      - name: Reconcile service DB secret
+        if: ${{ matrix.service_name == 'authservice' || matrix.service_name == 'booking' || matrix.service_name == 'catalog' || matrix.service_name == 'search' }}
         shell: bash
         env:
-          DB_SECRET_ENV_FILE: /tmp/authservice-db-secret.env
+          DB_SECRET_ENV_FILE: /tmp/${{ matrix.service_name }}-db-secret.env
         run: |
           set -euo pipefail
 
+          case "${SERVICE_NAME}" in
+            authservice)
+              SECRET_MANAGER_ID="${AUTHSERVICE_DB_SECRET_NAME_DEV}"
+              K8S_SECRET_NAME="authservice-db-secret"
+              ;;
+            booking)
+              SECRET_MANAGER_ID="${BOOKING_DB_SECRET_NAME_DEV}"
+              K8S_SECRET_NAME="booking-db-secret"
+              ;;
+            catalog)
+              SECRET_MANAGER_ID="${CATALOG_DB_SECRET_NAME_DEV}"
+              K8S_SECRET_NAME="catalog-db-secret"
+              ;;
+            search)
+              SECRET_MANAGER_ID="${SEARCH_DB_SECRET_NAME_DEV}"
+              K8S_SECRET_NAME="search-db-secret"
+              ;;
+            *)
+              echo "::error::Unsupported DB-backed service '${SERVICE_NAME}'."
+              exit 1
+              ;;
+          esac
+
+          if [ -z "${SECRET_MANAGER_ID:-}" ]; then
+            echo "::error::Missing Secrets Manager identifier for service '${SERVICE_NAME}'."
+            exit 1
+          fi
+
           SECRET_JSON=$(aws secretsmanager get-secret-value \
-            --secret-id "${AUTHSERVICE_DB_SECRET_NAME_DEV}" \
+            --secret-id "${SECRET_MANAGER_ID}" \
             --query 'SecretString' \
             --output text)
 
           if [ -z "${SECRET_JSON:-}" ] || [ "${SECRET_JSON}" = "None" ]; then
-            echo "::error::Secrets Manager secret '${AUTHSERVICE_DB_SECRET_NAME_DEV}' is empty or unavailable."
+            echo "::error::Secrets Manager secret '${SECRET_MANAGER_ID}' is empty or unavailable."
             exit 1
           fi
 
@@ -463,7 +494,7 @@ jobs:
           missing = [key for key, value in required_keys.items() if value in (None, "")]
           if missing:
               print(
-                  "::error::Secrets Manager secret is missing required keys for authservice: "
+                  "::error::Secrets Manager secret is missing required keys: "
                   + ", ".join(missing)
               )
               sys.exit(1)
@@ -473,11 +504,17 @@ jobs:
                   fh.write(f"{key}={value}\n")
           PY
 
-          kubectl create secret generic authservice-db-secret \
+          kubectl create secret generic "${K8S_SECRET_NAME}" \
             --namespace "${K8S_NAMESPACE_DEV}" \
             --from-env-file="${DB_SECRET_ENV_FILE}" \
             --dry-run=client \
             -o yaml | kubectl apply -f -
+
+      - name: Reconcile authservice app secret
+        if: ${{ matrix.service_name == 'authservice' }}
+        shell: bash
+        run: |
+          set -euo pipefail
 
           kubectl create secret generic authservice-app-secret \
             --namespace "${K8S_NAMESPACE_DEV}" \

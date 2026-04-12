@@ -27,13 +27,15 @@ COPY --from=builder /install /usr/local
 
 # Copiar únicamente el código fuente de la aplicación
 COPY app/ ./app/
+COPY db/ ./db/
+COPY entrypoint.sh ./entrypoint.sh
 
 # Transferir la propiedad de los archivos al usuario no-root
-RUN chown -R appuser:appgroup /app
+RUN chmod +x /app/entrypoint.sh && chown -R appuser:appgroup /app
 
 USER appuser
 
 EXPOSE 8000
 
 # Iniciar uvicorn en modo producción (sin --reload)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]

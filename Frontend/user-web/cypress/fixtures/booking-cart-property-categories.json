@@ -1,0 +1,12 @@
+[
+  {
+    "id_categoria": "categoria-e2e-001",
+    "codigo_mapeo_pms": "CAT-001",
+    "categoria_nombre": "Suite Familiar",
+    "precio_base": 150,
+    "moneda": "USD",
+    "capacidad_pax": 2,
+    "imagen_principal_url": "https://images.example.com/suite-familiar.jpg",
+    "amenidades_destacadas": ["Wifi"]
+  }
+]

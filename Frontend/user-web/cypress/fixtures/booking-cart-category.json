@@ -1,0 +1,10 @@
+{
+  "id_categoria": "categoria-e2e-001",
+  "id_propiedad": "propiedad-e2e-001",
+  "nombre_comercial": "Suite Familiar",
+  "foto_portada_url": "https://images.example.com/suite-familiar.jpg",
+  "precio_base": {
+    "monto": 150,
+    "moneda": "USD"
+  }
+}

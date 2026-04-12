@@ -90,6 +90,9 @@ class PropertyRepository:
 
 			db.merge(propiedad_model)
 			db.commit()
+		except Exception:
+			db.rollback()
+			raise
 		finally:
 			db.close()
 

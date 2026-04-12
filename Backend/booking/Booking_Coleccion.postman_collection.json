@@ -49,7 +49,104 @@
 						"reserva"
 					]
 				},
-				"description": "Crea una reserva temporal en HOLD. Devuelve el `id_reserva` que se necesita para formalizar la reserva."
+				"description": "Crea una reserva temporal en HOLD. Antes de persistir valida en catalog que la categoria exista, que haya inventario para cada fecha del rango y descuenta disponibilidad. Devuelve el `id_reserva` que se necesita para formalizar la reserva."
+			},
+			"response": []
+		},
+		{
+			"name": "1.1 Crear Reserva con Categoria Inexistente (debe fallar 400)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test('Error por categoria inexistente', function () {",
+							"    var json = pm.response.json();",
+							"    pm.expect(json).to.have.property('error');",
+							"    pm.expect(String(json.error).toLowerCase()).to.include('categoria');",
+							"    pm.expect(String(json.error).toLowerCase()).to.include('no existe');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id_usuario\": \"{{$randomUUID}}\",\n    \"id_categoria\": \"00000000-0000-0000-0000-000000000000\",\n    \"fecha_check_in\": \"2026-04-01\",\n    \"fecha_check_out\": \"2026-04-05\",\n    \"ocupacion\": {\n        \"adultos\": 2,\n        \"ninos\": 1,\n        \"infantes\": 0\n    }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/reserva",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva"
+					]
+				},
+				"description": "Intenta crear una reserva con una categoria inexistente. Debe fallar con HTTP 400."
+			},
+			"response": []
+		},
+		{
+			"name": "1.2 Crear Reserva sin Disponibilidad (debe fallar 400)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test('Error por falta de disponibilidad', function () {",
+							"    var json = pm.response.json();",
+							"    pm.expect(json).to.have.property('error');",
+							"    pm.expect(String(json.error).toLowerCase()).to.include('disponibilidad');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id_usuario\": \"{{$randomUUID}}\",\n    \"id_categoria\": \"{{$randomUUID}}\",\n    \"fecha_check_in\": \"2026-07-01\",\n    \"fecha_check_out\": \"2026-07-04\",\n    \"ocupacion\": {\n        \"adultos\": 2,\n        \"ninos\": 1,\n        \"infantes\": 0\n    }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/reserva",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva"
+					]
+				},
+				"description": "Intenta crear una reserva en fechas sin inventario cargado. Debe fallar con HTTP 400."
 			},
 			"response": []
 		},

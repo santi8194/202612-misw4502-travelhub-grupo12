@@ -43,7 +43,9 @@ def _reserva_en_hold() -> Reserva:
 def test_crear_reserva_hold_handler_ok_persiste_y_commit():
 	repositorio = MagicMock()
 	uow = _uow_mock()
-	handler = CrearReservaHoldHandler(repositorio=repositorio, uow=uow)
+	catalog_client = MagicMock()
+	catalog_client.reserve_inventory.return_value = []
+	handler = CrearReservaHoldHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
 
 	comando = CrearReservaHold(
 		id_usuario=uuid.uuid4(),
@@ -58,6 +60,7 @@ def test_crear_reserva_hold_handler_ok_persiste_y_commit():
 	id_reserva = handler.handle(comando)
 
 	assert id_reserva is not None
+	catalog_client.reserve_inventory.assert_called_once()
 	repositorio.agregar.assert_called_once()
 	uow.agregar_eventos.assert_called_once()
 	uow.commit.assert_called_once()
@@ -66,7 +69,9 @@ def test_crear_reserva_hold_handler_ok_persiste_y_commit():
 def test_crear_reserva_hold_handler_con_estado_explicito():
 	repositorio = MagicMock()
 	uow = _uow_mock()
-	handler = CrearReservaHoldHandler(repositorio=repositorio, uow=uow)
+	catalog_client = MagicMock()
+	catalog_client.reserve_inventory.return_value = []
+	handler = CrearReservaHoldHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
 
 	comando = CrearReservaHold(
 		id_usuario=uuid.uuid4(),
@@ -80,6 +85,77 @@ def test_crear_reserva_hold_handler_con_estado_explicito():
 
 	reserva_guardada = repositorio.agregar.call_args[0][0]
 	assert reserva_guardada.estado == EstadoReserva.HOLD
+
+
+def test_crear_reserva_hold_handler_si_categoria_no_existe_lanza_error():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	catalog_client = MagicMock()
+	catalog_client.reserve_inventory.side_effect = ValueError("La categoria no existe en catalog")
+	handler = CrearReservaHoldHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
+
+	comando = CrearReservaHold(
+		id_usuario=uuid.uuid4(),
+		id_categoria=uuid.uuid4(),
+		fecha_check_in="2026-04-01",
+		fecha_check_out="2026-04-03",
+	)
+
+	with pytest.raises(ValueError, match="categoria no existe"):
+		handler.handle(comando)
+
+	repositorio.agregar.assert_not_called()
+	uow.commit.assert_not_called()
+
+
+def test_crear_reserva_hold_handler_si_no_hay_disponibilidad_lanza_error():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	catalog_client = MagicMock()
+	catalog_client.reserve_inventory.side_effect = ValueError("No hay disponibilidad para la categoria en la fecha 2026-04-01")
+	handler = CrearReservaHoldHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
+
+	comando = CrearReservaHold(
+		id_usuario=uuid.uuid4(),
+		id_categoria=uuid.uuid4(),
+		fecha_check_in="2026-04-01",
+		fecha_check_out="2026-04-03",
+	)
+
+	with pytest.raises(ValueError, match="No hay disponibilidad"):
+		handler.handle(comando)
+
+	repositorio.agregar.assert_not_called()
+
+
+def test_crear_reserva_hold_handler_revierte_inventario_si_falla_persistencia():
+	repositorio = MagicMock()
+	repositorio.agregar.side_effect = RuntimeError("fallo persistencia")
+	uow = _uow_mock()
+	catalog_client = MagicMock()
+	original_inventory_items = [
+		{
+			"id_inventario": "inv-1",
+			"fecha": "2026-04-01",
+			"cupos_totales": 10,
+			"cupos_disponibles": 5,
+			"id_propiedad": "prop-1",
+		}
+	]
+	catalog_client.reserve_inventory.return_value = original_inventory_items
+	handler = CrearReservaHoldHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
+
+	comando = CrearReservaHold(
+		id_usuario=uuid.uuid4(),
+		id_categoria=uuid.uuid4(),
+		fecha_check_in="2026-04-01",
+		fecha_check_out="2026-04-03",
+	)
+
+	with pytest.raises(RuntimeError, match="persistencia"):
+		handler.handle(comando)
+
+	catalog_client.restore_inventory.assert_called_once_with(str(comando.id_categoria), original_inventory_items)
 
 
 def test_formalizar_handler_ok_actualiza_y_commit():

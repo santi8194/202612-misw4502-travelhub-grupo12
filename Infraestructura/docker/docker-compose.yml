@@ -1,0 +1,214 @@
+name: proyecto-final-grupo12
+
+services:
+
+  booking-api:
+    build:
+    # crea el context con la ruta para lelgar al Dockerfile de Booking que tiene este path C:\Users\User\Desktop\Proyecto Final Uniandes\202612-misw4502-travelhub-grupo12\Backend\booking y el docker-compose.yml esta en C:\Users\User\Desktop\Proyecto Final Uniandes\202612-misw4502-travelhub-grupo12\Infraestructura\docker\docker-compose.yml
+      context: ../../Backend/booking
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
+    environment:
+      - REDIS_HOST=redis-db
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - DB_USER=booking_user
+      - DB_PASSWORD=booking_password
+      - DB_HOST=booking-db
+      - DB_PORT=5432
+      - DB_NAME=booking_db
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      redis-db:
+        condition: service_started
+      rabbitmq-broker:
+        condition: service_started
+    networks:
+      - microservices-network
+
+  booking-saga-worker:
+    build:
+      context: ../../Backend/booking
+      dockerfile: Dockerfile
+    command: python /src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
+    environment:
+      - REDIS_HOST=redis-db
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - PYTHONPATH=/src
+      - PYTHONUNBUFFERED=1
+      - DB_USER=booking_user
+      - DB_PASSWORD=booking_password
+      - DB_HOST=booking-db
+      - DB_PORT=5432
+      - DB_NAME=booking_db
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      redis-db:
+        condition: service_started
+      rabbitmq-broker:
+        condition: service_started
+      booking-api:
+        condition: service_started
+    networks:
+      - microservices-network
+
+  notification-api:
+    build:
+      context: ../../Backend/notification
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_HOST=redis-db
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+    depends_on:
+      - redis-db
+      - rabbitmq-broker
+    networks:
+      - microservices-network
+
+  booking-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: booking_user
+      POSTGRES_PASSWORD: booking_password
+      POSTGRES_DB: booking_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - booking_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U booking_user -d booking_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-db:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices-network
+
+  rabbitmq-broker:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - microservices-network
+
+  partnermanagement-api:
+    build:
+      context: ../../Backend/PartnerManagement
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+    depends_on:
+      - rabbitmq-broker
+    networks:
+      - microservices-network
+  pms-api:
+    build:
+      context: ../../Backend/PMSIntegration
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - PMS_DB_USER=pms_user
+      - PMS_DB_PASSWORD=pms_password
+      - PMS_DB_HOST=pms-db
+      - PMS_DB_PORT=5432
+      - PMS_DB_NAME=pms_db
+    depends_on:
+      pms-db:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_started
+    networks:
+      - microservices-network
+
+  pms-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pms_user
+      POSTGRES_PASSWORD: pms_password
+      POSTGRES_DB: pms_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pms_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U pms_user -d pms_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payments-api:
+    build:
+      context: ../../Backend/Payment
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+    depends_on:
+      - rabbitmq-broker
+    networks:
+      - microservices-network
+
+  auth-api:
+    build:
+      context: ../../Backend/authservice
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8000"
+    networks:
+      - microservices-network
+
+  user-web:
+    build:
+      context: ../../Frontend/user-web
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  booking_db_data:
+  pms_db_data:

@@ -1,0 +1,25 @@
+.footer {
+  margin-top: 0;
+  padding: clamp(24px, 2.5vw, 40px) clamp(14px, 2.2vw, 28px);
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  column-gap: clamp(60px, 10vw, 160px);
+  row-gap: 16px;
+}
+
+.footer p {
+  margin: 4px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.copyright {
+  width: 100%;
+  text-align: center;
+  margin-top: 20px;
+  color: #9ca3af;
+  font-size: 13px;
+}

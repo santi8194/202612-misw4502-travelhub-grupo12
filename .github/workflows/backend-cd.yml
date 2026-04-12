@@ -538,16 +538,54 @@ jobs:
           fi
 
       - name: Wait for rollout
+        id: rollout
         shell: bash
+        continue-on-error: true
         run: |
           set -euo pipefail
 
-          if ! kubectl rollout status "deployment/${SERVICE_NAME}" \
+          kubectl rollout status "deployment/${SERVICE_NAME}" \
             --namespace "${K8S_NAMESPACE_DEV}" \
-            --timeout=300s; then
-            echo "::error::Rollout did not complete successfully for deployment '${SERVICE_NAME}' in namespace '${K8S_NAMESPACE_DEV}'."
-            exit 1
-          fi
+            --timeout=300s
+
+      - name: Collect rollout diagnostics
+        if: ${{ steps.rollout.outcome == 'failure' }}
+        shell: bash
+        run: |
+          set +e
+
+          echo "::group::Deployment describe"
+          kubectl describe deployment "${SERVICE_NAME}" -n "${K8S_NAMESPACE_DEV}"
+          echo "::endgroup::"
+
+          echo "::group::ReplicaSets"
+          kubectl get rs -n "${K8S_NAMESPACE_DEV}" -l "app=${SERVICE_NAME}" -o wide
+          echo "::endgroup::"
+
+          echo "::group::Pods"
+          kubectl get pods -n "${K8S_NAMESPACE_DEV}" -l "app=${SERVICE_NAME}" -o wide
+          echo "::endgroup::"
+
+          for pod in $(kubectl get pods -n "${K8S_NAMESPACE_DEV}" -l "app=${SERVICE_NAME}" -o jsonpath='{.items[*].metadata.name}'); do
+            echo "::group::Describe ${pod}"
+            kubectl describe pod "${pod}" -n "${K8S_NAMESPACE_DEV}"
+            echo "::endgroup::"
+
+            echo "::group::Logs ${pod}"
+            kubectl logs "${pod}" -n "${K8S_NAMESPACE_DEV}" --tail=200
+            echo "::endgroup::"
+
+            echo "::group::Previous logs ${pod}"
+            kubectl logs "${pod}" -n "${K8S_NAMESPACE_DEV}" --previous --tail=200
+            echo "::endgroup::"
+          done
+
+      - name: Fail when rollout did not complete
+        if: ${{ steps.rollout.outcome == 'failure' }}
+        shell: bash
+        run: |
+          echo "::error::Rollout did not complete successfully for deployment '${SERVICE_NAME}' in namespace '${K8S_NAMESPACE_DEV}'."
+          exit 1
 
       - name: Verify service response (port-forward)
         shell: bash

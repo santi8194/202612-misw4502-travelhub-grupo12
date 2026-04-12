@@ -45,6 +45,12 @@ spec:
             secretKeyRef:
               name: catalog-db-secret
               key: DB_PASSWORD
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 80
+          periodSeconds: 5
+          failureThreshold: 24
         readinessProbe:
           httpGet:
             path: /health

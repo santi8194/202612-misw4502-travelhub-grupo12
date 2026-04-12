@@ -1,7 +1,15 @@
 import uuid
 from unittest.mock import MagicMock
 
+import pytest
 import modulos.reserva.infraestructura.api as reserva_api_mod
+from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
+
+
+@pytest.fixture(autouse=True)
+def stub_catalog_client(monkeypatch):
+    monkeypatch.setattr(CatalogServiceClient, 'reserve_inventory', lambda self, id_categoria, fecha_check_in, fecha_check_out: [])
+    monkeypatch.setattr(CatalogServiceClient, 'restore_inventory', lambda self, id_categoria, original_items: None)
 
 def test_healthcheck(client):
     response = client.get('/health')
@@ -81,6 +89,60 @@ def test_create_reserva_hold_no_payload_returns_400(client):
     assert response.status_code == 400
     assert response.is_json
     assert "No data provided" in response.json["error"]
+
+
+def test_create_reserva_hold_categoria_no_existe_returns_400(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, comando):
+            raise ValueError("La categoria no existe en catalog")
+
+    monkeypatch.setattr(reserva_api_mod, 'CrearReservaHoldHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    payload = {
+        'id_usuario': str(uuid.uuid4()),
+        'id_categoria': str(uuid.uuid4()),
+        'fecha_check_in': '2026-04-01',
+        'fecha_check_out': '2026-04-05',
+        'ocupacion': {'adultos': 2, 'ninos': 0, 'infantes': 0}
+    }
+
+    response = client.post('/api/reserva', json=payload)
+
+    assert response.status_code == 400
+    assert 'categoria no existe' in response.json['error']
+
+
+def test_create_reserva_hold_sin_disponibilidad_returns_400(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, comando):
+            raise ValueError("No hay disponibilidad para la categoria en la fecha 2026-04-01")
+
+    monkeypatch.setattr(reserva_api_mod, 'CrearReservaHoldHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    payload = {
+        'id_usuario': str(uuid.uuid4()),
+        'id_categoria': str(uuid.uuid4()),
+        'fecha_check_in': '2026-04-01',
+        'fecha_check_out': '2026-04-05',
+        'ocupacion': {'adultos': 2, 'ninos': 0, 'infantes': 0}
+    }
+
+    response = client.post('/api/reserva', json=payload)
+
+    assert response.status_code == 400
+    assert 'No hay disponibilidad' in response.json['error']
 
 def test_formalizar_reserva_returns_200_when_handler_ok(client, monkeypatch):
     class DummyHandler:

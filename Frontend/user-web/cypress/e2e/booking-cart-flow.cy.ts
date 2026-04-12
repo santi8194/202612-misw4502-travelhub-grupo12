@@ -2,6 +2,8 @@ const BOOKING_ID = 'reserva-e2e-001';
 const CATEGORY_ID = 'categoria-e2e-001';
 const PROPERTY_ID = 'propiedad-e2e-001';
 
+export {};
+
 const guestForm = {
   name: 'Maria',
   lastName: 'Diaz',
@@ -148,7 +150,57 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     cy.get('[data-testid="continue-payment-btn"]').click();
     cy.wait('@createHoldError');
 
-    cy.wrap(alertStub).should('have.been.calledWith', 'No hay cupos disponibles');
+    cy.wrap(alertStub).should(
+      'have.been.calledWith',
+      'Ya no hay disponibilidad para las fechas seleccionadas. Elige otra categoria o cambia las fechas.'
+    );
+    cy.get('[data-testid="booking-cart-error"]')
+      .should('be.visible')
+      .and('contain.text', 'Ya no hay disponibilidad para las fechas seleccionadas.');
+    cy.get('[data-testid="continue-payment-btn"]').should('not.be.disabled');
+  });
+
+  it('Escenario F: informa cuando la categoria ya no existe', () => {
+    visitBookingCart();
+
+    cy.intercept('POST', '**/api/reserva', {
+      statusCode: 404,
+      fixture: 'booking-cart-create-hold-category-missing.json',
+    }).as('createHoldCategoryMissing');
+
+    const alertStub = cy.stub();
+    cy.on('window:alert', alertStub);
+
+    cy.get('[data-testid="continue-payment-btn"]').click();
+    cy.wait('@createHoldCategoryMissing');
+
+    cy.wrap(alertStub).should(
+      'have.been.calledWith',
+      'La categoria seleccionada no existe o ya no está disponible. Regresa y elige otra opción.'
+    );
+    cy.get('[data-testid="booking-cart-error"]')
+      .should('be.visible')
+      .and('contain.text', 'La categoria seleccionada no existe o ya no está disponible.');
+  });
+
+  it('Escenario G: respeta un mensaje específico del backend cuando es más útil', () => {
+    visitBookingCart();
+
+    cy.intercept('POST', '**/api/reserva', {
+      statusCode: 400,
+      fixture: 'booking-cart-create-hold-specific-message.json',
+    }).as('createHoldSpecificError');
+
+    const alertStub = cy.stub();
+    cy.on('window:alert', alertStub);
+
+    cy.get('[data-testid="continue-payment-btn"]').click();
+    cy.wait('@createHoldSpecificError');
+
+    cy.wrap(alertStub).should('have.been.calledWith', 'La tarifa configurada para la reserva ya no está vigente.');
+    cy.get('[data-testid="booking-cart-error"]')
+      .should('be.visible')
+      .and('contain.text', 'La tarifa configurada para la reserva ya no está vigente.');
     cy.get('[data-testid="continue-payment-btn"]').should('not.be.disabled');
   });
 });

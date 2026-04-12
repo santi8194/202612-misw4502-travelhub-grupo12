@@ -29,6 +29,12 @@
     </div>
   }
 
+  @if (holdError()) {
+    <div class="booking-cart-error" data-testid="booking-cart-error">
+      {{ holdError() }}
+    </div>
+  }
+
   <app-booking-cart-summary
     [data]="summary()"
     [isLoading]="isLoadingSummary()">

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, tap, throwError } from 'rxjs';
 import { HoldRequest, HoldResponse } from '../../models/hold.interface';
 
@@ -25,6 +25,41 @@ export class BookingService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `http://localhost:5001/api/reserva`;
   private readonly catalogUrl = `http://localhost:8005/catalog`;
+
+  getReservationErrorMessage(
+    error: unknown,
+    fallback = 'No fue posible crear la reserva. Intenta nuevamente.'
+  ): string {
+    const status = error instanceof HttpErrorResponse ? error.status : undefined;
+    const backendMessage = this.extractErrorMessage(error);
+    const normalizedMessage = this.normalizeErrorMessage(backendMessage);
+
+    if (status === 0) {
+      return 'No fue posible comunicarse con el servicio de reservas. Intenta nuevamente en unos minutos.';
+    }
+
+    if (this.isMissingCategoryError(normalizedMessage) || (status === 404 && !normalizedMessage)) {
+      return 'La categoria seleccionada no existe o ya no está disponible. Regresa y elige otra opción.';
+    }
+
+    if (this.isAvailabilityError(normalizedMessage) || status === 409) {
+      return 'Ya no hay disponibilidad para las fechas seleccionadas. Elige otra categoria o cambia las fechas.';
+    }
+
+    if (status === 422 || this.isValidationError(normalizedMessage)) {
+      return 'La reserva no se pudo crear porque los datos enviados no son válidos. Verifica las fechas y la cantidad de huespedes.';
+    }
+
+    if (backendMessage && !this.isGenericBackendMessage(normalizedMessage)) {
+      return backendMessage;
+    }
+
+    if (status && status >= 500) {
+      return 'El servicio de reservas presentó un error. Intenta nuevamente.';
+    }
+
+    return fallback;
+  }
 
   createHold(request: HoldRequest): Observable<HoldResponse> {
     const mappedRequest: CreateBookingRequest = {
@@ -161,5 +196,83 @@ export class BookingService {
         return throwError(() => error);
       })
     );
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      return this.extractMessageFromPayload(error.error)
+        ?? this.extractMessageFromPayload(error.message)
+        ?? '';
+    }
+
+    if (error instanceof Error) {
+      return error.message.trim();
+    }
+
+    if (typeof error === 'string') {
+      return error.trim();
+    }
+
+    return this.extractMessageFromPayload(error) ?? '';
+  }
+
+  private extractMessageFromPayload(payload: unknown): string | null {
+    if (typeof payload === 'string') {
+      const trimmed = payload.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    }
+
+    if (Array.isArray(payload)) {
+      for (const item of payload) {
+        const message = this.extractMessageFromPayload(item);
+        if (message) {
+          return message;
+        }
+      }
+
+      return null;
+    }
+
+    if (!payload || typeof payload !== 'object') {
+      return null;
+    }
+
+    const record = payload as Record<string, unknown>;
+    const knownKeys = ['mensaje', 'message', 'detail', 'error', 'descripcion', 'title'];
+
+    for (const key of knownKeys) {
+      const message = this.extractMessageFromPayload(record[key]);
+      if (message) {
+        return message;
+      }
+    }
+
+    return this.extractMessageFromPayload(record['errors']);
+  }
+
+  private normalizeErrorMessage(message: string): string {
+    return message
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  private isMissingCategoryError(message: string): boolean {
+    const mentionsCategory = /categoria|category/.test(message);
+    const mentionsMissing = /no existe|does not exist|not found|no encontrada|no encontrado|invalida|invalid/.test(message);
+    return mentionsCategory && mentionsMissing;
+  }
+
+  private isAvailabilityError(message: string): boolean {
+    return /disponib|cupos?|agotad|sold out|sin habitaciones|overbook|capacity|ocupad/.test(message);
+  }
+
+  private isValidationError(message: string): boolean {
+    return /fechas?|check.?in|check.?out|huesped|guest|ocupacion|datos? invalid|validation/.test(message);
+  }
+
+  private isGenericBackendMessage(message: string): boolean {
+    return /bad request|http failure response|internal server error|unexpected error|error$|request failed|status \d+/.test(message);
   }
 }

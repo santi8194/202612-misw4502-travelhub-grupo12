@@ -92,6 +92,7 @@ export class BookingCartPage implements OnDestroy {
   summary = signal<BookingSummaryData | null>(null);
   isLoadingSummary = signal(true);
   isSubmittingPayment = signal(false);
+  holdError = signal<string | null>(null);
   private bookingData = signal<BookingData | null>(null);
   private propertyIdForBack = signal<string | null>(null);
 
@@ -289,6 +290,7 @@ export class BookingCartPage implements OnDestroy {
 
   createHold(): void {
     if (!this.timerActive()) {
+      this.holdError.set('El tiempo de hold expiró. Debes volver a seleccionar la reserva.');
       console.warn('[BookingCartPage] createHold blocked because optimistic hold has expired');
       alert('El tiempo de hold expiró. Debes volver a seleccionar la reserva.');
       return;
@@ -300,6 +302,7 @@ export class BookingCartPage implements OnDestroy {
 
     const booking = this.bookingData();
     if (!booking) {
+      this.holdError.set('No se pudo cargar la reserva desde backend. Vuelve a intentarlo más tarde.');
       console.warn('[BookingCartPage] createHold blocked because booking data is missing');
       alert('No se pudo cargar la reserva desde backend');
       return;
@@ -318,6 +321,7 @@ export class BookingCartPage implements OnDestroy {
         guests,
         booking,
       });
+      this.holdError.set('La reserva no tiene todos los datos necesarios para continuar con el pago.');
       alert('La reserva no tiene todos los datos necesarios para crear el hold');
       return;
     }
@@ -328,6 +332,7 @@ export class BookingCartPage implements OnDestroy {
       checkOut,
       guests
     };
+    this.holdError.set(null);
     console.info('[BookingCartPage] createHold request', request);
     this.isSubmittingPayment.set(true);
 
@@ -336,6 +341,7 @@ export class BookingCartPage implements OnDestroy {
     ).subscribe({
       next: (response) => {
         console.info('[BookingCartPage] createHold response', response);
+        this.holdError.set(null);
         if (typeof response.expiresAt === 'number' && response.expiresAt > Date.now()) {
           this.store.setHold(response);
           this.startTimer(response.expiresAt);
@@ -346,7 +352,12 @@ export class BookingCartPage implements OnDestroy {
       },
       error: (error) => {
         console.error('[BookingCartPage] createHold failed', { request, error });
-        alert('No hay cupos disponibles');
+        const message = this.bookingService.getReservationErrorMessage(
+          error,
+          'No fue posible confirmar la reserva. Intenta nuevamente.'
+        );
+        this.holdError.set(message);
+        alert(message);
       }
     });
   }

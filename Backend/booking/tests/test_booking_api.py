@@ -1,7 +1,15 @@
 import uuid
 from unittest.mock import MagicMock
 
+import pytest
 import modulos.reserva.infraestructura.api as reserva_api_mod
+from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
+
+
+@pytest.fixture(autouse=True)
+def stub_catalog_client(monkeypatch):
+    monkeypatch.setattr(CatalogServiceClient, 'reserve_inventory', lambda self, id_categoria, fecha_check_in, fecha_check_out: [])
+    monkeypatch.setattr(CatalogServiceClient, 'restore_inventory', lambda self, id_categoria, original_items: None)
 
 def test_healthcheck(client):
     response = client.get('/health')

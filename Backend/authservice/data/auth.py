@@ -12,6 +12,7 @@ class Token(BaseModel):
     Retorna el string codificado y el tipo de autorización esperada ('bearer').
     """
     access_token: str
+    refresh_token: str
     token_type: str
 
 
@@ -24,6 +25,7 @@ class TokenPayload(BaseModel):
     email: str | None = None
     rol: str | None = None
     partner_id: str | None = None
+    sid: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -33,3 +35,10 @@ class LoginRequest(BaseModel):
     """
     email: EmailStr
     password: str
+
+
+class RefreshTokenRequest(BaseModel):
+    """
+    Cuerpo esperado para renovar una sesión activa mediante refresh token.
+    """
+    refresh_token: str

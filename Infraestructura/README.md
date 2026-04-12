@@ -171,8 +171,8 @@ kubectl rollout restart deployment partnermanagement-deployment
 ## Desplegar authService
 
 kubectl apply -f ./k8s/aws/authservice-deployment.yaml
-kubectl apply -f ./k8s/aws/partnermanagement-service.yaml
-kubectl rollout restart deployment partnermanagement-deployment
+kubectl apply -f ./k8s/aws/authservice-service.yaml
+kubectl rollout restart deployment authservice
 
 
 # Vuelve a loguear
@@ -182,7 +182,12 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 # Ingress
 Se configuró un Ingress Controller (NGINX) en el cluster EKS para exponer todos los microservicios mediante una sola URL pública.
 
-kubectl apply -f ./k8s/aws/ingress.yaml
+Los microservicios backend quedan expuestos internamente como `ClusterIP` y el unico `LoadBalancer` externo debe ser el del controller `ingress-nginx`.
+
+Nota: `authservice` se mantiene en `authservice-ingress.yaml` y no en `backend-ingress.yaml` porque sus rutas ya viven internamente bajo el prefijo `/auth`. Como `backend-ingress.yaml` aplica `rewrite-target`, incluirlo allí rompería rutas como `/auth/login`.
+
+kubectl apply -f ./k8s/aws/backend-ingress.yaml
+kubectl apply -f ./k8s/aws/authservice-ingress.yaml
 kubectl get svc -n ingress-nginx ingress-nginx-controller -w
 
 URL: http://a27afd6e0e6414ee490e57d925fab93e-408326643.us-east-1.elb.amazonaws.com
@@ -193,6 +198,9 @@ Probar:
 /pmsintegration/health
 /payment/health
 /notification/health
+/booking/health
+/search/health
+/auth/login
 
 # RDS
 

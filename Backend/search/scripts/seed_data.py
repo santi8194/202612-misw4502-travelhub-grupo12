@@ -303,8 +303,10 @@ async def _seed_postgres_async(docs: list[dict]) -> None:
 
     print("\n🐘  Poblando PostgreSQL...")
     try:
-        # Forzar localhost ya que este script usualmente se corre fuera de Docker
-        settings.db_host = "localhost"
+        import os
+        # Priorizar la variable de terminal, pero caer en localhost si no se especifica.
+        # Esto evita fallar si el .env dice "postgres" pero estamos fuera de Docker.
+        settings.db_host = os.environ.get("DB_HOST", "localhost")
         pool = await asyncpg.create_pool(settings.database_url)
     except Exception as e:
         print(f"   ⚠️  No se pudo conectar a PostgreSQL: {e}")

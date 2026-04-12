@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import auth
 from config.config import settings
-from infrastructure.database import init_db
 
 # Inicialización de la aplicación FastAPI con metadata general
 app = FastAPI(
@@ -32,15 +31,17 @@ app.add_middleware(
 app.include_router(auth.router, prefix=settings.API_V1_STR, tags=["auth"])
 
 
-@app.on_event("startup")
-def startup_event() -> None:
-    """
-    Inicializa la conexión a la base de datos y asegura la creación de tablas base.
-    """
-    init_db()
-
-
+# Endpoint /health para probes de Kubernetes
 @app.get("/health")
+def health_check():
+    """
+    Endpoint de salud para Kubernetes (readiness/liveness probe).
+    Retorna 200 si el servicio está corriendo.
+    """
+    return {"status": "ok"}
+
+
+@app.get("/")
 def root():
     """
     Endpoint de bienvenida y comprobación de salud básica.

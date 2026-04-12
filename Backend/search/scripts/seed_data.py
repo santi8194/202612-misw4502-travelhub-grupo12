@@ -39,7 +39,7 @@ OS_HOST = "https://localhost:9200"
 OS_USER = "admin"
 OS_PASS = "MyStr0ng!Pass#2026"
 INDEX = "hospedajes"
-PG_URL = "postgresql://travelhub:travelhub@localhost:5432/travelhub"
+PG_URL = None  # Se construye dinámicamente desde app.config.settings
 
 # ── Mapping del índice OpenSearch ─────────────────────────────────────────────
 
@@ -116,8 +116,8 @@ PROPERTIES = [
     {
         "nombre": "Cabaña Montaña Mágica",
         "categoria": "Cabaña",
-        "ciudad": "Salento",
-        "estado_provincia": "Quindío",
+        "ciudad": "Medellín",
+        "estado_provincia": "Antioquia",
         "pais": "Colombia",
         "lat": 4.6380,
         "lon": -75.5680,
@@ -131,8 +131,8 @@ PROPERTIES = [
     {
         "nombre": "Resort Playa Dorada",
         "categoria": "Resort",
-        "ciudad": "Santa Marta",
-        "estado_provincia": "Magdalena",
+        "ciudad": "Medellín",
+        "estado_provincia": "Antioquia",
         "pais": "Colombia",
         "lat": 11.2408,
         "lon": -74.1990,
@@ -146,8 +146,8 @@ PROPERTIES = [
     {
         "nombre": "Apartamento Centro Histórico",
         "categoria": "Apartamento",
-        "ciudad": "Cartagena",
-        "estado_provincia": "Bolívar",
+        "ciudad": "Medellín",
+        "estado_provincia": "Antioquia",
         "pais": "Colombia",
         "lat": 10.4236,
         "lon": -75.5490,
@@ -161,8 +161,8 @@ PROPERTIES = [
     {
         "nombre": "Eco Lodge Tayrona",
         "categoria": "Lodge",
-        "ciudad": "Santa Marta",
-        "estado_provincia": "Magdalena",
+        "ciudad": "Medellín",
+        "estado_provincia": "Antioquia",
         "pais": "Colombia",
         "lat": 11.3189,
         "lon": -74.0854,
@@ -191,8 +191,8 @@ PROPERTIES = [
     {
         "nombre": "Finca Cafetera La Esperanza",
         "categoria": "Finca",
-        "ciudad": "Manizales",
-        "estado_provincia": "Caldas",
+        "ciudad": "Medellín",
+        "estado_provincia": "Antioquia",
         "pais": "Colombia",
         "lat": 5.0689,
         "lon": -75.5174,
@@ -299,10 +299,15 @@ async def _seed_postgres_async(docs: list[dict]) -> None:
     # Permitir importar desde el paquete app cuando se ejecuta el script directamente
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     from app.infrastructure.db_schema import ensure_schema
+    from app.config import settings
 
     print("\n🐘  Poblando PostgreSQL...")
     try:
-        pool = await asyncpg.create_pool(PG_URL)
+        import os
+        # Priorizar la variable de terminal, pero caer en localhost si no se especifica.
+        # Esto evita fallar si el .env dice "postgres" pero estamos fuera de Docker.
+        settings.db_host = os.environ.get("DB_HOST", "localhost")
+        pool = await asyncpg.create_pool(settings.database_url)
     except Exception as e:
         print(f"   ⚠️  No se pudo conectar a PostgreSQL: {e}")
         return

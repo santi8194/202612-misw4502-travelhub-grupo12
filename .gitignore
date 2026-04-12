@@ -18,3 +18,7 @@ __pycache__/
 #mobile
 .angular/
 node_modules/
+
+#archivosprueba
+coverage
+dist

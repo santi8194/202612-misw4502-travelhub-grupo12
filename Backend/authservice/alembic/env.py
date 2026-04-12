@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Importar la configuración y los modelos
 from config.config import settings
 from infrastructure.database import Base
-from infrastructure.models import UserModel  # Importar explícitamente para que Alembic vea los modelos
+from infrastructure.models import User, Role  # Importar explícitamente para que Alembic vea los modelos
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -47,7 +47,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.get_database_url()
+    url = settings.DATABASE_URL
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -67,7 +67,7 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = settings.get_database_url()
+    configuration["sqlalchemy.url"] = settings.DATABASE_URL
     
     connectable = engine_from_config(
         configuration,

@@ -1,6 +1,6 @@
 # Auth Service
 
-Microservicio de autenticacion para la plataforma hotelera. Genera tokens JWT stateless y persiste usuarios en PostgreSQL.
+Microservicio de autenticación para la plataforma hotelera. Genera tokens JWT stateless integrándose de forma mockeada con el servicio de Usuarios.
 
 ## Requisitos
 
@@ -12,24 +12,17 @@ Instala las dependencias:
 pip install -r requirements.txt
 ```
 
-Variables de entorno requeridas:
+## Pruebas y Cobertura
+
+Desde la carpeta `Backend/AuthService`, ejecuta:
 
 ```bash
-SECRET_KEY=<jwt_secret>
-DB_HOST=<rds_endpoint>
-DB_PORT=5432
-DB_NAME=authservice_db
-DB_USER=<usuario_rds>
-DB_PASSWORD=<password_rds>
+python -m pytest --maxfail=1 --disable-warnings --cov=. --cov-report=term-missing --cov-fail-under=80
 ```
 
-Tambien puedes usar una sola variable para la conexion:
+Este comando estandariza la validacion de pruebas y fuerza una cobertura minima del 80%.
 
-```bash
-DATABASE_URL=postgresql+psycopg2://<usuario_rds>:<password_rds>@<rds_endpoint>:5432/authservice_db
-```
-
-## Ejecucion
+## Ejecución
 
 Para iniciar el servidor en modo desarrollo:
 
@@ -37,11 +30,11 @@ Para iniciar el servidor en modo desarrollo:
 uvicorn main:app --reload --port 8000
 ```
 
-La documentacion interactiva (Swagger) estara disponible en: [http://localhost:8000/docs](http://localhost:8000/docs)
+La documentación interactiva (Swagger) estará disponible en: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## Ejemplos de Uso
 
-### 1. Iniciar Sesion (Login JSON request)
+### 1. Iniciar Sesión (Login JSON request)
 
 ```bash
 curl -X 'POST' \
@@ -82,15 +75,15 @@ curl -X 'POST' \
   -H 'Authorization: Bearer <TOKEN_AQUI>'
 ```
 
-## Usuarios Iniciales
+## Usuarios Mockeados por Defecto
 
-Cuando la tabla `users` esta vacia, el servicio crea estos usuarios de prueba automaticamente:
+En `app/services/user_service.py` se incluyeron los siguientes usuarios de prueba:
 
-- **Admin/Partner**: `admin@hotel.com` / `123456`
+- **Admin/Partner**: `admin@hotel.com` / `admin123`
 - **Usuario Normal**: `user@hotel.com` / `user123`
 
-## Proteccion contra Fuerza Bruta
+## Protección contra Fuerza Bruta
 
 El servicio incorpora un mecanismo sencillo en memoria para bloqueo de cuentas tras varios intentos fallidos.
-- **Limite**: 5 intentos fallidos
-- **Bloqueo**: 15 minutos (configurable en `.env` o variables de entorno)
+- **Límite**: 5 intentos fallidos
+- **Bloqueo**: 15 minutos (configurable en `.env` o `config.py`)

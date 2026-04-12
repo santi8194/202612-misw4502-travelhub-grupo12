@@ -9,7 +9,7 @@ from uuid import UUID
 
 from config.config import settings
 from config.security import create_refresh_token, hash_token
-from infrastructure.database import new_session
+from infrastructure.database import SessionLocal
 from infrastructure.models import UserSession
 
 
@@ -45,7 +45,7 @@ class SessionService:
 
     @staticmethod
     def create_session(user_id: UUID) -> SessionTokenBundle:
-        db = new_session()
+        db = SessionLocal()
         try:
             now = SessionService._utcnow()
             raw_refresh_token = create_refresh_token()
@@ -64,7 +64,7 @@ class SessionService:
 
     @staticmethod
     def validate_session(session_id: str, user_id: UUID, touch_activity: bool = False) -> bool:
-        db = new_session()
+        db = SessionLocal()
         try:
             session = db.query(UserSession).filter(
                 UserSession.id == session_id,
@@ -91,7 +91,7 @@ class SessionService:
 
     @staticmethod
     def rotate_refresh_token(refresh_token: str):
-        db = new_session()
+        db = SessionLocal()
         try:
             token_hash = hash_token(refresh_token)
             session = db.query(UserSession).filter(UserSession.refresh_token_hash == token_hash).first()

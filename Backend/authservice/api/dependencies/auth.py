@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from config.config import settings
 from data.auth import TokenPayload
 from data.user import UserResponse
+from modules.session_service import SessionService
 from modules.user_service import UserService
 
 # Middleware de seguridad que le indica a la interfaz tipo Swagger de dónde tomar y usar tokens
@@ -35,7 +36,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
         # Transformando la carga útil desencriptada al modelo local para verificar formato
         token_data = TokenPayload(**payload)
         
-        if token_data.sub is None:
+        if token_data.sub is None or token_data.sid is None:
             raise credentials_exception
     except (JWTError, ValidationError):
         # Captura errores desde firmas mal configuradas hasta vencimiento (exp)
@@ -46,6 +47,9 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
     
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado en los registros")
+
+    if not SessionService.validate_session(token_data.sid, user.id_usuario, touch_activity=True):
+        raise credentials_exception
         
     return UserResponse(
         id_usuario=user.id_usuario,

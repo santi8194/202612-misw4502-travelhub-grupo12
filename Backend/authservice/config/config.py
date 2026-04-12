@@ -1,69 +1,49 @@
 """
-Configuracion global del auth service.
-
-Todas las variables sensibles deben llegar por entorno o archivo .env.
+Propósito del archivo: Definición de variables de configuración general.
+Rol dentro del microservicio: Provee todas las constantes globales y variables de entorno requeridas, como la llave secreta, el algoritmo JWT y políticas de bloqueo.
 """
 
-from urllib.parse import quote_plus
-
-from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """Configuracion centralizada del servicio."""
-
-    model_config = ConfigDict(
-        case_sensitive=True,
-        env_file=".env",
-        env_file_encoding="utf-8",
-    )
-
+    """
+    Clase de configuración que maneja las variables globales.
+    Usa BaseSettings para poder ser inicializada a través de un archivo .env si se requiere.
+    """
     PROJECT_NAME: str = "Auth Service"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/auth"
-
-    # Configuracion principal para la seguridad con JWT
-    SECRET_KEY: str
+    
+    # Configuración principal para la seguridad con JWT
+    SECRET_KEY: str = "super_secret_key_change_in_production_12345"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-
-    # Politicas para el bloqueo por proteccion contra fuerza bruta
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    SESSION_IDLE_TIMEOUT_MINUTES: int = 5
+    
+    # Políticas para el bloqueo por protección contra fuerza bruta
     MAX_LOGIN_ATTEMPTS: int = 5
     LOCKOUT_DURATION_MINUTES: int = 15
 
-    # Configuracion de la base de datos
-    DB_DRIVER: str = "postgresql+psycopg2"
-    DB_HOST: str | None = None
+    # Configuración de base de datos
+    # NOTA: En producción/Kubernetes, estos valores deben ser definidos por variables de entorno (por ejemplo, desde Secrets o ConfigMaps).
+    # Los valores por defecto solo se usan para desarrollo local o si no se encuentra la variable de entorno correspondiente.
+    DB_USER: str = "auth_user"
+    DB_PASSWORD: str = "auth_password"
+    DB_HOST: str = "localhost"
     DB_PORT: int = 5432
-    DB_NAME: str | None = None
-    DB_USER: str | None = None
-    DB_PASSWORD: str | None = None
-    DATABASE_URL: str | None = None
+    DB_NAME: str = "auth_db"
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        """Construye la URL de conexión a PostgreSQL"""
+        return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-    def get_database_url(self) -> str:
-        """Obtiene la URL de conexion de SQLAlchemy."""
-        if self.DATABASE_URL:
-            return self.DATABASE_URL
-
-        required_values = {
-            "DB_HOST": self.DB_HOST,
-            "DB_NAME": self.DB_NAME,
-            "DB_USER": self.DB_USER,
-            "DB_PASSWORD": self.DB_PASSWORD,
-        }
-        missing_values = [key for key, value in required_values.items() if not value]
-
-        if missing_values:
-            raise ValueError(
-                "Faltan variables de entorno para la base de datos: "
-                + ", ".join(missing_values)
-            )
-
-        return (
-            f"{self.DB_DRIVER}://{quote_plus(self.DB_USER)}:{quote_plus(self.DB_PASSWORD)}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-        )
+    class Config:
+        case_sensitive = True
+        env_file = ".env"
 
 
+# Instancia singleton para ser importada en el resto de la aplicación
 settings = Settings()

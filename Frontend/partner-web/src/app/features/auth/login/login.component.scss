@@ -1,0 +1,167 @@
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #000000;
+
+    .login-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 420px;
+        padding: 3rem 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+
+    .logo-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background-color: #263c87;
+            color: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            svg {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    }
+
+    h2 {
+        color: #1a1a1a;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+
+    form {
+        text-align: left;
+
+        .error-banner {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid #fca5a5;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+
+            label {
+                display: block;
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 0.5rem;
+            }
+
+            .input-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+
+                .icon {
+                    position: absolute;
+                    left: 14px;
+                    width: 20px;
+                    height: 20px;
+                    color: #9ca3af;
+                }
+
+                input {
+                    width: 100%;
+                    padding: 0.8rem 1rem 0.8rem 2.5rem;
+                    border: 1px solid #d1d5db;
+                    border-radius: 8px;
+                    font-size: 0.95rem;
+                    color: #111827;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+
+                    &:focus {
+                        outline: none;
+                        border-color: #263c87;
+                        box-shadow: 0 0 0 3px rgba(38, 60, 135, 0.1);
+                    }
+
+                    &::placeholder {
+                        color: #9ca3af;
+                    }
+                }
+            }
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            margin-top: 1.5rem;
+
+            .checkbox-container {
+                display: flex;
+                align-items: center;
+                font-size: 0.9rem;
+                color: #4b5563;
+                cursor: pointer;
+                gap: 0.5rem;
+
+                input {
+                    width: 16px;
+                    height: 16px;
+                    accent-color: #263c87;
+                    cursor: pointer;
+                }
+            }
+
+            .forgot-link {
+                font-size: 0.9rem;
+                color: #263c87;
+                font-weight: 500;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: #263c87;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.85rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: #1e306e;
+            }
+
+            &:disabled {
+                background-color: #a5b4fc;
+                cursor: not-allowed;
+            }
+        }
+    }
+}

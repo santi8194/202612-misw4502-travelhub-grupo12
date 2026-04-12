@@ -1,6 +1,6 @@
 <form class="hero-search" data-testid="hero-search-form" (ngSubmit)="onSearch()">
 
-  <div class="search-field" style="position: relative;">
+  <div class="search-field relative">
     <label class="search-field-label" for="location">Ubicación</label>
     <input
       id="location"
@@ -24,11 +24,16 @@
         }
       </ul>
     }
+    @if (formErrors().location) {
+      <div class="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-md absolute top-full left-4 mt-2 z-10 whitespace-nowrap after:content-[''] after:absolute after:bottom-full after:left-4 after:-ml-1 after:border-[5px] after:border-transparent after:border-b-red-600 pointer-events-none">
+        Introduce un destino
+      </div>
+    }
   </div>
 
   <div class="search-divider" aria-hidden="true"></div>
 
-  <div class="search-field">
+  <div class="search-field relative">
     <label class="search-field-label" for="checkin">Ingreso</label>
     <input
       id="checkin"
@@ -37,13 +42,20 @@
       type="date"
       [ngModel]="form().checkIn"
       (ngModelChange)="updateField('checkIn', $event)"
+      [min]="minCheckInDate()"
+      [max]="maxDate()"
       data-testid="input-checkin"
     />
+    @if (formErrors().dates && !form().checkIn) {
+      <div class="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-md absolute top-full left-4 mt-2 z-10 whitespace-nowrap after:content-[''] after:absolute after:bottom-full after:left-4 after:-ml-1 after:border-[5px] after:border-transparent after:border-b-red-600 pointer-events-none">
+        Selecciona ingreso
+      </div>
+    }
   </div>
 
   <div class="search-divider" aria-hidden="true"></div>
 
-  <div class="search-field">
+  <div class="search-field relative">
     <label class="search-field-label" for="checkout">Salida</label>
     <input
       id="checkout"
@@ -52,25 +64,37 @@
       type="date"
       [ngModel]="form().checkOut"
       (ngModelChange)="updateField('checkOut', $event)"
+      [min]="minCheckOutDate()"
+      [max]="maxDate()"
       data-testid="input-checkout"
     />
+    @if (formErrors().dates && !form().checkOut) {
+      <div class="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-md absolute top-full left-4 mt-2 z-10 whitespace-nowrap after:content-[''] after:absolute after:bottom-full after:left-4 after:-ml-1 after:border-[5px] after:border-transparent after:border-b-red-600 pointer-events-none">
+        Selecciona salida
+      </div>
+    }
   </div>
 
   <div class="search-divider" aria-hidden="true"></div>
 
-  <div class="search-field">
+  <div class="search-field relative">
     <label class="search-field-label" for="guests">Huéspedes</label>
-    <input
-      id="guests"
-      name="guests"
-      class="search-field-input"
-      type="number"
-      min="1"
-      placeholder="Agregar huésped"
-      [ngModel]="form().guests"
-      (ngModelChange)="updateField('guests', $event ? +$event : null)"
-      data-testid="input-guests"
-    />
+    <div class="flex items-center gap-4 mt-1">
+      <button 
+        type="button" 
+        class="guest-btn" 
+        (click)="decreaseGuests()">−</button>
+      <span class="font-medium text-gray-700 min-w-[20px] text-center" data-testid="guests-value">{{ form().guests || 0 }}</span>
+      <button 
+        type="button" 
+        class="guest-btn" 
+        (click)="increaseGuests()">+</button>
+    </div>
+    @if (formErrors().guests) {
+      <div class="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-md absolute top-full left-4 mt-2 z-10 whitespace-nowrap after:content-[''] after:absolute after:bottom-full after:left-4 after:-ml-1 after:border-[5px] after:border-transparent after:border-b-red-600 pointer-events-none">
+        Mínimo 1 huésped
+      </div>
+    }
   </div>
 
   <button type="submit" class="search-btn" data-testid="btn-search" aria-label="Buscar">

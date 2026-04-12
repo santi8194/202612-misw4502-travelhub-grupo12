@@ -55,9 +55,9 @@
             </button>
 
             @if (isDropdownOpen) {
-            <div class="dropdown-menu">
+            <div class="dropdown-menu" data-testid="navbar-dropdown">
                 @if (authService.isAuthenticated$ | async) {
-                <a class="dropdown-item" (click)="logout()">Cerrar sesión</a>
+                <a class="dropdown-item" (click)="logout()" data-testid="btn-logout">Cerrar sesión</a>
                 } @else {
                 <a class="dropdown-item">Registrarse</a>
                 <a routerLink="/login" class="dropdown-item" (click)="isDropdownOpen=false">Iniciar sesión</a>

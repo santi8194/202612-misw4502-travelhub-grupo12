@@ -13,8 +13,8 @@
         <h2>TravelHub Partner</h2>
         <p class="subtitle">Portal de Socios</p>
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <div *ngIf="errorMessage" class="error-banner">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" data-testid="login-form">
+            <div *ngIf="errorMessage" class="error-banner" data-testid="login-error">
                 {{ errorMessage }}
             </div>
 
@@ -26,7 +26,7 @@
                             d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
                         </path>
                     </svg>
-                    <input type="email" formControlName="email" placeholder="socio@hotel.com">
+                    <input type="email" formControlName="email" placeholder="socio@hotel.com" data-testid="input-email">
                 </div>
             </div>
 
@@ -38,7 +38,7 @@
                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
                         </path>
                     </svg>
-                    <input type="password" formControlName="password" placeholder="••••••••">
+                    <input type="password" formControlName="password" placeholder="••••••••" data-testid="input-password">
                 </div>
             </div>
 
@@ -51,8 +51,8 @@
                 <a href="#" class="forgot-link" (click)="$event.preventDefault()">¿Olvidaste tu contraseña?</a>
             </div>
 
-            <button type="submit" class="submit-btn" [disabled]="!loginForm.valid || isLoading">
-                <span *ngIf="isLoading">Verificando credenciales...</span>
+            <button type="submit" class="submit-btn" [disabled]="!loginForm.valid || isLoading" data-testid="btn-login">
+                <span *ngIf="isLoading" data-testid="login-loading">Verificando credenciales...</span>
                 <span *ngIf="!isLoading">Iniciar Sesión</span>
             </button>
         </form>

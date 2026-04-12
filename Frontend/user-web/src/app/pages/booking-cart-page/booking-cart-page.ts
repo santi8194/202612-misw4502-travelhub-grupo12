@@ -80,6 +80,7 @@ export class BookingCartPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private hasSentExpireRequest = false;
+  private readonly reservationId = this.route.snapshot.paramMap.get('id_reserva');
 
   form = signal<GuestForm>({
     name: '',
@@ -92,6 +93,7 @@ export class BookingCartPage implements OnDestroy {
   summary = signal<BookingSummaryData | null>(null);
   isLoadingSummary = signal(true);
   isSubmittingPayment = signal(false);
+  isRedirectingToExistingSession = signal(false);
   holdError = signal<string | null>(null);
   private bookingData = signal<BookingData | null>(null);
   private propertyIdForBack = signal<string | null>(null);
@@ -190,6 +192,13 @@ export class BookingCartPage implements OnDestroy {
         const { booking, catalog, category, property } = result;
         this.bookingData.set(booking);
         this.propertyIdForBack.set(property?.id_propiedad ?? category?.id_propiedad ?? catalog?.id_propiedad ?? null);
+
+        if (this.redirectToExistingSessionIfNeeded(booking)) {
+          this.isLoadingSummary.set(false);
+          return;
+        }
+
+        this.syncCurrentSession();
 
         const checkIn = this.extractCheckIn(booking);
         const checkOut = this.extractCheckOut(booking);
@@ -332,38 +341,29 @@ export class BookingCartPage implements OnDestroy {
       checkOut,
       guests
     };
+
+    const currentSession = this.getCurrentBookingSession();
+    if (currentSession && currentSession.expiresAt > Date.now()) {
+      console.info('[BookingCartPage] Reusing active booking session', currentSession);
+      this.startTimer(currentSession.expiresAt);
+      return;
+    }
+
     this.holdError.set(null);
     console.info('[BookingCartPage] createHold request', request);
-    this.isSubmittingPayment.set(true);
 
-    this.bookingService.createHold(request).pipe(
-      finalize(() => this.isSubmittingPayment.set(false))
-    ).subscribe({
-      next: (response) => {
-        console.info('[BookingCartPage] createHold response', response);
-        this.holdError.set(null);
-        if (typeof response.expiresAt === 'number' && response.expiresAt > Date.now()) {
-          this.store.setHold(response);
-          this.startTimer(response.expiresAt);
-          return;
-        }
+    const hold = this.store.getHold(this.reservationId);
+    const expiresAt = hold?.expiresAt && hold.expiresAt > Date.now()
+      ? hold.expiresAt
+      : Date.now() + BookingCartPage.HOLD_DURATION_MS;
 
-        console.warn('[BookingCartPage] Hold response without valid expiresAt. Keeping optimistic hold timer.', response);
-      },
-      error: (error) => {
-        console.error('[BookingCartPage] createHold failed', { request, error });
-        const message = this.bookingService.getReservationErrorMessage(
-          error,
-          'No fue posible confirmar la reserva. Intenta nuevamente.'
-        );
-        this.holdError.set(message);
-        alert(message);
-      }
-    });
+    this.store.setHold(this.reservationId, { id: this.reservationId ?? BookingCartPage.OPTIMISTIC_HOLD_ID, expiresAt });
+    this.storeCurrentSession(expiresAt);
+    this.startTimer(expiresAt);
   }
 
   private loadHold(): void {
-    const hold = this.store.getHold();
+    const hold = this.store.getHold(this.reservationId);
     if (!hold) {
       this.initializeOptimisticHold();
       return;
@@ -371,14 +371,16 @@ export class BookingCartPage implements OnDestroy {
 
     if (typeof hold.expiresAt !== 'number') {
       console.warn('[BookingCartPage] Stored hold has no expiresAt, clearing local hold', hold);
-      this.store.clear();
+      this.store.clear(this.reservationId);
+      this.clearCurrentSession();
       this.initializeOptimisticHold();
       return;
     }
 
     const diff = Math.floor((hold.expiresAt - Date.now()) / 1000);
     if (diff <= 0) {
-      this.store.clear();
+      this.store.clear(this.reservationId);
+      this.clearCurrentSession();
       this.initializeOptimisticHold();
       return;
     }
@@ -388,9 +390,10 @@ export class BookingCartPage implements OnDestroy {
 
   private initializeOptimisticHold(): void {
     const expiresAt = Date.now() + BookingCartPage.HOLD_DURATION_MS;
-    this.store.setHold({ id: BookingCartPage.OPTIMISTIC_HOLD_ID, expiresAt });
+    this.store.setHold(this.reservationId, { id: BookingCartPage.OPTIMISTIC_HOLD_ID, expiresAt });
+    this.storeCurrentSession(expiresAt);
     this.startTimer(expiresAt);
-    console.info('[BookingCartPage] Optimistic hold initialized', { expiresAt });
+    console.info('[BookingCartPage] Optimistic hold initialized', { reservationId: this.reservationId, expiresAt });
   }
 
   private startTimer(expiresAt: number): void {
@@ -399,7 +402,8 @@ export class BookingCartPage implements OnDestroy {
     // Set immediately so the timer is visible before the first tick
     const initialDiff = Math.floor((expiresAt - Date.now()) / 1000);
     if (initialDiff <= 0) {
-      this.store.clear();
+      this.store.clear(this.reservationId);
+      this.clearCurrentSession();
       return;
     }
     this.remainingTime.set(initialDiff);
@@ -410,9 +414,9 @@ export class BookingCartPage implements OnDestroy {
       if (diff <= 0) {
         this.clearTimer();
         this.remainingTime.set(0);
-        this.store.clear();
+        this.store.clear(this.reservationId);
+        this.clearCurrentSession();
         this.expireReservationIfNeeded();
-        alert('El hold expiró');
       } else {
         this.remainingTime.set(diff);
       }
@@ -450,5 +454,81 @@ export class BookingCartPage implements OnDestroy {
 
   ngOnDestroy(): void {
     this.clearTimer();
+  }
+
+  private buildBookingSignature(booking: BookingData): string | null {
+    const categoryId = booking.id_categoria ?? '';
+    const checkIn = this.extractCheckIn(booking);
+    const checkOut = this.extractCheckOut(booking);
+    const guests = this.extractGuests(booking);
+
+    if (!categoryId || !checkIn || !checkOut || guests <= 0) {
+      return null;
+    }
+
+    return [categoryId, checkIn, checkOut, guests].join('|');
+  }
+
+  private getCurrentBookingSession() {
+    const booking = this.bookingData();
+    const signature = booking ? this.buildBookingSignature(booking) : null;
+    return signature ? this.store.getBookingSession(signature) : null;
+  }
+
+  private storeCurrentSession(expiresAt: number): void {
+    const booking = this.bookingData();
+    const signature = booking ? this.buildBookingSignature(booking) : null;
+    if (!signature || !this.reservationId) {
+      return;
+    }
+
+    this.store.setBookingSession(signature, {
+      reservationId: this.reservationId,
+      signature,
+      expiresAt,
+    });
+  }
+
+  private clearCurrentSession(): void {
+    const booking = this.bookingData();
+    const signature = booking ? this.buildBookingSignature(booking) : null;
+    if (!signature) {
+      return;
+    }
+
+    const session = this.store.getBookingSession(signature);
+    if (session?.reservationId === this.reservationId) {
+      this.store.clearBookingSession(signature);
+    }
+  }
+
+  private syncCurrentSession(): void {
+    const hold = this.store.getHold(this.reservationId);
+    if (hold?.expiresAt && hold.expiresAt > Date.now()) {
+      this.storeCurrentSession(hold.expiresAt);
+    }
+  }
+
+  private redirectToExistingSessionIfNeeded(booking: BookingData): boolean {
+    const signature = this.buildBookingSignature(booking);
+    if (!signature) {
+      return false;
+    }
+
+    const existingSession = this.store.getBookingSession(signature);
+    if (!existingSession || existingSession.reservationId === this.reservationId || existingSession.expiresAt <= Date.now()) {
+      if (existingSession && existingSession.expiresAt <= Date.now()) {
+        this.store.clearBookingSession(signature);
+      }
+      return false;
+    }
+
+    this.holdError.set('Ya existe una reserva activa con la misma información. Te redirigimos a esa sesión.');
+    this.isRedirectingToExistingSession.set(true);
+    this.clearTimer();
+    this.remainingTime.set(0);
+    console.info('[BookingCartPage] Redirecting to existing booking session', existingSession);
+    this.router.navigate(['/booking', existingSession.reservationId]);
+    return true;
   }
 }

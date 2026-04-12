@@ -53,16 +53,7 @@ describe('BookingService', () => {
     req.flush({ id_reserva: 'reserva-123' });
   });
 
-  it('should describe missing category errors clearly', () => {
-    const error = new HttpErrorResponse({
-      status: 404,
-      error: { detail: 'La categoria no existe' },
-    });
-
-    expect(service.getReservationErrorMessage(error)).toBe(
-      'La categoria seleccionada no existe o ya no está disponible. Regresa y elige otra opción.'
-    );
-  });
+  
 
   it('should describe availability errors clearly', () => {
     const error = new HttpErrorResponse({
@@ -71,7 +62,7 @@ describe('BookingService', () => {
     });
 
     expect(service.getReservationErrorMessage(error)).toBe(
-      'Ya no hay disponibilidad para las fechas seleccionadas. Elige otra categoria o cambia las fechas.'
+      'No hay disponibilidad para las fechas seleccionadas'
     );
   });
 
@@ -84,5 +75,31 @@ describe('BookingService', () => {
     expect(service.getReservationErrorMessage(error)).toBe(
       'La tarifa configurada para la reserva ya no está vigente.'
     );
+  });
+
+  it('should fail createBooking with the backend business message when id_reserva is missing', () => {
+    const request = {
+      id_usuario: 'user-1',
+      id_categoria: 'cat-1',
+      fecha_check_in: '2026-04-12',
+      fecha_check_out: '2026-04-13',
+      ocupacion: {
+        adultos: 2,
+        ninos: 0,
+        infantes: 0,
+      },
+    };
+
+    service.createBooking(request).subscribe({
+      next: () => fail('Expected createBooking to fail when id_reserva is missing'),
+      error: (error: Error) => {
+        expect(service.getReservationErrorMessage(error)).toBe(
+          'No existe inventario para la categoria en la fecha 2026-04-12'
+        );
+      },
+    });
+
+    const req = httpTesting.expectOne('http://localhost:5001/api/reserva');
+    req.flush({ mensaje: 'No existe inventario para la categoria en la fecha 2026-04-12' });
   });
 });

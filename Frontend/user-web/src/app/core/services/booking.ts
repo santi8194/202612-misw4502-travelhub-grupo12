@@ -16,8 +16,10 @@ interface CreateBookingRequest {
 }
 
 interface CreateBookingResponse {
-  id_reserva: string;
+  id_reserva?: string;
   mensaje?: string;
+  detail?: string;
+  error?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -38,6 +40,10 @@ export class BookingService {
       return 'No fue posible comunicarse con el servicio de reservas. Intenta nuevamente en unos minutos.';
     }
 
+    if (backendMessage && !this.isGenericBackendMessage(normalizedMessage)) {
+      return backendMessage;
+    }
+
     if (this.isMissingCategoryError(normalizedMessage) || (status === 404 && !normalizedMessage)) {
       return 'La categoria seleccionada no existe o ya no está disponible. Regresa y elige otra opción.';
     }
@@ -50,8 +56,8 @@ export class BookingService {
       return 'La reserva no se pudo crear porque los datos enviados no son válidos. Verifica las fechas y la cantidad de huespedes.';
     }
 
-    if (backendMessage && !this.isGenericBackendMessage(normalizedMessage)) {
-      return backendMessage;
+    if (status === 400) {
+      return 'No hay disponibilidad para la categoria en la fecha seleccionada. Elige otra fecha o una categoria diferente.';
     }
 
     if (status && status >= 500) {
@@ -78,13 +84,11 @@ export class BookingService {
     return this.http.post<CreateBookingResponse>(`${this.apiUrl}`, mappedRequest).pipe(
       tap((response) => console.info('[BookingService] createHold success', response)),
       map((response) => {
-        if (!response?.id_reserva) {
-          throw new Error('Backend did not return id_reserva');
-        }
+        const validatedResponse = this.requireBookingId(response);
 
         // Backend create endpoint does not provide an expiration timestamp.
         return {
-          id: response.id_reserva,
+          id: validatedResponse.id_reserva,
           expiresAt: 0,
         };
       }),
@@ -191,11 +195,25 @@ export class BookingService {
     console.info('[BookingService] POST', `${this.apiUrl}`, request);
     return this.http.post<CreateBookingResponse>(`${this.apiUrl}`, request).pipe(
       tap((response) => console.info('[BookingService] createBooking success', response)),
+      map((response) => this.requireBookingId(response)),
       catchError((error) => {
         console.error('[BookingService] createBooking error', { request, error });
         return throwError(() => error);
       })
     );
+  }
+
+  private requireBookingId(response: CreateBookingResponse | null | undefined): CreateBookingResponse & { id_reserva: string } {
+    if (response?.id_reserva) {
+      return response as CreateBookingResponse & { id_reserva: string };
+    }
+
+    const backendMessage = this.extractMessageFromPayload(response);
+    if (backendMessage) {
+      throw new Error(backendMessage);
+    }
+
+    throw new Error('El servicio de reservas no devolvió un identificador de reserva válido.');
   }
 
   private extractErrorMessage(error: unknown): string {
@@ -265,7 +283,7 @@ export class BookingService {
   }
 
   private isAvailabilityError(message: string): boolean {
-    return /disponib|cupos?|agotad|sold out|sin habitaciones|overbook|capacity|ocupad/.test(message);
+    return /disponib|cupos?|agotad|sold out|sin habitaciones|overbook|capacity|ocupad|inventario/.test(message);
   }
 
   private isValidationError(message: string): boolean {

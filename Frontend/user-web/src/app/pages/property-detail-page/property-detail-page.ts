@@ -316,7 +316,7 @@ export class PropertyDetailPage {
     ).subscribe((response) => {
       if (!response?.id_reserva) {
         console.error('[PropertyDetailPage] createBooking response without id_reserva', response);
-        this.error.set('La reserva fue creada sin identificador valido.');
+        this.error.set(this.bookingService.getReservationErrorMessage(response));
         return;
       }
 

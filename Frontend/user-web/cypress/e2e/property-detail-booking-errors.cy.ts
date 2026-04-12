@@ -31,7 +31,7 @@ describe('Detalle de Propiedad - errores de reserva', () => {
 
     cy.get('[data-testid="property-detail-error"]')
       .should('be.visible')
-      .and('contain.text', 'La categoria seleccionada no existe o ya no está disponible. Regresa y elige otra opción.');
+      .and('contain.text', 'La categoria no existe');
     cy.location('pathname').should('eq', `/property/${PROPERTY_ID}`);
   });
 
@@ -48,7 +48,7 @@ describe('Detalle de Propiedad - errores de reserva', () => {
 
     cy.get('[data-testid="property-detail-error"]')
       .should('be.visible')
-      .and('contain.text', 'Ya no hay disponibilidad para las fechas seleccionadas. Elige otra categoria o cambia las fechas.');
+      .and('contain.text', 'No hay cupos disponibles');
   });
 
   it('Escenario C: conserva un mensaje específico del backend cuando aporta más contexto', () => {
@@ -65,5 +65,21 @@ describe('Detalle de Propiedad - errores de reserva', () => {
     cy.get('[data-testid="property-detail-error"]')
       .should('be.visible')
       .and('contain.text', 'La tarifa configurada para la reserva ya no está vigente.');
+  });
+
+  it('Escenario D: si el backend responde sin id_reserva pero con error de inventario, muestra el mensaje específico', () => {
+    visitPropertyDetail();
+
+    cy.intercept('POST', '**/api/reserva', {
+      statusCode: 200,
+      fixture: 'booking-cart-create-hold-inventory-date-error.json',
+    }).as('createBookingInventoryError');
+
+    cy.get('[data-testid="property-detail-reservar"]').click();
+    cy.wait('@createBookingInventoryError');
+
+    cy.get('[data-testid="property-detail-error"]')
+      .should('be.visible')
+      .and('contain.text', 'No existe inventario para la categoria en la fecha 2026-04-12');
   });
 });

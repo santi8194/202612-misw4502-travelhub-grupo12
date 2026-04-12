@@ -75,10 +75,10 @@
         </div>
     </div>
 
-    <div class="welcome-card" *ngIf="!loading && !error && user as currentUser">
+    <div class="welcome-card" *ngIf="!loading && !error && user as currentUser" data-testid="welcome-card">
         <div class="welcome-icon">🏨</div>
         <div class="welcome-content">
-            <h2 class="welcome-title">¡Bienvenido, {{ currentUser.email }}!</h2>
+            <h2 class="welcome-title" data-testid="welcome-title">¡Bienvenido, {{ currentUser.email }}!</h2>
             <p class="welcome-subtitle" *ngIf="currentUser.partner_id; else noPartner">
                 Estás gestionando el hotel
                 <span class="partner-badge">{{ currentUser.partner_id }}</span>
@@ -91,11 +91,11 @@
         </div>
     </div>
 
-    <div class="welcome-loading" *ngIf="loading">
+    <div class="welcome-loading" *ngIf="loading" data-testid="welcome-loading">
         <span>Cargando...</span>
     </div>
 
-    <div class="welcome-error" *ngIf="error">
+    <div class="welcome-error" *ngIf="error" data-testid="welcome-error">
         <span>No se pudo cargar la información del usuario.</span>
     </div>
 

@@ -1,10 +1,11 @@
-import { Component, output, signal, inject } from '@angular/core';
+import { Component, output, signal, inject, computed } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, filter, catchError, map } from 'rxjs/operators';
 import { SearchForm } from '../../../models/search-form.interface';
 import { SearchService } from '../../../core/services/search';
+import { SearchStateService } from '../../../core/services/search-state';
 import { DestinationItem } from '../../../models/destination.interface';
 
 @Component({
@@ -16,16 +17,40 @@ import { DestinationItem } from '../../../models/destination.interface';
 })
 export class HeroSearchFormComponent {
   private readonly searchService = inject(SearchService);
+  private readonly searchStateService = inject(SearchStateService);
   readonly search = output<SearchForm>();
 
-  form = signal<SearchForm>({
-    location: '',
-    checkIn: '',
-    checkOut: '',
-    guests: null,
-    selectedDestination: undefined,
+  form = signal<SearchForm>(
+    this.searchStateService.currentSearch() ?? {
+      location: '',
+      checkIn: '',
+      checkOut: '',
+      guests: 1,
+      selectedDestination: undefined,
+    }
+  );
+
+  formErrors = signal({
+    location: false,
+    dates: false,
+    guests: false,
   });
 
+  minCheckInDate = computed(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+
+  maxDate = computed(() => {
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    return nextYear.toISOString().split('T')[0];
+  });
+
+  minCheckOutDate = computed(() => {
+    const checkIn = this.form().checkIn;
+    return checkIn ? checkIn : this.minCheckInDate();
+  });
   private locationQuerySubject = new Subject<string>();
 
   // RxJS pipeline for autocomplete
@@ -47,6 +72,9 @@ export class HeroSearchFormComponent {
 
   updateField(field: keyof SearchForm, value: string | number | null): void {
     this.form.update(current => ({ ...current, [field]: value }));
+    if (field === 'location') this.formErrors.update(e => ({ ...e, location: false }));
+    if (field === 'checkIn' || field === 'checkOut') this.formErrors.update(e => ({ ...e, dates: false }));
+    if (field === 'guests') this.formErrors.update(e => ({ ...e, guests: false }));
   }
 
   onLocationInput(value: string): void {
@@ -66,8 +94,33 @@ export class HeroSearchFormComponent {
     this.locationQuerySubject.next(''); // Clear dropdown
   }
 
+  increaseGuests(): void {
+    const current = this.form().guests || 0;
+    this.updateField('guests', current + 1);
+  }
+
+  decreaseGuests(): void {
+    const current = this.form().guests || 0;
+    if (current > 1) {
+      this.updateField('guests', current - 1);
+    }
+  }
+
   onSearch(): void {
-    this.search.emit(this.form());
+    const f = this.form();
+    const locationValid = !!f.location;
+    const datesValid = !!f.checkIn && !!f.checkOut;
+    const guestsValid = !!f.guests && f.guests > 0;
+
+    this.formErrors.set({
+      location: !locationValid,
+      dates: !datesValid,
+      guests: !guestsValid
+    });
+
+    if (locationValid && datesValid && guestsValid) {
+      this.search.emit(f);
+    }
   }
 }
 

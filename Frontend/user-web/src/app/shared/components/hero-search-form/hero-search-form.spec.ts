@@ -11,7 +11,7 @@ describe('HeroSearchFormComponent', () => {
 
   beforeEach(async () => {
     searchServiceSpy = jasmine.createSpyObj('SearchService', ['autocompleteDestinations']);
-    
+
     // Default mock return
     searchServiceSpy.autocompleteDestinations.and.returnValue(
       of({ results: [{ ciudad: 'Bordeaux', estado_provincia: 'Aquitaine', pais: 'Francia' }] })
@@ -55,7 +55,7 @@ describe('HeroSearchFormComponent', () => {
   });
 
   it('should render the guests input', () => {
-    const input = fixture.nativeElement.querySelector('[data-testid="input-guests"]');
+    const input = fixture.nativeElement.querySelector('[data-testid="guests-value"]');
     expect(input).toBeTruthy();
   });
 
@@ -64,12 +64,12 @@ describe('HeroSearchFormComponent', () => {
     expect(btn).toBeTruthy();
   });
 
-  it('should initialize form with empty values', () => {
+  it('should initialize form with empty values (except guest which is 1)', () => {
     const form = component.form();
     expect(form.location).toBe('');
     expect(form.checkIn).toBe('');
     expect(form.checkOut).toBe('');
-    expect(form.guests).toBeNull();
+    expect(form.guests).toBe(1);
   });
 
   it('should update location field', () => {
@@ -77,22 +77,26 @@ describe('HeroSearchFormComponent', () => {
     expect(component.form().location).toBe('París');
   });
 
-  it('should emit search event on form submit', () => {
+  it('should emit search event on form submit only if valid', () => {
     let emitted = false;
     component.search.subscribe(() => (emitted = true));
 
     component.updateField('location', 'Roma');
+    component.updateField('checkIn', '2030-10-10');
+    component.updateField('checkOut', '2030-10-15');
+    component.updateField('guests', 2);
     component.onSearch();
 
     expect(emitted).toBeTrue();
   });
 
-  it('should emit current form data on search', () => {
+  it('should emit current form data on search when valid', () => {
     let emittedForm = null as unknown;
     component.search.subscribe(val => (emittedForm = val));
 
-    // Notice we use the new helper
     component.updateField('location', 'Bogotá');
+    component.updateField('checkIn', '2030-10-10');
+    component.updateField('checkOut', '2030-10-15');
     component.updateField('guests', 3);
     component.onSearch();
 
@@ -120,6 +124,30 @@ describe('HeroSearchFormComponent', () => {
     component.selectDestination({ ciudad: 'Paris', estado_provincia: 'Île-de-France', pais: 'Francia' });
     component.selectDestination({ ciudad: 'Bogotá', estado_provincia: '', pais: 'Colombia' });
     expect(component.form().selectedDestination?.ciudad).toBe('Bogotá');
+  });
+
+  it('should not emit and set formErrors if required values are missing', () => {
+    let emitted = false;
+    component.search.subscribe(() => (emitted = true));
+
+    component.updateField('location', ''); // Invalid
+    component.onSearch();
+
+    expect(emitted).toBeFalse();
+    expect(component.formErrors().location).toBeTrue();
+  });
+
+  it('should increase and decrease guests properly, but never below 1', () => {
+    expect(component.form().guests).toBe(1);
+
+    component.increaseGuests();
+    expect(component.form().guests).toBe(2);
+
+    component.decreaseGuests();
+    expect(component.form().guests).toBe(1);
+
+    component.decreaseGuests(); // Should not go to 0
+    expect(component.form().guests).toBe(1);
   });
 });
 

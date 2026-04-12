@@ -1,0 +1,41 @@
+{
+  "resultados": [
+    {
+      "id_propiedad": "550e8400-e29b-41d4-a716-446655440000",
+      "id_categoria": "550e8400-e29b-41d4-a716-446655440010",
+      "propiedad_nombre": "The Bordeaux Grand Hotel",
+      "categoria_nombre": "Bordeaux Getaway",
+      "imagen_principal_url": "https://placehold.co/600x400/E8F4F8/1A365D?text=Hotel+Bordeaux",
+      "amenidades_destacadas": ["Wifi", "Piscina", "Desayuno", "Spa"],
+      "estrellas": 5,
+      "rating_promedio": 4.9,
+      "ciudad": "Bordeaux",
+      "estado_provincia": "Nouvelle-Aquitaine",
+      "pais": "Francia",
+      "coordenadas": { "lat": 44.8378, "lon": -0.5792 },
+      "capacidad_pax": 2,
+      "precio_base": "150.00",
+      "moneda": "USD",
+      "es_reembolsable": true
+    },
+    {
+      "id_propiedad": "650e8400-e29b-41d4-a716-446655440001",
+      "id_categoria": "650e8400-e29b-41d4-a716-446655440011",
+      "propiedad_nombre": "Petit Paris",
+      "categoria_nombre": "Bordeaux Escape",
+      "imagen_principal_url": "https://placehold.co/600x400/FDF6E3/B58900?text=Petit+Paris",
+      "amenidades_destacadas": ["Wifi"],
+      "estrellas": 4,
+      "rating_promedio": 4.5,
+      "ciudad": "Bordeaux",
+      "estado_provincia": "Nouvelle-Aquitaine",
+      "pais": "Francia",
+      "coordenadas": { "lat": 44.838, "lon": -0.58 },
+      "capacidad_pax": 2,
+      "precio_base": "90.00",
+      "moneda": "USD",
+      "es_reembolsable": false
+    }
+  ],
+  "total": 2
+}

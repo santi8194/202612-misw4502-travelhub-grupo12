@@ -2,62 +2,19 @@ const BOOKING_ID = 'reserva-e2e-001';
 const CATEGORY_ID = 'categoria-e2e-001';
 const PROPERTY_ID = 'propiedad-e2e-001';
 
-const bookingResponse = {
-  id_usuario: 'usuario-e2e-001',
-  id_categoria: CATEGORY_ID,
-  fecha_inicio: '2026-05-10',
-  fecha_fin: '2026-05-13',
-  num_huespedes: 2,
+const guestForm = {
+  name: 'Maria',
+  lastName: 'Diaz',
+  email: 'maria@example.com',
+  phone: '3001234567',
+  request: 'Necesito check-in temprano.',
 };
-
-const categoryResponse = {
-  id_categoria: CATEGORY_ID,
-  id_propiedad: PROPERTY_ID,
-  nombre_comercial: 'Suite Familiar',
-  foto_portada_url: 'https://images.example.com/suite-familiar.jpg',
-  precio_base: {
-    monto: 150,
-    moneda: 'USD',
-  },
-};
-
-const catalogResponse = {
-  id_propiedad: PROPERTY_ID,
-  nombre: 'Hotel Mirador',
-  propiedad_nombre: 'Hotel Mirador',
-  ciudad: 'Cartagena',
-  pais: 'Colombia',
-  imagen_principal_url: 'https://images.example.com/hotel-mirador.jpg',
-  precio_base: '150',
-};
-
-const propertyResponse = {
-  id_propiedad: PROPERTY_ID,
-  nombre: 'Hotel Mirador',
-  ubicacion: {
-    ciudad: 'Cartagena',
-    pais: 'Colombia',
-  },
-};
-
-const propertyCategoriesResponse = [
-  {
-    id_categoria: CATEGORY_ID,
-    codigo_mapeo_pms: 'CAT-001',
-    categoria_nombre: 'Suite Familiar',
-    precio_base: 150,
-    moneda: 'USD',
-    capacidad_pax: 2,
-    imagen_principal_url: 'https://images.example.com/suite-familiar.jpg',
-    amenidades_destacadas: ['Wifi'],
-  },
-];
 
 function mockBookingCartRequests() {
-  cy.intercept('GET', `**/api/reserva/${BOOKING_ID}`, bookingResponse).as('getBooking');
-  cy.intercept('GET', `**/catalog/properties/by-category/${CATEGORY_ID}`, catalogResponse).as('getCatalog');
-  cy.intercept('GET', `**/catalog/categories/${CATEGORY_ID}`, categoryResponse).as('getCategory');
-  cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}`, propertyResponse).as('getProperty');
+  cy.intercept('GET', `**/api/reserva/${BOOKING_ID}`, { fixture: 'booking-cart-booking.json' }).as('getBooking');
+  cy.intercept('GET', `**/catalog/properties/by-category/${CATEGORY_ID}`, { fixture: 'booking-cart-catalog.json' }).as('getCatalog');
+  cy.intercept('GET', `**/catalog/categories/${CATEGORY_ID}`, { fixture: 'booking-cart-category.json' }).as('getCategory');
+  cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}`, { fixture: 'booking-cart-property.json' }).as('getProperty');
 }
 
 function visitBookingCart() {
@@ -72,7 +29,7 @@ function visitBookingCart() {
   cy.wait(['@getBooking', '@getCatalog', '@getCategory', '@getProperty']);
 }
 
-describe('Booking Cart Page (HU-Web Booking)', () => {
+describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
   it('Escenario A: carga el resumen y permite diligenciar los datos del huésped', () => {
     visitBookingCart();
 
@@ -90,17 +47,17 @@ describe('Booking Cart Page (HU-Web Booking)', () => {
 
     cy.get('[data-testid="booking-total"]').should('contain.text', '$495');
 
-    cy.get('[data-testid="input-name"]').type('Maria');
-    cy.get('[data-testid="input-lastname"]').type('Diaz');
-    cy.get('[data-testid="input-email"]').type('maria@example.com');
-    cy.get('[data-testid="input-phone"]').type('3001234567');
-    cy.get('[data-testid="input-request"]').type('Necesito check-in temprano.');
+    cy.get('[data-testid="input-name"]').type(guestForm.name);
+    cy.get('[data-testid="input-lastname"]').type(guestForm.lastName);
+    cy.get('[data-testid="input-email"]').type(guestForm.email);
+    cy.get('[data-testid="input-phone"]').type(guestForm.phone);
+    cy.get('[data-testid="input-request"]').type(guestForm.request);
 
-    cy.get('[data-testid="input-name"]').should('have.value', 'Maria');
-    cy.get('[data-testid="input-lastname"]').should('have.value', 'Diaz');
-    cy.get('[data-testid="input-email"]').should('have.value', 'maria@example.com');
-    cy.get('[data-testid="input-phone"]').should('have.value', '3001234567');
-    cy.get('[data-testid="input-request"]').should('have.value', 'Necesito check-in temprano.');
+    cy.get('[data-testid="input-name"]').should('have.value', guestForm.name);
+    cy.get('[data-testid="input-lastname"]').should('have.value', guestForm.lastName);
+    cy.get('[data-testid="input-email"]').should('have.value', guestForm.email);
+    cy.get('[data-testid="input-phone"]').should('have.value', guestForm.phone);
+    cy.get('[data-testid="input-request"]').should('have.value', guestForm.request);
     cy.get('[data-testid="continue-payment-btn"]').should('not.be.disabled');
   });
 
@@ -119,13 +76,7 @@ describe('Booking Cart Page (HU-Web Booking)', () => {
         infantes: 0,
       });
 
-      req.reply({
-        statusCode: 201,
-        body: {
-          id_reserva: 'hold-backend-001',
-          mensaje: 'Reserva creada',
-        },
-      });
+      req.reply({ fixture: 'booking-cart-create-hold-success.json' });
     }).as('createHold');
 
     const alertStub = cy.stub();
@@ -142,8 +93,7 @@ describe('Booking Cart Page (HU-Web Booking)', () => {
     cy.clock(new Date('2026-04-12T12:00:00Z').getTime(), ['Date', 'setInterval', 'clearInterval']);
     mockBookingCartRequests();
     cy.intercept('POST', `**/api/reserva/${BOOKING_ID}/expirar`, {
-      statusCode: 200,
-      body: { mensaje: 'Reserva expirada' },
+      fixture: 'booking-cart-expire-success.json',
     }).as('expireBooking');
 
     const alertStub = cy.stub();
@@ -169,7 +119,7 @@ describe('Booking Cart Page (HU-Web Booking)', () => {
   it('Escenario D: vuelve al detalle de la propiedad con los parámetros de la reserva', () => {
     visitBookingCart();
 
-    cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}/categories`, propertyCategoriesResponse).as('getPropertyCategories');
+    cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}/categories`, { fixture: 'booking-cart-property-categories.json' }).as('getPropertyCategories');
 
     cy.get('[data-testid="back-link"]').click();
 
@@ -189,7 +139,7 @@ describe('Booking Cart Page (HU-Web Booking)', () => {
 
     cy.intercept('POST', '**/api/reserva', {
       statusCode: 409,
-      body: { mensaje: 'No hay cupos disponibles' },
+      fixture: 'booking-cart-create-hold-error.json',
     }).as('createHoldError');
 
     const alertStub = cy.stub();

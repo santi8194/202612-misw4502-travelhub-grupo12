@@ -208,6 +208,7 @@ jobs:
           set -euo pipefail
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/authservice-service.yaml
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/booking-service.yaml
+          kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/catalog-service.yaml
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/notification-service.yaml
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/payment-service.yaml
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/partnermanagement-service.yaml

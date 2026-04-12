@@ -427,8 +427,8 @@ jobs:
             fi
           fi
 
-      - name: Reconcile authservice secrets
-        if: ${{ matrix.service_name == 'authservice' }}
+      - name: Reconcile shared DB secret
+        if: ${{ matrix.service_name == 'authservice' || matrix.service_name == 'booking' || matrix.service_name == 'catalog' }}
         shell: bash
         env:
           DB_SECRET_ENV_FILE: /tmp/authservice-db-secret.env
@@ -478,6 +478,12 @@ jobs:
             --from-env-file="${DB_SECRET_ENV_FILE}" \
             --dry-run=client \
             -o yaml | kubectl apply -f -
+
+      - name: Reconcile authservice app secret
+        if: ${{ matrix.service_name == 'authservice' }}
+        shell: bash
+        run: |
+          set -euo pipefail
 
           kubectl create secret generic authservice-app-secret \
             --namespace "${K8S_NAMESPACE_DEV}" \

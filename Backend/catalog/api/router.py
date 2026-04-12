@@ -21,6 +21,11 @@ repository = PropertyRepository()
 event_bus = EventBus()
 
 
+@router.get("/health")
+def health():
+	return {"status": "ok", "service": "catalog"}
+
+
 # ==================== REQUEST MODELS ====================
 
 

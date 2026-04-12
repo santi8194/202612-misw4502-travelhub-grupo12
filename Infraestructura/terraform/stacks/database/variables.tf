@@ -24,8 +24,8 @@ variable "allowed_cidr_blocks" {
   default     = []
 }
 
-variable "secret_name" {
-  description = "Nombre del secreto en AWS Secrets Manager."
+variable "admin_secret_name" {
+  description = "Nombre del secreto admin en AWS Secrets Manager para bootstrap de la instancia."
   type        = string
 }
 
@@ -59,4 +59,19 @@ variable "owner" {
 variable "db_identifier" {
   description = "Identificador unico de la instancia RDS. Se usa como prefijo en nombres de recursos relacionados."
   type        = string
+}
+
+variable "service_databases" {
+  description = "Configuracion no sensible de bases y secretos por servicio."
+  type = map(object({
+    secret_name = string
+    db_name     = string
+    db_username = string
+  }))
+}
+
+variable "service_db_passwords" {
+  description = "Contrasenas sensibles para las credenciales de aplicacion por servicio."
+  type        = map(string)
+  sensitive   = true
 }

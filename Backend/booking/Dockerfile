@@ -7,7 +7,8 @@ ENV PYTHONPATH=/src
 ENV FLASK_APP=api
 
 RUN pip install --no-cache-dir -r requirements.txt
+RUN chmod +x /src/Booking/entrypoint.sh
 
 EXPOSE 8000
 
-CMD ["uvicorn", "Booking.asgi:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/src/Booking/entrypoint.sh"]

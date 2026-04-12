@@ -23,27 +23,27 @@ spec:
         - name: DB_HOST
           valueFrom:
             secretKeyRef:
-              name: authservice-db-secret
+              name: catalog-db-secret
               key: DB_HOST
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
-              name: authservice-db-secret
+              name: catalog-db-secret
               key: DB_PORT
         - name: DB_NAME
           valueFrom:
             secretKeyRef:
-              name: authservice-db-secret
+              name: catalog-db-secret
               key: DB_NAME
         - name: DB_USER
           valueFrom:
             secretKeyRef:
-              name: authservice-db-secret
+              name: catalog-db-secret
               key: DB_USER
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: authservice-db-secret
+              name: catalog-db-secret
               key: DB_PASSWORD
         readinessProbe:
           httpGet:

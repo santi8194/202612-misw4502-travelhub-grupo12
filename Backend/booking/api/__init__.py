@@ -49,9 +49,11 @@ def create_app(config_name=None):
     import modulos.saga_reservas.infraestructura.dto
     
     with app.app_context():
-        db.create_all()
-        from config.seed import seed_saga_reservas
-        seed_saga_reservas()
+        is_sqlite = str(app.config["SQLALCHEMY_DATABASE_URI"]).startswith("sqlite")
+        if is_sqlite:
+            db.create_all()
+            from config.seed import seed_saga_reservas
+            seed_saga_reservas()
 
     # Importar y registrar blueprints
     from modulos.reserva.infraestructura.api import reserva_api

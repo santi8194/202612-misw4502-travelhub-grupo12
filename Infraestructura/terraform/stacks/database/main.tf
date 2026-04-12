@@ -22,15 +22,32 @@ module "rds" {
   db_publicly_accessible     = var.db_publicly_accessible
 }
 
-module "secrets_manager" {
+module "admin_secrets_manager" {
   source      = "../../modules/secrets_manager"
-  secret_name = var.secret_name
+  secret_name = var.admin_secret_name
   db_username = var.db_username
   db_password = var.db_password
   db_engine   = module.rds.engine
   db_host     = module.rds.address
   db_port     = module.rds.port
   db_name     = module.rds.db_name
+
+  depends_on = [
+    module.rds
+  ]
+}
+
+module "service_secrets_manager" {
+  for_each = var.service_databases
+
+  source      = "../../modules/secrets_manager"
+  secret_name = each.value.secret_name
+  db_username = each.value.db_username
+  db_password = var.service_db_passwords[each.key]
+  db_engine   = module.rds.engine
+  db_host     = module.rds.address
+  db_port     = module.rds.port
+  db_name     = each.value.db_name
 
   depends_on = [
     module.rds

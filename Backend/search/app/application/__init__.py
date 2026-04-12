@@ -1,1 +1,0 @@
-# search service application package

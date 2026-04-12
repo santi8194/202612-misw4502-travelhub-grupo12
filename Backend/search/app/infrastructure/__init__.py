@@ -1,1 +1,0 @@
-# search service infrastructure package

@@ -42,29 +42,41 @@ def new_session() -> Session:
 
 
 def init_db() -> None:
-    from infrastructure.models import UserModel
+    from infrastructure.models import Role, UserModel
 
     Base.metadata.create_all(bind=get_engine())
 
     with new_session() as session:
-        existing_user = session.execute(select(UserModel.id_usuario).limit(1)).scalar_one_or_none()
+        existing_user = session.execute(select(UserModel.id).limit(1)).scalar_one_or_none()
         if existing_user is not None:
             return
 
+        admin_role = session.execute(select(Role).where(Role.name == "ADMIN_HOTEL")).scalar_one_or_none()
+        if admin_role is None:
+            admin_role = Role(name="ADMIN_HOTEL", description="Administrador de hotel")
+
+        user_role = session.execute(select(Role).where(Role.name == "USER")).scalar_one_or_none()
+        if user_role is None:
+            user_role = Role(name="USER", description="Usuario regular")
+
         default_users = [
             UserModel(
-                id_usuario=uuid.uuid4(),
+                id=uuid.uuid4(),
                 email="admin@hotel.com",
+                full_name="Admin Hotel",
                 password_hash=get_password_hash("123456"),
-                rol="ADMIN_HOTEL",
+                is_active="true",
                 partner_id=uuid.uuid4(),
+                roles=[admin_role],
             ),
             UserModel(
-                id_usuario=uuid.uuid4(),
+                id=uuid.uuid4(),
                 email="user@hotel.com",
+                full_name="Usuario Demo",
                 password_hash=get_password_hash("user123"),
-                rol="USER",
+                is_active="true",
                 partner_id=None,
+                roles=[user_role],
             ),
         ]
 

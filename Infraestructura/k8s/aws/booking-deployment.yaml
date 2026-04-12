@@ -18,7 +18,7 @@ spec:
         - name: booking
           image: ${ECR_REGISTRY_DEV}/booking:${GITHUB_SHA}
           ports:
-            - containerPort: 80
+            - containerPort: 8000
           env:
           - name: DB_HOST
             value: "travelhub-dev-authservice.cwfag2842c2y.us-east-1.rds.amazonaws.com"
@@ -38,13 +38,13 @@ spec:
                 key: DB_PASSWORD
           readinessProbe:
             httpGet:
-              path: /docs
-              port: 80
+              path: /health
+              port: 8000
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /docs
-              port: 80
+              path: /health
+              port: 8000
             initialDelaySeconds: 10
             periodSeconds: 10

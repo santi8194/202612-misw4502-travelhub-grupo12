@@ -1,5 +1,4 @@
 from fastapi.testclient import TestClient
-from types import SimpleNamespace
 from uuid import uuid4
 
 from data.user import UserResponse
@@ -15,17 +14,25 @@ def test_root_endpoint():
     assert "Welcome to" in response.json()["message"]
 
 
-def test_login_endpoint(monkeypatch, sample_user):
-    monkeypatch.setattr("api.routes.auth.AuthService.authenticate_user", lambda **_kwargs: sample_user)
-    monkeypatch.setattr(
-        "api.routes.auth.SessionService.create_session",
-        lambda _user_id: SimpleNamespace(id=uuid4(), refresh_token="refresh-login"),
-    )
-    monkeypatch.setattr("api.routes.auth.create_access_token", lambda **_kwargs: "token-login")
+def test_health_endpoint():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+
+
+def test_login_endpoint(monkeypatch):
+    cognito_result = {
+        "AccessToken": "token-login",
+        "IdToken": "id-token-login",
+        "RefreshToken": "refresh-login",
+        "ExpiresIn": 3600,
+        "TokenType": "Bearer",
+    }
+    monkeypatch.setattr("api.routes.auth.AuthService.authenticate_user", lambda **_kwargs: cognito_result)
 
     response = client.post(
         "/auth/login",
-        json={"email": sample_user.email, "password": "123456"},
+        json={"email": "admin@travelhub.com", "password": "123456"},
     )
 
     assert response.status_code == 200
@@ -36,17 +43,19 @@ def test_login_endpoint(monkeypatch, sample_user):
     }
 
 
-def test_login_form_endpoint(monkeypatch, sample_user):
-    monkeypatch.setattr("api.routes.auth.AuthService.authenticate_user", lambda **_kwargs: sample_user)
-    monkeypatch.setattr(
-        "api.routes.auth.SessionService.create_session",
-        lambda _user_id: SimpleNamespace(id=uuid4(), refresh_token="refresh-form"),
-    )
-    monkeypatch.setattr("api.routes.auth.create_access_token", lambda **_kwargs: "token-form")
+def test_login_form_endpoint(monkeypatch):
+    cognito_result = {
+        "AccessToken": "token-form",
+        "IdToken": "id-token-form",
+        "RefreshToken": "refresh-form",
+        "ExpiresIn": 3600,
+        "TokenType": "Bearer",
+    }
+    monkeypatch.setattr("api.routes.auth.AuthService.authenticate_user", lambda **_kwargs: cognito_result)
 
     response = client.post(
         "/auth/login/form",
-        data={"username": sample_user.email, "password": "123456"},
+        data={"username": "admin@travelhub.com", "password": "123456"},
     )
 
     assert response.status_code == 200
@@ -75,30 +84,21 @@ def test_me_endpoint(monkeypatch, sample_user):
     app.dependency_overrides = {}
 
 
-def test_refresh_endpoint(monkeypatch, sample_user):
-    monkeypatch.setattr(
-        "api.routes.auth.SessionService.rotate_refresh_token",
-        lambda _token: SimpleNamespace(
-            id=uuid4(),
-            refresh_token="refresh-rotated",
-            user_id=sample_user.id_usuario,
-            email=sample_user.email,
-            rol=sample_user.rol,
-            partner_id=sample_user.partner_id,
-        ),
-    )
-    monkeypatch.setattr("api.routes.auth.create_access_token", lambda **_kwargs: "token-refresh")
+def test_refresh_endpoint(monkeypatch):
+    cognito_result = {
+        "AccessToken": "new-access-token",
+        "IdToken": "new-id-token",
+        "ExpiresIn": 3600,
+        "TokenType": "Bearer",
+    }
+    monkeypatch.setattr("api.routes.auth.AuthService.refresh_tokens", lambda **_kwargs: cognito_result)
 
-    response = client.post("/auth/refresh", json={"refresh_token": "refresh-current"})
+    response = client.post(
+        "/auth/refresh",
+        json={"refresh_token": "refresh-current", "email": "admin@travelhub.com"},
+    )
 
     assert response.status_code == 200
-    assert response.json()["access_token"] == "token-refresh"
-    assert response.json()["refresh_token"] == "refresh-rotated"
-
-
-def test_refresh_endpoint_rejects_invalid_refresh_token(monkeypatch):
-    monkeypatch.setattr("api.routes.auth.SessionService.rotate_refresh_token", lambda _token: None)
-
-    response = client.post("/auth/refresh", json={"refresh_token": "invalid-refresh"})
-
-    assert response.status_code == 401
+    assert response.json()["access_token"] == "new-access-token"
+    # Cognito no retorna un nuevo refresh token; se mantiene el original
+    assert response.json()["refresh_token"] == "refresh-current"

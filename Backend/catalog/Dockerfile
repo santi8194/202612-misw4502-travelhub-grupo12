@@ -19,7 +19,7 @@ COPY . .
 RUN chmod +x /app/entrypoint.sh
 
 # Exponemos puerto
-EXPOSE 80
+EXPOSE 8000
 
 # Comando para ejecutar el servicio
 ENTRYPOINT ["/app/entrypoint.sh"]

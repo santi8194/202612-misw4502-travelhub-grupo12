@@ -1,4 +1,4 @@
-output "repository_arn" {
-  value       = module.ecr_repository.repository_arn # nombre, tipo y atributo del recurso
-  description = "Created repository ARN."
+output "repository_arns" {
+  value       = { for name, repo in module.ecr_repository : name => repo.repository_arn }
+  description = "Created repository ARNs by repository name."
 }

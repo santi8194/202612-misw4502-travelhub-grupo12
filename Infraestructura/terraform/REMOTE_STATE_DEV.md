@@ -4,8 +4,9 @@ This repository uses a multi-stack Terraform layout:
 
 - `stacks/container_registry`
 - `stacks/eks`
+- `stacks/ingress`
 
-Both stacks now use an S3 backend with native lock files stored in the same bucket and isolated by stack-specific state keys.
+All three stacks use an S3 backend with native lock files stored in the same bucket and isolated by stack-specific state keys.
 
 ## Backend Settings
 
@@ -18,6 +19,7 @@ State keys:
 
 - `container_registry/dev/terraform.tfstate`
 - `eks/dev/terraform.tfstate`
+- `ingress/dev/terraform.tfstate`
 
 ## Manual Initialization
 
@@ -28,6 +30,9 @@ cd Infraestructura/terraform/stacks/container_registry
 terraform init -reconfigure
 
 cd ../eks
+terraform init -reconfigure
+
+cd ../ingress
 terraform init -reconfigure
 ```
 
@@ -49,6 +54,12 @@ Check the `eks` state:
 aws s3 ls s3://travelhub-tfstate-dev-us-east-1/eks/dev/
 ```
 
+Check the `ingress` state:
+
+```powershell
+aws s3 ls s3://travelhub-tfstate-dev-us-east-1/ingress/dev/
+```
+
 Expected object after state is created:
 
 - `terraform.tfstate`
@@ -60,6 +71,7 @@ While a `terraform plan` or `terraform apply` is running, inspect the same prefi
 ```powershell
 aws s3 ls s3://travelhub-tfstate-dev-us-east-1/container_registry/dev/
 aws s3 ls s3://travelhub-tfstate-dev-us-east-1/eks/dev/
+aws s3 ls s3://travelhub-tfstate-dev-us-east-1/ingress/dev/
 ```
 
 Expected during execution:
@@ -72,14 +84,13 @@ Expected after Terraform exits cleanly:
 
 ## CI/CD Alignment Notes
 
-The current GitHub Actions workflows should be updated later, but not in this change.
-
-Required alignment:
+The GitHub Actions workflows must:
 
 - run Terraform from `Infraestructura/terraform/stacks/container_registry`
 - run Terraform from `Infraestructura/terraform/stacks/eks`
+- run Terraform from `Infraestructura/terraform/stacks/ingress`
 - stop passing backend settings via `terraform init -backend-config=...`
 - stop referencing `TF_LOCK_TABLE`, because native S3 lock files replace DynamoDB locking
 - use the correct per-stack `tfvars` path from each stack working directory
 
-The S3 backend is shared by both stacks, but the state remains isolated by the stack-specific `key` configured in each backend block.
+The S3 backend is shared by all three stacks, but the state remains isolated by the stack-specific `key` configured in each backend block.

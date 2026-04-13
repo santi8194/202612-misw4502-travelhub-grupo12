@@ -117,7 +117,11 @@ curl http://localhost:8000/health
 Configurables mediante el archivo `.env`:
 
 - `REPOSITORY_TYPE`: Motor para búsqueda de hospedajes (`postgres` o `opensearch`).
-- `POSTGRES_URL`: URL de conexión (ej: `postgresql://user:pass@host:5432/db`).
+- `DB_HOST`: Host de PostgreSQL (ej: `localhost`, `postgres`).
+- `DB_PORT`: Puerto de PostgreSQL (default: `5432`).
+- `DB_NAME`: Nombre de la base de datos.
+- `DB_USER`: Usuario de PostgreSQL.
+- `DB_PASSWORD`: Contraseña de PostgreSQL.
 - `OPENSEARCH_ENDPOINT`: URL del cluster OpenSearch.
 - `OPENSEARCH_INDEX`: Nombre del índice de hospedajes.
 - `OPENSEARCH_USER` / `OPENSEARCH_PASSWORD`: Credenciales de OpenSearch.

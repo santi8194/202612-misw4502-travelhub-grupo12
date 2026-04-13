@@ -10,6 +10,7 @@ venv/
 __pycache__/
 .DS_Store
 *.jks
+.vscode
 
 # Variables de entorno — nunca versionar
 .env
@@ -19,6 +20,9 @@ __pycache__/
 .angular/
 node_modules/
 
+#archivosprueba
+coverage
+dist
 #cypress
 reports/
 videos/

@@ -31,6 +31,16 @@ app.add_middleware(
 app.include_router(auth.router, prefix=settings.API_V1_STR, tags=["auth"])
 
 
+# Endpoint /health para probes de Kubernetes
+@app.get("/health")
+def health_check():
+    """
+    Endpoint de salud para Kubernetes (readiness/liveness probe).
+    Retorna 200 si el servicio está corriendo.
+    """
+    return {"status": "ok"}
+
+
 @app.get("/")
 def root():
     """

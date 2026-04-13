@@ -1,0 +1,158 @@
+name: Database Bootstrap
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'Infraestructura/sql/rds/**'
+      - 'Infraestructura/terraform/stacks/database/**'
+      - 'Infraestructura/terraform/modules/rds/**'
+      - 'Infraestructura/terraform/modules/secrets_manager/**'
+      - 'Infraestructura/terraform/environments/dev/database/**'
+      - '.github/workflows/database-bootstrap.yml'
+  workflow_dispatch:
+    inputs:
+      db_host:
+        description: "Endpoint de la instancia RDS (opcional; si se omite se usa Secrets Manager)"
+        required: false
+        default: ""
+        type: string
+      db_port:
+        description: "Puerto PostgreSQL (opcional; si se omite se usa Secrets Manager)"
+        required: false
+        default: ""
+        type: string
+      admin_username:
+        description: "Usuario administrador de RDS (opcional; si se omite se usa Secrets Manager)"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: database-bootstrap-dev
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  RDS_ADMIN_SECRET_NAME_DEV: travelhub/dev/rds/admin-credentials
+
+jobs:
+  bootstrap:
+    name: Bootstrap service databases
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AUTHSERVICE_DB_PASSWORD_DEV: ${{ secrets.AUTHSERVICE_DB_PASSWORD_DEV }}
+      BOOKING_DB_PASSWORD_DEV: ${{ secrets.BOOKING_DB_PASSWORD_DEV }}
+      CATALOG_DB_PASSWORD_DEV: ${{ secrets.CATALOG_DB_PASSWORD_DEV }}
+      SEARCH_DB_PASSWORD_DEV: ${{ secrets.SEARCH_DB_PASSWORD_DEV }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate required GitHub secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for secret_name in \
+            AUTHSERVICE_DB_PASSWORD_DEV \
+            BOOKING_DB_PASSWORD_DEV \
+            CATALOG_DB_PASSWORD_DEV \
+            SEARCH_DB_PASSWORD_DEV \
+            AWS_ACCESS_KEY_ID \
+            AWS_SECRET_ACCESS_KEY
+          do
+            if [ -z "${!secret_name:-}" ]; then
+              echo "::error::Missing required GitHub secret '${secret_name}'."
+              exit 1
+            fi
+          done
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve admin connection settings
+        shell: bash
+        env:
+          INPUT_DB_HOST: ${{ inputs.db_host }}
+          INPUT_DB_PORT: ${{ inputs.db_port }}
+          INPUT_ADMIN_USERNAME: ${{ inputs.admin_username }}
+        run: |
+          set -euo pipefail
+
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${RDS_ADMIN_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          if [ -z "${SECRET_JSON:-}" ] || [ "${SECRET_JSON}" = "None" ]; then
+            echo "::error::Secrets Manager secret '${RDS_ADMIN_SECRET_NAME_DEV}' is empty or unavailable."
+            exit 1
+          fi
+
+          export SECRET_JSON INPUT_DB_HOST INPUT_DB_PORT INPUT_ADMIN_USERNAME
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          secret = json.loads(os.environ["SECRET_JSON"])
+
+          def pick(input_value: str, secret_value: str | int | None) -> str:
+              if input_value:
+                  return input_value
+              if secret_value in (None, ""):
+                  return ""
+              return str(secret_value)
+
+          resolved = {
+              "DB_HOST": pick(os.environ.get("INPUT_DB_HOST", ""), secret.get("host")),
+              "DB_PORT": pick(os.environ.get("INPUT_DB_PORT", ""), secret.get("port")),
+              "ADMIN_USERNAME": pick(os.environ.get("INPUT_ADMIN_USERNAME", ""), secret.get("username")),
+              "PGPASSWORD": pick("", secret.get("password")),
+          }
+
+          missing = [key for key, value in resolved.items() if value == ""]
+          if missing:
+              print(
+                  "::error::Unable to resolve required admin connection settings: "
+                  + ", ".join(missing)
+              )
+              sys.exit(1)
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as fh:
+              for key, value in resolved.items():
+                  fh.write(f"{key}={value}\n")
+          PY
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Bootstrap logical databases and roles
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          psql \
+            "host=${DB_HOST} port=${DB_PORT} dbname=postgres user=${ADMIN_USERNAME} sslmode=require" \
+            -v authservice_password="${AUTHSERVICE_DB_PASSWORD_DEV}" \
+            -v booking_password="${BOOKING_DB_PASSWORD_DEV}" \
+            -v catalog_password="${CATALOG_DB_PASSWORD_DEV}" \
+            -v search_password="${SEARCH_DB_PASSWORD_DEV}" \
+            -f Infraestructura/sql/rds/bootstrap_service_databases.sql

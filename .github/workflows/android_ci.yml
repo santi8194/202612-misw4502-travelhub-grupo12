@@ -1,0 +1,95 @@
+name: Android CI
+
+on:
+  push:
+    branches: ["mobile-main"]
+    tags:
+      - "v*"
+  pull_request:
+    branches: ["mobile-main"]
+    paths:
+      - "Frontend/mobile-app/**"
+      - ".github/workflows/android_ci.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend/mobile-app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+          cache: "gradle"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.4"
+          channel: "stable"
+          cache: true
+
+      - name: Create .env file
+        run: echo "SEARCH_API_BASE_URL=${{ secrets.SEARCH_API_BASE_URL }}" > .env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze project
+        run: flutter analyze
+
+      - name: Run tests with coverage
+        run: flutter test --coverage --dart-define=SEARCH_API_BASE_URL=$SEARCH_API_BASE_URL
+        env:
+          SEARCH_API_BASE_URL: ${{ secrets.SEARCH_API_BASE_URL }}
+
+      - name: Check Coverage (>= 80%)
+        run: |
+          chmod +x scripts/check_coverage.sh
+          ./scripts/check_coverage.sh
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: Frontend/mobile-app/coverage/
+
+      # --- PASOS PARA EL FIRMADO ---
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.jks
+
+      - name: Build APK (Release)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: flutter build apk --release --dart-define=SEARCH_API_BASE_URL=$SEARCH_API_BASE_URL
+        env:
+          SEARCH_API_BASE_URL: ${{ secrets.SEARCH_API_BASE_URL }}
+          ANDROID_KEYSTORE_PATH: "release.jks"
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Clean up Keystore
+        if: always()
+        run: rm -f android/app/release.jks
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Frontend/mobile-app/build/app/outputs/flutter-apk/app-release.apk
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

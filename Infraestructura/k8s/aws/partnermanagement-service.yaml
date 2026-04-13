@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: partnermanagement-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: partnermanagement
   ports:

@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: authservice
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: authservice
   ports:

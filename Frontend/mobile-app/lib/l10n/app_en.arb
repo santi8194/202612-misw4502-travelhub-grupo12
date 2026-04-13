@@ -1,0 +1,50 @@
+{
+  "loginTitle": "Login",
+  "emailLabel": "Email address",
+  "passwordLabel": "Password",
+  "loginButton": "Enter",
+  "noAccountText": "Don't have an account? ",
+  "registerLink": "Register",
+  "registerTitle": "Registration",
+  "fullNameLabel": "Full Name",
+  "confirmPasswordLabel": "Confirm Password",
+  "registerButton": "Register",
+  "haveAccountText": "Already have an account? ",
+  "loginLink": "Login",
+  "navHome": "Home",
+  "navSearch": "Search",
+  "navBookings": "Bookings",
+  "navProfile": "Profile",
+  "homeTitle": "Home Screen",
+  "searchTitle": "Search Screen",
+  "bookingsTitle": "Bookings Screen",
+  "profileTitle": "Profile Screen",
+  "headerSubtitle": "Discover your next destination in Latin America",
+  "searchWhere": "Where do you want to go?",
+  "searchDates": "DATES",
+  "searchGuests": "GUESTS",
+  "searchButton": "Search Hotels",
+  "resultsTitle": "Search Results",
+  "specialOffer": "Special Offer",
+  "noResultsTitle": "No properties available",
+  "noResultsMessage": "No properties were found matching your search. Try adjusting your destination, dates, or number of guests.",
+  "guestCountLabel": "{count, plural, =1{1 guest} other{{count} guests}}",
+  "@guestCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchingButton": "Searching...",
+  "anyDestination": "ANY DESTINATION",
+  "openDates": "OPEN DATES",
+  "tryAnotherSearch": "Try another search",
+  "cachedResultsBanner": "Showing cached results. They will be updated once connection is restored."
+}
+
+
+
+
+
+

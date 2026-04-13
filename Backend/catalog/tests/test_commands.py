@@ -1,0 +1,421 @@
+import pytest
+from decimal import Decimal
+from uuid import UUID
+from unittest.mock import Mock
+import uuid
+from catalog.modules.catalog.application.commands.create_property import CreateProperty
+from catalog.modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
+from catalog.modules.catalog.application.commands.update_inventory import UpdateInventory
+from catalog.modules.catalog.application.commands.obtain_property_by_category_id import ObtainPropertyByCategoryId
+from catalog.modules.catalog.application.commands.obtain_category_by_id import ObtainCategoryById
+from catalog.modules.catalog.application.commands.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
+from catalog.modules.catalog.domain.entities import (
+	Coordenadas,
+	VODireccion,
+	VODinero,
+	VORegla,
+	CategoriaHabitacion,
+	Media,
+	TipoMedia,
+	Propiedad,
+	construir_propiedad,
+)
+from datetime import date
+
+
+@pytest.fixture
+def mock_repository():
+	return Mock()
+
+
+@pytest.fixture
+def mock_event_bus():
+	return Mock()
+
+
+@pytest.fixture
+def property_id():
+	return UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479")
+
+
+class TestCreateProperty:
+	"""Pruebas para el comando CreateProperty"""
+
+	def test_create_property_success(self, mock_repository, mock_event_bus, property_id):
+		mock_repository.obtain.return_value = None
+
+		command = CreateProperty(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			nombre="Hotel Test",
+			estrellas=4,
+			ciudad="Cartagena",
+			pais="Colombia",
+			latitud=10.42,
+			longitud=-75.54,
+			porcentaje_impuesto=Decimal("19.00"),
+		)
+
+		assert result["nombre"] == "Hotel Test"
+		assert result["estrellas"] == 4
+		assert result["event_generated"] == "PropiedadCreada"
+		assert mock_repository.save.called
+		assert mock_event_bus.publish_event.called
+
+	def test_create_property_already_exists(self, mock_repository, mock_event_bus, property_id):
+		# Propiedad existente
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		existing_property = construir_propiedad(
+			id_propiedad=property_id,
+			nombre="Existing Hotel",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+		)
+		mock_repository.obtain.return_value = existing_property
+
+		command = CreateProperty(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			nombre="Hotel Test",
+			estrellas=4,
+			ciudad="Cartagena",
+			pais="Colombia",
+			latitud=10.42,
+			longitud=-75.54,
+			porcentaje_impuesto=Decimal("19.00"),
+		)
+
+		assert result["message"] == "Property already exists"
+		assert not mock_repository.save.called
+
+
+class TestRegisterCategoryHousing:
+	"""Pruebas para el comando RegisterCategoryHousing"""
+
+	def test_register_category_success(self, mock_repository, mock_event_bus, property_id):
+		# Crear propiedad sin categorías
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		propiedad = construir_propiedad(
+			id_propiedad=property_id,
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+		)
+		mock_repository.obtain.return_value = propiedad
+
+		command = RegisterCategoryHousing(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			monto_precio_base=Decimal("350000.00"),
+			cargo_servicio=Decimal("25000.00"),
+			moneda_precio_base="COP",
+			capacidad_pax=4,
+			dias_anticipacion=5,
+			porcentaje_penalidad=Decimal("50.0"),
+			foto_portada_url="https://cdn.example.com/deluxe-portada.jpg",
+		)
+
+		assert result["id_categoria"]
+		uuid.UUID(result["id_categoria"])
+		assert result["foto_portada_url"] == "https://cdn.example.com/deluxe-portada.jpg"
+		assert result["precio_base"]["cargo_servicio"] == "25000.00"
+		assert result["event_generated"] == "CategoriaHabitacionRegistrada"
+		assert mock_repository.save.called
+		assert mock_event_bus.publish_event.called
+
+	def test_register_category_property_not_found(self, mock_repository, mock_event_bus, property_id):
+		mock_repository.obtain.return_value = None
+
+		command = RegisterCategoryHousing(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			monto_precio_base=Decimal("350000.00"),
+			cargo_servicio=Decimal("25000.00"),
+			moneda_precio_base="COP",
+			capacidad_pax=4,
+			dias_anticipacion=5,
+			porcentaje_penalidad=Decimal("50.0"),
+			foto_portada_url="https://cdn.example.com/deluxe-portada.jpg",
+		)
+
+		assert result["error"] == "Property not found"
+		assert not mock_repository.save.called
+
+	def test_register_category_already_exists(self, mock_repository, mock_event_bus, property_id, monkeypatch):
+		# Crear propiedad con categoría
+		fixed_id_categoria = "deluxe-001"
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		categoria = CategoriaHabitacion(
+			id_categoria=fixed_id_categoria,
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			precio_base=precio,
+			capacidad_pax=4,
+			politica_cancelacion=regla,
+		)
+		propiedad = construir_propiedad(
+			id_propiedad=property_id,
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+			categorias_habitacion=[categoria],
+		)
+		mock_repository.obtain.return_value = propiedad
+		monkeypatch.setattr(
+			"catalog.modules.catalog.application.commands.register_category_housing.uuid.uuid4",
+			lambda: uuid.UUID("00000000-0000-0000-0000-000000000001"),
+		)
+		propiedad.categorias_habitacion[0].id_categoria = "00000000-0000-0000-0000-000000000001"
+
+		command = RegisterCategoryHousing(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			monto_precio_base=Decimal("350000.00"),
+			cargo_servicio=Decimal("25000.00"),
+			moneda_precio_base="COP",
+			capacidad_pax=4,
+			dias_anticipacion=5,
+			porcentaje_penalidad=Decimal("50.0"),
+			foto_portada_url="https://cdn.example.com/deluxe-portada.jpg",
+		)
+
+		assert result["message"] == "Category already registered"
+		assert result["id_categoria"] == "00000000-0000-0000-0000-000000000001"
+		assert not mock_repository.save.called
+
+
+class TestUpdateInventory:
+	"""Pruebas para el comando UpdateInventory"""
+
+	def test_update_inventory_success(self, mock_repository, mock_event_bus, property_id):
+		# Crear propiedad con categoría
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		categoria = CategoriaHabitacion(
+			id_categoria="deluxe-001",
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			precio_base=precio,
+			capacidad_pax=4,
+			politica_cancelacion=regla,
+		)
+		propiedad = construir_propiedad(
+			id_propiedad=property_id,
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+			categorias_habitacion=[categoria],
+		)
+		mock_repository.obtain.return_value = propiedad
+
+		command = UpdateInventory(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			id_categoria="deluxe-001",
+			id_inventario="inv-2026-05-10",
+			fecha=date(2026, 5, 10),
+			cupos_totales=10,
+			cupos_disponibles=3,
+		)
+
+		assert result["cupos_disponibles"] == 3
+		assert result["event_generated"] == "InventarioActualizado"
+		assert mock_repository.save.called
+		assert mock_event_bus.publish_event.called
+
+	def test_update_inventory_property_not_found(self, mock_repository, mock_event_bus, property_id):
+		mock_repository.obtain.return_value = None
+
+		command = UpdateInventory(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			id_categoria="deluxe-001",
+			id_inventario="inv-2026-05-10",
+			fecha=date(2026, 5, 10),
+			cupos_totales=10,
+			cupos_disponibles=3,
+		)
+
+		assert result["error"] == "Property not found"
+		assert not mock_repository.save.called
+
+	def test_update_inventory_category_not_found(self, mock_repository, mock_event_bus, property_id):
+		# Crear propiedad sin categorías
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		propiedad = construir_propiedad(
+			id_propiedad=property_id,
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+		)
+		mock_repository.obtain.return_value = propiedad
+
+		command = UpdateInventory(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			id_categoria="nonexistent",
+			id_inventario="inv-2026-05-10",
+			fecha=date(2026, 5, 10),
+			cupos_totales=10,
+			cupos_disponibles=3,
+		)
+
+		assert result["error"] == "Category not found"
+		assert not mock_repository.save.called
+
+
+class TestObtainPropertyByCategoryId:
+	"""Pruebas para el comando ObtainPropertyByCategoryId"""
+
+	def test_obtain_property_by_category_id_success(self, mock_repository):
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		propiedad = construir_propiedad(
+			id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+		)
+		mock_repository.obtain_by_category_id.return_value = propiedad
+
+		command = ObtainPropertyByCategoryId(mock_repository)
+		result = command.execute("deluxe-001")
+
+		assert result["id_categoria"] == "deluxe-001"
+		assert result["id_propiedad"] == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+		assert result["nombre"] == "Hotel Test"
+
+	def test_obtain_property_by_category_id_not_found(self, mock_repository):
+		mock_repository.obtain_by_category_id.return_value = None
+
+		command = ObtainPropertyByCategoryId(mock_repository)
+		result = command.execute("unknown-category")
+
+		assert result["error"] == "Property not found for category"
+		assert result["id_categoria"] == "unknown-category"
+
+
+class TestObtainCategoryById:
+	"""Pruebas para el comando ObtainCategoryById"""
+
+	def test_obtain_category_by_id_success(self, mock_repository):
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP", cargo_servicio=Decimal("25000.00"))
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		categoria = CategoriaHabitacion(
+			id_categoria="deluxe-001",
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			precio_base=precio,
+			capacidad_pax=4,
+			politica_cancelacion=regla,
+			media=[
+				Media(
+					id_media="deluxe-001-foto-portada",
+					url_full="https://cdn.example.com/deluxe-portada.jpg",
+					tipo=TipoMedia.FOTO_PORTADA,
+					orden=1,
+				)
+			],
+		)
+		mock_repository.obtain_category_by_id.return_value = categoria
+
+		command = ObtainCategoryById(mock_repository)
+		result = command.execute("deluxe-001")
+
+		assert result["id_categoria"] == "deluxe-001"
+		assert result["codigo_mapeo_pms"] == "ROOM-DLX-01"
+		assert result["precio_base"]["moneda"] == "COP"
+		assert result["precio_base"]["cargo_servicio"] == "25000.00"
+		assert result["foto_portada_url"] == "https://cdn.example.com/deluxe-portada.jpg"
+
+	def test_obtain_category_by_id_not_found(self, mock_repository):
+		mock_repository.obtain_category_by_id.return_value = None
+
+		command = ObtainCategoryById(mock_repository)
+		result = command.execute("unknown-category")
+
+		assert result["error"] == "Category not found"
+		assert result["id_categoria"] == "unknown-category"
+
+
+class TestObtainCategoriesByPropertyId:
+	"""Pruebas para el comando ObtainCategoriesByPropertyId"""
+
+	def test_obtain_categories_by_property_id_success(self, mock_repository, mock_event_bus):
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", coordenadas=coords)
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP", cargo_servicio=Decimal("25000.00"))
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		categoria = CategoriaHabitacion(
+			id_categoria="deluxe-001",
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			precio_base=precio,
+			capacidad_pax=4,
+			politica_cancelacion=regla,
+			media=[
+				Media(
+					id_media="deluxe-001-foto-portada",
+					url_full="https://cdn.example.com/deluxe-portada.jpg",
+					tipo=TipoMedia.FOTO_PORTADA,
+					orden=1,
+				)
+			],
+		)
+		propiedad = construir_propiedad(
+			id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal("19.00"),
+			categorias_habitacion=[categoria],
+		)
+		mock_repository.obtain.return_value = propiedad
+
+		command = ObtainCategoriesByPropertyId(mock_repository, mock_event_bus)
+		result = command.execute(UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
+
+		assert result["id_propiedad"] == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+		assert result["total_categorias"] == 1
+		assert result["categorias"][0]["id_categoria"] == "deluxe-001"
+		assert result["categorias"][0]["foto_portada_url"] == "https://cdn.example.com/deluxe-portada.jpg"
+		assert result["categorias"][0]["precio_base"]["cargo_servicio"] == "25000.00"
+		assert result["event_generated"] == "CategoriasPropiedadConsultadas"
+		assert mock_event_bus.publish_event.called
+
+	def test_obtain_categories_by_property_id_not_found(self, mock_repository, mock_event_bus):
+		mock_repository.obtain.return_value = None
+
+		command = ObtainCategoriesByPropertyId(mock_repository, mock_event_bus)
+		result = command.execute(UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
+
+		assert result["error"] == "Property not found"
+		assert result["id_propiedad"] == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+		assert not mock_event_bus.publish_event.called

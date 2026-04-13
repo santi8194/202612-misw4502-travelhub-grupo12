@@ -11,8 +11,6 @@ __pycache__/
 .DS_Store
 *.jks
 .vscode
-AGENTS.md
-PLAN.md
 
 # Variables de entorno — nunca versionar
 .env
@@ -21,3 +19,7 @@ PLAN.md
 #mobile
 .angular/
 node_modules/
+
+#archivosprueba
+coverage
+dist

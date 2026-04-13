@@ -16,11 +16,11 @@ Se creó un bucket en AWS S3 para almacenar el archivo terraform.tfstate.
 
 ## Bucket
 
-*terraform-state-grupo12*
+*travelhub-tfstate-dev-us-east-1*
 
 El nombre del bucket debe ser único a nivel global en AWS.
 
-Comando: aws s3api create-bucket --bucket terraform-state-grupo12 --region us-east-1 --debug
+Comando: aws s3api create-bucket --bucket travelhub-tfstate-dev-us-east-1 --region us-east-1 --debug
 
 # Despliegue del Stack: Container Registry (ECR)
 
@@ -87,11 +87,11 @@ El principal AWS usado por GitHub Actions necesita `logs:DescribeLogGroups`, `lo
 # Imagen Booking
 Repo: aws ecr create-repository --repository-name booking
 Img:
-docker build --no-cache -t booking:1.0.2 ./src/Booking
+docker build --no-cache -t booking:1.0.3 ./Backend/booking
 Tag:
-docker tag booking:1.0.2 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.2
+docker tag booking:1.0.2 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.3
 Push
-docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.2
+docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.3
 
 # Imagen Notification
 Repo: aws ecr create-repository --repository-name notification
@@ -120,6 +120,20 @@ Repo: aws ecr create-repository --repository-name partnermanagement
 docker build --no-cache -t partnermanagement:1.0.1 ./src/PartnerManagement
 docker tag partnermanagement:1.0.1 962273458546.dkr.ecr.us-east-1.amazonaws.com/partnermanagement:1.0.1
 docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/partnermanagement:1.0.1
+
+
+# Imagen Catalog
+Repo: aws ecr create-repository --repository-name catalog
+docker build --no-cache -t catalog:1.0.1 ./Backend/catalog
+docker tag catalog:1.0.1 962273458546.dkr.ecr.us-east-1.amazonaws.com/catalog:1.0.1
+docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/catalog:1.0.1
+
+
+# Imagen AuthService
+Repo: aws ecr create-repository --repository-name authservice
+docker build --no-cache -t authservice:1.0.0 ./Backend/authservice
+docker tag authservice:1.0.0 392789866980.dkr.ecr.us-east-1.amazonaws.com/authservice:1.0.0
+docker push 392789866980.dkr.ecr.us-east-1.amazonaws.com/authservice:1.0.0
 
 
 
@@ -154,6 +168,13 @@ kubectl apply -f ./k8s/aws/partnermanagement-deployment.yaml
 kubectl apply -f ./k8s/aws/partnermanagement-service.yaml
 kubectl rollout restart deployment partnermanagement-deployment
 
+## Desplegar authService
+
+kubectl apply -f ./k8s/aws/authservice-deployment.yaml
+kubectl apply -f ./k8s/aws/authservice-service.yaml
+kubectl rollout restart deployment authservice
+
+
 # Vuelve a loguear
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 962273458546.dkr.ecr.us-east-1.amazonaws.com
 
@@ -161,7 +182,12 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 # Ingress
 Se configuró un Ingress Controller (NGINX) en el cluster EKS para exponer todos los microservicios mediante una sola URL pública.
 
-kubectl apply -f ./k8s/aws/ingress.yaml
+Los microservicios backend quedan expuestos internamente como `ClusterIP` y el unico `LoadBalancer` externo debe ser el del controller `ingress-nginx`.
+
+Nota: `authservice` se mantiene en `authservice-ingress.yaml` y no en `backend-ingress.yaml` porque sus rutas ya viven internamente bajo el prefijo `/auth`. Como `backend-ingress.yaml` aplica `rewrite-target`, incluirlo allí rompería rutas como `/auth/login`.
+
+kubectl apply -f ./k8s/aws/backend-ingress.yaml
+kubectl apply -f ./k8s/aws/authservice-ingress.yaml
 kubectl get svc -n ingress-nginx ingress-nginx-controller -w
 
 URL: http://a27afd6e0e6414ee490e57d925fab93e-408326643.us-east-1.elb.amazonaws.com
@@ -172,3 +198,27 @@ Probar:
 /pmsintegration/health
 /payment/health
 /notification/health
+/booking/health
+/search/health
+/auth/login
+
+# RDS
+
+## Inicialice su stack ejecutando
+
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" init  -backend-config="$PWD\Infraestructura\terraform\environments\dev\database\backend.tfvars"
+
+Cree el plan de despliegue para el stack de la base de datos.
+
+terraform -chdir="$PWD\terraform\stacks\database" plan -var-file="$PWD\terraform\environments\dev\database\terraform.tfvars"
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" plan -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars"
+
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" apply -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars"
+
+Obtenga los datos de conexion y el nombre del secreto desde Terraform:
+
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_address
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_db_name
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_engine
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_port
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output secrets_manager_secret_name

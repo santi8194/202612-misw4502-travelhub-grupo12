@@ -18,14 +18,22 @@
     (continuePayment)="createHold()">
   </app-booking-cart-form>
 
-  @if (timerActive()) {
-    <div class="hold-timer" [class.hold-timer--warning]="isHoldExpiringSoon()" data-testid="hold-timer">
-      <span class="hold-timer__label">Tu hold expira en</span>
-      <span class="hold-timer__value">{{ formattedRemainingTime() }}</span>
-    </div>
-  } @else {
-    <div class="hold-timer hold-timer--expired" data-testid="hold-timer-expired">
-      El tiempo de hold expiró. Ya no puedes continuar con el pago.
+  @if (!isRedirectingToExistingSession()) {
+    @if (timerActive()) {
+      <div class="hold-timer" [class.hold-timer--warning]="isHoldExpiringSoon()" data-testid="hold-timer">
+        <span class="hold-timer__label">Tu hold expira en</span>
+        <span class="hold-timer__value">{{ formattedRemainingTime() }}</span>
+      </div>
+    } @else {
+      <div class="hold-timer hold-timer--expired" data-testid="hold-timer-expired">
+        El tiempo de hold expiró. Ya no puedes continuar con el pago.
+      </div>
+    }
+  }
+
+  @if (holdError()) {
+    <div class="booking-cart-error" data-testid="booking-cart-error">
+      {{ holdError() }}
     </div>
   }
 

@@ -46,4 +46,24 @@ describe('BookingCartPage', () => {
     expect(btn).toBeTruthy();
     expect(btn.textContent.trim()).toContain('Continuar con el pago');
   });
+
+  it('should render the inline error message when hold creation fails', () => {
+    component.holdError.set('La categoria seleccionada no existe o ya no está disponible.');
+
+    fixture.detectChanges();
+
+    const error = fixture.nativeElement.querySelector('[data-testid="booking-cart-error"]');
+    expect(error).toBeTruthy();
+    expect(error.textContent).toContain('La categoria seleccionada no existe o ya no está disponible.');
+  });
+
+  it('should hide hold timer when redirecting to an existing session', () => {
+    component.isRedirectingToExistingSession.set(true);
+    component.remainingTime.set(120);
+
+    fixture.detectChanges();
+
+    const timer = fixture.nativeElement.querySelector('[data-testid="hold-timer"]');
+    expect(timer).toBeNull();
+  });
 });

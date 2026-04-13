@@ -1,0 +1,71 @@
+<article class="card" data-testid="hospedaje-card">
+
+  <!-- Imagen principal -->
+  <div class="card__image-wrapper" data-testid="card-image-wrapper">
+    <img
+      class="card__image"
+      [src]="hospedaje().imagen_principal_url"
+      [alt]="hospedaje().categoria_nombre"
+      data-testid="card-image"
+    />
+    <span class="card__badge" data-testid="card-badge">
+      {{ hospedaje().propiedad_nombre }}
+    </span>
+  </div>
+
+  <!-- Cuerpo de la card -->
+  <div class="card__body">
+
+    <!-- Nombre + Rating -->
+    <div class="card__header" data-testid="card-header">
+      <div class="card__title-group">
+        <h3 class="card__title" data-testid="card-title">{{ hospedaje().categoria_nombre }}</h3>
+        <div class="card__location" data-testid="card-location">
+          <svg class="card__location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span>{{ hospedaje().ciudad }}, {{ hospedaje().pais }}</span>
+        </div>
+      </div>
+      <div class="card__rating-badge" data-testid="card-rating">
+        <svg class="card__star-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        <span>{{ hospedaje().rating_promedio }}</span>
+      </div>
+    </div>
+
+    <!-- Amenidades -->
+    <div class="card__amenities" data-testid="card-amenities">
+      @for (amenidad of amenidadesVisibles(); track amenidad) {
+        <span class="card__pill" data-testid="card-amenidad">{{ amenidad }}</span>
+      }
+      @if (amenidadesRestantes() > 0) {
+        <span class="card__pill card__pill--more" data-testid="card-amenidades-extra">
+          +{{ amenidadesRestantes() }} más
+        </span>
+      }
+    </div>
+
+    <!-- Footer: Reseñas + Precio -->
+    <div class="card__footer" data-testid="card-footer">
+      <div class="card__reviews" data-testid="card-reviews">
+        <svg class="card__users-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>{{ hospedaje().estrellas * 100 }} reseñas</span>
+      </div>
+      <div class="card__price" data-testid="card-price">
+        <span class="card__price-value" data-testid="card-price-value">
+          {{ hospedaje().moneda === 'USD' ? '$' : hospedaje().moneda }}{{ hospedaje().precio_base }}
+        </span>
+        <span class="card__price-label">por noche</span>
+      </div>
+    </div>
+
+  </div>
+</article>

@@ -1,0 +1,38 @@
+<div class="details-card" data-testid="guest-details-card">
+  <h2 class="card-title">Detalles del huésped principal</h2>
+
+  <div class="form-grid">
+    <div class="field-wrap">
+      <label class="field-label" for="name">Nombre(s)</label>
+      <input id="name" class="field-input" [ngModel]="form.name" (ngModelChange)="onFieldChange('name', $event)" data-testid="input-name" />
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label" for="lastName">Apellido</label>
+      <input id="lastName" class="field-input" [ngModel]="form.lastName" (ngModelChange)="onFieldChange('lastName', $event)" data-testid="input-lastname" />
+    </div>
+  </div>
+
+  <div class="field-wrap field-full">
+    <label class="field-label" for="email">Email</label>
+    <input id="email" class="field-input" [ngModel]="form.email" (ngModelChange)="onFieldChange('email', $event)" data-testid="input-email" />
+  </div>
+
+  <div class="field-wrap field-full">
+    <label class="field-label" for="phone">Celular</label>
+    <input id="phone" class="field-input" [ngModel]="form.phone" (ngModelChange)="onFieldChange('phone', $event)" data-testid="input-phone" />
+  </div>
+
+  <div class="field-wrap field-full">
+    <label class="field-label" for="request">Solicitud detallada (Opcional)</label>
+    <textarea id="request" class="field-textarea" [ngModel]="form.detailedRequest" (ngModelChange)="onFieldChange('detailedRequest', $event)" data-testid="input-request"></textarea>
+  </div>
+
+  <button
+    (click)="onContinuePayment()"
+    class="pay-btn"
+    [disabled]="disableContinue"
+    data-testid="continue-payment-btn">
+    Continuar con el pago
+  </button>
+</div>

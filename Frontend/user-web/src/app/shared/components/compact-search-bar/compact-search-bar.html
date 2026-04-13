@@ -1,0 +1,20 @@
+@if (cityLabel()) {
+  <div class="compact-bar" data-testid="compact-search-bar" (click)="onEditSearch()">
+    <span class="compact-segment" data-testid="compact-city">{{ cityLabel() }}</span>
+    <span class="compact-divider" aria-hidden="true"></span>
+    <span class="compact-segment" data-testid="compact-dates">{{ datesLabel() }}</span>
+    <span class="compact-divider" aria-hidden="true"></span>
+    <span class="compact-segment" data-testid="compact-guests">{{ guestsLabel() }}</span>
+    <button
+      type="button"
+      class="compact-search-btn"
+      data-testid="compact-search-btn"
+      (click)="onEditSearch(); $event.stopPropagation()"
+      aria-label="Editar búsqueda">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.7" fill="none"/>
+      </svg>
+    </button>
+  </div>
+}

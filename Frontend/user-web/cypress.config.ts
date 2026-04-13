@@ -1,0 +1,15 @@
+import { defineConfig } from 'cypress';
+
+export default defineConfig({
+  reporter: 'cypress-mochawesome-reporter',
+  e2e: {
+    baseUrl: 'http://localhost:4200',
+    setupNodeEvents(on, config) {
+      require('cypress-mochawesome-reporter/plugin')(on);
+    },
+    viewportWidth: 1280,
+    viewportHeight: 720,
+    video: false,
+  },
+});
+

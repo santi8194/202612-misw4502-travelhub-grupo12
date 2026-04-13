@@ -1,0 +1,2 @@
+// Guards directory — route guards will be placed here as the app scales.
+// Example: auth.guard.ts, booking-flow.guard.ts

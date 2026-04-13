@@ -54,6 +54,12 @@ variable "db_publicly_accessible" {
   default     = false
 }
 
+variable "db_apply_immediately" {
+  description = "Aplica cambios pendientes inmediatamente en RDS en lugar de esperar a la ventana de mantenimiento."
+  type        = bool
+  default     = false
+}
+
 variable "allowed_security_group_ids" {
   description = "Lista de security groups autorizados a conectarse a PostgreSQL."
   type        = list(string)

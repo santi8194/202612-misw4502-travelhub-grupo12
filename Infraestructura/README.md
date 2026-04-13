@@ -210,10 +210,12 @@ terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" init  -backend
 
 Cree el plan de despliegue para el stack de la base de datos.
 
-terraform -chdir="$PWD\terraform\stacks\database" plan -var-file="$PWD\terraform\environments\dev\database\terraform.tfvars"
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" plan -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars"
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" plan -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars" -var-file="$PWD\Infraestructura\terraform\stacks\database\database.secrets.tfvars"
 
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" apply -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars"
+terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" apply -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars" -var-file="$PWD\Infraestructura\terraform\stacks\database\database.secrets.tfvars"
+
+El stack usa `cyrilgdn/postgresql` para reconciliar roles, bases logicas y esquemas adicionales dentro de la instancia RDS.
+`authservice_db` sigue siendo la base inicial creada por `aws_db_instance`; `booking_db`, `catalog_db` y `search_db` se crean desde el provider PostgreSQL.
 
 Obtenga los datos de conexion y el nombre del secreto desde Terraform:
 

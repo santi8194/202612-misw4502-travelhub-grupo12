@@ -28,5 +28,4 @@ postman_collection.json
 
 # Docker
 .dockerignore
-Dockerfile
 docker-compose.yml

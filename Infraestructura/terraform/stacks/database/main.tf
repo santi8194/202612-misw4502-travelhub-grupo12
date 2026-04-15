@@ -1,13 +1,3 @@
-data "terraform_remote_state" "eks" {
-  backend = "s3"
-
-  config = {
-    bucket = "travelhub-tfstate-dev-us-east-1"
-    key    = "eks/dev/terraform.tfstate"
-    region = var.aws_region
-  }
-}
-
 locals {
   service_database_configs = {
     for service_name, service_db in var.service_databases :
@@ -47,7 +37,6 @@ module "rds" {
   source                          = "../../modules/rds"
   vpc_id                          = var.vpc_id
   subnet_ids                      = var.subnet_ids
-  allowed_security_group_ids      = compact([try(data.terraform_remote_state.eks.outputs.eks_node_security_group_id, null)])
   allowed_cidr_blocks             = var.allowed_cidr_blocks
   db_identifier                   = var.db_identifier
   db_subnet_group_name_override   = var.db_subnet_group_name_override

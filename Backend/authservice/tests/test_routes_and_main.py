@@ -15,6 +15,12 @@ def test_root_endpoint():
     assert "Welcome to" in response.json()["message"]
 
 
+def test_auth_health_endpoint():
+    response = client.get("/auth/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
 def test_login_endpoint(monkeypatch, sample_user):
     monkeypatch.setattr("api.routes.auth.AuthService.authenticate_user", lambda **_kwargs: sample_user)
     monkeypatch.setattr(

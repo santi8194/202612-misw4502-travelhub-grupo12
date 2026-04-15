@@ -18,37 +18,37 @@ spec:
             port:
               number: 80
 
-      - path: /notification(/|$)(.*)
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: notification-service
-            port:
-              number: 80
+      # - path: /notification(/|$)(.*)
+      #   pathType: ImplementationSpecific
+      #   backend:
+      #     service:
+      #       name: notification-service
+      #       port:
+      #         number: 80
 
-      - path: /payment(/|$)(.*)
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: payment-service
-            port:
-              number: 80
+      # - path: /payment(/|$)(.*)
+      #   pathType: ImplementationSpecific
+      #   backend:
+      #     service:
+      #       name: payment-service
+      #       port:
+      #         number: 80
 
-      - path: /pmsintegration(/|$)(.*)
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: pmsintegration-service
-            port:
-              number: 80
+      # - path: /pmsintegration(/|$)(.*)
+      #   pathType: ImplementationSpecific
+      #   backend:
+      #     service:
+      #       name: pmsintegration-service
+      #       port:
+      #         number: 80
 
-      - path: /partner(/|$)(.*)
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: partnermanagement-service
-            port:
-              number: 80
+      # - path: /partner(/|$)(.*)
+      #   pathType: ImplementationSpecific
+      #   backend:
+      #     service:
+      #       name: partnermanagement-service
+      #       port:
+      #         number: 80
 
       - path: /search(/|$)(.*)
         pathType: ImplementationSpecific
@@ -57,7 +57,6 @@ spec:
             name: search
             port:
               number: 80
-
 
       - path: /catalog(/|$)(.*)
         pathType: ImplementationSpecific

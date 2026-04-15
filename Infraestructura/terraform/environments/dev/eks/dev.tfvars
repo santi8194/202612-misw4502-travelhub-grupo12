@@ -36,21 +36,6 @@ vpc_id = "vpc-0793a4fe4ecc90aec"
 # Prevents the stack from auto-discovering subnets and makes the target network explicit.
 subnet_ids = ["subnet-072a1bac7455c1476", "subnet-0612f6b53a6445dd4"]
 
-# Added to avoid hidden defaults.
-# Small instance type for a cost-optimized dev environment.
-node_instance_types = ["t3.small"]
-
-# Added to avoid hidden defaults.
-# Single-node dev footprint to minimize cost.
-node_desired_size = 1
-
-# Added to avoid hidden defaults.
-# Keep one node available so the cluster stays schedulable.
-node_min_size = 1
-
-# Added to avoid hidden defaults.
-# Prevent accidental scale-out cost in dev.
-node_max_size = 1
 
 # Added to keep the persistent EKS control plane log group low-cost in dev.
 eks_log_retention_in_days = 7

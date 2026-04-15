@@ -24,12 +24,7 @@ output "eks_cluster_oidc_issuer_url" {
   value       = module.my_eks_cluster.cluster_oidc_issuer_url
 }
 
-output "eks_node_group_autoscaling_group_names" {
-  description = "Nombres de los Auto Scaling Groups de los nodos gestionados por EKS."
-  value       = module.my_eks_cluster.eks_managed_node_groups_autoscaling_group_names
-}
-
-output "eks_node_security_group_id" {
-  description = "Security group compartido por los nodos gestionados del cluster."
-  value       = module.my_eks_cluster.node_security_group_id
+output "eks_cluster_primary_security_group_id" {
+  description = "Security group primario del cluster EKS. Se asigna automaticamente a los pods Fargate."
+  value       = module.my_eks_cluster.cluster_primary_security_group_id
 }

@@ -37,26 +37,6 @@ variable "subnet_ids" {
   nullable    = false
 }
 
-variable "node_instance_types" {
-  description = "Tipos de instancia EC2 permitidos para el managed node group."
-  type        = list(string)
-  nullable    = false
-}
-
-variable "node_desired_size" {
-  description = "Cantidad deseada de nodos en el managed node group."
-  type        = number
-}
-
-variable "node_min_size" {
-  description = "Cantidad mínima de nodos en el managed node group."
-  type        = number
-}
-
-variable "node_max_size" {
-  description = "Cantidad máxima de nodos en el managed node group."
-  type        = number
-}
 
 variable "owner" {
   description = "Dueño de los recursos. Para propósito académico."

@@ -55,6 +55,10 @@ jobs:
             working_directory: Infraestructura/terraform/stacks/ingress
             tfvars_file: ../../environments/dev/ingress/dev.tfvars
             backend_config: ""
+          - name: frontends
+            working_directory: Infraestructura/terraform/stacks/frontends
+            tfvars_file: ../../environments/dev/frontends/dev.tfvars
+            backend_config: ""
 
     defaults:
       run:

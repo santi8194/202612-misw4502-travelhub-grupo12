@@ -1,8 +1,16 @@
 import os
 from flask import Flask, jsonify
+from flask_cors import CORS
 
 def create_app(config_name=None):
     app = Flask(__name__, instance_relative_config=True)
+
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": ["*"]}},
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"],
+    )
 
     # Configuración básica
     # Configuración de base de datos dinámica

@@ -7,6 +7,18 @@ resource "helm_release" "ingress_nginx" {
   chart      = "ingress-nginx"
   version    = var.chart_version
 
+  values = [
+    yamlencode({
+      controller = {
+        service = {
+          annotations = {
+            "service.beta.kubernetes.io/aws-load-balancer-subnets" = join(",", data.terraform_remote_state.eks.outputs.eks_subnet_ids)
+          }
+        }
+      }
+    })
+  ]
+
   set {
     name  = "controller.replicaCount"
     value = "1"
@@ -31,4 +43,5 @@ resource "helm_release" "ingress_nginx" {
     name  = "controller.service.type"
     value = "LoadBalancer"
   }
+
 }

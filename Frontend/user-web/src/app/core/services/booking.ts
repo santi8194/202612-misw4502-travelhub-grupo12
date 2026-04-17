@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, tap, throwError } from 'rxjs';
 import { HoldRequest, HoldResponse } from '../../models/hold.interface';
+import { environment } from '../../../environments/environment';
 
 interface CreateBookingRequest {
   id_usuario: string;
@@ -25,8 +26,8 @@ interface CreateBookingResponse {
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `http://localhost:5001/api/reserva`;
-  private readonly catalogUrl = `http://localhost:8005/catalog`;
+  private readonly apiUrl = environment.bookingApiUrl;
+  private readonly catalogUrl = environment.catalogApiUrl;
 
   getReservationErrorMessage(
     error: unknown,

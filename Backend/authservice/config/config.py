@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # Los valores por defecto solo se usan para desarrollo local o si no se encuentra la variable de entorno correspondiente.
     DB_USER: str = "auth_user"
     DB_PASSWORD: str = "auth_password"
-    DB_HOST: str = "localhost"
+    DB_HOST: str = "auth-db"
     DB_PORT: int = 5432
     DB_NAME: str = "auth_db"
     

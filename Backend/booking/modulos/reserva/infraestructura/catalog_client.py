@@ -13,8 +13,8 @@ class CatalogServiceClient:
     def _default_base_url() -> str:
         # Both Docker Compose and Kubernetes can reach catalog by its service name.
         if os.path.exists("/.dockerenv"):
-            return "http://catalog:8000/catalog"
-        return "http://localhost:8005/catalog"
+            return "https://d1d660udfb1fc0.cloudfront.net/catalog"
+        return "https://d1d660udfb1fc0.cloudfront.net/catalog"
 
     def _request_json(self, method: str, path: str, body: dict | None = None) -> dict:
         url = f"{self.base_url}{path}"

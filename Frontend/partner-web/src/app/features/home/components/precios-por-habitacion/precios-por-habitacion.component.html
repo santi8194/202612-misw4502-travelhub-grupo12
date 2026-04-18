@@ -1,21 +1,21 @@
 <section class="tabla-precios">
     <header class="tabla-precios-header">
-        <h3>Precios por habitación</h3>
-        <p>Establecer tarifas para temporadas base, fin de semana y temporadas pico</p>
+        <h3>{{ 'PRICING_TABLE.TITLE' | translate }}</h3>
+        <p>{{ 'PRICING_TABLE.SUBTITLE' | translate }}</p>
     </header>
 
     <div class="tabla-contenido">
         <div class="tabla-encabezado fila-tabla">
-            <span>Tipo de habitación</span>
-            <span>Tarifa base</span>
-            <span>Tarifa fin de semana</span>
-            <span>Temporada alta</span>
+            <span>{{ 'PRICING_TABLE.ROOM_TYPE' | translate }}</span>
+            <span>{{ 'PRICING_TABLE.BASE_RATE' | translate }}</span>
+            <span>{{ 'PRICING_TABLE.WEEKEND_RATE' | translate }}</span>
+            <span>{{ 'PRICING_TABLE.PEAK_RATE' | translate }}</span>
         </div>
 
         <article class="fila-tabla fila-datos" *ngFor="let fila of filas">
             <div class="habitacion-columna">
                 <strong>{{ fila.tipoHabitacion }}</strong>
-                <small>{{ fila.totalHabitaciones }} en total</small>
+                <small>{{ 'PRICING_TABLE.TOTAL_ROOMS' | translate:{ count: fila.totalHabitaciones } }}</small>
             </div>
 
             <div class="precio-columna">

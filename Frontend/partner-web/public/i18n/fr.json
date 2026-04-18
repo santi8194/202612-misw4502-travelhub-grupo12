@@ -1,0 +1,93 @@
+{
+  "BRAND": {
+    "SUBTITLE": "Portail partenaires"
+  },
+  "SIDEBAR": {
+    "DASHBOARD": "Tableau de bord",
+    "RESERVATIONS": "Réservations",
+    "INVENTORY": "Inventaire",
+    "PRICING": "Tarifs",
+    "REPORTS": "Rapports de revenus",
+    "EDIT_PROFILE": "Modifier le profil",
+    "LOGOUT": "Déconnexion",
+    "LANGUAGE": "Langue"
+  },
+  "SECTIONS": {
+    "DASHBOARD_TITLE": "Tableau de bord",
+    "DASHBOARD_SUBTITLE": "Bienvenue, voici un aperçu général du portail.",
+    "RESERVATIONS_TITLE": "Réservations",
+    "RESERVATIONS_SUBTITLE": "Gérez le statut et le suivi de vos réservations.",
+    "INVENTORY_TITLE": "Inventaire",
+    "INVENTORY_SUBTITLE": "Contrôlez la disponibilité et la configuration des chambres.",
+    "PRICING_TITLE": "Gestion des tarifs",
+    "PRICING_SUBTITLE": "Gérez la disponibilité et l'affectation des chambres.",
+    "REPORTS_TITLE": "Rapports de revenus",
+    "REPORTS_SUBTITLE": "Consultez les résultats, tendances et performances financières."
+  },
+  "ACTIONS": {
+    "SAVE_CHANGES": "Enregistrer",
+    "HIDE": "Masquer"
+  },
+  "TODAY": "Aujourd'hui",
+  "SESSION": {
+    "IDLE_WARNING": "Si vous n'avez aucune activité pendant <strong>{{minutes}} minutes</strong>, la session sera automatiquement désactivée.",
+    "EXPIRY_MESSAGE": "Avec l'activité actuelle, cette session se fermera à <strong>{{time}}</strong>.",
+    "ACCESS_TOKEN": "Jeton d'accès",
+    "MAX_IDLE": "Inactivité maximale",
+    "REFRESH_TOKEN": "Jeton de rafraîchissement",
+    "HIDE_LABEL": "Masquer les infos de session",
+    "DAYS": "jours"
+  },
+  "LOCKOUT": {
+    "TITLE": "Politique de sécurité d'accès",
+    "HIDE_LABEL": "Masquer la politique de verrouillage",
+    "MESSAGE": "Si <strong>{{attempts}} tentatives échouées</strong> consécutives sont détectées, le compte sera temporairement verrouillé pendant <strong>{{minutes}} minutes</strong> pour prévenir les attaques par force brute.",
+    "MAX_ATTEMPTS": "Tentatives maximales",
+    "UNLOCK_TIME": "Temps de déverrouillage"
+  },
+  "WELCOME": {
+    "GREETING": "Bienvenue, {{email}} !",
+    "MANAGING_HOTEL": "Vous gérez l'hôtel",
+    "NO_HOTEL": "Vous n'avez pas encore d'hôtel assigné."
+  },
+  "LOADING": "Chargement...",
+  "ERROR": {
+    "USER_LOAD": "Impossible de charger les informations de l'utilisateur."
+  },
+  "PRICING_CARDS": {
+    "AVG_RATE": "Tarif moyen",
+    "PROMOTIONS": "Promotions",
+    "ACTIVE": "Actives",
+    "MONTHLY_REVENUE": "Revenus ce mois"
+  },
+  "PLACEHOLDER_SECTION": "Cette section sera disponible dans le prochain sprint.",
+  "PRICING_TABLE": {
+    "TITLE": "Tarifs par chambre",
+    "SUBTITLE": "Définir les tarifs pour la saison de base, les week-ends et les hautes saisons",
+    "ROOM_TYPE": "Type de chambre",
+    "BASE_RATE": "Tarif de base",
+    "WEEKEND_RATE": "Tarif week-end",
+    "PEAK_RATE": "Haute saison",
+    "TOTAL_ROOMS": "{{count}} au total"
+  },
+  "LOGIN": {
+    "TITLE": "TravelHub Partner",
+    "SUBTITLE": "Portail Partenaires",
+    "EMAIL_LABEL": "Adresse e-mail",
+    "EMAIL_PLACEHOLDER": "partenaire@hotel.com",
+    "PASSWORD_LABEL": "Mot de passe",
+    "PASSWORD_PLACEHOLDER": "••••••••",
+    "REMEMBER_ME": "Se souvenir de moi",
+    "FORGOT_PASSWORD": "Mot de passe oublié ?",
+    "SUBMIT": "Se connecter",
+    "LOADING": "Vérification des identifiants...",
+    "ERROR_FALLBACK": "Impossible de se connecter. Vérifiez vos identifiants ou réessayez plus tard."
+  },
+  "NAVBAR": {
+    "SEARCH_PLACEHOLDER": "Commencez votre recherche",
+    "LANG_LABEL": "Français (FR)",
+    "LOGOUT": "Déconnexion",
+    "REGISTER": "S'inscrire",
+    "LOGIN": "Se connecter"
+  }
+}

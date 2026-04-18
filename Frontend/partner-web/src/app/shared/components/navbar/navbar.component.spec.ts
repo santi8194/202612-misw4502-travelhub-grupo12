@@ -5,6 +5,7 @@ import { Router, provideRouter } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { NavbarComponent } from './navbar.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -20,7 +21,7 @@ describe('NavbarComponent', () => {
     });
 
     await TestBed.configureTestingModule({
-      imports: [NavbarComponent],
+      imports: [NavbarComponent, TranslateModule.forRoot()],
       providers: [
         { provide: AuthService, useValue: authService },
         provideRouter([]),
@@ -34,6 +35,19 @@ describe('NavbarComponent', () => {
 
     fixture = TestBed.createComponent(NavbarComponent);
     component = fixture.componentInstance;
+
+    const translateService = TestBed.inject(TranslateService);
+    translateService.setTranslation('en', {
+      NAVBAR: {
+        SEARCH_PLACEHOLDER: 'Start your search',
+        LANG_LABEL: 'English (EN)',
+        LOGOUT: 'Sign out',
+        REGISTER: 'Register',
+        LOGIN: 'Sign in'
+      }
+    });
+    translateService.use('en');
+
     fixture.detectChanges();
   });
 
@@ -90,7 +104,7 @@ describe('NavbarComponent', () => {
 
     const logoutBtn = fixture.nativeElement.querySelector('[data-testid="btn-logout"]');
     expect(logoutBtn).toBeTruthy();
-    expect(logoutBtn.textContent).toContain('Cerrar sesión');
+    expect(logoutBtn.textContent).toContain('Sign out');
   });
 
   it('should show "Iniciar sesión" when not authenticated', () => {
@@ -102,7 +116,7 @@ describe('NavbarComponent', () => {
     expect(logoutBtn).toBeNull();
 
     const loginLink = fixture.nativeElement.querySelector('.dropdown-menu');
-    expect(loginLink.textContent).toContain('Iniciar sesión');
+    expect(loginLink.textContent).toContain('Sign in');
   });
 
   // ─── Template: logo ───

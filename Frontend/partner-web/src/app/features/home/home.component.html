@@ -4,7 +4,7 @@
             <div class="brand-icon">TH</div>
             <div class="brand-text">
                 <h1>TravelHub</h1>
-                <p>Portal para socios</p>
+                <p>{{ 'BRAND.SUBTITLE' | translate }}</p>
             </div>
         </div>
 
@@ -15,7 +15,7 @@
                 [class.active]="activeSection === 'dashboard'"
                 (click)="setActiveSection('dashboard')"
             >
-                Inicio
+                {{ 'SIDEBAR.DASHBOARD' | translate }}
             </button>
             <button
                 type="button"
@@ -23,7 +23,7 @@
                 [class.active]="activeSection === 'reservas'"
                 (click)="setActiveSection('reservas')"
             >
-                Reservas
+                {{ 'SIDEBAR.RESERVATIONS' | translate }}
             </button>
             <button
                 type="button"
@@ -31,7 +31,7 @@
                 [class.active]="activeSection === 'inventario'"
                 (click)="setActiveSection('inventario')"
             >
-                Inventario
+                {{ 'SIDEBAR.INVENTORY' | translate }}
             </button>
             <button
                 type="button"
@@ -39,7 +39,7 @@
                 [class.active]="activeSection === 'precios'"
                 (click)="setActiveSection('precios')"
             >
-                Precios
+                {{ 'SIDEBAR.PRICING' | translate }}
             </button>
             <button
                 type="button"
@@ -47,26 +47,51 @@
                 [class.active]="activeSection === 'reportes'"
                 (click)="setActiveSection('reportes')"
             >
-                Reportes de Ingresos
+                {{ 'SIDEBAR.REPORTS' | translate }}
             </button>
         </nav>
+
+        <div class="sidebar-bottom">
+            <div class="lang-selector">
+                <button type="button" class="menu-item menu-item-bottom lang-toggle" (click)="toggleLangSelector()">
+                    🌐 {{ currentLangLabel }}
+                </button>
+                <div class="lang-options" *ngIf="showLangSelector">
+                    <button
+                        type="button"
+                        class="lang-option"
+                        *ngFor="let lang of availableLanguages"
+                        [class.active]="(translate.currentLang || 'es') === lang.code"
+                        (click)="switchLang(lang.code)"
+                    >
+                        {{ lang.label }}
+                    </button>
+                </div>
+            </div>
+            <button type="button" class="menu-item menu-item-bottom">
+                {{ 'SIDEBAR.EDIT_PROFILE' | translate }}
+            </button>
+            <button type="button" class="menu-item menu-item-bottom menu-item-logout" (click)="logout()">
+                {{ 'SIDEBAR.LOGOUT' | translate }}
+            </button>
+        </div>
     </aside>
 
     <main class="dashboard-main">
         <header class="dashboard-header">
             <div>
-                <h2>{{ currentSectionTitle }}</h2>
-                <p>{{ currentSectionSubtitle }}</p>
+                <h2>{{ currentSectionTitleKey | translate }}</h2>
+                <p>{{ currentSectionSubtitleKey | translate }}</p>
             </div>
 
             <div class="header-actions" *ngIf="isPricingSelected()">
                 <button type="button" class="save-button" (click)="guardarCambiosPrecios()">
-                    Guardar cambios
+                    {{ 'ACTIONS.SAVE_CHANGES' | translate }}
                 </button>
             </div>
 
             <div class="today-box" *ngIf="!isPricingSelected()">
-                <span>Hoy</span>
+                <span>{{ 'TODAY' | translate }}</span>
                 <strong>{{ todayLabel | date:'MMMM d, y' }}</strong>
             </div>
         </header>
@@ -75,69 +100,62 @@
             <div class="session-card" *ngIf="showSessionInfo">
                 <div class="session-card-header"></div>
 
-                <p class="session-message">
-                    Si no registras actividad durante
-                    <strong>{{ sessionInfo.idleTimeoutMinutes }} minutos</strong>, la sesión se inactivará automáticamente.
+                <p class="session-message" [innerHTML]="'SESSION.IDLE_WARNING' | translate:{ minutes: sessionInfo.idleTimeoutMinutes }">
                 </p>
 
-                <p class="session-expiration" *ngIf="sessionExpirationAt">
-                    Con la actividad actual, esta sesión se cerrará a las
-                    <strong>{{ sessionExpirationAt | date:'HH:mm:ss' }}</strong>.
+                <p class="session-expiration" *ngIf="sessionExpirationAt"
+                   [innerHTML]="'SESSION.EXPIRY_MESSAGE' | translate:{ time: (sessionExpirationAt | date:'HH:mm:ss') }">
                 </p>
 
                 <div class="session-metrics">
                     <div class="session-metric">
-                        <span class="session-metric-label">Token de acceso</span>
+                        <span class="session-metric-label">{{ 'SESSION.ACCESS_TOKEN' | translate }}</span>
                         <strong>{{ sessionInfo.accessTokenMinutes }} min</strong>
                     </div>
                     <div class="session-metric">
-                        <span class="session-metric-label">Inactividad máxima</span>
+                        <span class="session-metric-label">{{ 'SESSION.MAX_IDLE' | translate }}</span>
                         <strong>{{ sessionInfo.idleTimeoutMinutes }} min</strong>
                     </div>
                     <div class="session-metric">
-                        <span class="session-metric-label">Token de refresco</span>
-                        <strong>{{ sessionInfo.refreshTokenDays }} días</strong>
+                        <span class="session-metric-label">{{ 'SESSION.REFRESH_TOKEN' | translate }}</span>
+                        <strong>{{ sessionInfo.refreshTokenDays }} {{ 'SESSION.DAYS' | translate }}</strong>
                     </div>
 
                     <button
                         type="button"
                         class="session-close"
-                        aria-label="Ocultar información de sesión"
+                        [attr.aria-label]="'SESSION.HIDE_LABEL' | translate"
                         (click)="dismissSessionInfo()"
                     >
-                        Ocultar
+                        {{ 'ACTIONS.HIDE' | translate }}
                     </button>
                 </div>
             </div>
 
             <div class="lockout-card" *ngIf="showLockoutInfo">
                 <div class="lockout-card-header">
-                    <h3 class="lockout-title">Politica de seguridad de acceso</h3>
+                    <h3 class="lockout-title">{{ 'LOCKOUT.TITLE' | translate }}</h3>
                     <button
                         type="button"
                         class="lockout-close"
-                        aria-label="Ocultar politica de bloqueo"
+                        [attr.aria-label]="'LOCKOUT.HIDE_LABEL' | translate"
                         (click)="dismissLockoutInfo()"
                     >
-                        Ocultar
+                        {{ 'ACTIONS.HIDE' | translate }}
                     </button>
                 </div>
 
-                <p class="lockout-message">
-                    Si se detectan
-                    <strong>{{ lockoutPolicyInfo.maxFailedAttempts }} intentos fallidos</strong>
-                    consecutivos, la cuenta se bloqueara temporalmente por
-                    <strong>{{ lockoutPolicyInfo.lockoutMinutes }} minutos</strong>
-                    para prevenir ataques de fuerza bruta.
+                <p class="lockout-message"
+                   [innerHTML]="'LOCKOUT.MESSAGE' | translate:{ attempts: lockoutPolicyInfo.maxFailedAttempts, minutes: lockoutPolicyInfo.lockoutMinutes }">
                 </p>
 
                 <div class="lockout-metrics">
                     <div class="lockout-metric">
-                        <span class="lockout-metric-label">Intentos maximos</span>
+                        <span class="lockout-metric-label">{{ 'LOCKOUT.MAX_ATTEMPTS' | translate }}</span>
                         <strong>{{ lockoutPolicyInfo.maxFailedAttempts }}</strong>
                     </div>
                     <div class="lockout-metric">
-                        <span class="lockout-metric-label">Tiempo de desbloqueo</span>
+                        <span class="lockout-metric-label">{{ 'LOCKOUT.UNLOCK_TIME' | translate }}</span>
                         <strong>{{ lockoutPolicyInfo.lockoutMinutes }} min</strong>
                     </div>
                 </div>
@@ -146,25 +164,25 @@
             <div class="welcome-card" *ngIf="!loading && !error && user as currentUser" data-testid="welcome-card">
                 <div class="welcome-icon">🏨</div>
                 <div class="welcome-content">
-                    <h2 class="welcome-title" data-testid="welcome-title">¡Bienvenido, {{ currentUser.email }}!</h2>
+                    <h2 class="welcome-title" data-testid="welcome-title">{{ 'WELCOME.GREETING' | translate:{ email: currentUser.email } }}</h2>
                     <p class="welcome-subtitle" *ngIf="currentUser.partner_id; else noPartner">
-                        Estás gestionando el hotel
+                        {{ 'WELCOME.MANAGING_HOTEL' | translate }}
                         <span class="partner-badge">{{ currentUser.partner_id }}</span>
                     </p>
                     <ng-template #noPartner>
                         <p class="welcome-subtitle no-partner">
-                            No tienes un hotel asignado aún.
+                            {{ 'WELCOME.NO_HOTEL' | translate }}
                         </p>
                     </ng-template>
                 </div>
             </div>
 
             <div class="welcome-loading" *ngIf="loading" data-testid="welcome-loading">
-                <span>Cargando...</span>
+                <span>{{ 'LOADING' | translate }}</span>
             </div>
 
             <div class="welcome-error" *ngIf="error" data-testid="welcome-error">
-                <span>No se pudo cargar la información del usuario.</span>
+                <span>{{ 'ERROR.USER_LOAD' | translate }}</span>
             </div>
         </section>
 
@@ -175,13 +193,13 @@
                     <span
                         class="price-trend"
                         [ngClass]="card.trendClass"
-                        *ngIf="card.trend || card.trendText"
+                        *ngIf="card.trend || card.trendText || card.trendTextKey"
                     >
-                        {{ card.trend }} {{ card.trendText }}
+                        {{ card.trend }} {{ card.trendTextKey ? (card.trendTextKey | translate) : card.trendText }}
                     </span>
                 </div>
                 <strong class="price-value">{{ card.value }}</strong>
-                <p class="price-label">{{ card.label }}</p>
+                <p class="price-label">{{ card.labelKey | translate }}</p>
             </article>
 
             <div class="prices-room-table">
@@ -192,7 +210,7 @@
         <ng-template #sectionPlaceholder>
             <section class="placeholder-section">
                 <h3>{{ activeSection | titlecase }}</h3>
-                <p>Esta sección estará disponible en el siguiente sprint.</p>
+                <p>{{ 'PLACEHOLDER_SECTION' | translate }}</p>
             </section>
         </ng-template>
 

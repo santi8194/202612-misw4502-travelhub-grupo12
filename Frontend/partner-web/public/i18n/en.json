@@ -1,0 +1,93 @@
+{
+  "BRAND": {
+    "SUBTITLE": "Partner Portal"
+  },
+  "SIDEBAR": {
+    "DASHBOARD": "Dashboard",
+    "RESERVATIONS": "Reservations",
+    "INVENTORY": "Inventory",
+    "PRICING": "Pricing",
+    "REPORTS": "Revenue Reports",
+    "EDIT_PROFILE": "Edit profile",
+    "LOGOUT": "Sign out",
+    "LANGUAGE": "Language"
+  },
+  "SECTIONS": {
+    "DASHBOARD_TITLE": "Dashboard",
+    "DASHBOARD_SUBTITLE": "Welcome, here is a general overview of the portal.",
+    "RESERVATIONS_TITLE": "Reservations",
+    "RESERVATIONS_SUBTITLE": "Manage the status and tracking of your reservations.",
+    "INVENTORY_TITLE": "Inventory",
+    "INVENTORY_SUBTITLE": "Control availability and room configuration.",
+    "PRICING_TITLE": "Price Management",
+    "PRICING_SUBTITLE": "Manage availability and room rate assignment.",
+    "REPORTS_TITLE": "Revenue Reports",
+    "REPORTS_SUBTITLE": "View results, trends, and financial performance."
+  },
+  "ACTIONS": {
+    "SAVE_CHANGES": "Save changes",
+    "HIDE": "Hide"
+  },
+  "TODAY": "Today",
+  "SESSION": {
+    "IDLE_WARNING": "If you have no activity for <strong>{{minutes}} minutes</strong>, the session will be automatically deactivated.",
+    "EXPIRY_MESSAGE": "With the current activity, this session will close at <strong>{{time}}</strong>.",
+    "ACCESS_TOKEN": "Access token",
+    "MAX_IDLE": "Max idle time",
+    "REFRESH_TOKEN": "Refresh token",
+    "HIDE_LABEL": "Hide session info",
+    "DAYS": "days"
+  },
+  "LOCKOUT": {
+    "TITLE": "Access Security Policy",
+    "HIDE_LABEL": "Hide lockout policy",
+    "MESSAGE": "If <strong>{{attempts}} failed attempts</strong> are detected consecutively, the account will be temporarily locked for <strong>{{minutes}} minutes</strong> to prevent brute force attacks.",
+    "MAX_ATTEMPTS": "Max attempts",
+    "UNLOCK_TIME": "Unlock time"
+  },
+  "WELCOME": {
+    "GREETING": "Welcome, {{email}}!",
+    "MANAGING_HOTEL": "You are managing the hotel",
+    "NO_HOTEL": "You don't have an assigned hotel yet."
+  },
+  "LOADING": "Loading...",
+  "ERROR": {
+    "USER_LOAD": "Could not load user information."
+  },
+  "PRICING_CARDS": {
+    "AVG_RATE": "Average rate",
+    "PROMOTIONS": "Promotions",
+    "ACTIVE": "Active",
+    "MONTHLY_REVENUE": "Monthly revenue"
+  },
+  "PLACEHOLDER_SECTION": "This section will be available in the next sprint.",
+  "PRICING_TABLE": {
+    "TITLE": "Room pricing",
+    "SUBTITLE": "Set rates for base season, weekends, and peak seasons",
+    "ROOM_TYPE": "Room type",
+    "BASE_RATE": "Base rate",
+    "WEEKEND_RATE": "Weekend rate",
+    "PEAK_RATE": "Peak season",
+    "TOTAL_ROOMS": "{{count}} total"
+  },
+  "LOGIN": {
+    "TITLE": "TravelHub Partner",
+    "SUBTITLE": "Partner Portal",
+    "EMAIL_LABEL": "Email",
+    "EMAIL_PLACEHOLDER": "partner@hotel.com",
+    "PASSWORD_LABEL": "Password",
+    "PASSWORD_PLACEHOLDER": "••••••••",
+    "REMEMBER_ME": "Remember me",
+    "FORGOT_PASSWORD": "Forgot your password?",
+    "SUBMIT": "Sign In",
+    "LOADING": "Verifying credentials...",
+    "ERROR_FALLBACK": "Could not sign in. Please check your credentials or try again later."
+  },
+  "NAVBAR": {
+    "SEARCH_PLACEHOLDER": "Start your search",
+    "LANG_LABEL": "English (EN)",
+    "LOGOUT": "Sign out",
+    "REGISTER": "Register",
+    "LOGIN": "Sign in"
+  }
+}

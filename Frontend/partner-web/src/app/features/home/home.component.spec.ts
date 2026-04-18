@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { of, throwError, BehaviorSubject, NEVER } from 'rxjs';
 import { HomeComponent } from './home.component';
 import { AuthService, UserProfile } from '../../core/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -30,7 +31,7 @@ describe('HomeComponent', () => {
   beforeEach(async () => {
     sessionExpirySubject = new BehaviorSubject<Date | null>(null);
 
-    authService = jasmine.createSpyObj('AuthService', ['getCurrentUser', 'getSessionExpiry'], {
+    authService = jasmine.createSpyObj('AuthService', ['getCurrentUser', 'getSessionExpiry', 'logout'], {
       accessTokenMinutes: 15,
       idleTimeoutMinutes: 5,
       refreshTokenDays: 7,
@@ -42,7 +43,7 @@ describe('HomeComponent', () => {
     authService.getCurrentUser.and.returnValue(of(mockUser));
 
     await TestBed.configureTestingModule({
-      imports: [HomeComponent],
+      imports: [HomeComponent, TranslateModule.forRoot()],
       providers: [
         { provide: AuthService, useValue: authService },
         provideRouter([]),
@@ -53,6 +54,27 @@ describe('HomeComponent', () => {
 
     fixture = TestBed.createComponent(HomeComponent);
     component = fixture.componentInstance;
+
+    // Set up translations for tests
+    const translateService = TestBed.inject(TranslateService);
+    translateService.setTranslation('en', {
+      BRAND: { SUBTITLE: 'Partner Portal' },
+      SIDEBAR: { DASHBOARD: 'Dashboard', RESERVATIONS: 'Reservations', INVENTORY: 'Inventory', PRICING: 'Pricing', REPORTS: 'Revenue Reports', EDIT_PROFILE: 'Edit profile', LOGOUT: 'Sign out', LANGUAGE: 'Language' },
+      SECTIONS: {
+        DASHBOARD_TITLE: 'Dashboard', DASHBOARD_SUBTITLE: 'Welcome, here is a general overview of the portal.',
+        PRICING_TITLE: 'Price Management', PRICING_SUBTITLE: 'Manage availability and room rate assignment.'
+      },
+      ACTIONS: { SAVE_CHANGES: 'Save changes', HIDE: 'Hide' },
+      TODAY: 'Today',
+      SESSION: { IDLE_WARNING: 'If you have no activity for <strong>{{minutes}} minutes</strong>, the session will be automatically deactivated.', EXPIRY_MESSAGE: 'With current activity, session closes at <strong>{{time}}</strong>.', ACCESS_TOKEN: 'Access token', MAX_IDLE: 'Max idle time', REFRESH_TOKEN: 'Refresh token', HIDE_LABEL: 'Hide session info', DAYS: 'days' },
+      LOCKOUT: { TITLE: 'Access Security Policy', HIDE_LABEL: 'Hide lockout policy', MESSAGE: 'If <strong>{{attempts}} failed attempts</strong> detected, account locked for <strong>{{minutes}} minutes</strong>.', MAX_ATTEMPTS: 'Max attempts', UNLOCK_TIME: 'Unlock time' },
+      WELCOME: { GREETING: 'Welcome, {{email}}!', MANAGING_HOTEL: 'You are managing the hotel', NO_HOTEL: 'You don\'t have an assigned hotel yet.' },
+      LOADING: 'Loading...',
+      ERROR: { USER_LOAD: 'Could not load user information.' },
+      PLACEHOLDER_SECTION: 'This section will be available in the next sprint.',
+      PRICING_CARDS: { AVG_RATE: 'Average rate', PROMOTIONS: 'Promotions', ACTIVE: 'Active', MONTHLY_REVENUE: 'Monthly revenue' }
+    });
+    translateService.use('en');
   });
 
   // ─── Initialization ───
@@ -110,7 +132,7 @@ describe('HomeComponent', () => {
 
     const noPartner = fixture.nativeElement.querySelector('.no-partner');
     expect(noPartner).toBeTruthy();
-    expect(noPartner.textContent).toContain('No tienes un hotel asignado');
+    expect(noPartner.textContent).toContain('assigned hotel');
   });
 
   // ─── ngOnInit error ───
@@ -132,7 +154,7 @@ describe('HomeComponent', () => {
 
     const errorEl = fixture.nativeElement.querySelector('[data-testid="welcome-error"]');
     expect(errorEl).toBeTruthy();
-    expect(errorEl.textContent).toContain('No se pudo cargar la información del usuario');
+    expect(errorEl.textContent).toContain('Could not load user information');
   });
 
   it('should show loading indicator before data arrives', () => {

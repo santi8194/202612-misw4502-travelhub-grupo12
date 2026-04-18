@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 interface FilaPrecioHabitacion {
     tipoHabitacion: string;
@@ -14,7 +15,7 @@ interface FilaPrecioHabitacion {
 @Component({
     selector: 'app-precios-por-habitacion',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, TranslateModule],
     templateUrl: './precios-por-habitacion.component.html',
     styleUrl: './precios-por-habitacion.component.scss'
 })

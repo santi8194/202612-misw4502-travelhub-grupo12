@@ -6,9 +6,9 @@ import uuid
 from catalog.modules.catalog.application.commands.create_property import CreateProperty
 from catalog.modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from catalog.modules.catalog.application.commands.update_inventory import UpdateInventory
-from catalog.modules.catalog.application.commands.obtain_property_by_category_id import ObtainPropertyByCategoryId
-from catalog.modules.catalog.application.commands.obtain_category_by_id import ObtainCategoryById
-from catalog.modules.catalog.application.commands.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
+from catalog.modules.catalog.application.queries.obtain_property_by_category_id import ObtainPropertyByCategoryId
+from catalog.modules.catalog.application.queries.obtain_category_by_id import ObtainCategoryById
+from catalog.modules.catalog.application.queries.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
 from catalog.modules.catalog.domain.entities import (
 	Coordenadas,
 	VODireccion,

@@ -4,12 +4,20 @@ from modules.catalog.domain.entities import TipoMedia
 
 
 class ObtainCategoryById:
-	"""Comando para obtener una categoria por su id."""
+	"""Query para obtener una categoria de habitacion por su UUID."""
 
 	def __init__(self, repository):
 		self.repository = repository
 
 	def execute(self, id_categoria: UUID) -> dict:
+		"""Retorna los datos de una categoria de habitacion.
+
+		Args:
+			id_categoria: UUID de la categoria
+
+		Returns:
+			Dict con datos de la categoria o error si no existe
+		"""
 		categoria = self.repository.obtain_category_by_id(id_categoria)
 		if not categoria:
 			return {

@@ -12,9 +12,9 @@ from modules.catalog.infrastructure.services.event_bus import EventBus
 from modules.catalog.application.commands.create_property import CreateProperty
 from modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from modules.catalog.application.commands.update_inventory import UpdateInventory
-from modules.catalog.application.commands.obtain_property_by_category_id import ObtainPropertyByCategoryId
-from modules.catalog.application.commands.obtain_category_by_id import ObtainCategoryById
-from modules.catalog.application.commands.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
+from modules.catalog.application.queries.obtain_property_by_category_id import ObtainPropertyByCategoryId
+from modules.catalog.application.queries.obtain_category_by_id import ObtainCategoryById
+from modules.catalog.application.queries.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
 
 router = APIRouter()
 repository = PropertyRepository()

@@ -2,7 +2,7 @@ from uuid import UUID
 
 
 class ObtainPropertyByCategoryId:
-	"""Comando para obtener la propiedad asociada a un id de categoria."""
+	"""Query para obtener la propiedad asociada a un UUID de categoria."""
 
 	def __init__(self, repository):
 		self.repository = repository

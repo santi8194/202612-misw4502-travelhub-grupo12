@@ -7,6 +7,29 @@
   },
   "item": [
     {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Verifica el estado del servicio"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Properties",
       "item": [
         {
@@ -25,8 +48,12 @@
             },
             "url": {
               "raw": "{{base_url}}/properties",
-              "host": ["{{base_url}}"],
-              "path": ["properties"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties"
+              ]
             },
             "description": "Crea una nueva propiedad"
           },
@@ -39,8 +66,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/properties",
-              "host": ["{{base_url}}"],
-              "path": ["properties"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties"
+              ]
             },
             "description": "Obtiene todas las propiedades"
           },
@@ -53,8 +84,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}"
+              ]
             },
             "description": "Obtiene los detalles de una propiedad específica"
           },
@@ -72,8 +108,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/properties/by-category/{{category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "by-category", "{{category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "by-category",
+                "{{category_id}}"
+              ]
             },
             "description": "Obtiene la propiedad asociada a un ID de categoría"
           },
@@ -86,8 +128,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/categories/{{category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["categories", "{{category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "{{category_id}}"
+              ]
             },
             "description": "Obtiene una categoría por su ID"
           },
@@ -100,8 +147,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}/categories",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}", "categories"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories"
+              ]
             },
             "description": "Obtiene todas las categorías asociadas a una propiedad"
           },
@@ -123,8 +176,14 @@
             },
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}/categories",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}", "categories"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories"
+              ]
             },
             "description": "Registra una nueva categoría de habitación en una propiedad"
           },
@@ -151,8 +210,16 @@
             },
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/inventory",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}", "categories", "{{category_id}}", "inventory"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories",
+                "{{category_id}}",
+                "inventory"
+              ]
             },
             "description": "Actualiza el inventario de una categoría de habitación"
           },
@@ -165,8 +232,17 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/availability/{{date}}",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}", "categories", "{{category_id}}", "availability", "{{date}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories",
+                "{{category_id}}",
+                "availability",
+                "{{date}}"
+              ]
             },
             "description": "Obtiene la disponibilidad de una categoría en una fecha específica"
           },

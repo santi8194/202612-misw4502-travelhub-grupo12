@@ -372,6 +372,85 @@
     }
 }
 
+.prices-overview {
+    width: 100%;
+    padding: 30px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.price-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #d9e0ea;
+    box-shadow: 0 2px 12px rgba(20, 32, 62, 0.06);
+    padding: 22px 28px;
+    min-height: 170px;
+    display: flex;
+    flex-direction: column;
+}
+
+.price-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.price-icon {
+    font-size: 2.6rem;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.pricing-icon-money {
+    color: #109f75;
+}
+
+.pricing-icon-calendar {
+    color: #2a61d8;
+}
+
+.pricing-icon-revenue {
+    color: #9027f2;
+}
+
+.price-trend {
+    font-size: 1.85rem;
+    font-weight: 700;
+}
+
+.trend-positive {
+    color: #1ca679;
+}
+
+.trend-neutral {
+    font-size: 1.3rem;
+    border-radius: 999px;
+    padding: 5px 13px;
+    background: #e3ebff;
+    color: #2a61d8;
+}
+
+.price-value {
+    font-size: 3.15rem;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #14203b;
+}
+
+.price-label {
+    margin: 8px 0 0;
+    font-size: 2rem;
+    color: #5e6f8a;
+}
+
+.prices-room-table {
+    grid-column: 1 / -1;
+}
+
 @media (max-width: 720px) {
     .dashboard-shell {
         grid-template-columns: 1fr;
@@ -409,6 +488,11 @@
     }
 
     .home-container {
+        padding: 20px;
+        grid-template-columns: 1fr;
+    }
+
+    .prices-overview {
         padding: 20px;
         grid-template-columns: 1fr;
     }

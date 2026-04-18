@@ -64,7 +64,7 @@
             </div>
         </header>
 
-        <section class="home-container" *ngIf="isDashboardSelected(); else sectionPlaceholder">
+        <section class="home-container" *ngIf="isDashboardSelected()">
             <div class="session-card" *ngIf="showSessionInfo">
                 <div class="session-card-header"></div>
 
@@ -161,11 +161,36 @@
             </div>
         </section>
 
+        <section class="prices-overview" *ngIf="isPricingSelected()">
+            <article class="price-card" *ngFor="let card of pricingSummaryCards">
+                <div class="price-card-top">
+                    <span class="price-icon" [ngClass]="card.iconClass">{{ card.icon }}</span>
+                    <span
+                        class="price-trend"
+                        [ngClass]="card.trendClass"
+                        *ngIf="card.trend || card.trendText"
+                    >
+                        {{ card.trend }} {{ card.trendText }}
+                    </span>
+                </div>
+                <strong class="price-value">{{ card.value }}</strong>
+                <p class="price-label">{{ card.label }}</p>
+            </article>
+
+            <div class="prices-room-table">
+                <ng-container *ngComponentOutlet="preciosPorHabitacionComponent"></ng-container>
+            </div>
+        </section>
+
         <ng-template #sectionPlaceholder>
             <section class="placeholder-section">
                 <h3>{{ activeSection | titlecase }}</h3>
                 <p>Esta sección estará disponible en el siguiente sprint.</p>
             </section>
         </ng-template>
+
+        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected()">
+            <ng-container *ngTemplateOutlet="sectionPlaceholder"></ng-container>
+        </ng-container>
     </main>
 </div>

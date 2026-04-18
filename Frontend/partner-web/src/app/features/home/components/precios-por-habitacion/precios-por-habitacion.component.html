@@ -1,0 +1,45 @@
+<section class="tabla-precios">
+    <header class="tabla-precios-header">
+        <h3>Precios por habitacion</h3>
+        <p>Establecer tarifas para temporadas base, fin de semana y temporadas pico</p>
+    </header>
+
+    <div class="tabla-contenido">
+        <div class="tabla-encabezado fila-tabla">
+            <span>Tipo de habitacion</span>
+            <span>Tarifa base</span>
+            <span>Tarifa fin de semana</span>
+            <span>Temporada alta</span>
+        </div>
+
+        <article class="fila-tabla fila-datos" *ngFor="let fila of filas">
+            <div class="habitacion-columna">
+                <strong>{{ fila.tipoHabitacion }}</strong>
+                <small>{{ fila.totalHabitaciones }} en total</small>
+            </div>
+
+            <div class="precio-columna">
+                <div class="input-monto">
+                    <span>$</span>
+                    <input type="text" [value]="fila.tarifaBase" />
+                </div>
+            </div>
+
+            <div class="precio-columna">
+                <div class="input-monto">
+                    <span>$</span>
+                    <input type="text" [value]="fila.tarifaFinDeSemana" />
+                </div>
+                <small class="variacion">{{ fila.variacionFinDeSemana }}</small>
+            </div>
+
+            <div class="precio-columna">
+                <div class="input-monto">
+                    <span>$</span>
+                    <input type="text" [value]="fila.tarifaTemporadaAlta" />
+                </div>
+                <small class="variacion">{{ fila.variacionTemporadaAlta }}</small>
+            </div>
+        </article>
+    </div>
+</section>

@@ -2,11 +2,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { Subject, takeUntil } from 'rxjs';
+import { PreciosPorHabitacionComponent } from './components/precios-por-habitacion/precios-por-habitacion.component';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, PreciosPorHabitacionComponent],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
@@ -28,6 +29,36 @@ export class HomeComponent implements OnInit, OnDestroy {
         maxFailedAttempts: 5,
         lockoutMinutes: 5,
     };
+    readonly pricingSummaryCards = [
+        {
+            icon: '$',
+            value: '$215',
+            label: 'Tarifa promedio',
+            trend: '↗',
+            trendText: '',
+            iconClass: 'pricing-icon-money',
+            trendClass: 'trend-positive'
+        },
+        {
+            icon: '▦',
+            value: '3',
+            label: 'Promociones',
+            trend: '',
+            trendText: 'Activas',
+            iconClass: 'pricing-icon-calendar',
+            trendClass: 'trend-neutral'
+        },
+        {
+            icon: '↗',
+            value: '$18.5K',
+            label: 'Ingresos este mes',
+            trend: '',
+            trendText: '+12%',
+            iconClass: 'pricing-icon-revenue',
+            trendClass: 'trend-positive'
+        }
+    ];
+    readonly preciosPorHabitacionComponent = PreciosPorHabitacionComponent;
     private destroy$ = new Subject<void>();
 
     constructor(private authService: AuthService) {
@@ -72,6 +103,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     isDashboardSelected(): boolean {
         return this.activeSection === 'dashboard';
+    }
+
+    isPricingSelected(): boolean {
+        return this.activeSection === 'precios';
     }
 
     ngOnDestroy(): void {

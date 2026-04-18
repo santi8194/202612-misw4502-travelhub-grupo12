@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Integer, Float, Numeric, ForeignKey, Table
+from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -6,10 +7,13 @@ from .database import Base
 class PropiedadModel(Base):
 	__tablename__ = "propiedades"
 
-	id_propiedad = Column(String, primary_key=True)
+	# Clave primaria como UUID nativo de PostgreSQL
+	id_propiedad = Column(PgUUID(as_uuid=True), primary_key=True)
 	nombre = Column(String, nullable=False)
 	estrellas = Column(Integer, nullable=False)
 	ciudad = Column(String, nullable=False)
+	# Estado o provincia requerido por el servicio Search
+	estado_provincia = Column(String, nullable=False)
 	pais = Column(String, nullable=False)
 	latitud = Column(Float, nullable=False)
 	longitud = Column(Float, nullable=False)
@@ -23,8 +27,10 @@ class PropiedadModel(Base):
 class CategoriaHabitacionModel(Base):
 	__tablename__ = "categorias_habitacion"
 
-	id_categoria = Column(String, primary_key=True)
-	id_propiedad = Column(String, ForeignKey("propiedades.id_propiedad"), nullable=False)
+	# Clave primaria como UUID nativo de PostgreSQL
+	id_categoria = Column(PgUUID(as_uuid=True), primary_key=True)
+	# Clave foránea como UUID nativo referenciando propiedades
+	id_propiedad = Column(PgUUID(as_uuid=True), ForeignKey("propiedades.id_propiedad"), nullable=False)
 	codigo_mapeo_pms = Column(String, nullable=False, unique=True)
 	nombre_comercial = Column(String, nullable=False)
 	descripcion = Column(String, nullable=False)
@@ -47,7 +53,8 @@ class MediaModel(Base):
 	__tablename__ = "media"
 
 	id_media = Column(String, primary_key=True)
-	id_categoria = Column(String, ForeignKey("categorias_habitacion.id_categoria"), nullable=False)
+	# FK como UUID nativo apuntando a categorias_habitacion
+	id_categoria = Column(PgUUID(as_uuid=True), ForeignKey("categorias_habitacion.id_categoria"), nullable=False)
 	url_full = Column(String, nullable=False)
 	tipo = Column(String, nullable=False)
 	orden = Column(Integer, nullable=False)
@@ -67,11 +74,12 @@ class AmenidadModel(Base):
 	)
 
 
-# Tabla asociativa para relación many-to-many
+# Tabla asociativa para relación many-to-many entre categorías y amenidades
 categoria_amenidad = Table(
 	"categoria_amenidad",
 	Base.metadata,
-	Column("id_categoria", String, ForeignKey("categorias_habitacion.id_categoria"), primary_key=True),
+	# FK como UUID nativo
+	Column("id_categoria", PgUUID(as_uuid=True), ForeignKey("categorias_habitacion.id_categoria"), primary_key=True),
 	Column("id_amenidad", String, ForeignKey("amenidades.id_amenidad"), primary_key=True),
 )
 
@@ -80,7 +88,8 @@ class InventarioModel(Base):
 	__tablename__ = "inventario"
 
 	id_inventario = Column(String, primary_key=True)
-	id_categoria = Column(String, ForeignKey("categorias_habitacion.id_categoria"), nullable=False)
+	# FK como UUID nativo apuntando a categorias_habitacion
+	id_categoria = Column(PgUUID(as_uuid=True), ForeignKey("categorias_habitacion.id_categoria"), nullable=False)
 	fecha = Column(String, nullable=False)
 	cupos_totales = Column(Integer, nullable=False)
 	cupos_disponibles = Column(Integer, nullable=False)

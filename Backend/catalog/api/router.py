@@ -33,6 +33,8 @@ class CreatePropertyRequest(BaseModel):
 	nombre: str
 	estrellas: int
 	ciudad: str
+	# Estado o provincia requerido por el servicio Search
+	estado_provincia: str
 	pais: str
 	latitud: float
 	longitud: float
@@ -55,7 +57,8 @@ class RegisterCategoryRequest(BaseModel):
 
 class UpdateInventoryRequest(BaseModel):
 	id_propiedad: UUID
-	id_categoria: str
+	# UUID de la categoría
+	id_categoria: UUID
 	id_inventario: str
 	fecha: date
 	cupos_totales: int
@@ -75,6 +78,7 @@ def crear_propiedad(request: CreatePropertyRequest):
 		nombre=request.nombre,
 		estrellas=request.estrellas,
 		ciudad=request.ciudad,
+		estado_provincia=request.estado_provincia,
 		pais=request.pais,
 		latitud=request.latitud,
 		longitud=request.longitud,
@@ -158,6 +162,7 @@ def obtener_propiedad(id_propiedad: UUID):
 		"estrellas": propiedad.estrellas,
 		"ubicacion": {
 			"ciudad": propiedad.ubicacion.ciudad,
+			"estado_provincia": propiedad.ubicacion.estado_provincia,
 			"pais": propiedad.ubicacion.pais,
 			"coordenadas": {
 				"lat": propiedad.ubicacion.coordenadas.lat,
@@ -170,21 +175,21 @@ def obtener_propiedad(id_propiedad: UUID):
 
 
 @router.get("/properties/by-category/{id_categoria}")
-def obtener_propiedad_por_categoria(id_categoria: str):
+def obtener_propiedad_por_categoria(id_categoria: UUID):
 	"""Obtiene la propiedad asociada a una categoría de habitación."""
 	command = ObtainPropertyByCategoryId(repository)
 	return command.execute(id_categoria)
 
 
 @router.get("/categories/{id_categoria}")
-def obtener_categoria_por_id(id_categoria: str):
+def obtener_categoria_por_id(id_categoria: UUID):
 	"""Obtiene una categoría de habitación por su ID."""
 	command = ObtainCategoryById(repository)
 	return command.execute(id_categoria)
 
 
 @router.get("/properties/{id_propiedad}/categories/{id_categoria}/availability/{fecha}")
-def obtener_disponibilidad(id_propiedad: UUID, id_categoria: str, fecha: date):
+def obtener_disponibilidad(id_propiedad: UUID, id_categoria: UUID, fecha: date):
 	"""Obtiene la disponibilidad de una categoría en una fecha específica."""
 	propiedad = repository.obtain(id_propiedad)
 	if not propiedad:
@@ -220,6 +225,7 @@ def obtener_propiedades():
 				"nombre": p.nombre,
 				"estrellas": p.estrellas,
 				"ciudad": p.ubicacion.ciudad,
+				"estado_provincia": p.ubicacion.estado_provincia,
 				"pais": p.ubicacion.pais,
 				"categorias": len(p.categorias_habitacion),
 			}

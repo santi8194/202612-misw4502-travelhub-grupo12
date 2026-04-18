@@ -29,7 +29,8 @@ class ObtainCategoriesByPropertyId:
 
 			categorias.append(
 				{
-					"id_categoria": categoria.id_categoria,
+					# Serializar UUID a str en la respuesta
+					"id_categoria": str(categoria.id_categoria),
 					"codigo_mapeo_pms": categoria.codigo_mapeo_pms,
 					"nombre_comercial": categoria.nombre_comercial,
 					"descripcion": categoria.descripcion,

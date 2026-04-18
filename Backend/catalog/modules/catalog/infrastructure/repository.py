@@ -38,11 +38,13 @@ class PropertyRepository:
 
 		try:
 			# Convertir entidad de dominio a modelo de persistencia
+			# id_propiedad se pasa directamente como UUID nativo (sin convertir a str)
 			propiedad_model = PropiedadModel(
-				id_propiedad=str(propiedad.id_propiedad),
+				id_propiedad=propiedad.id_propiedad,
 				nombre=propiedad.nombre,
 				estrellas=propiedad.estrellas,
 				ciudad=propiedad.ubicacion.ciudad,
+				estado_provincia=propiedad.ubicacion.estado_provincia,
 				pais=propiedad.ubicacion.pais,
 				latitud=propiedad.ubicacion.coordenadas.lat,
 				longitud=propiedad.ubicacion.coordenadas.lng,
@@ -51,9 +53,10 @@ class PropertyRepository:
 
 			# Guardar categorías de habitación
 			for categoria in propiedad.categorias_habitacion:
+				# id_categoria e id_propiedad se pasan directamente como UUID nativo
 				categoria_model = CategoriaHabitacionModel(
 					id_categoria=categoria.id_categoria,
-					id_propiedad=str(propiedad.id_propiedad),
+					id_propiedad=propiedad.id_propiedad,
 					codigo_mapeo_pms=categoria.codigo_mapeo_pms,
 					nombre_comercial=categoria.nombre_comercial,
 					descripcion=categoria.descripcion,
@@ -109,8 +112,9 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
+			# Filtrar por UUID nativo directamente sin convertir a str
 			propiedad_model = db.query(PropiedadModel).filter(
-				PropiedadModel.id_propiedad == str(id_propiedad)
+				PropiedadModel.id_propiedad == id_propiedad
 			).first()
 
 			if not propiedad_model:
@@ -200,8 +204,9 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
+			# Filtrar por UUID nativo directamente sin convertir a str
 			propiedad = db.query(PropiedadModel).filter(
-				PropiedadModel.id_propiedad == str(id_propiedad)
+				PropiedadModel.id_propiedad == id_propiedad
 			).first()
 
 			if not propiedad:
@@ -223,13 +228,14 @@ class PropertyRepository:
 		Returns:
 			Entidad Propiedad del dominio
 		"""
-		# Reconstruir objeto de valor de ubicación
+		# Reconstruir objeto de valor de ubicación con estado_provincia
 		coordenadas = Coordenadas(
 			lat=propiedad_model.latitud,
 			lng=propiedad_model.longitud,
 		)
 		ubicacion = VODireccion(
 			ciudad=propiedad_model.ciudad,
+			estado_provincia=propiedad_model.estado_provincia,
 			pais=propiedad_model.pais,
 			coordenadas=coordenadas,
 		)
@@ -237,9 +243,9 @@ class PropertyRepository:
 		# Reconstruir categorías de habitación
 		categorias = [self._category_model_to_entity(cat_model) for cat_model in propiedad_model.categorias_habitacion]
 
-		# Crear propiedad
+		# id_propiedad ya es UUID nativo (PgUUID(as_uuid=True) lo retorna como UUID)
 		return Propiedad(
-			id_propiedad=UUID(propiedad_model.id_propiedad),
+			id_propiedad=propiedad_model.id_propiedad,
 			nombre=propiedad_model.nombre,
 			estrellas=propiedad_model.estrellas,
 			ubicacion=ubicacion,
@@ -279,6 +285,7 @@ class PropertyRepository:
 		]
 
 		return CategoriaHabitacion(
+			# id_categoria ya es UUID nativo (PgUUID(as_uuid=True) lo retorna como UUID)
 			id_categoria=cat_model.id_categoria,
 			codigo_mapeo_pms=cat_model.codigo_mapeo_pms,
 			nombre_comercial=cat_model.nombre_comercial,

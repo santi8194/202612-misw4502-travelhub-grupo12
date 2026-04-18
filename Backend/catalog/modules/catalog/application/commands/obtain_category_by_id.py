@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from modules.catalog.domain.entities import TipoMedia
 
 
@@ -7,12 +9,13 @@ class ObtainCategoryById:
 	def __init__(self, repository):
 		self.repository = repository
 
-	def execute(self, id_categoria: str) -> dict:
+	def execute(self, id_categoria: UUID) -> dict:
 		categoria = self.repository.obtain_category_by_id(id_categoria)
 		if not categoria:
 			return {
 				"error": "Category not found",
-				"id_categoria": id_categoria,
+				# Serializar UUID a str en la respuesta de error
+				"id_categoria": str(id_categoria),
 			}
 
 		foto_portada_url = None
@@ -22,7 +25,8 @@ class ObtainCategoryById:
 				break
 
 		return {
-			"id_categoria": categoria.id_categoria,
+			# Serializar UUID a str en la respuesta
+			"id_categoria": str(categoria.id_categoria),
 			"codigo_mapeo_pms": categoria.codigo_mapeo_pms,
 			"nombre_comercial": categoria.nombre_comercial,
 			"descripcion": categoria.descripcion,

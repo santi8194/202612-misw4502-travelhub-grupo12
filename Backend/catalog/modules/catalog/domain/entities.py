@@ -5,7 +5,6 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from enum import Enum
 from typing import Iterable
-from urllib.parse import urlparse
 from uuid import UUID
 
 
@@ -29,8 +28,13 @@ class Coordenadas:
 
 @dataclass(frozen=True, slots=True)
 class VODireccion:
+	# Ciudad donde se ubica la propiedad
 	ciudad: str
+	# País donde se ubica la propiedad
 	pais: str
+	# Estado o provincia (requerido por el servicio Search para autocompletado)
+	estado_provincia: str
+	# Coordenadas geográficas
 	coordenadas: Coordenadas
 
 	def __post_init__(self) -> None:
@@ -38,6 +42,8 @@ class VODireccion:
 			raise ValueError("La ciudad es obligatoria")
 		if not self.pais.strip():
 			raise ValueError("El pais es obligatorio")
+		if not self.estado_provincia.strip():
+			raise ValueError("El estado/provincia es obligatorio")
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,7 +143,8 @@ class Inventario:
 
 @dataclass(slots=True)
 class CategoriaHabitacion:
-	id_categoria: str
+	# Identificador único de la categoría como UUID nativo
+	id_categoria: UUID
 	codigo_mapeo_pms: str
 	nombre_comercial: str
 	descripcion: str
@@ -149,7 +156,8 @@ class CategoriaHabitacion:
 	inventario: list[Inventario] = field(default_factory=list)
 
 	def __post_init__(self) -> None:
-		if not self.id_categoria.strip():
+		# Validar que el UUID de categoría no sea nulo
+		if self.id_categoria is None:
 			raise ValueError("El ID de categoria es obligatorio")
 		if not self.codigo_mapeo_pms.strip():
 			raise ValueError("El codigo de mapeo PMS es obligatorio")
@@ -203,23 +211,27 @@ class Propiedad:
 		object.__setattr__(self, "porcentaje_impuesto", tax.quantize(Decimal("0.01")))
 
 	def registrar_categoria(self, categoria: CategoriaHabitacion) -> None:
+		"""Registra una nueva categoría en la propiedad."""
 		if self.obtener_categoria(categoria.id_categoria) is not None:
 			raise ValueError("La categoria de habitacion ya existe para esta propiedad")
 		self.categorias_habitacion.append(categoria)
 
-	def obtener_categoria(self, id_categoria: str) -> CategoriaHabitacion | None:
+	def obtener_categoria(self, id_categoria: UUID) -> CategoriaHabitacion | None:
+		"""Obtiene una categoría por su UUID."""
 		for categoria in self.categorias_habitacion:
 			if categoria.id_categoria == id_categoria:
 				return categoria
 		return None
 
-	def actualizar_inventario(self, id_categoria: str, inventario_actualizado: Inventario) -> Inventario:
+	def actualizar_inventario(self, id_categoria: UUID, inventario_actualizado: Inventario) -> Inventario:
+		"""Actualiza el inventario de una categoría existente."""
 		categoria = self.obtener_categoria(id_categoria)
 		if categoria is None:
 			raise ValueError("La categoria de habitacion no existe en la propiedad")
 		return categoria.actualizar_inventario(inventario_actualizado)
 
-	def disponibilidad_para(self, id_categoria: str, fecha_objetivo: date) -> Inventario | None:
+	def disponibilidad_para(self, id_categoria: UUID, fecha_objetivo: date) -> Inventario | None:
+		"""Retorna el inventario de una categoría para una fecha específica."""
 		categoria = self.obtener_categoria(id_categoria)
 		if categoria is None:
 			return None

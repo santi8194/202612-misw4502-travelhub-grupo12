@@ -7,7 +7,7 @@ import { PreciosPorHabitacionComponent } from './components/precios-por-habitaci
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, PreciosPorHabitacionComponent],
+    imports: [CommonModule],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
@@ -28,6 +28,28 @@ export class HomeComponent implements OnInit, OnDestroy {
     readonly lockoutPolicyInfo = {
         maxFailedAttempts: 5,
         lockoutMinutes: 5,
+    };
+    readonly sectionMetadata: Record<string, { title: string; subtitle: string }> = {
+        dashboard: {
+            title: 'Inicio',
+            subtitle: 'Bienvenido, aqui tienes un resumen general del portal.'
+        },
+        reservas: {
+            title: 'Reservas',
+            subtitle: 'Administra el estado y seguimiento de tus reservas.'
+        },
+        inventario: {
+            title: 'Inventario',
+            subtitle: 'Controla disponibilidad y configuracion de habitaciones.'
+        },
+        precios: {
+            title: 'Gestion de precios',
+            subtitle: 'Gestiona la disponibilidad y asignacion de habitaciones.'
+        },
+        reportes: {
+            title: 'Reportes de ingresos',
+            subtitle: 'Consulta resultados, tendencias y desempeno financiero.'
+        }
     };
     readonly pricingSummaryCards = [
         {
@@ -107,6 +129,18 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     isPricingSelected(): boolean {
         return this.activeSection === 'precios';
+    }
+
+    get currentSectionTitle(): string {
+        return this.sectionMetadata[this.activeSection]?.title ?? 'Inicio';
+    }
+
+    get currentSectionSubtitle(): string {
+        return this.sectionMetadata[this.activeSection]?.subtitle ?? '';
+    }
+
+    guardarCambiosPrecios(): void {
+        // Placeholder de UI para mock; la persistencia se conectara en siguiente paso.
     }
 
     ngOnDestroy(): void {

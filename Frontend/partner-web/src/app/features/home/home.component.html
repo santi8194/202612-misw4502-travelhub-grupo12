@@ -4,7 +4,7 @@
             <div class="brand-icon">TH</div>
             <div class="brand-text">
                 <h1>TravelHub</h1>
-                <p>Portal para Partners</p>
+                <p>Portal para socios</p>
             </div>
         </div>
 
@@ -15,7 +15,7 @@
                 [class.active]="activeSection === 'dashboard'"
                 (click)="setActiveSection('dashboard')"
             >
-                Dashboard
+                Inicio
             </button>
             <button
                 type="button"
@@ -55,10 +55,17 @@
     <main class="dashboard-main">
         <header class="dashboard-header">
             <div>
-                <h2>Dashboard</h2>
-                <p>!Bienvenido! Tenemos las siguientes novedades.</p>
+                <h2>{{ currentSectionTitle }}</h2>
+                <p>{{ currentSectionSubtitle }}</p>
             </div>
-            <div class="today-box">
+
+            <div class="header-actions" *ngIf="isPricingSelected()">
+                <button type="button" class="save-button" (click)="guardarCambiosPrecios()">
+                    Guardar cambios
+                </button>
+            </div>
+
+            <div class="today-box" *ngIf="!isPricingSelected()">
                 <span>Hoy</span>
                 <strong>{{ todayLabel | date:'MMMM d, y' }}</strong>
             </div>
@@ -80,7 +87,7 @@
 
                 <div class="session-metrics">
                     <div class="session-metric">
-                        <span class="session-metric-label">Access token</span>
+                        <span class="session-metric-label">Token de acceso</span>
                         <strong>{{ sessionInfo.accessTokenMinutes }} min</strong>
                     </div>
                     <div class="session-metric">
@@ -88,7 +95,7 @@
                         <strong>{{ sessionInfo.idleTimeoutMinutes }} min</strong>
                     </div>
                     <div class="session-metric">
-                        <span class="session-metric-label">Refresh token</span>
+                        <span class="session-metric-label">Token de refresco</span>
                         <strong>{{ sessionInfo.refreshTokenDays }} días</strong>
                     </div>
 

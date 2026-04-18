@@ -19,26 +19,41 @@
             </div>
 
             <div class="precio-columna">
-                <div class="input-monto">
+                <div class="input-monto" [class.input-error]="fila.errores['tarifaBase']">
                     <span>$</span>
-                    <input type="text" [value]="fila.tarifaBase" />
+                    <input type="text"
+                           [value]="fila.tarifaBase ?? ''"
+                           (input)="onPriceInput(fila, 'tarifaBase', $any($event.target).value)" />
                 </div>
+                <small class="error-msg" *ngIf="fila.errores['tarifaBase']">
+                    {{ fila.errores['tarifaBase'] | translate }}
+                </small>
             </div>
 
             <div class="precio-columna">
-                <div class="input-monto">
+                <div class="input-monto" [class.input-error]="fila.errores['tarifaFinDeSemana']">
                     <span>$</span>
-                    <input type="text" [value]="fila.tarifaFinDeSemana" />
+                    <input type="text"
+                           [value]="fila.tarifaFinDeSemana ?? ''"
+                           (input)="onPriceInput(fila, 'tarifaFinDeSemana', $any($event.target).value)" />
                 </div>
-                <small class="variacion">{{ fila.variacionFinDeSemana }}</small>
+                <small class="error-msg" *ngIf="fila.errores['tarifaFinDeSemana']">
+                    {{ fila.errores['tarifaFinDeSemana'] | translate }}
+                </small>
+                <small class="variacion" *ngIf="!fila.errores['tarifaFinDeSemana'] && fila.variacionFinDeSemana">{{ fila.variacionFinDeSemana }}</small>
             </div>
 
             <div class="precio-columna">
-                <div class="input-monto">
+                <div class="input-monto" [class.input-error]="fila.errores['tarifaTemporadaAlta']">
                     <span>$</span>
-                    <input type="text" [value]="fila.tarifaTemporadaAlta" />
+                    <input type="text"
+                           [value]="fila.tarifaTemporadaAlta ?? ''"
+                           (input)="onPriceInput(fila, 'tarifaTemporadaAlta', $any($event.target).value)" />
                 </div>
-                <small class="variacion">{{ fila.variacionTemporadaAlta }}</small>
+                <small class="error-msg" *ngIf="fila.errores['tarifaTemporadaAlta']">
+                    {{ fila.errores['tarifaTemporadaAlta'] | translate }}
+                </small>
+                <small class="variacion" *ngIf="!fila.errores['tarifaTemporadaAlta'] && fila.variacionTemporadaAlta">{{ fila.variacionTemporadaAlta }}</small>
             </div>
         </article>
     </div>

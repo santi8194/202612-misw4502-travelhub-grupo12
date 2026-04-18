@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService, UserProfile } from '../../core/services/auth.service';
@@ -9,7 +9,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
@@ -90,6 +90,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
     ];
     readonly preciosPorHabitacionComponent = PreciosPorHabitacionComponent;
+    @ViewChild(PreciosPorHabitacionComponent) preciosComponent?: PreciosPorHabitacionComponent;
+    pricingHasErrors = false;
     private destroy$ = new Subject<void>();
 
     constructor(private authService: AuthService, public translate: TranslateService, private router: Router) {
@@ -149,7 +151,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     guardarCambiosPrecios(): void {
-        // Placeholder de UI para mock; la persistencia se conectara en siguiente paso.
+        if (this.preciosComponent) {
+            const valid = this.preciosComponent.validate();
+            this.pricingHasErrors = !valid;
+        }
     }
 
     get currentLangLabel(): string {

@@ -203,7 +203,7 @@
             </article>
 
             <div class="prices-room-table">
-                <ng-container *ngComponentOutlet="preciosPorHabitacionComponent"></ng-container>
+                <app-precios-por-habitacion (validityChange)="pricingHasErrors = !$event"></app-precios-por-habitacion>
             </div>
         </section>
 

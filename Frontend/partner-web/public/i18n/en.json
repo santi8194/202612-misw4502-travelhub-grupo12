@@ -70,6 +70,11 @@
     "PEAK_RATE": "Peak season",
     "TOTAL_ROOMS": "{{count}} total"
   },
+  "PRICING_VALIDATION": {
+    "REQUIRED": "This field is required",
+    "NUMERIC": "Enter a valid numeric value",
+    "POSITIVE": "Value must be greater than zero"
+  },
   "LOGIN": {
     "TITLE": "TravelHub Partner",
     "SUBTITLE": "Partner Portal",

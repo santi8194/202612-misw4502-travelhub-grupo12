@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { CommonModule } from '@angular/common';
 import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -7,14 +6,16 @@ import { Subject, takeUntil } from 'rxjs';
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [NavbarComponent, CommonModule],
+    imports: [CommonModule],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
     user: UserProfile | null = null;
     loading = true;
     error = false;
+    activeSection = 'dashboard';
+    readonly todayLabel = new Date();
     showSessionInfo = true;
     showLockoutInfo = true;
     sessionExpirationAt: Date | null = null;
@@ -63,6 +64,14 @@ export class HomeComponent implements OnInit {
 
     dismissLockoutInfo(): void {
         this.showLockoutInfo = false;
+    }
+
+    setActiveSection(section: string): void {
+        this.activeSection = section;
+    }
+
+    isDashboardSelected(): boolean {
+        return this.activeSection === 'dashboard';
     }
 
     ngOnDestroy(): void {

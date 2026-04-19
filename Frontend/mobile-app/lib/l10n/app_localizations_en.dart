@@ -168,4 +168,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cardEnding => 'Visa ending in •••• 4242';
+
+  @override
+  String get tripDetailsTitle => 'TRIP DETAILS';
+
+  @override
+  String get priceBreakdownTitle => 'PRICE BREAKDOWN';
 }

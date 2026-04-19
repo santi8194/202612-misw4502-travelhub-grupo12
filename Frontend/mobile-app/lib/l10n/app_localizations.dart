@@ -391,6 +391,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visa ending in •••• 4242'**
   String get cardEnding;
+
+  /// No description provided for @tripDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'TRIP DETAILS'**
+  String get tripDetailsTitle;
+
+  /// No description provided for @priceBreakdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PRICE BREAKDOWN'**
+  String get priceBreakdownTitle;
 }
 
 class _AppLocalizationsDelegate

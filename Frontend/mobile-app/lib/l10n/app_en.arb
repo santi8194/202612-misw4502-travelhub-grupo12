@@ -61,7 +61,9 @@
   "taxesAndCharges": "Taxes and charges",
   "totalPrice": "Total",
   "paymentMethod": "Payment Method",
-  "cardEnding": "Visa ending in •••• 4242"
+  "cardEnding": "Visa ending in •••• 4242",
+  "tripDetailsTitle": "TRIP DETAILS",
+  "priceBreakdownTitle": "PRICE BREAKDOWN"
 }
 
 

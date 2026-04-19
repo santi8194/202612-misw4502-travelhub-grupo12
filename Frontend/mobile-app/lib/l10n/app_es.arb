@@ -61,7 +61,9 @@
   "taxesAndCharges": "Impuestos y cargos",
   "totalPrice": "Total",
   "paymentMethod": "Método de Pago",
-  "cardEnding": "Visa terminada en •••• 4242"
+  "cardEnding": "Visa terminada en •••• 4242",
+  "tripDetailsTitle": "DETALLES DEL VIAJE",
+  "priceBreakdownTitle": "DESGLOSE DE PRECIOS"
 }
 
 

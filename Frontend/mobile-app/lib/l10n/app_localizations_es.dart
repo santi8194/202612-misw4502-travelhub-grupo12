@@ -167,4 +167,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cardEnding => 'Visa terminada en •••• 4242';
+
+  @override
+  String get tripDetailsTitle => 'DETALLES DEL VIAJE';
+
+  @override
+  String get priceBreakdownTitle => 'DESGLOSE DE PRECIOS';
 }

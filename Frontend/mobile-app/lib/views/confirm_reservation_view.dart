@@ -270,7 +270,7 @@ class ConfirmReservationView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "DETALLES DEL VIAJE",
+            l10n.tripDetailsTitle,
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -335,7 +335,7 @@ class ConfirmReservationView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Desglose de Precios",
+                l10n.priceBreakdownTitle,
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,

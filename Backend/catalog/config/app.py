@@ -5,7 +5,6 @@ from api.router import router
 def create_app():
     app = FastAPI(title="Catalog Service")
 
-
     # Política CORS para permitir llamadas desde el frontend
     app.add_middleware(
         CORSMiddleware,

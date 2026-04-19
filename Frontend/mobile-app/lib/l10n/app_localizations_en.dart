@@ -145,4 +145,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cachedResultsBanner =>
       'Showing cached results. They will be updated once connection is restored.';
+
+  @override
+  String currencyBubbleLabel(String currency) {
+    return 'CURRENCY: $currency';
+  }
+
+  @override
+  String get currencyCodeUSD => 'USD';
+
+  @override
+  String get currencyCodeCOP => 'COP';
 }

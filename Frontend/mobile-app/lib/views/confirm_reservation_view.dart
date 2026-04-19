@@ -41,8 +41,27 @@ class ConfirmReservationView extends StatelessWidget {
           final formattedDates =
               "${start.day} - ${end.day} Mar"; // puedes mejorar formato
 
+          final currencyCode = _currencyCodeForLocale(context, l10n);
+          final currencyTag = l10n.currencyBubbleLabel(currencyCode);
+
+          final screenWidth = MediaQuery.of(context).size.width;
+          final scale = screenWidth / 390;
+          final cardPadding = (15 * scale).clamp(14.0, 22.0);
+          final imageSize = (82 * scale).clamp(72.0, 90.0);
+          final titleFontSize = (18 * scale).clamp(16.0, 20.0);
+          final subtitleFontSize = (15 * scale).clamp(13.0, 17.0);
+          final sectionTitleSize = (16 * scale).clamp(14.0, 18.0);
+          final detailLabelSize = (14 * scale).clamp(12.0, 16.0);
+          final detailValueSize = (15 * scale).clamp(13.0, 17.0);
+          final priceFontSize = (15 * scale).clamp(13.0, 17.0);
+          final buttonFontSize = (18 * scale).clamp(16.0, 20.0);
+          final buttonHeight = (64 * scale).clamp(56.0, 72.0);
+          final iconSize = (16 * scale).clamp(16.0, 22.0);
+          final spacing = (18 * scale).clamp(14.0, 22.0);
+          final cardRadius = (20 * scale).clamp(18.0, 24.0);
+
           return Scaffold(
-            backgroundColor: const Color(0xFFF7F7F7),
+            backgroundColor: Colors.white,
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
@@ -55,16 +74,16 @@ class ConfirmReservationView extends StatelessWidget {
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
+                  fontSize: 20,
                 ),
               ),
               centerTitle: true,
             ),
 
-            /// 🔻 BOTÓN FIJO ABAJO
             bottomNavigationBar: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               child: SizedBox(
-                height: 60,
+                height: buttonHeight,
                 child: ElevatedButton(
                   onPressed: viewModel.isConfirming
                       ? null
@@ -82,37 +101,75 @@ class ConfirmReservationView extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2F4B8C),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   child: viewModel.isConfirming
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
+                      : Text(
                           "Confirmar y Pagar",
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(
+                            fontSize: buttonFontSize,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
             ),
 
-            body: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildHotelCard(),
-                  const SizedBox(height: 16),
-                  _buildTripDetails(formattedDates, "$guests Adultos"),
-                  const SizedBox(height: 16),
-                  _buildPriceBreakdown(
-                    nights,
-                    pricePerNight,
-                    subtotal,
-                    taxes,
-                    total,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildPaymentMethod(),
-                ],
+            body: Container(
+              color: Colors.white,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
+                child: Column(
+                  children: [
+                    _buildHotelCard(
+                      imageSize: imageSize,
+                      cardPadding: cardPadding,
+                      spacing: spacing,
+                      titleFontSize: titleFontSize,
+                      subtitleFontSize: subtitleFontSize,
+                      radius: cardRadius,
+                    ),
+                    SizedBox(height: spacing),
+                    _buildTripDetails(
+                      formattedDates,
+                      "$guests Adultos",
+                      cardPadding: cardPadding,
+                      sectionTitleSize: sectionTitleSize,
+                      spacing: spacing,
+                      iconSize: iconSize,
+                      labelSize: detailLabelSize,
+                      valueSize: detailValueSize,
+                      radius: cardRadius,
+                    ),
+                    SizedBox(height: spacing),
+                    _buildPriceBreakdown(
+                      nights,
+                      pricePerNight,
+                      subtotal,
+                      taxes,
+                      total,
+                      currencyTag: currencyTag,
+                      cardPadding: cardPadding,
+                      sectionTitleSize: sectionTitleSize,
+                      priceFontSize: priceFontSize,
+                      spacing: spacing,
+                      radius: cardRadius,
+                    ),
+                    SizedBox(height: spacing),
+                    _buildPaymentMethod(
+                      cardPadding: cardPadding,
+                      iconSize: iconSize,
+                      sectionTitleSize: sectionTitleSize,
+                      subtitleFontSize: subtitleFontSize,
+                      radius: cardRadius,
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -122,48 +179,62 @@ class ConfirmReservationView extends StatelessWidget {
   }
 
   /// 🏨 HOTEL CARD
-  Widget _buildHotelCard() {
+  Widget _buildHotelCard({
+    required double imageSize,
+    required double cardPadding,
+    required double spacing,
+    required double titleFontSize,
+    required double subtitleFontSize,
+    required double radius,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardStyle(),
+      padding: EdgeInsets.all(cardPadding),
+      decoration: _cardStyle(radius),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(radius * 0.8),
             child: Image.network(
               room.imageUrl,
-              width: 70,
-              height: 70,
+              width: imageSize,
+              height: imageSize,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  width: 70,
-                  height: 70,
+                  width: imageSize,
+                  height: imageSize,
                   color: Colors.grey.shade200,
                   alignment: Alignment.center,
-                  child: const Icon(
+                  child: Icon(
                     Icons.broken_image,
                     color: Colors.grey,
-                    size: 28,
+                    size: imageSize * 0.4,
                   ),
                 );
               },
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: spacing),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   room.title,
-                  style: const TextStyle(
+                  style: TextStyle(
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: titleFontSize,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(room.location, style: const TextStyle(color: Colors.grey)),
+                SizedBox(height: spacing * 0.3),
+                Text(
+                  room.location,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: subtitleFontSize,
+                  ),
+                ),
               ],
             ),
           ),
@@ -173,26 +244,56 @@ class ConfirmReservationView extends StatelessWidget {
   }
 
   /// 📅 DETALLES DEL VIAJE
-  Widget _buildTripDetails(String dates, String guests) {
+  Widget _buildTripDetails(
+    String dates,
+    String guests, {
+    required double cardPadding,
+    required double sectionTitleSize,
+    required double spacing,
+    required double iconSize,
+    required double labelSize,
+    required double valueSize,
+    required double radius,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardStyle(),
+      padding: EdgeInsets.all(cardPadding),
+      decoration: _cardStyle(radius),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "DETALLES DEL VIAJE",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: sectionTitleSize,
+            ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _detailItem(Icons.calendar_today, "Fechas", dates),
+                child: _detailItem(
+                  Icons.calendar_today,
+                  "Fechas",
+                  dates,
+                  iconSize: iconSize,
+                  labelSize: labelSize,
+                  valueSize: valueSize,
+                ),
               ),
-              const SizedBox(width: 12),
-              Expanded(child: _detailItem(Icons.people, "Huéspedes", guests)),
+              SizedBox(width: spacing * 0.8),
+              Expanded(
+                child: _detailItem(
+                  Icons.people,
+                  "Huéspedes",
+                  guests,
+                  iconSize: iconSize,
+                  labelSize: labelSize,
+                  valueSize: valueSize,
+                ),
+              ),
             ],
           ),
         ],
@@ -206,106 +307,207 @@ class ConfirmReservationView extends StatelessWidget {
     double pricePerNight,
     double subtotal,
     double taxes,
-    double total,
-  ) {
+    double total, {
+    required String currencyTag,
+    required double cardPadding,
+    required double sectionTitleSize,
+    required double priceFontSize,
+    required double spacing,
+    required double radius,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardStyle(),
+      padding: EdgeInsets.all(cardPadding),
+      decoration: _cardStyle(radius),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "DESGLOSE DE PRECIOS",
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "DESGLOSE DE PRECIOS",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: sectionTitleSize,
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: cardPadding * 0.8,
+                  vertical: cardPadding * 0.35,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(radius * 0.7),
+                ),
+                child: Text(
+                  currencyTag,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: priceFontSize * 0.75,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing),
           _priceRow(
             "$pricePerNight US\$ x $nights noches",
             "${subtotal.toStringAsFixed(0)} US\$",
+            fontSize: priceFontSize,
           ),
-          _priceRow("Impuestos y cargos", "${taxes.toStringAsFixed(0)} US\$"),
-          const Divider(),
-          _priceRow("Total", "${total.toStringAsFixed(0)} US\$", isBold: true),
+          _priceRow(
+            "Impuestos y cargos",
+            "${taxes.toStringAsFixed(0)} US\$",
+            fontSize: priceFontSize,
+          ),
+          SizedBox(height: spacing * 0.6),
+          Divider(height: 1.5, color: Colors.grey.shade300),
+          SizedBox(height: spacing * 0.6),
+          _priceRow(
+            "Total",
+            "${total.toStringAsFixed(0)} US\$",
+            isBold: true,
+            fontSize: priceFontSize,
+          ),
         ],
       ),
     );
   }
 
   /// 💳 MÉTODO DE PAGO
-  Widget _buildPaymentMethod() {
+  Widget _buildPaymentMethod({
+    required double cardPadding,
+    required double iconSize,
+    required double sectionTitleSize,
+    required double subtitleFontSize,
+    required double radius,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardStyle(),
+      padding: EdgeInsets.all(cardPadding),
+      decoration: _cardStyle(radius),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 30,
+            width: iconSize * 2.3,
+            height: iconSize * 1.7,
             decoration: BoxDecoration(
               color: Colors.black,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
-          const SizedBox(width: 16),
-          const Expanded(
+          SizedBox(width: cardPadding * 0.9),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Método de Pago",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: sectionTitleSize,
+                  ),
                 ),
+                SizedBox(height: cardPadding * 0.3),
                 Text(
                   "Visa terminada en •••• 4242",
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: subtitleFontSize,
+                  ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right),
+          Icon(Icons.chevron_right, size: iconSize + 8),
         ],
       ),
     );
   }
 
-  /// 🎨 ESTILO CARD
-  BoxDecoration _cardStyle() {
+  String _currencyCodeForLocale(BuildContext context, AppLocalizations l10n) {
+    final locale = Localizations.localeOf(context);
+    if (locale.countryCode == 'CO' || locale.languageCode == 'es') {
+      return l10n.currencyCodeCOP;
+    }
+    return l10n.currencyCodeUSD;
+  }
+
+  BoxDecoration _cardStyle(double radius) {
     return BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: Colors.grey.shade200),
     );
   }
 
-  /// 🔹 ITEM DETALLE
-  Widget _detailItem(IconData icon, String title, String value) {
+  Widget _detailItem(
+    IconData icon,
+    String title,
+    String value, {
+    required double iconSize,
+    required double labelSize,
+    required double valueSize,
+  }) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.grey),
-        const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(color: Colors.grey)),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                Icon(icon, size: iconSize, color: Colors.grey),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: TextStyle(color: Colors.grey, fontSize: labelSize),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text(
+              value,
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: valueSize,
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 
-  /// 🔹 FILA PRECIO
-  Widget _priceRow(String title, String value, {bool isBold = false}) {
+  Widget _priceRow(
+    String title,
+    String value, {
+    bool isBold = false,
+    required double fontSize,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title),
+          Text(
+            title,
+            style: TextStyle(
+              color: isBold ? Colors.black : Colors.grey,
+              fontSize: fontSize,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
           Text(
             value,
             style: TextStyle(
+              color: Colors.black,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              fontSize: fontSize,
             ),
           ),
         ],

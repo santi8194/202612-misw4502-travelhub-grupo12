@@ -47,7 +47,17 @@
   "anyDestination": "ANY DESTINATION",
   "openDates": "OPEN DATES",
   "tryAnotherSearch": "Try another search",
-  "cachedResultsBanner": "Showing cached results. They will be updated once connection is restored."
+  "cachedResultsBanner": "Showing cached results. They will be updated once connection is restored.",
+  "currencyBubbleLabel": "CURRENCY: {currency}",
+  "@currencyBubbleLabel": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyCodeUSD": "USD",
+  "currencyCodeCOP": "COP"
 }
 
 

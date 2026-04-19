@@ -349,6 +349,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Showing cached results. They will be updated once connection is restored.'**
   String get cachedResultsBanner;
+
+  /// No description provided for @currencyBubbleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENCY: {currency}'**
+  String currencyBubbleLabel(String currency);
+
+  /// No description provided for @currencyCodeUSD.
+  ///
+  /// In en, this message translates to:
+  /// **'USD'**
+  String get currencyCodeUSD;
+
+  /// No description provided for @currencyCodeCOP.
+  ///
+  /// In en, this message translates to:
+  /// **'COP'**
+  String get currencyCodeCOP;
 }
 
 class _AppLocalizationsDelegate

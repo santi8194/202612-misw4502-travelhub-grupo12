@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from enum import Enum
 from typing import Iterable
@@ -124,6 +124,41 @@ class Amenidad:
 
 
 @dataclass(slots=True)
+class Resena:
+	"""Reseña de un huésped sobre una propiedad.
+
+	Aplica desnormalización controlada: nombre_autor y avatar_url se almacenan
+	en la tabla para evitar llamadas síncronas al servicio de Usuarios.
+	"""
+	# Identificador único de la reseña
+	id_resena: UUID
+	# Propiedad a la que pertenece la reseña
+	id_propiedad: UUID
+	# Identificador del usuario autor (pertenece al servicio de Usuarios)
+	id_usuario: UUID
+	# Nombre del autor (desnormalizado)
+	nombre_autor: str
+	# URL del avatar del autor (desnormalizado, opcional)
+	avatar_url: str | None
+	# Calificación entre 1 y 5
+	calificacion: int
+	# Texto de la reseña
+	comentario: str
+	# Fecha y hora de creación
+	fecha_creacion: datetime
+
+	def __post_init__(self) -> None:
+		if self.id_resena is None:
+			raise ValueError("El ID de reseña es obligatorio")
+		if not self.nombre_autor.strip():
+			raise ValueError("El nombre del autor es obligatorio")
+		if not 1 <= self.calificacion <= 5:
+			raise ValueError("La calificación debe estar entre 1 y 5")
+		if not self.comentario.strip():
+			raise ValueError("El comentario es obligatorio")
+
+
+@dataclass(slots=True)
 class Inventario:
 	id_inventario: str
 	fecha: date
@@ -188,12 +223,15 @@ class CategoriaHabitacion:
 
 @dataclass(slots=True)
 class Propiedad:
+	# Identificador único de la propiedad
 	id_propiedad: UUID
 	nombre: str
 	estrellas: int
 	ubicacion: VODireccion
 	porcentaje_impuesto: Decimal
 	categorias_habitacion: list[CategoriaHabitacion] = field(default_factory=list)
+	# Lista de reseñas de la propiedad (se carga con eager loading en view-detail)
+	resenas: list["Resena"] = field(default_factory=list)
 
 	def __post_init__(self) -> None:
 		try:
@@ -237,6 +275,16 @@ class Propiedad:
 			return None
 		return categoria.disponibilidad_para(fecha_objetivo)
 
+	def calcular_rating_promedio(self) -> float:
+		"""Calcula el promedio de calificaciones de las reseñas.
+
+		Retorna 0.0 si la propiedad no tiene reseñas.
+		"""
+		if not self.resenas:
+			return 0.0
+		total = sum(r.calificacion for r in self.resenas)
+		return round(total / len(self.resenas), 1)
+
 
 def construir_propiedad(
 	id_propiedad: UUID,
@@ -245,7 +293,9 @@ def construir_propiedad(
 	ubicacion: VODireccion,
 	porcentaje_impuesto: Decimal,
 	categorias_habitacion: Iterable[CategoriaHabitacion] | None = None,
+	resenas: Iterable["Resena"] | None = None,
 ) -> Propiedad:
+	"""Función fábrica para construir un agregado Propiedad."""
 	return Propiedad(
 		id_propiedad=id_propiedad,
 		nombre=nombre,
@@ -253,4 +303,5 @@ def construir_propiedad(
 		ubicacion=ubicacion,
 		porcentaje_impuesto=porcentaje_impuesto,
 		categorias_habitacion=list(categorias_habitacion or []),
+		resenas=list(resenas or []),
 	)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, Numeric, ForeignKey, Table
+from sqlalchemy import Column, String, Integer, Float, Numeric, ForeignKey, Table, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -21,6 +21,10 @@ class PropiedadModel(Base):
 
 	categorias_habitacion = relationship(
 		"CategoriaHabitacionModel", back_populates="propiedad"
+	)
+	# Relación con las reseñas de la propiedad
+	resenas = relationship(
+		"ResenaModel", back_populates="propiedad", cascade="all, delete-orphan"
 	)
 
 
@@ -95,3 +99,30 @@ class InventarioModel(Base):
 	cupos_disponibles = Column(Integer, nullable=False)
 
 	categoria = relationship("CategoriaHabitacionModel", back_populates="inventario")
+
+
+class ResenaModel(Base):
+	"""Modelo ORM para reseñas de una propiedad.
+
+	Aplica desnormalización controlada: nombre_autor y avatar_url provienen
+	del servicio de Usuarios pero se almacenan aquí para evitar llamadas
+	síncronas y garantizar el P95 < 500ms.
+	"""
+	__tablename__ = "resenas"
+
+	# Clave primaria como UUID nativo de PostgreSQL
+	id_resena = Column(PgUUID(as_uuid=True), primary_key=True)
+	# FK a la propiedad (la reseña es de la propiedad, no de la categoría)
+	id_propiedad = Column(PgUUID(as_uuid=True), ForeignKey("propiedades.id_propiedad"), nullable=False)
+	# UUID del usuario autor (sin FK externa: pertenece al microservicio de Usuarios)
+	id_usuario = Column(PgUUID(as_uuid=True), nullable=False)
+	# Campos del autor desnormalizados
+	nombre_autor = Column(String, nullable=False)
+	avatar_url = Column(String, nullable=True)
+	# Datos de la reseña
+	calificacion = Column(Integer, nullable=False)
+	comentario = Column(Text, nullable=False)
+	# Timestamp con zona horaria para orden cronológico
+	fecha_creacion = Column(DateTime(timezone=True), nullable=False)
+
+	propiedad = relationship("PropiedadModel", back_populates="resenas")

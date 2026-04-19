@@ -15,6 +15,7 @@ from modules.catalog.application.commands.update_inventory import UpdateInventor
 from modules.catalog.application.queries.obtain_property_by_category_id import ObtainPropertyByCategoryId
 from modules.catalog.application.queries.obtain_category_by_id import ObtainCategoryById
 from modules.catalog.application.queries.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
+from modules.catalog.application.queries.obtain_category_view_detail import ObtainCategoryViewDetail
 
 router = APIRouter()
 repository = PropertyRepository()
@@ -179,6 +180,21 @@ def obtener_propiedad_por_categoria(id_categoria: UUID):
 	"""Obtiene la propiedad asociada a una categoría de habitación."""
 	command = ObtainPropertyByCategoryId(repository)
 	return command.execute(id_categoria)
+
+
+@router.get("/categories/{id_categoria}/view-detail")
+def obtener_detalle_categoria(id_categoria: UUID):
+	"""Retorna el detalle consolidado de la vista de Propiedad para el frontend.
+
+	Incluye datos de la propiedad, categoría solicitada, amenidades, galería
+	(máx. 10 elementos con portada primero), rating promedio y las 10 reseñas
+	más recientes. Toda la jerarquía se carga en un único viaje a la BD (cero N+1).
+	"""
+	query = ObtainCategoryViewDetail(repository)
+	result = query.execute(id_categoria)
+	if "error" in result:
+		return JSONResponse(status_code=404, content=result)
+	return result
 
 
 @router.get("/categories/{id_categoria}")

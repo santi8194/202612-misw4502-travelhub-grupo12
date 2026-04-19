@@ -87,6 +87,28 @@ class AppLocalizationsEs extends AppLocalizations {
   String get resultsTitle => 'Resultados de búsqueda';
 
   @override
+  String get confirmReservationTitle => 'Confirmar reserva';
+
+  @override
+  String get reservationDetailsTitle => 'Detalles de la reserva';
+
+  @override
+  String get reservationDatesLabel => 'Fechas';
+
+  @override
+  String get reservationGuestsLabel => 'Huéspedes';
+
+  @override
+  String get reservationReferenceLabel => 'ID de reserva';
+
+  @override
+  String get confirmReservationButton => 'Confirmar reserva';
+
+  @override
+  String get reservationSuccessMessage =>
+      'Tu reserva ha sido confirmada con éxito.';
+
+  @override
   String get specialOffer => 'Oferta Especial';
 
   @override

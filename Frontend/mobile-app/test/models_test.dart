@@ -29,6 +29,7 @@ void main() {
         location: 'Test City',
         amenities: ['Wifi'],
         isSpecialOffer: false,
+        price: 99.0,
       );
 
       final json = hotel.toJson();
@@ -38,6 +39,7 @@ void main() {
       expect(json['location'], 'Test City');
       expect(json['amenities'], ['Wifi']);
       expect(json['isSpecialOffer'], false);
+      expect(json['price'], 99.0);
     });
 
     test('LocationSuggestion properties and methods', () {

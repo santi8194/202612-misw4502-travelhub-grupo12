@@ -254,6 +254,48 @@ abstract class AppLocalizations {
   /// **'Search Results'**
   String get resultsTitle;
 
+  /// No description provided for @confirmReservationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Reservation'**
+  String get confirmReservationTitle;
+
+  /// No description provided for @reservationDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservation Details'**
+  String get reservationDetailsTitle;
+
+  /// No description provided for @reservationDatesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get reservationDatesLabel;
+
+  /// No description provided for @reservationGuestsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests'**
+  String get reservationGuestsLabel;
+
+  /// No description provided for @reservationReferenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservation ID'**
+  String get reservationReferenceLabel;
+
+  /// No description provided for @confirmReservationButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Reservation'**
+  String get confirmReservationButton;
+
+  /// No description provided for @reservationSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reservation has been confirmed successfully.'**
+  String get reservationSuccessMessage;
+
   /// No description provided for @specialOffer.
   ///
   /// In en, this message translates to:

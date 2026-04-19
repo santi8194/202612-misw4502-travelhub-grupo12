@@ -88,6 +88,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultsTitle => 'Search Results';
 
   @override
+  String get confirmReservationTitle => 'Confirm Reservation';
+
+  @override
+  String get reservationDetailsTitle => 'Reservation Details';
+
+  @override
+  String get reservationDatesLabel => 'Dates';
+
+  @override
+  String get reservationGuestsLabel => 'Guests';
+
+  @override
+  String get reservationReferenceLabel => 'Reservation ID';
+
+  @override
+  String get confirmReservationButton => 'Confirm Reservation';
+
+  @override
+  String get reservationSuccessMessage =>
+      'Your reservation has been confirmed successfully.';
+
+  @override
   String get specialOffer => 'Special Offer';
 
   @override

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { BookingCartPage } from './booking-cart-page';
 
@@ -15,6 +16,7 @@ describe('BookingCartPage', () => {
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
       ]
     }).compileComponents();
 
@@ -36,9 +38,9 @@ describe('BookingCartPage', () => {
     expect(form.detailedRequest).toBe('');
   });
 
-  it('should have timer inactive initially', () => {
-    expect(component.timerActive()).toBeFalse();
-    expect(component.remainingTime()).toBe(0);
+  it('should have timer active after initialization', () => {
+    expect(component.timerActive()).toBeTrue();
+    expect(component.remainingTime()).toBeGreaterThan(0);
   });
 
   it('should render the continue button', () => {

@@ -12,9 +12,10 @@ from modules.catalog.infrastructure.services.event_bus import EventBus
 from modules.catalog.application.commands.create_property import CreateProperty
 from modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from modules.catalog.application.commands.update_inventory import UpdateInventory
-from modules.catalog.application.commands.obtain_property_by_category_id import ObtainPropertyByCategoryId
-from modules.catalog.application.commands.obtain_category_by_id import ObtainCategoryById
-from modules.catalog.application.commands.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
+from modules.catalog.application.queries.obtain_property_by_category_id import ObtainPropertyByCategoryId
+from modules.catalog.application.queries.obtain_category_by_id import ObtainCategoryById
+from modules.catalog.application.queries.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
+from modules.catalog.application.queries.obtain_category_view_detail import ObtainCategoryViewDetail
 
 router = APIRouter()
 repository = PropertyRepository()
@@ -33,6 +34,8 @@ class CreatePropertyRequest(BaseModel):
 	nombre: str
 	estrellas: int
 	ciudad: str
+	# Estado o provincia requerido por el servicio Search
+	estado_provincia: str
 	pais: str
 	latitud: float
 	longitud: float
@@ -55,7 +58,8 @@ class RegisterCategoryRequest(BaseModel):
 
 class UpdateInventoryRequest(BaseModel):
 	id_propiedad: UUID
-	id_categoria: str
+	# UUID de la categoría
+	id_categoria: UUID
 	id_inventario: str
 	fecha: date
 	cupos_totales: int
@@ -75,6 +79,7 @@ def crear_propiedad(request: CreatePropertyRequest):
 		nombre=request.nombre,
 		estrellas=request.estrellas,
 		ciudad=request.ciudad,
+		estado_provincia=request.estado_provincia,
 		pais=request.pais,
 		latitud=request.latitud,
 		longitud=request.longitud,
@@ -158,6 +163,7 @@ def obtener_propiedad(id_propiedad: UUID):
 		"estrellas": propiedad.estrellas,
 		"ubicacion": {
 			"ciudad": propiedad.ubicacion.ciudad,
+			"estado_provincia": propiedad.ubicacion.estado_provincia,
 			"pais": propiedad.ubicacion.pais,
 			"coordenadas": {
 				"lat": propiedad.ubicacion.coordenadas.lat,
@@ -170,21 +176,36 @@ def obtener_propiedad(id_propiedad: UUID):
 
 
 @router.get("/properties/by-category/{id_categoria}")
-def obtener_propiedad_por_categoria(id_categoria: str):
+def obtener_propiedad_por_categoria(id_categoria: UUID):
 	"""Obtiene la propiedad asociada a una categoría de habitación."""
 	command = ObtainPropertyByCategoryId(repository)
 	return command.execute(id_categoria)
 
 
+@router.get("/categories/{id_categoria}/view-detail")
+def obtener_detalle_categoria(id_categoria: UUID):
+	"""Retorna el detalle consolidado de la vista de Propiedad para el frontend.
+
+	Incluye datos de la propiedad, categoría solicitada, amenidades, galería
+	(máx. 10 elementos con portada primero), rating promedio y las 10 reseñas
+	más recientes. Toda la jerarquía se carga en un único viaje a la BD (cero N+1).
+	"""
+	query = ObtainCategoryViewDetail(repository)
+	result = query.execute(id_categoria)
+	if "error" in result:
+		return JSONResponse(status_code=404, content=result)
+	return result
+
+
 @router.get("/categories/{id_categoria}")
-def obtener_categoria_por_id(id_categoria: str):
+def obtener_categoria_por_id(id_categoria: UUID):
 	"""Obtiene una categoría de habitación por su ID."""
 	command = ObtainCategoryById(repository)
 	return command.execute(id_categoria)
 
 
 @router.get("/properties/{id_propiedad}/categories/{id_categoria}/availability/{fecha}")
-def obtener_disponibilidad(id_propiedad: UUID, id_categoria: str, fecha: date):
+def obtener_disponibilidad(id_propiedad: UUID, id_categoria: UUID, fecha: date):
 	"""Obtiene la disponibilidad de una categoría en una fecha específica."""
 	propiedad = repository.obtain(id_propiedad)
 	if not propiedad:
@@ -220,6 +241,7 @@ def obtener_propiedades():
 				"nombre": p.nombre,
 				"estrellas": p.estrellas,
 				"ciudad": p.ubicacion.ciudad,
+				"estado_provincia": p.ubicacion.estado_provincia,
 				"pais": p.ubicacion.pais,
 				"categorias": len(p.categorias_habitacion),
 			}

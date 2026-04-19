@@ -1,4 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://d1d660udfb1fc0.cloudfront.net/search/api',
+  apiBaseUrl: 'http://localhost:8000/api',
+  bookingApiUrl: 'http://localhost:5001/api/reserva',
+  catalogApiUrl: 'http://localhost:8005/catalog',
 };

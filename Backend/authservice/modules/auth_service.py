@@ -1,97 +1,148 @@
 """
-Propósito del archivo: Lógica principal de negocio y seguridad aplicada a la autenticación.
-Rol dentro del microservicio: Administra la validación de credenciales cotejadas contra el servicio de usuarios, y maneja de memoria los bloqueos de cuenta tras intentos fallidos (prevención de fuerza bruta).
+Propósito del archivo: Lógica principal de autenticación delegada a AWS Cognito.
+Rol dentro del microservicio: Administra la autenticación de usuarios y renovación de tokens
+mediante el servicio de identidad de AWS Cognito, eliminando la verificación local de contraseñas.
 """
 
-from datetime import datetime, timedelta
-from typing import Dict, Tuple
-from fastapi import HTTPException, status
-from pydantic import EmailStr
-from config.config import settings
-from config.security import verify_password
-from modules.user_service import UserService
-from data.user import UserInDB
+import base64
+import hashlib
+import hmac
+import logging
 
-# Diccionario en memoria para la protección de fuerza bruta.
-# Llave: email del usuario
-# Valor: Tupla de (cantidad de intentos fallidos, fecha de fin de bloqueo)
-_failed_logins: Dict[str, Tuple[int, datetime]] = {}
+import boto3
+from botocore.exceptions import ClientError
+from fastapi import HTTPException, status
+
+from config.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+def _compute_secret_hash(username: str) -> str:
+    """
+    Calcula el SECRET_HASH requerido por Cognito cuando el App Client tiene client secret.
+
+    Parámetros:
+    - username (str): nombre de usuario (email) para el cálculo del hash.
+
+    Retorna:
+    - str: SECRET_HASH codificado en Base64.
+    """
+    message = username + settings.COGNITO_CLIENT_ID
+    digest = hmac.new(
+        settings.COGNITO_CLIENT_SECRET.encode("utf-8"),
+        message.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    return base64.b64encode(digest).decode("utf-8")
+
+
+def _get_cognito_client():
+    """Crea el cliente de Cognito Identity Provider de boto3."""
+    return boto3.client("cognito-idp", region_name=settings.COGNITO_REGION)
+
+
+def _handle_cognito_error(e: ClientError) -> None:
+    """Traduce errores de Cognito a excepciones HTTP estandarizadas."""
+    error_code = e.response["Error"]["Code"]
+
+    if error_code in ("NotAuthorizedException", "UserNotFoundException"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Correo o contraseña incorrectos",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    elif error_code == "UserNotConfirmedException":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario no confirmado. Verifique su correo electrónico.",
+        )
+    elif error_code in ("TooManyRequestsException", "LimitExceededException"):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Demasiados intentos. Intente nuevamente más tarde.",
+        )
+    else:
+        logger.error(f"Error de Cognito: {error_code} - {e.response['Error']['Message']}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno de autenticación",
+        )
+
 
 class AuthService:
     """
-    Controlador central de lógica para autenticaciones. Abstracción independiente de los endpoints.
+    Controlador central de autenticación delegada a AWS Cognito.
+    La verificación de contraseñas y protección contra fuerza bruta es manejada por Cognito.
     """
-    
-    @staticmethod
-    def _is_locked_out(email: str) -> bool:
-        """
-        Verifica si una cuenta se encuentra restringida por sobrepasar el límite de intentos de inicio de sesión.
-        """
-        if email in _failed_logins:
-            attempts, lockout_until = _failed_logins[email]
-            if lockout_until and lockout_until > datetime.utcnow():
-                return True
-        return False
 
     @staticmethod
-    def _record_failed_attempt(email: str) -> None:
+    def authenticate_user(email: str, password: str) -> dict:
         """
-        Lleva el conteo de los inicios de sesión erróneos. Suma al contador y define la hora de 
-        bloqueo en base a la configuración global (config.py) en caso de superar el umbral.
-        """
-        attempts, _ = _failed_logins.get(email, (0, None))
-        attempts += 1
-        lockout_until = None
-        
-        # Lógica Crítica: Aplicación de políticas de seguridad para bloquear usuarios por el tiempo especificado.
-        if attempts >= settings.MAX_LOGIN_ATTEMPTS:
-            lockout_until = datetime.utcnow() + timedelta(minutes=settings.LOCKOUT_DURATION_MINUTES)
-            
-        _failed_logins[email] = (attempts, lockout_until)
+        Autentica un usuario mediante AWS Cognito usando USER_PASSWORD_AUTH.
 
-    @staticmethod
-    def _reset_attempts(email: str) -> None:
-        """
-        Limpia el registro de fallos al ingresar satisfactoriamente, restaurando las oportunidades
-        del usuario a su valor por defecto.
-        """
-        if email in _failed_logins:
-            del _failed_logins[email]
+        Parámetros:
+        - email (str): correo electrónico del usuario.
+        - password (str): contraseña en texto plano.
 
-    @staticmethod
-    def authenticate_user(email: EmailStr, password: str) -> UserInDB:
+        Retorna:
+        - dict: AuthenticationResult de Cognito con AccessToken, IdToken, RefreshToken, ExpiresIn, TokenType.
         """
-        Autentica un usuario verificando su correo, previniendo bloqueos vigentes y cotejando la
-        contraseña en texto plano con la versión segura traída del servicio de Usuarios.
-        """
-        # Chequeo previo para evitar que el ataque continúe enviando solicitudes pesadas
-        if AuthService._is_locked_out(email):
-            lockout_time = _failed_logins[email][1]
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Cuenta temporalmente bloqueada debido a intentos continuos fallidos. Intente luego de {lockout_time} UTC."
+        client = _get_cognito_client()
+
+        auth_params = {
+            "USERNAME": email,
+            "PASSWORD": password,
+            "SECRET_HASH": _compute_secret_hash(email),
+        }
+
+        try:
+            response = client.initiate_auth(
+                ClientId=settings.COGNITO_CLIENT_ID,
+                AuthFlow="USER_PASSWORD_AUTH",
+                AuthParameters=auth_params,
             )
+            return response["AuthenticationResult"]
+        except ClientError as e:
+            _handle_cognito_error(e)
 
-        # Trata de emular una consulta externa
-        user = UserService.get_user_by_email(email)
-        
-        if not user:
-            AuthService._record_failed_attempt(email)
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Correo o contraseña incorrectos",
-                headers={"WWW-Authenticate": "Bearer"},
+    @staticmethod
+    def refresh_tokens(refresh_token: str, email: str) -> dict:
+        """
+        Renueva tokens mediante Cognito REFRESH_TOKEN_AUTH.
+
+        Parámetros:
+        - refresh_token (str): refresh token actual emitido por Cognito.
+        - email (str): correo electrónico del usuario (necesario para SECRET_HASH).
+
+        Retorna:
+        - dict: AuthenticationResult de Cognito con AccessToken, IdToken, ExpiresIn, TokenType.
+          Nota: Cognito mantiene el mismo RefreshToken.
+        """
+        client = _get_cognito_client()
+
+        auth_params = {
+            "REFRESH_TOKEN": refresh_token,
+            "SECRET_HASH": _compute_secret_hash(email),
+        }
+
+        try:
+            response = client.initiate_auth(
+                ClientId=settings.COGNITO_CLIENT_ID,
+                AuthFlow="REFRESH_TOKEN_AUTH",
+                AuthParameters=auth_params,
             )
-
-        # Lógica Crítica: Comparación local segura entre la pass dada e internal hash
-        if not verify_password(password, user.password_hash):
-            AuthService._record_failed_attempt(email)
+            return response["AuthenticationResult"]
+        except ClientError as e:
+            error_code = e.response["Error"]["Code"]
+            if error_code == "NotAuthorizedException":
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Refresh token inválido o expirado",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            logger.error(f"Error de Cognito al refrescar: {error_code} - {e.response['Error']['Message']}")
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Correo o contraseña incorrectos",
-                headers={"WWW-Authenticate": "Bearer"},
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error interno al renovar la sesión",
             )
-
-        # Exito. Restaurar el historial de protección de la sesión de este usuario.
-        AuthService._reset_attempts(email)
-        return user

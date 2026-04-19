@@ -26,3 +26,12 @@ dist
 #cypress
 reports/
 videos/
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+.pytest_cache/

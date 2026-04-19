@@ -23,6 +23,7 @@ class CreateProperty:
 		nombre: str,
 		estrellas: int,
 		ciudad: str,
+		estado_provincia: str,
 		pais: str,
 		latitud: float,
 		longitud: float,
@@ -56,7 +57,8 @@ class CreateProperty:
 
 		# Crear objetos de valor
 		coordenadas = Coordenadas(lat=latitud, lng=longitud)
-		ubicacion = VODireccion(ciudad=ciudad, pais=pais, coordenadas=coordenadas)
+		# Incluir estado_provincia requerido por el servicio Search
+		ubicacion = VODireccion(ciudad=ciudad, estado_provincia=estado_provincia, pais=pais, coordenadas=coordenadas)
 
 		# Construir propiedad
 		propiedad = construir_propiedad(
@@ -77,6 +79,7 @@ class CreateProperty:
 			nombre=propiedad.nombre,
 			estrellas=propiedad.estrellas,
 			ciudad=ubicacion.ciudad,
+			estado_provincia=ubicacion.estado_provincia,
 			pais=ubicacion.pais,
 			porcentaje_impuesto=propiedad.porcentaje_impuesto,
 		)
@@ -93,6 +96,7 @@ class CreateProperty:
 			"estrellas": propiedad.estrellas,
 			"ubicacion": {
 				"ciudad": ubicacion.ciudad,
+				"estado_provincia": ubicacion.estado_provincia,
 				"pais": ubicacion.pais,
 				"coordenadas": {
 					"lat": coordenadas.lat,

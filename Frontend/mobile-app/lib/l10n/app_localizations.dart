@@ -367,6 +367,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'COP'**
   String get currencyCodeCOP;
+
+  /// No description provided for @taxesAndCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxes and charges'**
+  String get taxesAndCharges;
+
+  /// No description provided for @totalPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalPrice;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get paymentMethod;
+
+  /// No description provided for @cardEnding.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa ending in •••• 4242'**
+  String get cardEnding;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -28,6 +29,8 @@ class ConfirmReservationView extends StatelessWidget {
       child: Consumer<ConfirmReservationViewModel>(
         builder: (context, viewModel, child) {
           final l10n = AppLocalizations.of(context)!;
+          final locale = Localizations.localeOf(context).toString();
+          final monthFormatter = DateFormat.MMM(locale);
 
           final nights = dateRange.duration.inDays;
           final pricePerNight = room.price;
@@ -38,8 +41,9 @@ class ConfirmReservationView extends StatelessWidget {
           final start = dateRange.start;
           final end = dateRange.end;
 
-          final formattedDates =
-              "${start.day} - ${end.day} Mar"; // puedes mejorar formato
+          final formattedDates = start.month == end.month
+              ? '${start.day} - ${end.day} ${monthFormatter.format(start).toUpperCase()}'
+              : '${start.day} ${monthFormatter.format(start).toUpperCase()} - ${end.day} ${monthFormatter.format(end).toUpperCase()}';
 
           final currencyCode = _currencyCodeForLocale(context, l10n);
           final currencyTag = l10n.currencyBubbleLabel(currencyCode);
@@ -69,9 +73,9 @@ class ConfirmReservationView extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
                 onPressed: () => Navigator.pop(context),
               ),
-              title: const Text(
-                "Confirmar Reserva",
-                style: TextStyle(
+              title: Text(
+                l10n.confirmReservationTitle,
+                style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
@@ -92,8 +96,8 @@ class ConfirmReservationView extends StatelessWidget {
                               .confirmReservation();
                           if (confirmed && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Reserva confirmada"),
+                              SnackBar(
+                                content: Text(l10n.reservationSuccessMessage),
                               ),
                             );
                           }
@@ -107,7 +111,7 @@ class ConfirmReservationView extends StatelessWidget {
                   child: viewModel.isConfirming
                       ? const CircularProgressIndicator(color: Colors.white)
                       : Text(
-                          "Confirmar y Pagar",
+                          l10n.confirmReservationButton,
                           style: TextStyle(
                             fontSize: buttonFontSize,
                             fontWeight: FontWeight.bold,
@@ -137,7 +141,7 @@ class ConfirmReservationView extends StatelessWidget {
                     SizedBox(height: spacing),
                     _buildTripDetails(
                       formattedDates,
-                      "$guests Adultos",
+                      l10n.guestCountLabel(guests),
                       cardPadding: cardPadding,
                       sectionTitleSize: sectionTitleSize,
                       spacing: spacing,
@@ -145,6 +149,7 @@ class ConfirmReservationView extends StatelessWidget {
                       labelSize: detailLabelSize,
                       valueSize: detailValueSize,
                       radius: cardRadius,
+                      l10n: l10n,
                     ),
                     SizedBox(height: spacing),
                     _buildPriceBreakdown(
@@ -159,6 +164,7 @@ class ConfirmReservationView extends StatelessWidget {
                       priceFontSize: priceFontSize,
                       spacing: spacing,
                       radius: cardRadius,
+                      l10n: l10n,
                     ),
                     SizedBox(height: spacing),
                     _buildPaymentMethod(
@@ -167,6 +173,7 @@ class ConfirmReservationView extends StatelessWidget {
                       sectionTitleSize: sectionTitleSize,
                       subtitleFontSize: subtitleFontSize,
                       radius: cardRadius,
+                      l10n: l10n,
                     ),
                   ],
                 ),
@@ -246,7 +253,7 @@ class ConfirmReservationView extends StatelessWidget {
   /// 📅 DETALLES DEL VIAJE
   Widget _buildTripDetails(
     String dates,
-    String guests, {
+    String guestLabel, {
     required double cardPadding,
     required double sectionTitleSize,
     required double spacing,
@@ -254,6 +261,7 @@ class ConfirmReservationView extends StatelessWidget {
     required double labelSize,
     required double valueSize,
     required double radius,
+    required AppLocalizations l10n,
   }) {
     return Container(
       padding: EdgeInsets.all(cardPadding),
@@ -276,7 +284,7 @@ class ConfirmReservationView extends StatelessWidget {
               Expanded(
                 child: _detailItem(
                   Icons.calendar_today,
-                  "Fechas",
+                  l10n.reservationDatesLabel,
                   dates,
                   iconSize: iconSize,
                   labelSize: labelSize,
@@ -287,8 +295,8 @@ class ConfirmReservationView extends StatelessWidget {
               Expanded(
                 child: _detailItem(
                   Icons.people,
-                  "Huéspedes",
-                  guests,
+                  l10n.reservationGuestsLabel,
+                  guestLabel,
                   iconSize: iconSize,
                   labelSize: labelSize,
                   valueSize: valueSize,
@@ -314,6 +322,7 @@ class ConfirmReservationView extends StatelessWidget {
     required double priceFontSize,
     required double spacing,
     required double radius,
+    required AppLocalizations l10n,
   }) {
     return Container(
       padding: EdgeInsets.all(cardPadding),
@@ -326,7 +335,7 @@ class ConfirmReservationView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "DESGLOSE DE PRECIOS",
+                "Desglose de Precios",
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -360,7 +369,7 @@ class ConfirmReservationView extends StatelessWidget {
             fontSize: priceFontSize,
           ),
           _priceRow(
-            "Impuestos y cargos",
+            l10n.taxesAndCharges,
             "${taxes.toStringAsFixed(0)} US\$",
             fontSize: priceFontSize,
           ),
@@ -368,7 +377,7 @@ class ConfirmReservationView extends StatelessWidget {
           Divider(height: 1.5, color: Colors.grey.shade300),
           SizedBox(height: spacing * 0.6),
           _priceRow(
-            "Total",
+            l10n.totalPrice,
             "${total.toStringAsFixed(0)} US\$",
             isBold: true,
             fontSize: priceFontSize,
@@ -385,6 +394,7 @@ class ConfirmReservationView extends StatelessWidget {
     required double sectionTitleSize,
     required double subtitleFontSize,
     required double radius,
+    required AppLocalizations l10n,
   }) {
     return Container(
       padding: EdgeInsets.all(cardPadding),
@@ -405,7 +415,7 @@ class ConfirmReservationView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Método de Pago",
+                  l10n.paymentMethod,
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
@@ -414,7 +424,7 @@ class ConfirmReservationView extends StatelessWidget {
                 ),
                 SizedBox(height: cardPadding * 0.3),
                 Text(
-                  "Visa terminada en •••• 4242",
+                  l10n.cardEnding,
                   style: TextStyle(
                     color: Colors.grey,
                     fontSize: subtitleFontSize,

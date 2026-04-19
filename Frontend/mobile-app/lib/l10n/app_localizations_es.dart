@@ -155,4 +155,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get currencyCodeCOP => 'COP';
+
+  @override
+  String get taxesAndCharges => 'Impuestos y cargos';
+
+  @override
+  String get totalPrice => 'Total';
+
+  @override
+  String get paymentMethod => 'Método de Pago';
+
+  @override
+  String get cardEnding => 'Visa terminada en •••• 4242';
 }

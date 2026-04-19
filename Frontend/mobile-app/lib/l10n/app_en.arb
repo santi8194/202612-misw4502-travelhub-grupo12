@@ -57,7 +57,11 @@
     }
   },
   "currencyCodeUSD": "USD",
-  "currencyCodeCOP": "COP"
+  "currencyCodeCOP": "COP",
+  "taxesAndCharges": "Taxes and charges",
+  "totalPrice": "Total",
+  "paymentMethod": "Payment Method",
+  "cardEnding": "Visa ending in •••• 4242"
 }
 
 

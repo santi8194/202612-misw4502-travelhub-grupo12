@@ -126,4 +126,82 @@ describe('NavbarComponent', () => {
     expect(logo).toBeTruthy();
     expect(logo.textContent).toContain('TravelHub');
   });
+
+  // ─── toggleLangDropdown ───
+
+  it('should toggle lang dropdown open and close user dropdown', () => {
+    const event = new Event('click');
+    spyOn(event, 'stopPropagation');
+
+    component.isDropdownOpen = true;
+    component.toggleLangDropdown(event);
+
+    expect(component.isLangDropdownOpen).toBeTrue();
+    expect(component.isDropdownOpen).toBeFalse();
+    expect(event.stopPropagation).toHaveBeenCalled();
+  });
+
+  it('should toggle lang dropdown closed on second call', () => {
+    const event = new Event('click');
+    component.toggleLangDropdown(event);
+    expect(component.isLangDropdownOpen).toBeTrue();
+    component.toggleLangDropdown(event);
+    expect(component.isLangDropdownOpen).toBeFalse();
+  });
+
+  // ─── toggleDropdown should close lang dropdown ───
+
+  it('toggleDropdown should close lang dropdown', () => {
+    const event = new Event('click');
+    component.isLangDropdownOpen = true;
+    component.toggleDropdown(event);
+    expect(component.isLangDropdownOpen).toBeFalse();
+    expect(component.isDropdownOpen).toBeTrue();
+  });
+
+  // ─── switchLang ───
+
+  it('should switch language and close lang dropdown', () => {
+    const translateService = TestBed.inject(TranslateService);
+    spyOn(translateService, 'use').and.callThrough();
+
+    component.isLangDropdownOpen = true;
+    component.switchLang('fr');
+
+    expect(translateService.use).toHaveBeenCalledWith('fr');
+    expect(component.isLangDropdownOpen).toBeFalse();
+  });
+
+  // ─── currentLang ───
+
+  it('should return current language code', () => {
+    const translateService = TestBed.inject(TranslateService);
+    translateService.use('es');
+    expect(component.currentLang).toBe('es');
+  });
+
+  // ─── currentLangLabel ───
+
+  it('should return language label for current language', () => {
+    const translateService = TestBed.inject(TranslateService);
+    translateService.use('en');
+    expect(component.currentLangLabel).toBe('English (EN)');
+  });
+
+  it('should return fallback label for unknown language', () => {
+    const translateService = TestBed.inject(TranslateService);
+    translateService.use('xx');
+    // Falls back to ?? 'English (EN)' if not found
+    expect(component.currentLangLabel).toBeTruthy();
+  });
+
+  // ─── closeDropdown also closes lang dropdown ───
+
+  it('closeDropdown should close both dropdowns', () => {
+    component.isDropdownOpen = true;
+    component.isLangDropdownOpen = true;
+    component.closeDropdown();
+    expect(component.isDropdownOpen).toBeFalse();
+    expect(component.isLangDropdownOpen).toBeFalse();
+  });
 });

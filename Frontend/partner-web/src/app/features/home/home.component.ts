@@ -24,9 +24,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     showLangSelector = false;
     readonly availableLanguages = [
         { code: 'en', label: 'English (EN)' },
-        { code: 'es', label: 'Español (ES)' },
-        { code: 'fr', label: 'Français (FR)' },
-        { code: 'pt', label: 'Português (PT)' }
+        { code: 'es', label: 'Español (ES)' }
+        //{ code: 'fr', label: 'Français (FR)' },
+        //{ code: 'pt', label: 'Português (PT)' }
     ];
     sessionExpirationAt: Date | null = null;
     readonly sessionInfo: {

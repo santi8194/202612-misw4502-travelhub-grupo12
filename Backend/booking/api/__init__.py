@@ -1,8 +1,12 @@
 import os
 from flask import Flask, jsonify
+from flask_cors import CORS
 
 def create_app(config_name=None):
     app = Flask(__name__, instance_relative_config=True)
+
+    # Habilitar CORS para permitir peticiones desde el frontend
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Configuración básica
     # Configuración de base de datos dinámica

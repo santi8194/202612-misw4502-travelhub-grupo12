@@ -2,13 +2,15 @@ import os
 import threading
 
 from config.app import create_app
-from modules.catalog.infrastructure.database import Base, engine, IS_SQLITE
+from modules.catalog.infrastructure.database import Base, engine
 from modules.catalog.infrastructure import models
 from modules.catalog.infrastructure.services.consumer import start_consumer    
 
 app = create_app()
-if IS_SQLITE:
-    Base.metadata.create_all(bind=engine)
+# Crear todas las tablas al inicio (idempotente: no recrea las existentes).
+# Se aplica tanto a SQLite (dev local) como a PostgreSQL (Docker/producción).
+# No se usa Alembic para este proyecto.
+Base.metadata.create_all(bind=engine)
 
 ENABLE_EVENTS = os.getenv("ENABLE_EVENTS", "false").lower() == "true"
 

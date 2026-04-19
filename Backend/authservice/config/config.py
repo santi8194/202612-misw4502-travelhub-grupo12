@@ -1,6 +1,7 @@
 """
 Propósito del archivo: Definición de variables de configuración general.
-Rol dentro del microservicio: Provee todas las constantes globales y variables de entorno requeridas, como la llave secreta, el algoritmo JWT y políticas de bloqueo.
+Rol dentro del microservicio: Provee todas las constantes globales y variables de entorno requeridas,
+incluyendo la configuración de AWS Cognito y la conexión a base de datos.
 """
 
 from pydantic_settings import BaseSettings
@@ -14,24 +15,30 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Auth Service"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/auth"
-    
-    # Configuración principal para la seguridad con JWT
-    SECRET_KEY: str = "super_secret_key_change_in_production_12345"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    SESSION_IDLE_TIMEOUT_MINUTES: int = 5
-    
-    # Políticas para el bloqueo por protección contra fuerza bruta
-    MAX_LOGIN_ATTEMPTS: int = 5
-    LOCKOUT_DURATION_MINUTES: int = 15
+
+    # Configuración de AWS Cognito
+    # NOTA: En producción/Kubernetes, estos valores deben ser definidos por variables de entorno (Secrets/ConfigMaps).
+    COGNITO_REGION: str = "us-east-1"
+    COGNITO_USER_POOL_ID: str = ""
+    COGNITO_CLIENT_ID: str = ""
+    COGNITO_CLIENT_SECRET: str = ""
+
+    @property
+    def COGNITO_JWK_URL(self) -> str:
+        """URL pública de las claves JWK del User Pool de Cognito."""
+        return f"https://cognito-idp.{self.COGNITO_REGION}.amazonaws.com/{self.COGNITO_USER_POOL_ID}/.well-known/jwks.json"
+
+    @property
+    def COGNITO_ISSUER(self) -> str:
+        """Issuer (emisor) esperado en los tokens JWT de Cognito."""
+        return f"https://cognito-idp.{self.COGNITO_REGION}.amazonaws.com/{self.COGNITO_USER_POOL_ID}"
 
     # Configuración de base de datos
     # NOTA: En producción/Kubernetes, estos valores deben ser definidos por variables de entorno (por ejemplo, desde Secrets o ConfigMaps).
     # Los valores por defecto solo se usan para desarrollo local o si no se encuentra la variable de entorno correspondiente.
     DB_USER: str = "auth_user"
     DB_PASSWORD: str = "auth_password"
-    DB_HOST: str = "localhost"
+    DB_HOST: str = "auth-db"
     DB_PORT: int = 5432
     DB_NAME: str = "auth_db"
     
@@ -43,6 +50,7 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "ignore"
 
 
 # Instancia singleton para ser importada en el resto de la aplicación

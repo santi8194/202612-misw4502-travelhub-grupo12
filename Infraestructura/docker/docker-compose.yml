@@ -8,8 +8,9 @@ services:
       context: ../../Backend/booking
       dockerfile: Dockerfile
     ports:
-      - "5001:5000"
+      - "5001:8000"
     environment:
+      - CATALOG_SERVICE_URL=http://catalog-api:80/catalog
       - REDIS_HOST=redis-db
       - RABBITMQ_HOST=rabbitmq-broker
       - RABBITMQ_PORT=5672
@@ -201,16 +202,40 @@ services:
       context: ../../Backend/catalog
       dockerfile: Dockerfile
     ports:
-      - "8005:8005"
+      - "8005:80"
     environment:
       - RABBITMQ_HOST=rabbitmq-broker
       - RABBITMQ_PORT=5672
       - RABBITMQ_USER=guest
       - RABBITMQ_PASS=guest
+      - DB_HOST=catalog-db
+      - DB_PORT=5432
+      - DB_NAME=catalog_db
+      - DB_USER=catalog_user
+      - DB_PASSWORD=catalog_password
     depends_on:
       - rabbitmq-broker
+      - catalog-db
     networks:
       - microservices-network
+
+  catalog-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_password
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U catalog_user -d catalog_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   user-web:
     build:
@@ -228,3 +253,4 @@ networks:
 volumes:
   booking_db_data:
   pms_db_data:
+  catalog_db_data:

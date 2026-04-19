@@ -55,7 +55,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
     full_name = Column(String(255), nullable=True)
-    password_hash = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=True)
     partner_id = Column(UUID(as_uuid=True), nullable=True, index=True)
     is_active = Column(String(10), default='true', nullable=False)  # 'true' o 'false' para compatibilidad
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

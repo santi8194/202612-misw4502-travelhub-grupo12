@@ -15,7 +15,8 @@ class UpdateInventory:
 	def execute(
 		self,
 		id_propiedad: UUID,
-		id_categoria: str,
+		# ID de categoría como UUID nativo
+		id_categoria: UUID,
 		id_inventario: str,
 		fecha: date,
 		cupos_totales: int,
@@ -83,7 +84,8 @@ class UpdateInventory:
 
 		return {
 			"id_propiedad": str(id_propiedad),
-			"id_categoria": id_categoria,
+			# Serializar UUID a str en la respuesta
+			"id_categoria": str(id_categoria),
 			"id_inventario": id_inventario,
 			"fecha": fecha.isoformat(),
 			"cupos_totales": cupos_totales,

@@ -1,56 +1,87 @@
-from datetime import timedelta
-from uuid import uuid4
+import json
+from unittest.mock import patch, MagicMock
 
-from jose import jwt
+import pytest
+from jose import JWTError
 
-from config.config import settings
-from config.security import create_access_token, create_refresh_token, get_password_hash, hash_token, verify_password
-
-
-def test_password_hash_and_verify_success():
-    hashed = get_password_hash("123456")
-    assert verify_password("123456", hashed) is True
+from config import security
+from config.security import validate_cognito_token, _get_cognito_jwk_keys
 
 
-def test_password_hash_and_verify_failure():
-    hashed = get_password_hash("123456")
-    assert verify_password("654321", hashed) is False
+FAKE_JWK_KEYS = [
+    {"kid": "key-1", "kty": "RSA", "n": "fake-n", "e": "AQAB"},
+    {"kid": "key-2", "kty": "RSA", "n": "fake-n-2", "e": "AQAB"},
+]
 
 
-def test_create_access_token_with_partner_id():
-    token = create_access_token(
-        subject=str(uuid4()),
-        email="admin@travelhub.com",
-        rol="ADMIN_HOTEL",
-        partner_id="partner-123",
-        session_id="session-123",
-        expires_delta=timedelta(minutes=5),
-    )
-
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    assert payload["email"] == "admin@travelhub.com"
-    assert payload["rol"] == "ADMIN_HOTEL"
-    assert payload["partner_id"] == "partner-123"
-    assert payload["sid"] == "session-123"
-    assert "exp" in payload
+@pytest.fixture(autouse=True)
+def clear_jwk_cache():
+    """Limpia la caché de JWK entre tests."""
+    security._jwk_keys = None
+    yield
+    security._jwk_keys = None
 
 
-def test_create_access_token_without_partner_id():
-    token = create_access_token(
-        subject="user-id",
-        email="user@travelhub.com",
-        rol="USER",
-        expires_delta=timedelta(minutes=5),
-    )
+def test_get_cognito_jwk_keys_fetches_and_caches():
+    """Verifica que las claves JWK se descargan y cachean."""
+    fake_response = MagicMock()
+    fake_response.read.return_value = json.dumps({"keys": FAKE_JWK_KEYS}).encode()
 
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    assert payload["sub"] == "user-id"
-    assert "partner_id" not in payload
+    with patch("config.security.urlopen", return_value=fake_response) as mock_urlopen:
+        keys = _get_cognito_jwk_keys()
+        assert len(keys) == 2
+        assert keys[0]["kid"] == "key-1"
+
+        # Segunda llamada no debe hacer fetch (caché)
+        keys2 = _get_cognito_jwk_keys()
+        assert keys2 == keys
+        mock_urlopen.assert_called_once()
 
 
-def test_refresh_token_generation_and_hashing():
-    refresh_token = create_refresh_token()
+def test_validate_cognito_token_success():
+    """Token válido es decodificado correctamente."""
+    expected_payload = {
+        "sub": "cognito-uuid",
+        "username": "admin@travelhub.com",
+        "token_use": "access",
+        "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_test",
+    }
 
-    assert isinstance(refresh_token, str)
-    assert len(refresh_token) > 20
-    assert hash_token(refresh_token) != refresh_token
+    security._jwk_keys = FAKE_JWK_KEYS
+
+    with patch("config.security.jwt.get_unverified_header", return_value={"kid": "key-1"}):
+        with patch("config.security.jwt.decode", return_value=expected_payload):
+            payload = validate_cognito_token("valid-token")
+
+    assert payload["sub"] == "cognito-uuid"
+    assert payload["username"] == "admin@travelhub.com"
+    assert payload["token_use"] == "access"
+
+
+def test_validate_cognito_token_kid_not_found():
+    """Token con kid no reconocido lanza JWTError."""
+    security._jwk_keys = FAKE_JWK_KEYS
+
+    with patch("config.security.jwt.get_unverified_header", return_value={"kid": "unknown-key"}):
+        with pytest.raises(JWTError, match="Clave pública JWK no encontrada"):
+            validate_cognito_token("bad-kid-token")
+
+
+def test_validate_cognito_token_invalid_token_use():
+    """Token con token_use inválido lanza JWTError."""
+    security._jwk_keys = FAKE_JWK_KEYS
+
+    with patch("config.security.jwt.get_unverified_header", return_value={"kid": "key-1"}):
+        with patch("config.security.jwt.decode", return_value={"sub": "uuid", "token_use": "invalid"}):
+            with pytest.raises(JWTError, match="Tipo de token no reconocido"):
+                validate_cognito_token("bad-use-token")
+
+
+def test_validate_cognito_token_expired():
+    """Token expirado lanza JWTError (propagado desde jose)."""
+    security._jwk_keys = FAKE_JWK_KEYS
+
+    with patch("config.security.jwt.get_unverified_header", return_value={"kid": "key-1"}):
+        with patch("config.security.jwt.decode", side_effect=JWTError("Token expired")):
+            with pytest.raises(JWTError):
+                validate_cognito_token("expired-token")

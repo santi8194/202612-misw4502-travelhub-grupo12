@@ -5,13 +5,21 @@ from modules.catalog.domain.events import CategoriasPropiedadConsultadas
 
 
 class ObtainCategoriesByPropertyId:
-	"""Comando para obtener todas las categorias de una propiedad."""
+	"""Query para obtener todas las categorias de una propiedad."""
 
 	def __init__(self, repository, event_bus):
 		self.repository = repository
 		self.event_bus = event_bus
 
 	def execute(self, id_propiedad: UUID) -> dict:
+		"""Retorna todas las categorias de habitacion registradas en la propiedad.
+
+		Args:
+			id_propiedad: UUID de la propiedad
+
+		Returns:
+			Dict con lista de categorias o error si la propiedad no existe
+		"""
 		propiedad = self.repository.obtain(id_propiedad)
 		if not propiedad:
 			return {
@@ -29,7 +37,8 @@ class ObtainCategoriesByPropertyId:
 
 			categorias.append(
 				{
-					"id_categoria": categoria.id_categoria,
+					# Serializar UUID a str en la respuesta
+					"id_categoria": str(categoria.id_categoria),
 					"codigo_mapeo_pms": categoria.codigo_mapeo_pms,
 					"nombre_comercial": categoria.nombre_comercial,
 					"descripcion": categoria.descripcion,

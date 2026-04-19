@@ -5,10 +5,74 @@ services:
     image: nginx:1.27-alpine
     container_name: travelhub-nginx
     ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    restart: unless-stopped
+      - "5001:8000"
+    environment:
+      - CATALOG_SERVICE_URL=http://catalog-api:80/catalog
+      - REDIS_HOST=redis-db
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - DB_USER=booking_user
+      - DB_PASSWORD=booking_password
+      - DB_HOST=booking-db
+      - DB_PORT=5432
+      - DB_NAME=booking_db
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      redis-db:
+        condition: service_started
+      rabbitmq-broker:
+        condition: service_started
+    networks:
+      - microservices-network
+
+  booking-saga-worker:
+    build:
+      context: ../../Backend/booking
+      dockerfile: Dockerfile
+    command: python /src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
+    environment:
+      - REDIS_HOST=redis-db
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - PYTHONPATH=/src
+      - PYTHONUNBUFFERED=1
+      - DB_USER=booking_user
+      - DB_PASSWORD=booking_password
+      - DB_HOST=booking-db
+      - DB_PORT=5432
+      - DB_NAME=booking_db
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      redis-db:
+        condition: service_started
+      rabbitmq-broker:
+        condition: service_started
+      booking-api:
+        condition: service_started
+    networks:
+      - microservices-network
+
+  notification-api:
+    build:
+      context: ../../Backend/notification
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_HOST=redis-db
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+    depends_on:
+      - redis-db
+      - rabbitmq-broker
     networks:
       - travelhub-dev-net
 
@@ -72,26 +136,69 @@ services:
     networks:
       - travelhub-dev-net
 
-  search:
-    image: ${ECR_REGISTRY_DEV}/search:${SEARCH_IMAGE_TAG:-latest}
-    container_name: travelhub-search
+  auth-api:
+    build:
+      context: ../../Backend/authservice
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8000"
+    networks:
+      - microservices-network
+
+  catalog-api:
+    build:
+      context: ../../Backend/catalog
+      dockerfile: Dockerfile
+    ports:
+      - "8005:80"
     environment:
-      REPOSITORY_TYPE: ${SEARCH_REPOSITORY_TYPE:-postgres}
-      DB_HOST: ${SEARCH_DB_HOST}
-      DB_PORT: ${SEARCH_DB_PORT}
-      DB_NAME: ${SEARCH_DB_NAME}
-      DB_USER: ${SEARCH_DB_USER}
-      DB_PASSWORD: ${SEARCH_DB_PASSWORD}
+      - RABBITMQ_HOST=rabbitmq-broker
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - DB_HOST=catalog-db
+      - DB_PORT=5432
+      - DB_NAME=catalog_db
+      - DB_USER=catalog_user
+      - DB_PASSWORD=catalog_password
+    depends_on:
+      - rabbitmq-broker
+      - catalog-db
+    networks:
+      - microservices-network
+
+  catalog-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_password
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
-      interval: 15s
+      test: [ "CMD-SHELL", "pg_isready -U catalog_user -d catalog_db" ]
+      interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
-    restart: unless-stopped
+
+  user-web:
+    build:
+      context: ../../Frontend/user-web
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
     networks:
       - travelhub-dev-net
 
 networks:
   travelhub-dev-net:
     driver: bridge
+
+volumes:
+  booking_db_data:
+  pms_db_data:
+  catalog_db_data:

@@ -9,7 +9,6 @@ from alembic import op
 import sqlalchemy as sa
 import uuid
 from datetime import datetime
-from passlib.context import CryptContext
 
 # revision identifiers, used by Alembic.
 revision = '002_seed_roles_and_admin'
@@ -17,12 +16,9 @@ down_revision = '001_initial_schema'
 branch_labels = None
 depends_on = None
 
-# Configurar el contexto de hash compatible con la aplicación
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+# Pre-computed bcrypt hash for seed password "123456"
+# Generated with: CryptContext(schemes=["bcrypt"]).hash("123456")
+ADMIN_PASSWORD_HASH = "$2b$12$m9P0Rr8qbPoz7Xl6vlBH5uxXUzEkT5csbECvp4QmJby3VZI4wBB7e"
 
 
 def upgrade() -> None:
@@ -66,7 +62,7 @@ def upgrade() -> None:
         ],
     )
 
-    admin_password_hash = get_password_hash("123456")
+    admin_password_hash = ADMIN_PASSWORD_HASH
 
     user_insert = sa.text("""
     INSERT INTO users (id, email, full_name, password_hash, is_active, partner_id, created_at, updated_at)

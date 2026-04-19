@@ -11,7 +11,6 @@ import uuid
 
 from alembic import op
 import sqlalchemy as sa
-from passlib.context import CryptContext
 
 
 # revision identifiers, used by Alembic.
@@ -20,11 +19,9 @@ down_revision = "003_add_partner_id_to_users"
 branch_labels = None
 depends_on = None
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+# Pre-computed bcrypt hash for seed password "123456"
+# Generated with: CryptContext(schemes=["bcrypt"]).hash("123456")
+ADMIN_PASSWORD_HASH = "$2b$12$m9P0Rr8qbPoz7Xl6vlBH5uxXUzEkT5csbECvp4QmJby3VZI4wBB7e"
 
 
 def upgrade() -> None:
@@ -39,7 +36,7 @@ def upgrade() -> None:
     partner_id_hotel2 = str(uuid.UUID("cc0e8400-e29b-41d4-a716-446655440002"))
 
     now = datetime.utcnow()
-    admin_password_hash = get_password_hash("123456")
+    admin_password_hash = ADMIN_PASSWORD_HASH
 
     user_insert = sa.text("""
     INSERT INTO users (id, email, full_name, password_hash, is_active, partner_id, created_at, updated_at)

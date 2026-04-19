@@ -60,15 +60,16 @@ class RegisterCategoryHousing:
 				"id_propiedad": str(id_propiedad),
 			}
 
-		# Generar ID único de categoría como UUID
-		id_categoria = str(uuid.uuid4())
+		# Generar UUID nativo para la categoría
+		id_categoria = uuid.uuid4()
 
 		# Verificar que la categoría no exista
 		categoria_existente = propiedad.obtener_categoria(id_categoria)
 		if categoria_existente:
 			return {
 				"message": "Category already registered",
-				"id_categoria": id_categoria,
+				# Serializar UUID a str en la respuesta
+				"id_categoria": str(id_categoria),
 			}
 
 		# Crear objetos de valor
@@ -82,7 +83,8 @@ class RegisterCategoryHousing:
 			porcentaje_penalidad=porcentaje_penalidad,
 		)
 		foto_portada = Media(
-			id_media=f"{id_categoria}-foto-portada",
+			# Serializar UUID a str para construir el id_media
+			id_media=f"{str(id_categoria)}-foto-portada",
 			url_full=foto_portada_url,
 			tipo=TipoMedia.FOTO_PORTADA,
 			orden=1,
@@ -122,7 +124,8 @@ class RegisterCategoryHousing:
 
 		return {
 			"id_propiedad": str(id_propiedad),
-			"id_categoria": categoria.id_categoria,
+			# Serializar UUID a str en la respuesta
+			"id_categoria": str(categoria.id_categoria),
 			"nombre_comercial": categoria.nombre_comercial,
 			"codigo_mapeo_pms": categoria.codigo_mapeo_pms,
 			"descripcion": categoria.descripcion,

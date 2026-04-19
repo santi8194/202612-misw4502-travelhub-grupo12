@@ -24,11 +24,20 @@ class DomainEvent(ABC):
 		return self.__class__.__name__
 
 	def to_dict(self) -> dict:
-		"""Convierte el evento a un diccionario."""
-		return {
-			**asdict(self),
-			"occurred_on": self.occurred_on.isoformat(),
-		}
+		"""Convierte el evento a un diccionario serializable para el event bus."""
+		raw = asdict(self)
+		resultado = {}
+		# Serializar tipos especiales a formatos compatibles con JSON
+		for clave, valor in raw.items():
+			if isinstance(valor, UUID):
+				resultado[clave] = str(valor)
+			elif isinstance(valor, Decimal):
+				resultado[clave] = str(valor)
+			elif isinstance(valor, (datetime, date)):
+				resultado[clave] = valor.isoformat()
+			else:
+				resultado[clave] = valor
+		return resultado
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -38,6 +47,8 @@ class PropiedadCreada(DomainEvent):
 	nombre: str
 	estrellas: int
 	ciudad: str
+	# Estado o provincia propagado al servicio Search
+	estado_provincia: str
 	pais: str
 	porcentaje_impuesto: Decimal
 
@@ -50,7 +61,8 @@ class PropiedadCreada(DomainEvent):
 class CategoriaHabitacionRegistrada(DomainEvent):
 	"""Evento emitido cuando se registra una nueva categoría de habitación."""
 	id_propiedad: UUID
-	id_categoria: str
+	# UUID nativo de la categoría
+	id_categoria: UUID
 	nombre_comercial: str
 	codigo_mapeo_pms: str
 
@@ -63,7 +75,8 @@ class CategoriaHabitacionRegistrada(DomainEvent):
 class InventarioActualizado(DomainEvent):
 	"""Evento emitido cuando se actualiza el inventario de una categoría."""
 	id_propiedad: UUID
-	id_categoria: str
+	# UUID nativo de la categoría
+	id_categoria: UUID
 	id_inventario: str
 	fecha: date
 	cupos_totales: int

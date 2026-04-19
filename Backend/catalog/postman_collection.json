@@ -2,10 +2,33 @@
   "info": {
     "_postman_id": "catalog-service-collection",
     "name": "Catalog Service - TravelHub",
-    "description": "Colección de endpoints del servicio de catálogo",
+    "description": "Colección de endpoints del servicio de catálogo. Incluye propiedades, categorías de habitación, inventario y el endpoint de vista detalle de propiedad.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Verifica el estado del servicio"
+          },
+          "response": []
+        }
+      ]
+    },
     {
       "name": "Properties",
       "item": [
@@ -21,14 +44,23 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Hotel Boutique Las Palmas\",\n  \"estrellas\": 4,\n  \"ciudad\": \"Cartagena\",\n  \"pais\": \"Colombia\",\n  \"latitud\": 10.42,\n  \"longitud\": -75.54,\n  \"porcentaje_impuesto\": 19.00\n}"
+              "raw": "{\n  \"nombre\": \"Hotel Boutique Las Palmas\",\n  \"estrellas\": 4,\n  \"ciudad\": \"Cartagena\",\n  \"estado_provincia\": \"Bolívar\",\n  \"pais\": \"Colombia\",\n  \"latitud\": 10.42,\n  \"longitud\": -75.54,\n  \"porcentaje_impuesto\": 19.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/properties",
-              "host": ["{{base_url}}"],
-              "path": ["properties"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties"
+              ]
             },
-            "description": "Crea una nueva propiedad"
+            "description": "Crea una nueva propiedad. El campo estado_provincia es obligatorio para compatibilidad con el servicio Search."
           },
           "response": []
         },
@@ -39,10 +71,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/properties",
-              "host": ["{{base_url}}"],
-              "path": ["properties"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties"
+              ]
             },
-            "description": "Obtiene todas las propiedades"
+            "description": "Obtiene todas las propiedades registradas"
           },
           "response": []
         },
@@ -53,10 +89,35 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}"
+              ]
             },
-            "description": "Obtiene los detalles de una propiedad específica"
+            "description": "Obtiene los detalles de una propiedad por su UUID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Property by Category ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/properties/by-category/{{category_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "by-category",
+                "{{category_id}}"
+              ]
+            },
+            "description": "Obtiene la propiedad asociada a un UUID de categoría"
           },
           "response": []
         }
@@ -65,48 +126,6 @@
     {
       "name": "Categories",
       "item": [
-        {
-          "name": "Get Property by Category ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/properties/by-category/{{category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "by-category", "{{category_id}}"]
-            },
-            "description": "Obtiene la propiedad asociada a un ID de categoría"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Category by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/categories/{{category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["categories", "{{category_id}}"]
-            },
-            "description": "Obtiene una categoría por su ID"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Categories by Property ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/properties/{{property_id}}/categories",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}", "categories"]
-            },
-            "description": "Obtiene todas las categorías asociadas a una propiedad"
-          },
-          "response": []
-        },
         {
           "name": "Register Category Housing",
           "request": {
@@ -119,16 +138,113 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"codigo_mapeo_pms\": \"ROOM-DLX-01\",\n  \"nombre_comercial\": \"Habitación Deluxe con Vista al Mar\",\n  \"descripcion\": \"Amplia habitación de 40m2 con balcón privado y vistas panorámicas\",\n  \"monto_precio_base\": 350000.00,\n  \"cargo_servicio\": 25000.00,\n  \"moneda_precio_base\": \"COP\",\n  \"capacidad_pax\": 4,\n  \"dias_anticipacion\": 5,\n  \"porcentaje_penalidad\": 50.0,\n  \"foto_portada_url\": \"https://cdn.example.com/deluxe-portada.jpg\"\n}"
+              "raw": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"codigo_mapeo_pms\": \"ROOM-DLX-01\",\n  \"nombre_comercial\": \"Habitación Deluxe con Vista al Mar\",\n  \"descripcion\": \"Amplia habitación de 40m2 con balcón privado y vistas panorámicas\",\n  \"monto_precio_base\": 350000.00,\n  \"cargo_servicio\": 25000.00,\n  \"moneda_precio_base\": \"COP\",\n  \"capacidad_pax\": 4,\n  \"dias_anticipacion\": 5,\n  \"porcentaje_penalidad\": 50.0,\n  \"foto_portada_url\": \"https://cdn.example.com/deluxe-portada.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}/categories",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}", "categories"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories"
+              ]
             },
-            "description": "Registra una nueva categoría de habitación en una propiedad"
+            "description": "Registra una nueva categoría de habitación en una propiedad. El id_categoria se genera automáticamente como UUID."
           },
           "response": []
+        },
+        {
+          "name": "Get Categories by Property ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/properties/{{property_id}}/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories"
+              ]
+            },
+            "description": "Obtiene todas las categorías de habitación de una propiedad. Ahora retorna amenidades reales (corregido)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/categories/{{category_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "{{category_id}}"
+              ]
+            },
+            "description": "Obtiene una categoría de habitación por su UUID. Ahora retorna amenidades reales (corregido)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category View Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/categories/{{category_id}}/view-detail",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "{{category_id}}",
+                "view-detail"
+              ]
+            },
+            "description": "Retorna el payload consolidado para la vista 'Detalle de Propiedad' del frontend.\n\nIncluye:\n- Datos completos de la propiedad (nombre, estrellas, ubicación)\n- Datos de la categoría solicitada (precios, capacidad, política de cancelación)\n- Lista completa de amenidades\n- Galería ordenada (portada primero, máx. 10 elementos)\n- Rating promedio calculado dinámicamente sobre todas las reseñas\n- Total de reseñas de la propiedad\n- Las 10 reseñas más recientes ordenadas por fecha descendente\n\nToda la jerarquía se carga en un único viaje a la BD (cero N+1). P95 < 500ms."
+          },
+          "response": [
+            {
+              "name": "200 OK - Detalle encontrado",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"propiedad\": {\n    \"id_propiedad\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\n    \"nombre\": \"Bordeaux Getaway\",\n    \"estrellas\": 4,\n    \"ubicacion\": {\n      \"ciudad\": \"Bordeaux\",\n      \"estado_provincia\": \"Nouvelle-Aquitaine\",\n      \"pais\": \"France\",\n      \"coordenadas\": {\n        \"lat\": 44.83,\n        \"lng\": -0.57\n      }\n    },\n    \"porcentaje_impuesto\": \"10.00\"\n  },\n  \"categoria\": {\n    \"id_categoria\": \"aabbccdd-1111-2222-3333-aabbccdd0001\",\n    \"nombre_comercial\": \"Suite Deluxe\",\n    \"descripcion\": \"Suite de lujo con vista al río Garona\",\n    \"precio_base\": {\n      \"monto\": \"75.00\",\n      \"moneda\": \"USD\",\n      \"cargo_servicio\": \"13.00\"\n    },\n    \"capacidad_pax\": 7,\n    \"politica_cancelacion\": {\n      \"dias_anticipacion\": 3,\n      \"porcentaje_penalidad\": \"50.00\"\n    }\n  },\n  \"amenidades\": [\n    { \"id_amenidad\": \"amen-001\", \"nombre\": \"WiFi\", \"icono\": \"wifi\" },\n    { \"id_amenidad\": \"amen-002\", \"nombre\": \"Cocina\", \"icono\": \"kitchen\" },\n    { \"id_amenidad\": \"amen-003\", \"nombre\": \"Aire acondicionado\", \"icono\": \"ac_unit\" }\n  ],\n  \"galeria\": [\n    { \"id_media\": \"media-portada\", \"url_full\": \"https://cdn.example.com/portada.jpg\", \"tipo\": \"FOTO_PORTADA\", \"orden\": 1 },\n    { \"id_media\": \"media-sala\", \"url_full\": \"https://cdn.example.com/sala.jpg\", \"tipo\": \"IMAGEN_GALERIA\", \"orden\": 2 },\n    { \"id_media\": \"media-cocina\", \"url_full\": \"https://cdn.example.com/cocina.jpg\", \"tipo\": \"IMAGEN_GALERIA\", \"orden\": 3 }\n  ],\n  \"rating_promedio\": 5.0,\n  \"total_resenas\": 7,\n  \"resenas\": [\n    {\n      \"id_resena\": \"11111111-1111-1111-1111-111111111111\",\n      \"id_usuario\": \"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\",\n      \"nombre_autor\": \"Jose\",\n      \"avatar_url\": \"https://cdn.example.com/jose.jpg\",\n      \"calificacion\": 5,\n      \"comentario\": \"Los administradores son muy amables.\",\n      \"fecha_creacion\": \"2021-12-01T10:00:00+00:00\"\n    },\n    {\n      \"id_resena\": \"22222222-2222-2222-2222-222222222222\",\n      \"id_usuario\": \"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb\",\n      \"nombre_autor\": \"Luke\",\n      \"avatar_url\": null,\n      \"calificacion\": 5,\n      \"comentario\": \"Excelente lugar!\",\n      \"fecha_creacion\": \"2021-11-28T15:30:00+00:00\"\n    }\n  ]\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "404 Not Found - Categoría no existe",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"Category not found\",\n  \"id_categoria\": \"00000000-0000-0000-0000-000000000000\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
         }
       ]
     },
@@ -147,14 +263,27 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"id_categoria\": \"deluxe-001\",\n  \"id_inventario\": \"inv-2026-05-10\",\n  \"fecha\": \"2026-05-10\",\n  \"cupos_totales\": 10,\n  \"cupos_disponibles\": 3\n}"
+              "raw": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"id_categoria\": \"{{category_id}}\",\n  \"id_inventario\": \"inv-2026-05-10\",\n  \"fecha\": \"2026-05-10\",\n  \"cupos_totales\": 10,\n  \"cupos_disponibles\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/inventory",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}", "categories", "{{category_id}}", "inventory"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories",
+                "{{category_id}}",
+                "inventory"
+              ]
             },
-            "description": "Actualiza el inventario de una categoría de habitación"
+            "description": "Actualiza el inventario de una categoría de habitación para una fecha específica"
           },
           "response": []
         },
@@ -165,8 +294,17 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/availability/{{date}}",
-              "host": ["{{base_url}}"],
-              "path": ["properties", "{{property_id}}", "categories", "{{category_id}}", "availability", "{{date}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories",
+                "{{category_id}}",
+                "availability",
+                "{{date}}"
+              ]
             },
             "description": "Obtiene la disponibilidad de una categoría en una fecha específica"
           },
@@ -179,22 +317,26 @@
     {
       "key": "base_url",
       "value": "http://localhost:8005/catalog",
-      "type": "string"
+      "type": "string",
+      "description": "URL base del servicio catalog"
     },
     {
       "key": "property_id",
       "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-      "type": "string"
+      "type": "string",
+      "description": "UUID de la propiedad de ejemplo"
     },
     {
       "key": "category_id",
-      "value": "deluxe-001",
-      "type": "string"
+      "value": "aabbccdd-1111-2222-3333-aabbccdd0001",
+      "type": "string",
+      "description": "UUID de la categoría de ejemplo (usar el id_categoria retornado por Register Category Housing)"
     },
     {
       "key": "date",
       "value": "2026-05-10",
-      "type": "string"
+      "type": "string",
+      "description": "Fecha en formato YYYY-MM-DD para consultas de disponibilidad"
     }
   ]
 }

@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, Float, Numeric, ForeignKey, Table
+from sqlalchemy import Column, String, Integer, Float, Numeric, ForeignKey, Table, Text, DateTime
+from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -6,10 +7,13 @@ from .database import Base
 class PropiedadModel(Base):
 	__tablename__ = "propiedades"
 
-	id_propiedad = Column(String, primary_key=True)
+	# Clave primaria como UUID nativo de PostgreSQL
+	id_propiedad = Column(PgUUID(as_uuid=True), primary_key=True)
 	nombre = Column(String, nullable=False)
 	estrellas = Column(Integer, nullable=False)
 	ciudad = Column(String, nullable=False)
+	# Estado o provincia requerido por el servicio Search
+	estado_provincia = Column(String, nullable=False)
 	pais = Column(String, nullable=False)
 	latitud = Column(Float, nullable=False)
 	longitud = Column(Float, nullable=False)
@@ -18,13 +22,19 @@ class PropiedadModel(Base):
 	categorias_habitacion = relationship(
 		"CategoriaHabitacionModel", back_populates="propiedad"
 	)
+	# Relación con las reseñas de la propiedad
+	resenas = relationship(
+		"ResenaModel", back_populates="propiedad", cascade="all, delete-orphan"
+	)
 
 
 class CategoriaHabitacionModel(Base):
 	__tablename__ = "categorias_habitacion"
 
-	id_categoria = Column(String, primary_key=True)
-	id_propiedad = Column(String, ForeignKey("propiedades.id_propiedad"), nullable=False)
+	# Clave primaria como UUID nativo de PostgreSQL
+	id_categoria = Column(PgUUID(as_uuid=True), primary_key=True)
+	# Clave foránea como UUID nativo referenciando propiedades
+	id_propiedad = Column(PgUUID(as_uuid=True), ForeignKey("propiedades.id_propiedad"), nullable=False)
 	codigo_mapeo_pms = Column(String, nullable=False, unique=True)
 	nombre_comercial = Column(String, nullable=False)
 	descripcion = Column(String, nullable=False)
@@ -47,7 +57,8 @@ class MediaModel(Base):
 	__tablename__ = "media"
 
 	id_media = Column(String, primary_key=True)
-	id_categoria = Column(String, ForeignKey("categorias_habitacion.id_categoria"), nullable=False)
+	# FK como UUID nativo apuntando a categorias_habitacion
+	id_categoria = Column(PgUUID(as_uuid=True), ForeignKey("categorias_habitacion.id_categoria"), nullable=False)
 	url_full = Column(String, nullable=False)
 	tipo = Column(String, nullable=False)
 	orden = Column(Integer, nullable=False)
@@ -67,11 +78,12 @@ class AmenidadModel(Base):
 	)
 
 
-# Tabla asociativa para relación many-to-many
+# Tabla asociativa para relación many-to-many entre categorías y amenidades
 categoria_amenidad = Table(
 	"categoria_amenidad",
 	Base.metadata,
-	Column("id_categoria", String, ForeignKey("categorias_habitacion.id_categoria"), primary_key=True),
+	# FK como UUID nativo
+	Column("id_categoria", PgUUID(as_uuid=True), ForeignKey("categorias_habitacion.id_categoria"), primary_key=True),
 	Column("id_amenidad", String, ForeignKey("amenidades.id_amenidad"), primary_key=True),
 )
 
@@ -80,9 +92,37 @@ class InventarioModel(Base):
 	__tablename__ = "inventario"
 
 	id_inventario = Column(String, primary_key=True)
-	id_categoria = Column(String, ForeignKey("categorias_habitacion.id_categoria"), nullable=False)
+	# FK como UUID nativo apuntando a categorias_habitacion
+	id_categoria = Column(PgUUID(as_uuid=True), ForeignKey("categorias_habitacion.id_categoria"), nullable=False)
 	fecha = Column(String, nullable=False)
 	cupos_totales = Column(Integer, nullable=False)
 	cupos_disponibles = Column(Integer, nullable=False)
 
 	categoria = relationship("CategoriaHabitacionModel", back_populates="inventario")
+
+
+class ResenaModel(Base):
+	"""Modelo ORM para reseñas de una propiedad.
+
+	Aplica desnormalización controlada: nombre_autor y avatar_url provienen
+	del servicio de Usuarios pero se almacenan aquí para evitar llamadas
+	síncronas y garantizar el P95 < 500ms.
+	"""
+	__tablename__ = "resenas"
+
+	# Clave primaria como UUID nativo de PostgreSQL
+	id_resena = Column(PgUUID(as_uuid=True), primary_key=True)
+	# FK a la propiedad (la reseña es de la propiedad, no de la categoría)
+	id_propiedad = Column(PgUUID(as_uuid=True), ForeignKey("propiedades.id_propiedad"), nullable=False)
+	# UUID del usuario autor (sin FK externa: pertenece al microservicio de Usuarios)
+	id_usuario = Column(PgUUID(as_uuid=True), nullable=False)
+	# Campos del autor desnormalizados
+	nombre_autor = Column(String, nullable=False)
+	avatar_url = Column(String, nullable=True)
+	# Datos de la reseña
+	calificacion = Column(Integer, nullable=False)
+	comentario = Column(Text, nullable=False)
+	# Timestamp con zona horaria para orden cronológico
+	fecha_creacion = Column(DateTime(timezone=True), nullable=False)
+
+	propiedad = relationship("PropiedadModel", back_populates="resenas")

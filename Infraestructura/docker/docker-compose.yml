@@ -246,6 +246,45 @@ services:
     networks:
       - microservices-network
 
+  # ── Search ────────────────────────────────────────────────────────────────────
+  search-api:
+    build:
+      context: ../../Backend/search
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8000"
+    environment:
+      - REPOSITORY_TYPE=postgres
+      - DB_HOST=search-db
+      - DB_PORT=5432
+      - DB_NAME=search_db
+      - DB_USER=search_user
+      - DB_PASSWORD=search_password
+    depends_on:
+      search-db:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  search-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: search_user
+      POSTGRES_PASSWORD: search_password
+      POSTGRES_DB: search_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - search_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U search_user -d search_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 networks:
   microservices-network:
     driver: bridge
@@ -254,3 +293,4 @@ volumes:
   booking_db_data:
   pms_db_data:
   catalog_db_data:
+  search_db_data:

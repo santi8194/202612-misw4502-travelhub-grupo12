@@ -1,4 +1,10 @@
 /* ── Card Container ── */
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .card {
   display: flex;
   flex-direction: column;

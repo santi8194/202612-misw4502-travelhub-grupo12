@@ -1,0 +1,293 @@
+<div class="room-detail-page">
+  <app-header mode="compact" />
+
+  <main class="room-detail-main" data-testid="room-detail-main">
+
+    @if (loading()) {
+      <section class="state-card" data-testid="room-detail-loading">
+        <div class="loading-shimmer">
+          <div class="shimmer-title"></div>
+          <div class="shimmer-meta"></div>
+          <div class="shimmer-gallery"></div>
+        </div>
+      </section>
+    } @else if (error()) {
+      <section class="state-card state-card--error" data-testid="room-detail-error">
+        <p>{{ error() }}</p>
+        <a routerLink="/resultados" class="back-link">← Volver a resultados</a>
+      </section>
+    } @else if (roomDetail()) {
+
+      <!-- ── HEADER ── -->
+      <section class="room-header" data-testid="room-header">
+        <h1 class="room-title" data-testid="room-detail-title">
+          {{ roomDetail()!.categoria.nombre_comercial }}
+        </h1>
+        <div class="room-meta">
+          <span class="room-meta__rating">
+            <svg class="icon-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            {{ roomDetail()!.rating_promedio }}
+          </span>
+          <span class="room-meta__dot">·</span>
+          <a class="room-meta__reviews" href="#room-reviews">{{ roomDetail()!.total_resenas }} reseñas</a>
+          <span class="room-meta__dot">·</span>
+          <span class="room-meta__location">
+            {{ roomDetail()!.propiedad.ubicacion.ciudad }},
+            {{ roomDetail()!.propiedad.ubicacion.estado_provincia }},
+            {{ roomDetail()!.propiedad.ubicacion.pais }}
+          </span>
+        </div>
+      </section>
+
+      <!-- ── IMAGE GRID ── -->
+      <section class="image-grid" data-testid="room-image-grid">
+        <div class="image-grid__main">
+          <img
+            [src]="galleryImages()[0]"
+            [alt]="roomDetail()!.categoria.nombre_comercial"
+            class="image-grid__img"
+          />
+        </div>
+        <div class="image-grid__secondary">
+          @for (img of galleryImages().slice(1); track $index) {
+            <div class="image-grid__cell">
+              <img
+                [src]="img"
+                [alt]="roomDetail()!.categoria.nombre_comercial + ' ' + ($index + 2)"
+                class="image-grid__img"
+              />
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── CONTENT ── -->
+      <section class="room-content">
+
+        <!-- LEFT COLUMN -->
+        <div class="room-content__left">
+
+          <!-- Top: Propiedad + Capacidad -->
+          <div class="room-info-top" data-testid="room-info-top">
+            <div class="room-info-top__text">
+              <p class="room-info-top__title">{{ roomDetail()!.propiedad.nombre }}</p>
+              <p class="room-info-top__sub">{{ roomDetail()!.categoria.capacidad_pax }} huéspedes</p>
+            </div>
+          </div>
+          <hr class="room-divider-sm" />
+
+          <!-- Description -->
+          <div class="room-description" data-testid="room-description">
+            <p class="room-description__text">
+              {{ descriptionExpanded() ? roomDetail()!.categoria.descripcion : shortDescription() }}
+            </p>
+            @if (roomDetail()!.categoria.descripcion.length > 240) {
+              <button class="room-description__toggle" (click)="toggleDescription()">
+                {{ descriptionExpanded() ? 'Ver menos' : 'Ver más' }}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-chevron" [class.icon-chevron--up]="descriptionExpanded()">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            }
+          </div>
+          <hr class="room-divider-sm" />
+
+          <!-- Amenities -->
+          <div class="room-amenities" data-testid="room-amenities">
+            <h2 class="room-section-title">Amenidades</h2>
+            <div class="amenities-grid">
+              @for (amenidad of roomDetail()!.amenidades; track amenidad.id_amenidad) {
+                <div class="amenity-item" data-testid="room-amenity-item">
+                  <span class="amenity-item__icon" [innerHTML]="getAmenityIcon(amenidad.icono)"></span>
+                  <span class="amenity-item__name">{{ amenidad.nombre }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Booking Box -->
+        <div class="room-content__right">
+          <div class="booking-box" data-testid="room-booking-box">
+
+            <!-- Precio + Rating -->
+            <div class="booking-box__header">
+              <div class="booking-box__price">
+                <span class="booking-box__price-amount">
+                  {{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }}
+                </span>
+                <span class="booking-box__price-label">/ noche</span>
+              </div>
+              <div class="booking-box__rating">
+                <svg class="icon-star icon-star--sm" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                {{ roomDetail()!.rating_promedio }}
+                <span class="booking-box__dot">·</span>
+                <span class="booking-box__reviews">{{ roomDetail()!.total_resenas }} reseñas</span>
+              </div>
+            </div>
+
+            <!-- Fechas + Huéspedes -->
+            <div class="booking-box__fields" data-testid="room-booking-fields">
+              <div class="booking-box__dates">
+                <label class="booking-box__field booking-box__field--left">
+                  <span class="booking-box__field-label">ENTRADA</span>
+                  <input
+                    type="date"
+                    class="booking-box__field-input"
+                    [value]="checkInInput()"
+                    [min]="todayIso()"
+                    (change)="onCheckInChange($any($event.target).value)"
+                    data-testid="room-checkin"
+                  />
+                </label>
+                <label class="booking-box__field booking-box__field--right">
+                  <span class="booking-box__field-label">SALIDA</span>
+                  <input
+                    type="date"
+                    class="booking-box__field-input"
+                    [value]="checkOutInput()"
+                    [min]="checkInInput() || todayIso()"
+                    (change)="onCheckOutChange($any($event.target).value)"
+                    data-testid="room-checkout"
+                  />
+                </label>
+              </div>
+              <label class="booking-box__guests" data-testid="room-guests-field">
+                <span class="booking-box__field-label">HUÉSPEDES</span>
+                <div class="booking-box__guests-inner">
+                  <input
+                    type="number"
+                    class="booking-box__field-input"
+                    min="1"
+                    [max]="roomDetail()!.categoria.capacidad_pax"
+                    [value]="guestsInput()"
+                    (input)="onGuestsChange($any($event.target).value)"
+                    data-testid="room-guests"
+                  />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-chevron-down" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                </div>
+              </label>
+            </div>
+
+            <!-- Botón Reservar -->
+            <button
+              type="button"
+              class="booking-box__btn-reserve"
+              [disabled]="creatingBooking() || !canReserve()"
+              (click)="reservar()"
+              data-testid="room-reservar-btn"
+            >
+              {{ creatingBooking() ? 'Reservando...' : 'Reservar' }}
+            </button>
+
+            @if (!canReserve() && !creatingBooking()) {
+              <p class="booking-box__hint">Aún no se te cobrará</p>
+            }
+
+            @if (error()) {
+              <p class="booking-box__error" data-testid="room-booking-error">{{ error() }}</p>
+            }
+
+            <!-- Desglose de precios -->
+            @if (nightsCount() > 0) {
+              <div class="booking-box__breakdown" data-testid="room-price-breakdown">
+                <div class="booking-box__breakdown-row">
+                  <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ nightsCount() }} noches</span>
+                  <span>{{ currencySymbol() }} {{ formatCurrency(subtotal()) }}</span>
+                </div>
+                @if (serviceFee() > 0) {
+                  <div class="booking-box__breakdown-row">
+                    <span>Tarifa de servicio</span>
+                    <span>{{ currencySymbol() }} {{ formatCurrency(serviceFee()) }}</span>
+                  </div>
+                }
+                <hr class="booking-box__breakdown-divider" />
+                <div class="booking-box__breakdown-row booking-box__breakdown-row--total">
+                  <span>Total</span>
+                  <span>{{ currencySymbol() }} {{ formatCurrency(total()) }}</span>
+                </div>
+              </div>
+            }
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── DIVIDER ── -->
+      <hr class="room-divider" />
+
+      <!-- ── REVIEWS ── -->
+      <section class="room-reviews" id="room-reviews" data-testid="room-reviews">
+        <div class="reviews-header">
+          <span class="reviews-header__rating">
+            <svg class="icon-star icon-star--lg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            {{ roomDetail()!.rating_promedio }}
+          </span>
+          <span class="reviews-header__dot">·</span>
+          <span class="reviews-header__count">{{ roomDetail()!.total_resenas }} reseñas</span>
+        </div>
+
+        <div class="reviews-grid" data-testid="room-reviews-grid">
+          @for (resena of roomDetail()!.resenas; track resena.id_resena) {
+            <div class="review-card" data-testid="room-review-card">
+              <div class="review-card__user">
+                <img
+                  [src]="resena.avatar_url"
+                  [alt]="resena.nombre_autor"
+                  class="review-card__avatar"
+                />
+                <div class="review-card__user-info">
+                  <span class="review-card__name">{{ resena.nombre_autor }}</span>
+                  <span class="review-card__date">{{ formatDate(resena.fecha_creacion) }}</span>
+                </div>
+              </div>
+              <div class="review-card__stars">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="icon-star icon-star--xs" [class.icon-star--empty]="star > resena.calificacion" aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                }
+              </div>
+              <p class="review-card__text">{{ resena.comentario }}</p>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── DIVIDER ── -->
+      <hr class="room-divider" />
+
+      <!-- ── DEBES SABER ── -->
+      <section class="room-policies" data-testid="room-policies">
+        <h2 class="room-section-title">Debes saber</h2>
+        <div class="policies-columns">
+          <div class="policy-item">
+            <h3 class="policy-item__title">Política de cancelación</h3>
+            <p class="policy-item__text">
+              Cancelación gratuita con
+              {{ roomDetail()!.categoria.politica_cancelacion.dias_anticipacion }} días de anticipación.
+            </p>
+            <p class="policy-item__text">
+              Penalidad del {{ roomDetail()!.categoria.politica_cancelacion.porcentaje_penalidad }}%
+              si se cancela después del plazo.
+            </p>
+            <button class="policy-item__link">Ver más ›</button>
+          </div>
+        </div>
+      </section>
+
+    }
+  </main>
+
+  <app-footer />
+</div>

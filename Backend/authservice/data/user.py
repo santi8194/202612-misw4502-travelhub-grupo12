@@ -19,11 +19,12 @@ class UserBase(BaseModel):
 
 class UserInDB(UserBase):
     """
-    Esquema que representa lo que retorna internamente el mock o la BD.
-    Contiene campos de mayor sensibilidad como el identificador inmutable y el hash.
+    Esquema que representa lo que retorna internamente la BD.
+    Contiene campos de mayor sensibilidad como el identificador inmutable.
+    El password_hash es opcional tras la migración a Cognito.
     """
     id_usuario: UUID4
-    password_hash: str
+    password_hash: str | None = None
 
 
 class UserResponse(UserBase):

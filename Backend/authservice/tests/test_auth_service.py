@@ -1,71 +1,120 @@
-from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
 
 import pytest
+from botocore.exceptions import ClientError
 from fastapi import HTTPException
 
-from config.config import settings
-from modules.auth_service import AuthService, _failed_logins
+from modules.auth_service import AuthService, _compute_secret_hash
 
 
-def test_authenticate_user_success(monkeypatch, sample_user):
-    monkeypatch.setattr("modules.auth_service.UserService.get_user_by_email", lambda _email: sample_user)
-    monkeypatch.setattr("modules.auth_service.verify_password", lambda _plain, _hash: True)
-
-    _failed_logins[sample_user.email] = (2, None)
-    user = AuthService.authenticate_user(sample_user.email, "123456")
-
-    assert user.email == sample_user.email
-    assert sample_user.email not in _failed_logins
+def _make_client_error(code: str, message: str = "error") -> ClientError:
+    return ClientError(
+        {"Error": {"Code": code, "Message": message}},
+        "initiate_auth",
+    )
 
 
-def test_authenticate_user_user_not_found(monkeypatch):
-    monkeypatch.setattr("modules.auth_service.UserService.get_user_by_email", lambda _email: None)
+def test_authenticate_user_success(cognito_auth_result):
+    mock_client = MagicMock()
+    mock_client.initiate_auth.return_value = {"AuthenticationResult": cognito_auth_result}
 
-    with pytest.raises(HTTPException) as exc:
-        AuthService.authenticate_user("missing@travelhub.com", "123456")
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        result = AuthService.authenticate_user("admin@travelhub.com", "123456")
 
-    assert exc.value.status_code == 401
-    assert _failed_logins["missing@travelhub.com"][0] == 1
+    assert result["AccessToken"] == "fake-access-token"
+    assert result["RefreshToken"] == "fake-refresh-token"
+    mock_client.initiate_auth.assert_called_once()
 
 
-def test_authenticate_user_wrong_password(monkeypatch, sample_user):
-    monkeypatch.setattr("modules.auth_service.UserService.get_user_by_email", lambda _email: sample_user)
-    monkeypatch.setattr("modules.auth_service.verify_password", lambda _plain, _hash: False)
+def test_authenticate_user_wrong_password():
+    mock_client = MagicMock()
+    mock_client.initiate_auth.side_effect = _make_client_error("NotAuthorizedException")
 
-    with pytest.raises(HTTPException) as exc:
-        AuthService.authenticate_user(sample_user.email, "wrong")
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        with pytest.raises(HTTPException) as exc:
+            AuthService.authenticate_user("admin@travelhub.com", "wrong")
 
     assert exc.value.status_code == 401
-    assert _failed_logins[sample_user.email][0] == 1
 
 
-def test_authenticate_user_locked_out(monkeypatch):
-    email = "blocked@travelhub.com"
-    _failed_logins[email] = (5, datetime.utcnow() + timedelta(minutes=10))
+def test_authenticate_user_not_found():
+    mock_client = MagicMock()
+    mock_client.initiate_auth.side_effect = _make_client_error("UserNotFoundException")
 
-    with pytest.raises(HTTPException) as exc:
-        AuthService.authenticate_user(email, "123456")
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        with pytest.raises(HTTPException) as exc:
+            AuthService.authenticate_user("missing@travelhub.com", "123456")
+
+    assert exc.value.status_code == 401
+
+
+def test_authenticate_user_not_confirmed():
+    mock_client = MagicMock()
+    mock_client.initiate_auth.side_effect = _make_client_error("UserNotConfirmedException")
+
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        with pytest.raises(HTTPException) as exc:
+            AuthService.authenticate_user("unconfirmed@travelhub.com", "123456")
+
+    assert exc.value.status_code == 403
+
+
+def test_authenticate_user_too_many_requests():
+    mock_client = MagicMock()
+    mock_client.initiate_auth.side_effect = _make_client_error("TooManyRequestsException")
+
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        with pytest.raises(HTTPException) as exc:
+            AuthService.authenticate_user("admin@travelhub.com", "123456")
 
     assert exc.value.status_code == 429
 
 
-def test_record_failed_attempt_sets_lockout(monkeypatch):
-    monkeypatch.setattr(settings, "MAX_LOGIN_ATTEMPTS", 2)
-    monkeypatch.setattr(settings, "LOCKOUT_DURATION_MINUTES", 1)
+def test_authenticate_user_unknown_error():
+    mock_client = MagicMock()
+    mock_client.initiate_auth.side_effect = _make_client_error("InternalErrorException", "unexpected")
 
-    email = "lock@travelhub.com"
-    AuthService._record_failed_attempt(email)
-    assert _failed_logins[email][0] == 1
-    assert _failed_logins[email][1] is None
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        with pytest.raises(HTTPException) as exc:
+            AuthService.authenticate_user("admin@travelhub.com", "123456")
 
-    AuthService._record_failed_attempt(email)
-    attempts, lockout_until = _failed_logins[email]
-    assert attempts == 2
-    assert lockout_until is not None
+    assert exc.value.status_code == 500
 
 
-def test_is_locked_out_false_after_expiry():
-    email = "expired@travelhub.com"
-    _failed_logins[email] = (5, datetime.utcnow() - timedelta(seconds=1))
+def test_refresh_tokens_success(cognito_refresh_result):
+    mock_client = MagicMock()
+    mock_client.initiate_auth.return_value = {"AuthenticationResult": cognito_refresh_result}
 
-    assert AuthService._is_locked_out(email) is False
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        result = AuthService.refresh_tokens("refresh-token", "admin@travelhub.com")
+
+    assert result["AccessToken"] == "new-access-token"
+    mock_client.initiate_auth.assert_called_once()
+
+
+def test_refresh_tokens_expired():
+    mock_client = MagicMock()
+    mock_client.initiate_auth.side_effect = _make_client_error("NotAuthorizedException")
+
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        with pytest.raises(HTTPException) as exc:
+            AuthService.refresh_tokens("expired-token", "admin@travelhub.com")
+
+    assert exc.value.status_code == 401
+
+
+def test_refresh_tokens_internal_error():
+    mock_client = MagicMock()
+    mock_client.initiate_auth.side_effect = _make_client_error("InternalErrorException")
+
+    with patch("modules.auth_service._get_cognito_client", return_value=mock_client):
+        with pytest.raises(HTTPException) as exc:
+            AuthService.refresh_tokens("token", "admin@travelhub.com")
+
+    assert exc.value.status_code == 500
+
+
+def test_compute_secret_hash():
+    result = _compute_secret_hash("test@example.com")
+    assert isinstance(result, str)
+    assert len(result) > 0

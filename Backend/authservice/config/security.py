@@ -1,106 +1,71 @@
 """
-Propósito del archivo: Módulo central para la generación de tokens y manejo de criptografía.
-Rol dentro del microservicio: Centraliza el hasheo y verificación de contraseñas usando algoritmos seguros (bcrypt) y la firma electrónica de tokens JWT.
+Propósito del archivo: Validación de tokens JWT emitidos por AWS Cognito.
+Rol dentro del microservicio: Centraliza la descarga y caché de las claves públicas JWK de Cognito
+y la verificación criptográfica de los tokens de acceso (RS256).
 """
 
-from datetime import datetime, timedelta
-import hashlib
-import secrets
-from typing import Any, Union
-from jose import jwt
-from passlib.context import CryptContext
+import json
+from urllib.request import urlopen
+
+from jose import jwt, JWTError
 from config.config import settings
 
-# Instanciación del contexto de criptografía indicando que bcrypt es el esquema primario
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Caché en memoria de las claves JWK de Cognito
+_jwk_keys: list | None = None
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def _get_cognito_jwk_keys() -> list:
     """
-    Verifica que una contraseña en texto plano coincida con su versión en hash.
+    Descarga y cachea las claves JWK públicas del User Pool de Cognito.
+    Se utiliza para verificar la firma RS256 de los tokens emitidos.
+    """
+    global _jwk_keys
+    if _jwk_keys is None:
+        response = urlopen(settings.COGNITO_JWK_URL)
+        _jwk_keys = json.loads(response.read())["keys"]
+    return _jwk_keys
+
+
+def validate_cognito_token(token: str) -> dict:
+    """
+    Valida un token JWT emitido por AWS Cognito usando las claves públicas JWK (RS256).
 
     Parámetros:
-    - plain_password (str): contraseña ingresada por el usuario en texto plano.
-    - hashed_password (str): contraseña encriptada almacenada en la base de datos.
+    - token (str): JWT emitido por Cognito (access_token o id_token).
 
     Retorna:
-    - bool: True si la contraseña es correcta, False si no lo es.
+    - dict: Payload decodificado del token.
+
+    Lanza:
+    - JWTError: Si el token es inválido, expirado o no puede ser verificado.
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    keys = _get_cognito_jwk_keys()
 
+    # Obtener el kid del header del token para buscar la clave correcta
+    unverified_header = jwt.get_unverified_header(token)
+    kid = unverified_header.get("kid")
 
-def get_password_hash(password: str) -> str:
-    """
-    Genera un hash seguro utilizando el algoritmo bcrypt.
+    key = None
+    for k in keys:
+        if k["kid"] == kid:
+            key = k
+            break
 
-    Parámetros:
-    - password (str): contraseña en texto plano a encriptar.
+    if key is None:
+        raise JWTError("Clave pública JWK no encontrada para el token")
 
-    Retorna:
-    - str: la contraseña cifrada lista para ser almacenada.
-    """
-    return pwd_context.hash(password)
+    # Cognito access tokens no incluyen claim 'aud', solo ID tokens lo incluyen
+    payload = jwt.decode(
+        token,
+        key,
+        algorithms=["RS256"],
+        issuer=settings.COGNITO_ISSUER,
+        options={"verify_aud": False},
+    )
 
+    # Verificar que el token sea de tipo access o id
+    token_use = payload.get("token_use")
+    if token_use not in ("access", "id"):
+        raise JWTError("Tipo de token no reconocido")
 
-def create_access_token(
-    subject: Union[str, Any], 
-    email: str, 
-    rol: str, 
-    partner_id: str = None,
-    session_id: str = None,
-    expires_delta: timedelta = None
-) -> str:
-    """
-    Genera un token JWT firmado de manera electrónica que encapsula los datos (claims) del usuario.
-
-    Esta es la pieza central de la sesión stateless, inyectando los datos de identidad dentro del propio token
-    y definiendo un límite de vida para mantener la seguridad.
-
-    Parámetros:
-    - subject (str o Any): ID único del usuario (usado típicamente en JWT bajo el claim 'sub').
-    - email (str): correo electrónico principal del usuario.
-    - rol (str): rol del usuario (ej. 'ADMIN_HOTEL' o 'USER').
-    - partner_id (str, opcional): ID del partner asociado en caso de ser un rol que represente un hotel.
-    - expires_delta (timedelta, opcional): tiempo que vivirá el token antes de expirar.
-
-    Retorna:
-    - str: una cadena que representa el JWT firmado.
-    """
-    # Lógica Crítica: Determinación del tiempo de expiración
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    # Payload principal que viaja adjunto con la firma digital
-    to_encode = {
-        "exp": expire,
-        "sub": str(subject),
-        "email": email,
-        "rol": rol,
-    }
-    
-    # Inclusión dinámica del partner_id solo si existe
-    if partner_id:
-        to_encode["partner_id"] = partner_id
-
-    if session_id:
-        to_encode["sid"] = session_id
-        
-    # Lógica Crítica: Firma y codificación final del JWT usando la llave secreta provista en el archivo .env
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
-
-
-def create_refresh_token() -> str:
-    """
-    Genera un refresh token aleatorio de alta entropía para mantener sesiones seguras.
-    """
-    return secrets.token_urlsafe(48)
-
-
-def hash_token(token: str) -> str:
-    """
-    Hashea el refresh token antes de persistirlo para evitar almacenarlo en texto plano.
-    """
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+    return payload

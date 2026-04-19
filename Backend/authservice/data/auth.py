@@ -18,14 +18,14 @@ class Token(BaseModel):
 
 class TokenPayload(BaseModel):
     """
-    Estructura esperada por el servicio al intentar decodificar y extraer validaciones de un JWT recibido.
-    Contiene la misma información original que se inyectó al llamarse a `create_access_token`.
+    Estructura esperada al decodificar un token JWT de Cognito.
+    Access tokens: sub, username, client_id, token_use.
+    ID tokens: sub, email, aud, token_use.
     """
     sub: str | None = None
     email: str | None = None
-    rol: str | None = None
-    partner_id: str | None = None
-    sid: str | None = None
+    username: str | None = None
+    token_use: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -39,6 +39,8 @@ class LoginRequest(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     """
-    Cuerpo esperado para renovar una sesión activa mediante refresh token.
+    Cuerpo esperado para renovar una sesión activa mediante refresh token de Cognito.
+    Requiere el email para calcular el SECRET_HASH necesario por Cognito.
     """
     refresh_token: str
+    email: EmailStr

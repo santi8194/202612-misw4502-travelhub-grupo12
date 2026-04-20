@@ -17,6 +17,11 @@ export const routes: Routes = [
       import('./pages/property-detail-page/property-detail-page').then(m => m.PropertyDetailPage),
   },
   {
+    path: 'category/:category_id',
+    loadComponent: () =>
+      import('./pages/room-detail-page/room-detail-page').then(m => m.RoomDetailPage),
+  },
+  {
     path: 'booking/:id_reserva',
     loadComponent: () =>
       import('./pages/booking-cart-page/booking-cart-page').then(m => m.BookingCartPage),

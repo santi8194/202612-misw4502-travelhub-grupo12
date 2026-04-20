@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from enum import Enum
 from typing import Iterable
-from urllib.parse import urlparse
 from uuid import UUID
 
 
@@ -29,8 +28,13 @@ class Coordenadas:
 
 @dataclass(frozen=True, slots=True)
 class VODireccion:
+	# Ciudad donde se ubica la propiedad
 	ciudad: str
+	# País donde se ubica la propiedad
 	pais: str
+	# Estado o provincia (requerido por el servicio Search para autocompletado)
+	estado_provincia: str
+	# Coordenadas geográficas
 	coordenadas: Coordenadas
 
 	def __post_init__(self) -> None:
@@ -38,6 +42,8 @@ class VODireccion:
 			raise ValueError("La ciudad es obligatoria")
 		if not self.pais.strip():
 			raise ValueError("El pais es obligatorio")
+		if not self.estado_provincia.strip():
+			raise ValueError("El estado/provincia es obligatorio")
 
 
 @dataclass(frozen=True, slots=True)
@@ -118,6 +124,41 @@ class Amenidad:
 
 
 @dataclass(slots=True)
+class Resena:
+	"""Reseña de un huésped sobre una propiedad.
+
+	Aplica desnormalización controlada: nombre_autor y avatar_url se almacenan
+	en la tabla para evitar llamadas síncronas al servicio de Usuarios.
+	"""
+	# Identificador único de la reseña
+	id_resena: UUID
+	# Propiedad a la que pertenece la reseña
+	id_propiedad: UUID
+	# Identificador del usuario autor (pertenece al servicio de Usuarios)
+	id_usuario: UUID
+	# Nombre del autor (desnormalizado)
+	nombre_autor: str
+	# URL del avatar del autor (desnormalizado, opcional)
+	avatar_url: str | None
+	# Calificación entre 1 y 5
+	calificacion: int
+	# Texto de la reseña
+	comentario: str
+	# Fecha y hora de creación
+	fecha_creacion: datetime
+
+	def __post_init__(self) -> None:
+		if self.id_resena is None:
+			raise ValueError("El ID de reseña es obligatorio")
+		if not self.nombre_autor.strip():
+			raise ValueError("El nombre del autor es obligatorio")
+		if not 1 <= self.calificacion <= 5:
+			raise ValueError("La calificación debe estar entre 1 y 5")
+		if not self.comentario.strip():
+			raise ValueError("El comentario es obligatorio")
+
+
+@dataclass(slots=True)
 class Inventario:
 	id_inventario: str
 	fecha: date
@@ -137,7 +178,8 @@ class Inventario:
 
 @dataclass(slots=True)
 class CategoriaHabitacion:
-	id_categoria: str
+	# Identificador único de la categoría como UUID nativo
+	id_categoria: UUID
 	codigo_mapeo_pms: str
 	nombre_comercial: str
 	descripcion: str
@@ -149,7 +191,8 @@ class CategoriaHabitacion:
 	inventario: list[Inventario] = field(default_factory=list)
 
 	def __post_init__(self) -> None:
-		if not self.id_categoria.strip():
+		# Validar que el UUID de categoría no sea nulo
+		if self.id_categoria is None:
 			raise ValueError("El ID de categoria es obligatorio")
 		if not self.codigo_mapeo_pms.strip():
 			raise ValueError("El codigo de mapeo PMS es obligatorio")
@@ -180,12 +223,15 @@ class CategoriaHabitacion:
 
 @dataclass(slots=True)
 class Propiedad:
+	# Identificador único de la propiedad
 	id_propiedad: UUID
 	nombre: str
 	estrellas: int
 	ubicacion: VODireccion
 	porcentaje_impuesto: Decimal
 	categorias_habitacion: list[CategoriaHabitacion] = field(default_factory=list)
+	# Lista de reseñas de la propiedad (se carga con eager loading en view-detail)
+	resenas: list["Resena"] = field(default_factory=list)
 
 	def __post_init__(self) -> None:
 		try:
@@ -203,27 +249,41 @@ class Propiedad:
 		object.__setattr__(self, "porcentaje_impuesto", tax.quantize(Decimal("0.01")))
 
 	def registrar_categoria(self, categoria: CategoriaHabitacion) -> None:
+		"""Registra una nueva categoría en la propiedad."""
 		if self.obtener_categoria(categoria.id_categoria) is not None:
 			raise ValueError("La categoria de habitacion ya existe para esta propiedad")
 		self.categorias_habitacion.append(categoria)
 
-	def obtener_categoria(self, id_categoria: str) -> CategoriaHabitacion | None:
+	def obtener_categoria(self, id_categoria: UUID) -> CategoriaHabitacion | None:
+		"""Obtiene una categoría por su UUID."""
 		for categoria in self.categorias_habitacion:
 			if categoria.id_categoria == id_categoria:
 				return categoria
 		return None
 
-	def actualizar_inventario(self, id_categoria: str, inventario_actualizado: Inventario) -> Inventario:
+	def actualizar_inventario(self, id_categoria: UUID, inventario_actualizado: Inventario) -> Inventario:
+		"""Actualiza el inventario de una categoría existente."""
 		categoria = self.obtener_categoria(id_categoria)
 		if categoria is None:
 			raise ValueError("La categoria de habitacion no existe en la propiedad")
 		return categoria.actualizar_inventario(inventario_actualizado)
 
-	def disponibilidad_para(self, id_categoria: str, fecha_objetivo: date) -> Inventario | None:
+	def disponibilidad_para(self, id_categoria: UUID, fecha_objetivo: date) -> Inventario | None:
+		"""Retorna el inventario de una categoría para una fecha específica."""
 		categoria = self.obtener_categoria(id_categoria)
 		if categoria is None:
 			return None
 		return categoria.disponibilidad_para(fecha_objetivo)
+
+	def calcular_rating_promedio(self) -> float:
+		"""Calcula el promedio de calificaciones de las reseñas.
+
+		Retorna 0.0 si la propiedad no tiene reseñas.
+		"""
+		if not self.resenas:
+			return 0.0
+		total = sum(r.calificacion for r in self.resenas)
+		return round(total / len(self.resenas), 1)
 
 
 def construir_propiedad(
@@ -233,7 +293,9 @@ def construir_propiedad(
 	ubicacion: VODireccion,
 	porcentaje_impuesto: Decimal,
 	categorias_habitacion: Iterable[CategoriaHabitacion] | None = None,
+	resenas: Iterable["Resena"] | None = None,
 ) -> Propiedad:
+	"""Función fábrica para construir un agregado Propiedad."""
 	return Propiedad(
 		id_propiedad=id_propiedad,
 		nombre=nombre,
@@ -241,4 +303,5 @@ def construir_propiedad(
 		ubicacion=ubicacion,
 		porcentaje_impuesto=porcentaje_impuesto,
 		categorias_habitacion=list(categorias_habitacion or []),
+		resenas=list(resenas or []),
 	)

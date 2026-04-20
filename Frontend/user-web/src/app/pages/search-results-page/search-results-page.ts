@@ -59,4 +59,10 @@ export class SearchResultsPage {
   });
 
   readonly totalResultados = computed(() => this.hospedajes()?.length ?? 0);
+
+  readonly currentSearchParams = computed(() => ({
+    fecha_inicio: this.route.snapshot.queryParams['fecha_inicio'] ?? '',
+    fecha_fin: this.route.snapshot.queryParams['fecha_fin'] ?? '',
+    huespedes: Number(this.route.snapshot.queryParams['huespedes']) || 1,
+  }));
 }

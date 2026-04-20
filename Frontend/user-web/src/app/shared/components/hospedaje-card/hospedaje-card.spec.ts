@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { HospedajeCardComponent } from './hospedaje-card';
 import { Hospedaje } from '../../../models/hospedaje.interface';
 
@@ -29,7 +30,7 @@ describe('HospedajeCardComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HospedajeCardComponent],
-      providers: [provideZonelessChangeDetection()],
+      providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HospedajeCardComponent);

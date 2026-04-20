@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { of } from 'rxjs';
 import { RoomDetailPage } from './room-detail-page';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
 
@@ -87,6 +88,20 @@ describe('RoomDetailPage', () => {
           { path: 'category/:category_id', component: RoomDetailPage },
           { path: 'booking/:id_reserva', component: RoomDetailPage }, // stub for redirect
         ]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: of({}),
+            snapshot: {
+              paramMap: {
+                get: (key: string) => key === 'category_id' ? '7723e55e-6a70-4f25-9bb6-092d9b0e583d' : null
+              },
+              queryParamMap: {
+                get: (key: string) => null
+              }
+            }
+          }
+        },
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
@@ -246,7 +261,7 @@ describe('RoomDetailPage', () => {
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     fixture.detectChanges();
 
-    const router = TestBed.inject(import('@angular/router').then ? null! : null!);
+    const router = TestBed.inject(Router);
     const navigateSpy = spyOn((component as any).router, 'navigate');
 
     component.checkInInput.set('2026-06-01');

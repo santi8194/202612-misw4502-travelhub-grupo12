@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -33,7 +35,7 @@ class ConfirmReservationView extends StatelessWidget {
           final monthFormatter = DateFormat.MMM(locale);
 
           final nights = dateRange.duration.inDays;
-          final pricePerNight = room.price;
+          final pricePerNight = Random().nextInt(100) + 50.0; // Precio aleatorio entre 50 y 150
           final subtotal = nights * pricePerNight;
           final taxes = subtotal * 0.19;
           final total = subtotal + taxes;

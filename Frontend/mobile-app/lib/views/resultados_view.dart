@@ -13,6 +13,62 @@ class ResultadosView extends StatefulWidget {
 }
 
 class _ResultadosViewState extends State<ResultadosView> {
+  Widget _buildHotelImage(String imageUrl) {
+    return Container(
+      height: 220,
+      width: double.infinity,
+      color: Colors.grey.shade200,
+      child: imageUrl.isEmpty
+          ? _buildImagePlaceholder()
+          : Image.network(
+              imageUrl,
+              height: 220,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return _buildImagePlaceholder();
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return _buildImagePlaceholder(showLoader: true);
+              },
+            ),
+    );
+  }
+
+  Widget _buildImagePlaceholder({bool showLoader = false}) {
+    return Container(
+      color: Colors.grey.shade200,
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (showLoader)
+            const SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
+            )
+          else
+            Icon(
+              Icons.hotel_outlined,
+              size: 42,
+              color: Colors.grey.shade500,
+            ),
+          const SizedBox(height: 12),
+          Text(
+            'Imagen no disponible',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _getSubtitle(SearchViewModel vm) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
@@ -199,12 +255,7 @@ class _ResultadosViewState extends State<ResultadosView> {
                               ),
                               child: Stack(
                                 children: [
-                                  Image.network(
-                                    hotel.imageUrl,
-                                    height: 220,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
+                                  _buildHotelImage(hotel.imageUrl),
                                   if (hotel.isSpecialOffer)
                                     Positioned(
                                       top: 16,

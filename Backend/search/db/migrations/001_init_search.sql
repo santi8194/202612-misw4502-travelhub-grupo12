@@ -1,5 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS search;
-
 CREATE TABLE IF NOT EXISTS search.hospedajes (
     id_propiedad          UUID PRIMARY KEY,
     id_categoria          UUID,

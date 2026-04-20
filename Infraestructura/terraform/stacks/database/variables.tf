@@ -8,6 +8,12 @@ variable "db_publicly_accessible" {
   type        = bool
 }
 
+variable "db_apply_immediately" {
+  description = "Aplica cambios pendientes en RDS inmediatamente."
+  type        = bool
+  default     = false
+}
+
 variable "vpc_id" {
   description = "VPC donde se desplegara la base de datos."
   type        = string
@@ -76,9 +82,11 @@ variable "db_security_group_name_override" {
 variable "service_databases" {
   description = "Configuracion no sensible de bases y secretos por servicio."
   type = map(object({
-    secret_name = string
-    db_name     = string
-    db_username = string
+    secret_name     = string
+    db_name         = string
+    db_username     = string
+    search_path     = optional(list(string), ["public"])
+    managed_schemas = optional(list(string), [])
   }))
 }
 

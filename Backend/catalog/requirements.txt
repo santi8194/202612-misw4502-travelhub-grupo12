@@ -1,4 +1,5 @@
 fastapi
+Flask-Cors==4.0.1
 uvicorn
 pydantic
 pika

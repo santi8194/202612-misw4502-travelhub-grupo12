@@ -1,12 +1,9 @@
-name: proyecto-final-grupo12
+name: travelhub-dev
 
 services:
-
-  booking-api:
-    build:
-    # crea el context con la ruta para lelgar al Dockerfile de Booking que tiene este path C:\Users\User\Desktop\Proyecto Final Uniandes\202612-misw4502-travelhub-grupo12\Backend\booking y el docker-compose.yml esta en C:\Users\User\Desktop\Proyecto Final Uniandes\202612-misw4502-travelhub-grupo12\Infraestructura\docker\docker-compose.yml
-      context: ../../Backend/booking
-      dockerfile: Dockerfile
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: travelhub-nginx
     ports:
       - "5001:8000"
     environment:
@@ -87,107 +84,87 @@ services:
       POSTGRES_DB: booking_db
     ports:
       - "5432:5432"
-    volumes:
-      - booking_db_data:/var/lib/postgresql/data
-    networks:
-      - microservices-network
+      - travelhub-dev-net
+
+  authservice:
+    image: ${ECR_REGISTRY_DEV}/authservice:${AUTHSERVICE_IMAGE_TAG:-latest}
+    container_name: travelhub-authservice
+    environment:
+      SECRET_KEY: ${AUTHSERVICE_SECRET_KEY}
+      DB_HOST: ${AUTHSERVICE_DB_HOST}
+      DB_PORT: ${AUTHSERVICE_DB_PORT}
+      DB_NAME: ${AUTHSERVICE_DB_NAME}
+      DB_USER: ${AUTHSERVICE_DB_USER}
+      DB_PASSWORD: ${AUTHSERVICE_DB_PASSWORD}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U booking_user -d booking_db" ]
-      interval: 10s
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
 
-  redis-db:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    networks:
-      - microservices-network
-
-  rabbitmq-broker:
-    image: rabbitmq:3-management
+  catalog:
+    image: ${ECR_REGISTRY_DEV}/catalog:${CATALOG_IMAGE_TAG:-latest}
+    container_name: travelhub-catalog
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - microservices-network
-
-  partnermanagement-api:
-    build:
-      context: ../../Backend/PartnerManagement
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-    depends_on:
-      - rabbitmq-broker
-    networks:
-      - microservices-network
-  pms-api:
-    build:
-      context: ../../Backend/PMSIntegration
-      dockerfile: Dockerfile
-    ports:
-      - "8001:8001"
-    environment:
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-      - PMS_DB_USER=pms_user
-      - PMS_DB_PASSWORD=pms_password
-      - PMS_DB_HOST=pms-db
-      - PMS_DB_PORT=5432
-      - PMS_DB_NAME=pms_db
-    depends_on:
-      pms-db:
-        condition: service_healthy
-      rabbitmq-broker:
-        condition: service_started
-    networks:
-      - microservices-network
-
-  pms-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: pms_user
-      POSTGRES_PASSWORD: pms_password
-      POSTGRES_DB: pms_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - pms_db_data:/var/lib/postgresql/data
-    networks:
-      - microservices-network
+      DB_HOST: ${CATALOG_DB_HOST}
+      DB_PORT: ${CATALOG_DB_PORT}
+      DB_NAME: ${CATALOG_DB_NAME}
+      DB_USER: ${CATALOG_DB_USER}
+      DB_PASSWORD: ${CATALOG_DB_PASSWORD}
+      ENABLE_EVENTS: "false"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U pms_user -d pms_db" ]
-      interval: 10s
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 15s
       timeout: 5s
       retries: 5
-
-  payments-api:
-    build:
-      context: ../../Backend/Payment
-      dockerfile: Dockerfile
-    ports:
-      - "8002:8002"
-    environment:
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-    depends_on:
-      - rabbitmq-broker
+      start_period: 20s
+    restart: unless-stopped
     networks:
-      - microservices-network
+      - travelhub-dev-net
 
+  booking:
+    image: ${ECR_REGISTRY_DEV}/booking:${BOOKING_IMAGE_TAG:-latest}
+    container_name: travelhub-booking
+    environment:
+      DB_HOST: ${BOOKING_DB_HOST}
+      DB_PORT: ${BOOKING_DB_PORT}
+      DB_NAME: ${BOOKING_DB_NAME}
+      DB_USER: ${BOOKING_DB_USER}
+      DB_PASSWORD: ${BOOKING_DB_PASSWORD}
+      CATALOG_SERVICE_URL: ${BOOKING_CATALOG_SERVICE_URL}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  search:
+    image: ${ECR_REGISTRY_DEV}/search:${SEARCH_IMAGE_TAG:-latest}
+    container_name: travelhub-search
+    environment:
+      REPOSITORY_TYPE: ${SEARCH_REPOSITORY_TYPE:-postgres}
+      DB_HOST: ${SEARCH_DB_HOST}
+      DB_PORT: ${SEARCH_DB_PORT}
+      DB_NAME: ${SEARCH_DB_NAME}
+      DB_USER: ${SEARCH_DB_USER}
+      DB_PASSWORD: ${SEARCH_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
   auth-api:
     build:
       context: ../../Backend/authservice
@@ -244,10 +221,10 @@ services:
     ports:
       - "4200:80"
     networks:
-      - microservices-network
+      - travelhub-dev-net
 
 networks:
-  microservices-network:
+  travelhub-dev-net:
     driver: bridge
 
 volumes:

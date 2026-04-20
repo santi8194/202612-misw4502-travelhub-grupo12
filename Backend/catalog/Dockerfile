@@ -16,10 +16,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiamos el resto del proyecto
 COPY . .
-RUN chmod +x /app/entrypoint.sh
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Exponemos puerto
-EXPOSE 80
+EXPOSE 8000
 
 # Comando para ejecutar el servicio
 ENTRYPOINT ["/app/entrypoint.sh"]

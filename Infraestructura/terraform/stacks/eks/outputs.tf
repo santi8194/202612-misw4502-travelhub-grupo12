@@ -24,6 +24,11 @@ output "eks_cluster_oidc_issuer_url" {
   value       = module.my_eks_cluster.cluster_oidc_issuer_url
 }
 
+output "eks_subnet_ids" {
+  description = "Subnets explicitamente autorizadas para el cluster EKS y cargas asociadas."
+  value       = var.subnet_ids
+}
+
 output "eks_node_group_autoscaling_group_names" {
   description = "Nombres de los Auto Scaling Groups de los nodos gestionados por EKS."
   value       = module.my_eks_cluster.eks_managed_node_groups_autoscaling_group_names

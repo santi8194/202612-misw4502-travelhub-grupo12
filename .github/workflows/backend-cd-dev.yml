@@ -1,0 +1,475 @@
+name: Backend CD DEV
+
+on:
+  workflow_call:
+    inputs:
+      event_name:
+        required: true
+        type: string
+      base_sha:
+        required: false
+        type: string
+      head_sha:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AUTHSERVICE_DB_SECRET_NAME_DEV: travelhub/dev/authservice/db-credentials
+  BOOKING_DB_SECRET_NAME_DEV: travelhub/dev/booking/db-credentials
+  CATALOG_DB_SECRET_NAME_DEV: travelhub/dev/catalog/db-credentials
+  SEARCH_DB_SECRET_NAME_DEV: travelhub/dev/search/db-credentials
+  SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
+  DEV_COMPOSE_FILE: Infraestructura/docker/docker-compose.yml
+  DEV_NGINX_FILE: Infraestructura/docker/nginx/nginx.conf
+  EC2_DEV_TFVARS_FILE: Infraestructura/terraform/environments/dev/ec2/dev.tfvars
+
+jobs:
+  discover-services:
+    name: Discover changed services
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+      service_count: ${{ steps.discover.outputs.service_count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build deployment matrix
+        id: discover
+        shell: bash
+        env:
+          EVENT_NAME: ${{ inputs.event_name }}
+          BASE_SHA: ${{ inputs.base_sha }}
+          HEAD_SHA: ${{ inputs.head_sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          exclusions_path = os.environ["SERVICE_EXCLUSIONS_FILE"]
+          event_name = os.environ["EVENT_NAME"]
+          base_sha = os.environ.get("BASE_SHA", "")
+          head_sha = os.environ["HEAD_SHA"]
+          repo_root = Path.cwd()
+          backend_dir = repo_root / "Backend"
+
+          try:
+              with open(exclusions_path, "r", encoding="utf-8") as fh:
+                  exclusions = json.load(fh)
+          except Exception as exc:
+              print(f"::error file={exclusions_path}::Failed to load exclusion list: {exc}")
+              sys.exit(1)
+
+          excluded_services = set(exclusions.get("exclude", []))
+
+          deploy_all = False
+          changed_files = []
+
+          if event_name == "workflow_dispatch":
+              deploy_all = True
+          elif not base_sha or base_sha == "0000000000000000000000000000000000000000":
+              deploy_all = True
+          else:
+              result = subprocess.run(
+                  ["git", "diff", "--name-only", base_sha, head_sha],
+                  check=True,
+                  capture_output=True,
+                  text=True,
+              )
+              changed_files = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+          discovered_services = []
+          for service_dir in sorted(path for path in backend_dir.iterdir() if path.is_dir()):
+              service_name = service_dir.name
+              if service_name in excluded_services:
+                  continue
+
+              dockerfile = service_dir / "Dockerfile"
+              if not dockerfile.is_file():
+                  continue
+
+              discovered_services.append(
+                  {
+                      "service_name": service_name,
+                      "service_folder": f"Backend/{service_name}",
+                      "dockerfile_path": f"Backend/{service_name}/Dockerfile",
+                      "ecr_repository": service_name,
+                  }
+              )
+
+          selected_services = []
+          global_change_prefixes = [
+              ".github/workflows/backend-cd-base.yml",
+              ".github/workflows/backend-cd-dev.yml",
+              ".github/workflows/backend-cd-prod.yml",
+              ".github/backend-cd.exclusions.json",
+              "Infraestructura/docker/",
+          ]
+
+          for service in discovered_services:
+              if deploy_all:
+                  selected_services.append(service)
+                  continue
+
+              if any(
+                  changed.startswith(prefix)
+                  for changed in changed_files
+                  for prefix in global_change_prefixes
+              ):
+                  selected_services.append(service)
+                  continue
+
+              watch_paths = [f"{service['service_folder']}/", service["dockerfile_path"]]
+              if any(
+                  changed.startswith(prefix)
+                  for changed in changed_files
+                  for prefix in watch_paths
+              ):
+                  selected_services.append(service)
+
+          output_path = os.environ["GITHUB_OUTPUT"]
+          with open(output_path, "a", encoding="utf-8") as fh:
+              fh.write(f"matrix={json.dumps({'include': selected_services})}\n")
+              fh.write(f"service_count={len(selected_services)}\n")
+          PY
+
+  deploy-service-dev:
+    name: Deploy ${{ matrix.service_name }} to EC2
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: discover-services
+    if: ${{ needs.discover-services.outputs.service_count != '0' }}
+    concurrency:
+      group: backend-cd-dev-ec2
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.discover-services.outputs.matrix) }}
+    env:
+      SERVICE_FOLDER: ${{ matrix.service_folder }}
+      DOCKERFILE_PATH: ${{ matrix.dockerfile_path }}
+      SERVICE_NAME: ${{ matrix.service_name }}
+      ECR_REPOSITORY: ${{ matrix.ecr_repository }}
+      AUTHSERVICE_SECRET_KEY_DEV: ${{ secrets.AUTHSERVICE_SECRET_KEY_DEV }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate required files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "${DOCKERFILE_PATH}"
+          test -f "${DEV_COMPOSE_FILE}"
+          test -f "${DEV_NGINX_FILE}"
+
+      - name: Validate required GitHub variables and secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_vars=(
+            AWS_REGION
+          )
+
+          for var_name in "${required_vars[@]}"; do
+            if [ -z "${!var_name:-}" ]; then
+              echo "::error::Missing required GitHub variable '${var_name}'."
+              exit 1
+            fi
+          done
+
+          if [ -z "${AUTHSERVICE_SECRET_KEY_DEV:-}" ]; then
+            echo "::error::Missing required GitHub secret 'AUTHSERVICE_SECRET_KEY_DEV'."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve ECR registry
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+          if [ -z "${AWS_ACCOUNT_ID:-}" ] || [ "${AWS_ACCOUNT_ID}" = "None" ]; then
+            echo "::error::Could not resolve AWS account id for ECR registry."
+            exit 1
+          fi
+
+          ECR_REGISTRY_DEV="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          echo "ECR_REGISTRY_DEV=${ECR_REGISTRY_DEV}" >> "${GITHUB_ENV}"
+
+      - name: Resolve DEV EC2 instance id from Terraform tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -f "${EC2_DEV_TFVARS_FILE}" ]; then
+            echo "::error file=${EC2_DEV_TFVARS_FILE}::Missing DEV EC2 tfvars file."
+            exit 1
+          fi
+
+          EC2_INSTANCE_TAG_NAME=$(python3 - <<'PY'
+          import os
+          import re
+          import sys
+
+          path = os.environ["EC2_DEV_TFVARS_FILE"]
+          with open(path, "r", encoding="utf-8") as fh:
+              content = fh.read()
+
+          match = re.search(r'^\s*instance_name\s*=\s*"([^"]+)"\s*$', content, re.MULTILINE)
+          if not match:
+              sys.exit(1)
+
+          print(match.group(1))
+          PY
+          )
+
+          if [ -z "${EC2_INSTANCE_TAG_NAME:-}" ]; then
+            echo "::error::Could not resolve 'instance_name' from ${EC2_DEV_TFVARS_FILE}."
+            exit 1
+          fi
+
+          EC2_INSTANCE_ID_DEV=$(aws ec2 describe-instances \
+            --region "${AWS_REGION}" \
+            --filters \
+              "Name=tag:Name,Values=${EC2_INSTANCE_TAG_NAME}" \
+              "Name=instance-state-name,Values=pending,running,stopping,stopped" \
+            --query "Reservations[].Instances[].InstanceId" \
+            --output text)
+
+          INSTANCE_COUNT=$(printf '%s\n' "${EC2_INSTANCE_ID_DEV}" | awk 'NF {count += NF} END {print count+0}')
+
+          if [ "${INSTANCE_COUNT}" -eq 0 ]; then
+            echo "::error::No EC2 instance found with tag Name=${EC2_INSTANCE_TAG_NAME}."
+            exit 1
+          fi
+
+          if [ "${INSTANCE_COUNT}" -gt 1 ]; then
+            echo "::error::More than one EC2 instance matches tag Name=${EC2_INSTANCE_TAG_NAME}. Narrow the selector before deploying."
+            exit 1
+          fi
+
+          {
+            echo "EC2_INSTANCE_TAG_NAME_DEV=${EC2_INSTANCE_TAG_NAME}"
+            echo "EC2_INSTANCE_ID_DEV=${EC2_INSTANCE_ID_DEV}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Validate ECR repository exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws ecr describe-repositories \
+            --repository-names "${ECR_REPOSITORY}" \
+            --region "${AWS_REGION}" >/dev/null
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            -f "${DOCKERFILE_PATH}" \
+            -t "${ECR_REGISTRY_DEV}/${ECR_REPOSITORY}:${GITHUB_SHA}" \
+            -t "${ECR_REGISTRY_DEV}/${ECR_REPOSITORY}:latest" \
+            "${SERVICE_FOLDER}"
+
+      - name: Push Docker image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker push "${ECR_REGISTRY_DEV}/${ECR_REPOSITORY}:${GITHUB_SHA}"
+          docker push "${ECR_REGISTRY_DEV}/${ECR_REPOSITORY}:latest"
+
+      - name: Render DEV environment file from Secrets Manager
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          AUTHSERVICE_DB_SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${AUTHSERVICE_DB_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          BOOKING_DB_SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${BOOKING_DB_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          CATALOG_DB_SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${CATALOG_DB_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          SEARCH_DB_SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${SEARCH_DB_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          export AUTHSERVICE_DB_SECRET_JSON BOOKING_DB_SECRET_JSON CATALOG_DB_SECRET_JSON SEARCH_DB_SECRET_JSON
+          export AUTHSERVICE_SECRET_KEY_DEV ECR_REGISTRY_DEV
+
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          secret_payloads = {
+              "AUTHSERVICE": json.loads(os.environ["AUTHSERVICE_DB_SECRET_JSON"]),
+              "BOOKING": json.loads(os.environ["BOOKING_DB_SECRET_JSON"]),
+              "CATALOG": json.loads(os.environ["CATALOG_DB_SECRET_JSON"]),
+              "SEARCH": json.loads(os.environ["SEARCH_DB_SECRET_JSON"]),
+          }
+
+          def get_required(secret_name, key):
+              value = secret_payloads[secret_name].get(key)
+              if value in (None, ""):
+                  print(f"::error::Secrets Manager secret for {secret_name.lower()} is missing required key '{key}'.")
+                  sys.exit(1)
+              return str(value)
+
+          env_lines = [
+              f"ECR_REGISTRY_DEV={os.environ['ECR_REGISTRY_DEV']}",
+              "AUTHSERVICE_IMAGE_TAG=latest",
+              "BOOKING_IMAGE_TAG=latest",
+              "CATALOG_IMAGE_TAG=latest",
+              "SEARCH_IMAGE_TAG=latest",
+              f"AUTHSERVICE_SECRET_KEY={os.environ['AUTHSERVICE_SECRET_KEY_DEV']}",
+              f"AUTHSERVICE_DB_HOST={get_required('AUTHSERVICE', 'host')}",
+              f"AUTHSERVICE_DB_PORT={get_required('AUTHSERVICE', 'port')}",
+              f"AUTHSERVICE_DB_NAME={get_required('AUTHSERVICE', 'dbname')}",
+              f"AUTHSERVICE_DB_USER={get_required('AUTHSERVICE', 'username')}",
+              f"AUTHSERVICE_DB_PASSWORD={get_required('AUTHSERVICE', 'password')}",
+              f"BOOKING_DB_HOST={get_required('BOOKING', 'host')}",
+              f"BOOKING_DB_PORT={get_required('BOOKING', 'port')}",
+              f"BOOKING_DB_NAME={get_required('BOOKING', 'dbname')}",
+              f"BOOKING_DB_USER={get_required('BOOKING', 'username')}",
+              f"BOOKING_DB_PASSWORD={get_required('BOOKING', 'password')}",
+              "BOOKING_CATALOG_SERVICE_URL=http://catalog:8000/catalog",
+              f"CATALOG_DB_HOST={get_required('CATALOG', 'host')}",
+              f"CATALOG_DB_PORT={get_required('CATALOG', 'port')}",
+              f"CATALOG_DB_NAME={get_required('CATALOG', 'dbname')}",
+              f"CATALOG_DB_USER={get_required('CATALOG', 'username')}",
+              f"CATALOG_DB_PASSWORD={get_required('CATALOG', 'password')}",
+              "SEARCH_REPOSITORY_TYPE=postgres",
+              f"SEARCH_DB_HOST={get_required('SEARCH', 'host')}",
+              f"SEARCH_DB_PORT={get_required('SEARCH', 'port')}",
+              f"SEARCH_DB_NAME={get_required('SEARCH', 'dbname')}",
+              f"SEARCH_DB_USER={get_required('SEARCH', 'username')}",
+              f"SEARCH_DB_PASSWORD={get_required('SEARCH', 'password')}",
+          ]
+
+          with open("/tmp/travelhub-dev.env", "w", encoding="utf-8") as fh:
+              fh.write("\n".join(env_lines) + "\n")
+          PY
+
+      - name: Prepare deployment payloads
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          COMPOSE_B64=$(base64 -w0 "${DEV_COMPOSE_FILE}")
+          NGINX_B64=$(base64 -w0 "${DEV_NGINX_FILE}")
+          ENV_B64=$(base64 -w0 /tmp/travelhub-dev.env)
+
+          {
+            echo "COMPOSE_B64=${COMPOSE_B64}"
+            echo "NGINX_B64=${NGINX_B64}"
+            echo "ENV_B64=${ENV_B64}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Deploy to EC2 with SSM
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          export COMPOSE_B64 NGINX_B64 ENV_B64 SERVICE_NAME AWS_REGION ECR_REGISTRY_DEV
+          python3 - <<'PY'
+          import json
+          import os
+
+          commands = [
+              "set -euo pipefail",
+              "sudo mkdir -p /opt/travelhub/nginx",
+              f"cat <<'EOF' | base64 -d | sudo tee /opt/travelhub/docker-compose.yml > /dev/null\n{os.environ['COMPOSE_B64']}\nEOF",
+              f"cat <<'EOF' | base64 -d | sudo tee /opt/travelhub/nginx/nginx.conf > /dev/null\n{os.environ['NGINX_B64']}\nEOF",
+              f"cat <<'EOF' | base64 -d | sudo tee /opt/travelhub/.env.dev > /dev/null\n{os.environ['ENV_B64']}\nEOF",
+              "sudo chown -R ec2-user:ec2-user /opt/travelhub",
+              f"aws ecr get-login-password --region {os.environ['AWS_REGION']} | docker login --username AWS --password-stdin {os.environ['ECR_REGISTRY_DEV']}",
+              "cd /opt/travelhub",
+              "docker compose --env-file .env.dev pull",
+              "docker compose --env-file .env.dev up -d",
+              "docker compose --env-file .env.dev ps",
+          ]
+
+          with open("/tmp/ssm-parameters.json", "w", encoding="utf-8") as fh:
+              json.dump({"commands": commands}, fh)
+          PY
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${EC2_INSTANCE_ID_DEV}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy ${SERVICE_NAME} to DEV EC2" \
+            --parameters file:///tmp/ssm-parameters.json \
+            --query "Command.CommandId" \
+            --output text)
+
+          aws ssm wait command-executed \
+            --command-id "${COMMAND_ID}" \
+            --instance-id "${EC2_INSTANCE_ID_DEV}"
+
+          aws ssm get-command-invocation \
+            --command-id "${COMMAND_ID}" \
+            --instance-id "${EC2_INSTANCE_ID_DEV}"
+
+      - name: Verify service response through DEV NGINX
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          EC2_PUBLIC_DNS=$(aws ec2 describe-instances \
+            --instance-ids "${EC2_INSTANCE_ID_DEV}" \
+            --query "Reservations[0].Instances[0].PublicDnsName" \
+            --output text)
+
+          case "${SERVICE_NAME}" in
+            authservice)
+              HEALTHCHECK_URL="http://${EC2_PUBLIC_DNS}/auth/health"
+              ;;
+            booking)
+              HEALTHCHECK_URL="http://${EC2_PUBLIC_DNS}/booking/health"
+              ;;
+            catalog)
+              HEALTHCHECK_URL="http://${EC2_PUBLIC_DNS}/catalog/health"
+              ;;
+            search)
+              HEALTHCHECK_URL="http://${EC2_PUBLIC_DNS}/search/health"
+              ;;
+            *)
+              echo "::error::Unsupported DEV healthcheck target '${SERVICE_NAME}'."
+              exit 1
+              ;;
+          esac
+
+          curl --retry 10 --retry-delay 5 --retry-connrefused -f "${HEALTHCHECK_URL}"

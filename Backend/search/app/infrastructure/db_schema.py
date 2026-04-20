@@ -17,7 +17,19 @@ def _migration_files() -> list[Path]:
 
 
 async def _ensure_migration_table(conn: asyncpg.Connection) -> None:
-    await conn.execute("CREATE SCHEMA IF NOT EXISTS search;")
+    schema_exists = await conn.fetchval(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.schemata
+            WHERE schema_name = 'search'
+        );
+        """
+    )
+    if not schema_exists:
+        raise RuntimeError(
+            "Schema 'search' does not exist. Provision it from the Terraform database stack before starting the service."
+        )
     await conn.execute(
         """
         CREATE TABLE IF NOT EXISTS search.schema_migrations (

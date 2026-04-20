@@ -1,0 +1,98 @@
+{
+  "BRAND": {
+    "SUBTITLE": "Portal de parceiros"
+  },
+  "SIDEBAR": {
+    "DASHBOARD": "Painel",
+    "RESERVATIONS": "Reservas",
+    "INVENTORY": "Inventário",
+    "PRICING": "Preços",
+    "REPORTS": "Relatórios de receita",
+    "EDIT_PROFILE": "Editar perfil",
+    "LOGOUT": "Sair",
+    "LANGUAGE": "Idioma"
+  },
+  "SECTIONS": {
+    "DASHBOARD_TITLE": "Painel",
+    "DASHBOARD_SUBTITLE": "Bem-vindo, aqui está um resumo geral do portal.",
+    "RESERVATIONS_TITLE": "Reservas",
+    "RESERVATIONS_SUBTITLE": "Gerencie o status e acompanhamento das suas reservas.",
+    "INVENTORY_TITLE": "Inventário",
+    "INVENTORY_SUBTITLE": "Controle a disponibilidade e configuração dos quartos.",
+    "PRICING_TITLE": "Gestão de preços",
+    "PRICING_SUBTITLE": "Gerencie a disponibilidade e atribuição de quartos.",
+    "REPORTS_TITLE": "Relatórios de receita",
+    "REPORTS_SUBTITLE": "Consulte resultados, tendências e desempenho financeiro."
+  },
+  "ACTIONS": {
+    "SAVE_CHANGES": "Salvar alterações",
+    "HIDE": "Ocultar"
+  },
+  "TODAY": "Hoje",
+  "SESSION": {
+    "IDLE_WARNING": "Se você não tiver atividade por <strong>{{minutes}} minutos</strong>, a sessão será desativada automaticamente.",
+    "EXPIRY_MESSAGE": "Com a atividade atual, esta sessão será encerrada às <strong>{{time}}</strong>.",
+    "ACCESS_TOKEN": "Token de acesso",
+    "MAX_IDLE": "Inatividade máxima",
+    "REFRESH_TOKEN": "Token de atualização",
+    "HIDE_LABEL": "Ocultar informações da sessão",
+    "DAYS": "dias"
+  },
+  "LOCKOUT": {
+    "TITLE": "Política de segurança de acesso",
+    "HIDE_LABEL": "Ocultar política de bloqueio",
+    "MESSAGE": "Se forem detectadas <strong>{{attempts}} tentativas falhas</strong> consecutivas, a conta será temporariamente bloqueada por <strong>{{minutes}} minutos</strong> para prevenir ataques de força bruta.",
+    "MAX_ATTEMPTS": "Tentativas máximas",
+    "UNLOCK_TIME": "Tempo de desbloqueio"
+  },
+  "WELCOME": {
+    "GREETING": "Bem-vindo, {{email}}!",
+    "MANAGING_HOTEL": "Você está gerenciando o hotel",
+    "NO_HOTEL": "Você ainda não tem um hotel atribuído."
+  },
+  "LOADING": "Carregando...",
+  "ERROR": {
+    "USER_LOAD": "Não foi possível carregar as informações do usuário."
+  },
+  "PRICING_CARDS": {
+    "AVG_RATE": "Tarifa média",
+    "PROMOTIONS": "Promoções",
+    "ACTIVE": "Ativas",
+    "MONTHLY_REVENUE": "Receita deste mês"
+  },
+  "PLACEHOLDER_SECTION": "Esta seção estará disponível no próximo sprint.",
+  "PRICING_TABLE": {
+    "TITLE": "Preços por quarto",
+    "SUBTITLE": "Definir tarifas para temporada base, fins de semana e alta temporada",
+    "ROOM_TYPE": "Tipo de quarto",
+    "BASE_RATE": "Tarifa base",
+    "WEEKEND_RATE": "Tarifa fim de semana",
+    "PEAK_RATE": "Alta temporada",
+    "TOTAL_ROOMS": "{{count}} no total"
+  },
+  "PRICING_VALIDATION": {
+    "REQUIRED": "Este campo é obrigatório",
+    "NUMERIC": "Insira um valor numérico válido",
+    "POSITIVE": "O valor deve ser maior que zero"
+  },
+  "LOGIN": {
+    "TITLE": "TravelHub Partner",
+    "SUBTITLE": "Portal de Parceiros",
+    "EMAIL_LABEL": "E-mail",
+    "EMAIL_PLACEHOLDER": "parceiro@hotel.com",
+    "PASSWORD_LABEL": "Senha",
+    "PASSWORD_PLACEHOLDER": "••••••••",
+    "REMEMBER_ME": "Lembrar-me",
+    "FORGOT_PASSWORD": "Esqueceu sua senha?",
+    "SUBMIT": "Entrar",
+    "LOADING": "Verificando credenciais...",
+    "ERROR_FALLBACK": "Não foi possível entrar. Verifique seus dados ou tente novamente mais tarde."
+  },
+  "NAVBAR": {
+    "SEARCH_PLACEHOLDER": "Comece sua busca",
+    "LANG_LABEL": "Português (PT)",
+    "LOGOUT": "Sair",
+    "REGISTER": "Registrar-se",
+    "LOGIN": "Entrar"
+  }
+}

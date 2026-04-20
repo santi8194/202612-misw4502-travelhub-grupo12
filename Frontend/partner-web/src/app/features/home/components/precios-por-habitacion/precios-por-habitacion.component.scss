@@ -1,0 +1,152 @@
+.tabla-precios {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #d8e0ea;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(20, 32, 62, 0.08);
+}
+
+.tabla-precios-header {
+    padding: 22px 30px;
+    border-bottom: 1px solid #e2e8f0;
+
+    h3 {
+        margin: 0;
+        font-size: 2rem;
+        line-height: 1.15;
+        color: #17233c;
+    }
+
+    p {
+        margin: 10px 0 0;
+        color: #5f6e85;
+        font-size: 1.15rem;
+    }
+}
+
+.tabla-contenido {
+    width: 100%;
+}
+
+.fila-tabla {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 1fr;
+    gap: 18px;
+    padding: 18px 30px;
+}
+
+.tabla-encabezado {
+    background: #f2f6fb;
+    border-bottom: 1px solid #d8e0ea;
+
+    span {
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        color: #4a5b75;
+    }
+}
+
+.fila-datos {
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+}
+
+.habitacion-columna {
+    strong {
+        display: block;
+        color: #1a2338;
+        font-size: 1.05rem;
+        margin-bottom: 6px;
+    }
+
+    small {
+        color: #52627d;
+        font-size: 0.9rem;
+    }
+}
+
+.precio-columna {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.input-monto {
+    width: 100%;
+    max-width: 150px;
+    border: 1px solid #d0d9e5;
+    border-radius: 16px;
+    background: #f5f8fd;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    transition: border-color 0.2s ease;
+
+    &.input-error {
+        border-color: #e04f4f;
+        background: #fef5f5;
+    }
+
+    span {
+        font-size: 1.1rem;
+        color: #60728f;
+    }
+
+    input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #1e2b43;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+}
+
+.error-msg {
+    color: #e04f4f;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.variacion {
+    color: #0c9a70;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 980px) {
+    .fila-tabla {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .tabla-encabezado {
+        display: none;
+    }
+
+    .fila-datos {
+        padding: 20px 20px;
+    }
+
+    .tabla-precios-header {
+        padding: 20px;
+
+        h3 {
+            font-size: 1.55rem;
+        }
+
+        p {
+            font-size: 1rem;
+        }
+    }
+}

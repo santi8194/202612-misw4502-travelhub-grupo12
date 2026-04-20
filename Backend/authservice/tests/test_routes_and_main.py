@@ -20,12 +20,14 @@ def test_auth_health_endpoint():
 
 
 def test_login_endpoint(monkeypatch, sample_user):
-    monkeypatch.setattr("api.routes.auth.AuthService.authenticate_user", lambda **_kwargs: sample_user)
-    monkeypatch.setattr(
-        "api.routes.auth.SessionService.create_session",
-        lambda _user_id: SimpleNamespace(id=uuid4(), refresh_token="refresh-login"),
-    )
-    monkeypatch.setattr("api.routes.auth.create_access_token", lambda **_kwargs: "token-login")
+    cognito_result = {
+        "AccessToken": "token-login",
+        "IdToken": "id-token-login",
+        "RefreshToken": "refresh-login",
+        "ExpiresIn": 3600,
+        "TokenType": "Bearer",
+    }
+    monkeypatch.setattr("api.routes.auth.AuthService.authenticate_user", lambda **_kwargs: cognito_result)
 
     response = client.post(
         "/auth/login",

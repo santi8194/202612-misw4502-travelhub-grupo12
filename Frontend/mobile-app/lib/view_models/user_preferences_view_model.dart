@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 class UserPreferencesViewModel extends ChangeNotifier {
-
-  String? _country ;
+  String? _country;
 
   String? get country => _country;
 

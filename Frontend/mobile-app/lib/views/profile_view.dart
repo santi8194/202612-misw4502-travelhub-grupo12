@@ -94,9 +94,9 @@ class ProfileView extends StatelessWidget {
                         )
                         .toList(),
                     onChanged: (value) {
-                      context
-                          .read<UserPreferencesViewModel>()
-                          .setCountry(value);
+                      context.read<UserPreferencesViewModel>().setCountry(
+                        value,
+                      );
                     },
                   ),
                 ],

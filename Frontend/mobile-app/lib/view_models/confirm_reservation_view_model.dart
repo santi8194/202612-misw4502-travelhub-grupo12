@@ -111,11 +111,7 @@ class ConfirmReservationViewModel extends ChangeNotifier {
   }
 
   /// Formats [amount] using [countryTax] rules, or falls back to COP/USD.
-  String formatPrice(
-    double amount,
-    String currency, [
-    CountryTax? countryTax,
-  ]) {
+  String formatPrice(double amount, String currency, [CountryTax? countryTax]) {
     if (countryTax != null) {
       final sym = countryTax.currencySymbol;
       if (countryTax.decimals == 0) {
@@ -150,12 +146,21 @@ class ConfirmReservationViewModel extends ChangeNotifier {
     final pricePerNight = double.tryParse(cat.precioBase.monto) ?? 0.0;
     final serviceCharge = double.tryParse(cat.precioBase.cargoServicio) ?? 0.0;
 
-    final dispPricePerNight =
-        convertPrice(pricePerNight, sourceCurrency, displayCurrency, taxConfig);
-    final dispServiceCharge =
-        convertPrice(serviceCharge, sourceCurrency, displayCurrency, taxConfig);
+    final dispPricePerNight = convertPrice(
+      pricePerNight,
+      sourceCurrency,
+      displayCurrency,
+      taxConfig,
+    );
+    final dispServiceCharge = convertPrice(
+      serviceCharge,
+      sourceCurrency,
+      displayCurrency,
+      taxConfig,
+    );
     final dispSubtotal = nights * dispPricePerNight;
-    final taxesAndCharges = dispSubtotal * (countryTax?.tax.rate ?? 0.0) + dispServiceCharge;
+    final taxesAndCharges =
+        dispSubtotal * (countryTax?.tax.rate ?? 0.0) + dispServiceCharge;
     final dispTotal = dispSubtotal + taxesAndCharges;
 
     final taxLabel = countryTax != null
@@ -164,9 +169,17 @@ class ConfirmReservationViewModel extends ChangeNotifier {
 
     return PriceBreakdown(
       currencyTag: displayCurrency,
-      fmtPricePerNight: formatPrice(dispPricePerNight, displayCurrency, countryTax),
+      fmtPricePerNight: formatPrice(
+        dispPricePerNight,
+        displayCurrency,
+        countryTax,
+      ),
       fmtSubtotal: formatPrice(dispSubtotal, displayCurrency, countryTax),
-      fmtTaxesAndCharges: formatPrice(taxesAndCharges, displayCurrency, countryTax),
+      fmtTaxesAndCharges: formatPrice(
+        taxesAndCharges,
+        displayCurrency,
+        countryTax,
+      ),
       taxLabel: taxLabel,
       fmtTotal: formatPrice(dispTotal, displayCurrency, countryTax),
       taxNote: countryTax?.tax.note,

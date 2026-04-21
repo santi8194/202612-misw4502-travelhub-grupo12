@@ -88,6 +88,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultsTitle => 'Search Results';
 
   @override
+  String get confirmReservationTitle => 'Confirm Reservation';
+
+  @override
+  String get reservationDetailsTitle => 'Reservation Details';
+
+  @override
+  String get reservationDatesLabel => 'Dates';
+
+  @override
+  String get reservationGuestsLabel => 'Guests';
+
+  @override
+  String get reservationReferenceLabel => 'Reservation ID';
+
+  @override
+  String get confirmReservationButton => 'Confirm Reservation';
+
+  @override
+  String get reservationSuccessMessage =>
+      'Your reservation has been confirmed successfully.';
+
+  @override
   String get specialOffer => 'Special Offer';
 
   @override
@@ -123,4 +145,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cachedResultsBanner =>
       'Showing cached results. They will be updated once connection is restored.';
+
+  @override
+  String currencyBubbleLabel(String currency) {
+    return 'CURRENCY: $currency';
+  }
+
+  @override
+  String get currencyCodeUSD => 'USD';
+
+  @override
+  String get currencyCodeCOP => 'COP';
+
+  @override
+  String get taxesAndCharges => 'Taxes and charges';
+
+  @override
+  String get totalPrice => 'Total';
+
+  @override
+  String get paymentMethod => 'Payment Method';
+
+  @override
+  String get cardEnding => 'Visa ending in •••• 4242';
+
+  @override
+  String get tripDetailsTitle => 'TRIP DETAILS';
+
+  @override
+  String get priceBreakdownTitle => 'PRICE BREAKDOWN';
 }

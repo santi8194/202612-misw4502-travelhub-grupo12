@@ -25,6 +25,13 @@
   "searchGuests": "GUESTS",
   "searchButton": "Search Hotels",
   "resultsTitle": "Search Results",
+  "confirmReservationTitle": "Confirm Reservation",
+  "reservationDetailsTitle": "Reservation Details",
+  "reservationDatesLabel": "Dates",
+  "reservationGuestsLabel": "Guests",
+  "reservationReferenceLabel": "Reservation ID",
+  "confirmReservationButton": "Confirm Reservation",
+  "reservationSuccessMessage": "Your reservation has been confirmed successfully.",
   "specialOffer": "Special Offer",
   "noResultsTitle": "No properties available",
   "noResultsMessage": "No properties were found matching your search. Try adjusting your destination, dates, or number of guests.",
@@ -40,7 +47,23 @@
   "anyDestination": "ANY DESTINATION",
   "openDates": "OPEN DATES",
   "tryAnotherSearch": "Try another search",
-  "cachedResultsBanner": "Showing cached results. They will be updated once connection is restored."
+  "cachedResultsBanner": "Showing cached results. They will be updated once connection is restored.",
+  "currencyBubbleLabel": "CURRENCY: {currency}",
+  "@currencyBubbleLabel": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyCodeUSD": "USD",
+  "currencyCodeCOP": "COP",
+  "taxesAndCharges": "Taxes and charges",
+  "totalPrice": "Total",
+  "paymentMethod": "Payment Method",
+  "cardEnding": "Visa ending in •••• 4242",
+  "tripDetailsTitle": "TRIP DETAILS",
+  "priceBreakdownTitle": "PRICE BREAKDOWN"
 }
 
 

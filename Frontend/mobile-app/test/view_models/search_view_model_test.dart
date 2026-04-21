@@ -26,6 +26,7 @@ class MockSearchService extends SearchService {
         title: 'Mock Hotel',
         location: 'Mock Loc',
         amenities: [],
+        price: 100.0,
         isSpecialOffer: false,
       ),
     ];
@@ -64,6 +65,7 @@ class OfflineMockSearchService extends SearchService {
         title: 'Cached Hotel',
         location: 'Cached Loc',
         amenities: ['WiFi'],
+        price: 80.0,
         isSpecialOffer: false,
       ),
     ];

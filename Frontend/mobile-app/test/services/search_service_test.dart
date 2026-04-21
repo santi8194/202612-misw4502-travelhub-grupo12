@@ -92,6 +92,7 @@ void main() {
           title: 'Cached Hotel',
           location: 'Medellín, Colombia',
           amenities: ['WiFi'],
+          price: 120.0,
         ),
       ];
 

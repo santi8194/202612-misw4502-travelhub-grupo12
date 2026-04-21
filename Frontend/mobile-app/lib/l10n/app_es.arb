@@ -25,6 +25,13 @@
   "searchGuests": "HUÉSPEDES",
   "searchButton": "Buscar Hoteles",
   "resultsTitle": "Resultados de búsqueda",
+  "confirmReservationTitle": "Confirmar reserva",
+  "reservationDetailsTitle": "Detalles de la reserva",
+  "reservationDatesLabel": "Fechas",
+  "reservationGuestsLabel": "Huéspedes",
+  "reservationReferenceLabel": "ID de reserva",
+  "confirmReservationButton": "Confirmar reserva",
+  "reservationSuccessMessage": "Tu reserva ha sido confirmada con éxito.",
   "specialOffer": "Oferta Especial",
   "noResultsTitle": "No hay propiedades disponibles",
   "noResultsMessage": "No se encontraron propiedades que coincidan con tu búsqueda. Intenta ajustar el destino, las fechas o la cantidad de huéspedes.",
@@ -40,7 +47,23 @@
   "anyDestination": "CUALQUIER DESTINO",
   "openDates": "FECHAS ABIERTAS",
   "tryAnotherSearch": "Intentar otra búsqueda",
-  "cachedResultsBanner": "Mostrando resultados en caché. Se actualizarán al recuperar conexión."
+  "cachedResultsBanner": "Mostrando resultados en caché. Se actualizarán al recuperar conexión.",
+  "currencyBubbleLabel": "MONEDA: {currency}",
+  "@currencyBubbleLabel": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyCodeUSD": "USD",
+  "currencyCodeCOP": "COP",
+  "taxesAndCharges": "Impuestos y cargos",
+  "totalPrice": "Total",
+  "paymentMethod": "Método de Pago",
+  "cardEnding": "Visa terminada en •••• 4242",
+  "tripDetailsTitle": "DETALLES DEL VIAJE",
+  "priceBreakdownTitle": "DESGLOSE DE PRECIOS"
 }
 
 

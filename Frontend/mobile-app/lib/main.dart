@@ -5,9 +5,12 @@ import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
 import 'services/connectivity_service.dart';
+import 'models/country_tax.dart';
+import 'services/tax_config_service.dart';
 import 'view_models/login_view_model.dart';
 import 'view_models/register_view_model.dart';
 import 'view_models/search_view_model.dart';
+import 'view_models/user_preferences_view_model.dart';
 import 'views/login_view.dart';
 import 'views/main_navigation_view.dart';
 import 'views/register_view.dart';
@@ -15,11 +18,14 @@ import 'views/register_view.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  final taxConfig = await TaxConfigService.load();
   runApp(
     MultiProvider(
       providers: [
+        Provider<Map<String, CountryTax>>.value(value: taxConfig),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => RegisterViewModel()),
+        ChangeNotifierProvider(create: (_) => UserPreferencesViewModel()),
         ChangeNotifierProvider(create: (_) => ConnectivityService()),
         ChangeNotifierProxyProvider<ConnectivityService, SearchViewModel>(
           create: (context) => SearchViewModel(

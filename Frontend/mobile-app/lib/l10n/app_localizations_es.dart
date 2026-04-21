@@ -173,4 +173,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get priceBreakdownTitle => 'DESGLOSE DE PRECIOS';
+
+  @override
+  String nightsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count noches',
+      one: '1 noche',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileTitleView => 'Perfil';
+
+  @override
+  String get countryLabel => 'País';
+
+  @override
+  String get countryNotSet => 'Sin definir';
 }

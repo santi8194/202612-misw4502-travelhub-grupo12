@@ -403,6 +403,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PRICE BREAKDOWN'**
   String get priceBreakdownTitle;
+
+  /// No description provided for @nightsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 night} other{{count} nights}}'**
+  String nightsLabel(int count);
+
+  /// No description provided for @profileTitleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitleView;
+
+  /// No description provided for @countryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryLabel;
+
+  /// No description provided for @countryNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get countryNotSet;
 }
 
 class _AppLocalizationsDelegate

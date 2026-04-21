@@ -1,21 +1,24 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
-import '../models/habitacion.dart';
+import '../models/categoria_habitacion.dart';
+import '../models/country_tax.dart';
 import '../view_models/confirm_reservation_view_model.dart';
+import '../view_models/user_preferences_view_model.dart';
+import '../widgets/app_bottom_nav_bar.dart';
 
 class ConfirmReservationView extends StatelessWidget {
-  final Habitacion room;
+  final String location;
+  final String categoryId;
   final DateTimeRange dateRange;
   final int guests;
 
   const ConfirmReservationView({
     super.key,
-    required this.room,
+    required this.location,
+    required this.categoryId,
     required this.dateRange,
     required this.guests,
   });
@@ -24,7 +27,8 @@ class ConfirmReservationView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => ConfirmReservationViewModel(
-        room: room,
+        location: location,
+        categoryId: categoryId,
         selectedDateRange: dateRange,
         guests: guests,
       ),
@@ -34,11 +38,41 @@ class ConfirmReservationView extends StatelessWidget {
           final locale = Localizations.localeOf(context).toString();
           final monthFormatter = DateFormat.MMM(locale);
 
+          if (viewModel.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (viewModel.errorMessage != null || viewModel.categoria == null) {
+            return Scaffold(
+              appBar: AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              body: Center(
+                child: Text(
+                  viewModel.errorMessage ?? 'Error al cargar la categoría',
+                ),
+              ),
+            );
+          }
+
+          final categoria = viewModel.categoria!;
           final nights = dateRange.duration.inDays;
-          final pricePerNight = Random().nextInt(100) + 50.0; // Precio aleatorio entre 50 y 150
-          final subtotal = nights * pricePerNight;
-          final taxes = subtotal * 0.19;
-          final total = subtotal + taxes;
+
+          // Delegate all price/currency computation to the ViewModel
+          final fallbackCurrency = (Localizations.localeOf(context).languageCode == 'es')
+              ? l10n.currencyCodeCOP
+              : l10n.currencyCodeUSD;
+          final breakdown = viewModel.computePriceBreakdown(
+            nights: nights,
+            country: context.watch<UserPreferencesViewModel>().country,
+            taxConfig: context.read<Map<String, CountryTax>>(),
+            fallbackCurrency: fallbackCurrency,
+          )!;
 
           final start = dateRange.start;
           final end = dateRange.end;
@@ -47,24 +81,23 @@ class ConfirmReservationView extends StatelessWidget {
               ? '${start.day} - ${end.day} ${monthFormatter.format(start).toUpperCase()}'
               : '${start.day} ${monthFormatter.format(start).toUpperCase()} - ${end.day} ${monthFormatter.format(end).toUpperCase()}';
 
-          final currencyCode = _currencyCodeForLocale(context, l10n);
-          final currencyTag = l10n.currencyBubbleLabel(currencyCode);
-
           final screenWidth = MediaQuery.of(context).size.width;
           final scale = screenWidth / 390;
-          final cardPadding = (15 * scale).clamp(14.0, 22.0);
-          final imageSize = (82 * scale).clamp(72.0, 90.0);
-          final titleFontSize = (18 * scale).clamp(16.0, 20.0);
-          final subtitleFontSize = (15 * scale).clamp(13.0, 17.0);
-          final sectionTitleSize = (16 * scale).clamp(14.0, 18.0);
-          final detailLabelSize = (14 * scale).clamp(12.0, 16.0);
-          final detailValueSize = (15 * scale).clamp(13.0, 17.0);
-          final priceFontSize = (15 * scale).clamp(13.0, 17.0);
-          final buttonFontSize = (18 * scale).clamp(16.0, 20.0);
-          final buttonHeight = (64 * scale).clamp(56.0, 72.0);
-          final iconSize = (16 * scale).clamp(16.0, 22.0);
-          final spacing = (18 * scale).clamp(14.0, 22.0);
-          final cardRadius = (20 * scale).clamp(18.0, 24.0);
+          final cardPadding = (13 * scale).clamp(12.0, 20.0);
+          final imageSize = (76 * scale).clamp(66.0, 84.0);
+          final titleFontSize = (16 * scale).clamp(14.0, 18.0);
+          final subtitleFontSize = (14 * scale).clamp(12.0, 16.0);
+          final sectionTitleSize = (14 * scale).clamp(13.0, 16.0);
+          final detailLabelSize = (13 * scale).clamp(12.0, 15.0);
+          final detailValueSize = (14 * scale).clamp(13.0, 16.0);
+          final priceFontSize = (14 * scale).clamp(13.0, 16.0);
+          final buttonFontSize = (17 * scale).clamp(15.0, 19.0);
+          final buttonHeight = (56 * scale).clamp(50.0, 62.0);
+          final iconSize = (15 * scale).clamp(14.0, 20.0);
+          final spacing = (16 * scale).clamp(12.0, 20.0);
+          final cardRadius = (18 * scale).clamp(16.0, 22.0);
+          final bodyPadding = (22 * scale).clamp(18.0, 32.0);
+          final cardGap = (32 * scale).clamp(24.0, 40.0);
 
           return Scaffold(
             backgroundColor: Colors.white,
@@ -86,53 +119,67 @@ class ConfirmReservationView extends StatelessWidget {
               centerTitle: true,
             ),
 
-            bottomNavigationBar: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              child: SizedBox(
-                height: buttonHeight,
-                child: ElevatedButton(
-                  onPressed: viewModel.isConfirming
-                      ? null
-                      : () async {
-                          final confirmed = await viewModel
-                              .confirmReservation();
-                          if (confirmed && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.reservationSuccessMessage),
+            bottomNavigationBar: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: bodyPadding, vertical: bodyPadding * 0.6),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: buttonHeight,
+                    child: ElevatedButton(
+                      onPressed: viewModel.isConfirming
+                          ? null
+                          : () async {
+                              final confirmed = await viewModel
+                                  .confirmReservation();
+                              if (confirmed && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      l10n.reservationSuccessMessage,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2F4B8C),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: viewModel.isConfirming
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              l10n.confirmReservationButton,
+                              style: TextStyle(
+                                fontSize: buttonFontSize,
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2F4B8C),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+                            ),
                     ),
                   ),
-                  child: viewModel.isConfirming
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          l10n.confirmReservationButton,
-                          style: TextStyle(
-                            fontSize: buttonFontSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                 ),
-              ),
+                const AppBottomNavBar(currentIndex: 1, onTap: null),
+              ],
             ),
 
             body: Container(
               color: Colors.white,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 20,
+                padding: EdgeInsets.only(
+                  top: bodyPadding,
+                  right: bodyPadding,
+                  bottom: bodyPadding,
+                  left: bodyPadding,
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHotelCard(
+                      location: location,
+                      categoria: categoria,
                       imageSize: imageSize,
                       cardPadding: cardPadding,
                       spacing: spacing,
@@ -140,7 +187,7 @@ class ConfirmReservationView extends StatelessWidget {
                       subtitleFontSize: subtitleFontSize,
                       radius: cardRadius,
                     ),
-                    SizedBox(height: spacing),
+                    SizedBox(height: cardGap),
                     _buildTripDetails(
                       formattedDates,
                       l10n.guestCountLabel(guests),
@@ -153,14 +200,10 @@ class ConfirmReservationView extends StatelessWidget {
                       radius: cardRadius,
                       l10n: l10n,
                     ),
-                    SizedBox(height: spacing),
+                    SizedBox(height: cardGap),
                     _buildPriceBreakdown(
                       nights,
-                      pricePerNight,
-                      subtotal,
-                      taxes,
-                      total,
-                      currencyTag: currencyTag,
+                      breakdown,
                       cardPadding: cardPadding,
                       sectionTitleSize: sectionTitleSize,
                       priceFontSize: priceFontSize,
@@ -168,7 +211,7 @@ class ConfirmReservationView extends StatelessWidget {
                       radius: cardRadius,
                       l10n: l10n,
                     ),
-                    SizedBox(height: spacing),
+                    SizedBox(height: cardGap),
                     _buildPaymentMethod(
                       cardPadding: cardPadding,
                       iconSize: iconSize,
@@ -189,6 +232,8 @@ class ConfirmReservationView extends StatelessWidget {
 
   /// 🏨 HOTEL CARD
   Widget _buildHotelCard({
+    required String location,
+    required CategoriaHabitacion categoria,
     required double imageSize,
     required double cardPadding,
     required double spacing,
@@ -204,7 +249,7 @@ class ConfirmReservationView extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(radius * 0.8),
             child: Image.network(
-              room.imageUrl,
+              categoria.fotoPortadaUrl,
               width: imageSize,
               height: imageSize,
               fit: BoxFit.cover,
@@ -229,7 +274,7 @@ class ConfirmReservationView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  room.title,
+                  categoria.nombreComercial,
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
@@ -238,7 +283,9 @@ class ConfirmReservationView extends StatelessWidget {
                 ),
                 SizedBox(height: spacing * 0.3),
                 Text(
-                  room.location,
+                  location,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.grey,
                     fontSize: subtitleFontSize,
@@ -314,11 +361,7 @@ class ConfirmReservationView extends StatelessWidget {
   /// 💰 PRECIOS
   Widget _buildPriceBreakdown(
     int nights,
-    double pricePerNight,
-    double subtotal,
-    double taxes,
-    double total, {
-    required String currencyTag,
+    PriceBreakdown breakdown, {
     required double cardPadding,
     required double sectionTitleSize,
     required double priceFontSize,
@@ -354,7 +397,7 @@ class ConfirmReservationView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(radius * 0.7),
                 ),
                 child: Text(
-                  currencyTag,
+                  breakdown.currencyTag,
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: priceFontSize * 0.75,
@@ -366,24 +409,35 @@ class ConfirmReservationView extends StatelessWidget {
           ),
           SizedBox(height: spacing),
           _priceRow(
-            "$pricePerNight US\$ x $nights noches",
-            "${subtotal.toStringAsFixed(0)} US\$",
+            "${breakdown.fmtPricePerNight} x ${l10n.nightsLabel(nights)}",
+            breakdown.fmtSubtotal,
             fontSize: priceFontSize,
           ),
           _priceRow(
             l10n.taxesAndCharges,
-            "${taxes.toStringAsFixed(0)} US\$",
+            breakdown.fmtTaxesAndCharges,
             fontSize: priceFontSize,
           ),
+          
           SizedBox(height: spacing * 0.6),
           Divider(height: 1.5, color: Colors.grey.shade300),
           SizedBox(height: spacing * 0.6),
           _priceRow(
             l10n.totalPrice,
-            "${total.toStringAsFixed(0)} US\$",
+            breakdown.fmtTotal,
             isBold: true,
             fontSize: priceFontSize,
           ),
+          if (breakdown.taxNote != null) ...[            SizedBox(height: spacing * 0.6),
+            Text(
+              breakdown.taxNote!,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: priceFontSize * 0.82,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -441,14 +495,6 @@ class ConfirmReservationView extends StatelessWidget {
     );
   }
 
-  String _currencyCodeForLocale(BuildContext context, AppLocalizations l10n) {
-    final locale = Localizations.localeOf(context);
-    if (locale.countryCode == 'CO' || locale.languageCode == 'es') {
-      return l10n.currencyCodeCOP;
-    }
-    return l10n.currencyCodeUSD;
-  }
-
   BoxDecoration _cardStyle(double radius) {
     return BoxDecoration(
       color: Colors.white,
@@ -494,7 +540,6 @@ class ConfirmReservationView extends StatelessWidget {
       ],
     );
   }
-
   Widget _priceRow(
     String title,
     String value, {

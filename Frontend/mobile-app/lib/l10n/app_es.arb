@@ -63,7 +63,18 @@
   "paymentMethod": "Método de Pago",
   "cardEnding": "Visa terminada en •••• 4242",
   "tripDetailsTitle": "DETALLES DEL VIAJE",
-  "priceBreakdownTitle": "DESGLOSE DE PRECIOS"
+  "priceBreakdownTitle": "DESGLOSE DE PRECIOS",
+  "nightsLabel": "{count, plural, =1{1 noche} other{{count} noches}}",
+  "@nightsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileTitleView": "Perfil",
+  "countryLabel": "País",
+  "countryNotSet": "Sin definir"
 }
 
 

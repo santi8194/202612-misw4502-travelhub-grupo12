@@ -174,4 +174,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get priceBreakdownTitle => 'PRICE BREAKDOWN';
+
+  @override
+  String profileVersion(String version) {
+    return 'Version: $version';
+  }
 }

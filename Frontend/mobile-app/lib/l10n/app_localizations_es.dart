@@ -173,4 +173,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get priceBreakdownTitle => 'DESGLOSE DE PRECIOS';
+
+  @override
+  String profileVersion(String version) {
+    return 'Versión: $version';
+  }
 }

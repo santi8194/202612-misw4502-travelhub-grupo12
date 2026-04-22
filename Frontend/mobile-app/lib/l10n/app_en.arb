@@ -63,7 +63,15 @@
   "paymentMethod": "Payment Method",
   "cardEnding": "Visa ending in •••• 4242",
   "tripDetailsTitle": "TRIP DETAILS",
-  "priceBreakdownTitle": "PRICE BREAKDOWN"
+  "priceBreakdownTitle": "PRICE BREAKDOWN",
+  "profileVersion": "Version: {version}",
+  "@profileVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  }
 }
 
 

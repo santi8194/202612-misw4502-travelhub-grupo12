@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
-
 import 'busqueda_view.dart';
+import 'profile_view.dart';
 
 class MainNavigationView extends StatefulWidget {
   const MainNavigationView({super.key});
@@ -27,7 +27,7 @@ class _MainNavigationViewState extends State<MainNavigationView> {
     final List<Widget> pages = [
       const BusquedaView(),
       Center(child: Text(l10n.navBookings)),
-      Center(child: Text(l10n.navProfile)),
+      const ProfileView(),
     ];
 
     return Scaffold(
@@ -36,8 +36,12 @@ class _MainNavigationViewState extends State<MainNavigationView> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
-        unselectedItemColor: Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
+        selectedItemColor: Theme.of(
+          context,
+        ).bottomNavigationBarTheme.selectedItemColor,
+        unselectedItemColor: Theme.of(
+          context,
+        ).bottomNavigationBarTheme.unselectedItemColor,
         showSelectedLabels: true,
         showUnselectedLabels: true,
         items: [

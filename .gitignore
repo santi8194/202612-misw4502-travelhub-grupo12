@@ -15,6 +15,7 @@ __pycache__/
 # Variables de entorno — nunca versionar
 .env
 .env.*
+!Infraestructura/docker/.env.local.example
 
 #mobile
 .angular/

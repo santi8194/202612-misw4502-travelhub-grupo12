@@ -1,0 +1,166 @@
+name: Frontend CD
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - 'Frontend/partner-web/**'
+      - 'Frontend/user-web/**'
+      - '.github/workflows/frontend-cd.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  TERRAFORM_VERSION: '1.10.0'
+
+jobs:
+  discover-changes:
+    name: Discover changed frontends
+    runs-on: ubuntu-latest
+    outputs:
+      partner_changed: ${{ steps.check.outputs.partner_changed }}
+      user_changed: ${{ steps.check.outputs.user_changed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check changes
+        id: check
+        run: |
+          BASE_SHA=${{ github.event.before }}
+          HEAD_SHA=${{ github.sha }}
+
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "partner_changed=true" >> $GITHUB_OUTPUT
+            echo "user_changed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if git diff --name-only $BASE_SHA $HEAD_SHA | grep -q "^Frontend/partner-web/\|^\.github/workflows/frontend-cd\.yml"; then
+            echo "partner_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "partner_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          if git diff --name-only $BASE_SHA $HEAD_SHA | grep -q "^Frontend/user-web/\|^\.github/workflows/frontend-cd\.yml"; then
+            echo "user_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "user_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-partner-web:
+    name: Deploy partner-web
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: discover-changes
+    if: needs.discover-changes.outputs.partner_changed == 'true'
+    defaults:
+      run:
+        working-directory: Frontend/partner-web
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Frontend/partner-web/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Get Infrastructure Outputs
+        id: tf-outputs
+        working-directory: Infraestructura/terraform/stacks/frontends
+        run: |
+          terraform init -reconfigure
+          echo "BUCKET_NAME=$(terraform output -raw partner_web_bucket)" >> $GITHUB_OUTPUT
+          echo "CLOUDFRONT_ID=$(terraform output -raw partner_web_cloudfront_id)" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Sync to S3
+        run: aws s3 sync dist/partner-web/browser/ s3://${{ steps.tf-outputs.outputs.BUCKET_NAME }} --delete
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id ${{ steps.tf-outputs.outputs.CLOUDFRONT_ID }} --paths "/*"
+
+  deploy-user-web:
+    name: Deploy user-web
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: discover-changes
+    if: needs.discover-changes.outputs.user_changed == 'true'
+    defaults:
+      run:
+        working-directory: Frontend/user-web
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Frontend/user-web/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Get Infrastructure Outputs
+        id: tf-outputs
+        working-directory: Infraestructura/terraform/stacks/frontends
+        run: |
+          terraform init -reconfigure
+          echo "BUCKET_NAME=$(terraform output -raw user_web_bucket)" >> $GITHUB_OUTPUT
+          echo "CLOUDFRONT_ID=$(terraform output -raw user_web_cloudfront_id)" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Sync to S3
+        run: aws s3 sync dist/user-web/browser/ s3://${{ steps.tf-outputs.outputs.BUCKET_NAME }} --delete
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id ${{ steps.tf-outputs.outputs.CLOUDFRONT_ID }} --paths "/*"

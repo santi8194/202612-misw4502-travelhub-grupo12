@@ -18,7 +18,7 @@ spec:
       - name: catalog
         image: ${ECR_REGISTRY_DEV}/catalog:${GITHUB_SHA}
         ports:
-        - containerPort: 80
+        - containerPort: 8000
         env:
         - name: DB_HOST
           valueFrom:
@@ -48,18 +48,18 @@ spec:
         startupProbe:
           httpGet:
             path: /health
-            port: 80
+            port: 8000
           periodSeconds: 5
           failureThreshold: 24
         readinessProbe:
           httpGet:
             path: /health
-            port: 80
+            port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
         livenessProbe:
           httpGet:
             path: /health
-            port: 80
+            port: 8000
           initialDelaySeconds: 10
           periodSeconds: 10

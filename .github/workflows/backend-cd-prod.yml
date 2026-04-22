@@ -1,24 +1,23 @@
-name: Backend CD
+name: Backend CD PROD
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'Backend/**'
-      - 'Infraestructura/k8s/aws/*-deployment.yaml'
-      - 'Infraestructura/k8s/aws/*-service.yaml'
-      - '.github/workflows/backend-cd.yml'
-      - '.github/backend-cd.exclusions.json'
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      event_name:
+        required: true
+        type: string
+      base_sha:
+        required: false
+        type: string
+      head_sha:
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_REGISTRY_DEV: ${{ vars.ECR_REGISTRY_DEV }}
   EKS_CLUSTER_NAME_DEV: ${{ vars.EKS_CLUSTER_NAME_DEV }}
   K8S_NAMESPACE_DEV: ${{ vars.K8S_NAMESPACE_DEV }}
   AUTHSERVICE_DB_SECRET_NAME_DEV: travelhub/dev/authservice/db-credentials
@@ -44,9 +43,9 @@ jobs:
         id: discover
         shell: bash
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.before }}
-          HEAD_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ inputs.event_name }}
+          BASE_SHA: ${{ inputs.base_sha }}
+          HEAD_SHA: ${{ inputs.head_sha }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -74,7 +73,7 @@ jobs:
           excluded_services = set(exclusions.get("exclude", []))
 
           deploy_all = False
-          changed_files: list[str] = []
+          changed_files = []
 
           if event_name == "workflow_dispatch":
               deploy_all = True
@@ -99,60 +98,59 @@ jobs:
               deployment_manifest = manifests_dir / f"{service_name}-deployment.yaml"
               service_manifest = manifests_dir / f"{service_name}-service.yaml"
 
-              has_dockerfile = dockerfile.is_file()
-              has_deployment = deployment_manifest.is_file()
-              has_service = service_manifest.is_file()
-
-              if not has_dockerfile:
+              if not dockerfile.is_file():
                   continue
 
-              if not has_deployment or not has_service:
+              if not deployment_manifest.is_file() or not service_manifest.is_file():
                   missing = []
-                  if not has_deployment:
+                  if not deployment_manifest.is_file():
                       missing.append(str(deployment_manifest.relative_to(repo_root)).replace("\\", "/"))
-                  if not has_service:
+                  if not service_manifest.is_file():
                       missing.append(str(service_manifest.relative_to(repo_root)).replace("\\", "/"))
                   missing_paths = ", ".join(missing)
                   print(
-                      f"::warning::Service '{service_name}' has a Dockerfile but is not CD-supported because these manifests are missing: {missing_paths}"
+                      f"::warning::Service '{service_name}' has a Dockerfile but is not prod-CD-supported because these manifests are missing: {missing_paths}"
                   )
                   continue
 
-              discovered_services.append(service_name)
-
-          if not discovered_services:
-              print("::warning::No CD-supported services were discovered under Backend/.")
+              discovered_services.append(
+                  {
+                      "service_name": service_name,
+                      "service_folder": f"Backend/{service_name}",
+                      "dockerfile_path": f"Backend/{service_name}/Dockerfile",
+                      "ecr_repository": service_name,
+                      "deployment_manifest": f"Infraestructura/k8s/aws/{service_name}-deployment.yaml",
+                      "service_manifest": f"Infraestructura/k8s/aws/{service_name}-service.yaml",
+                  }
+              )
 
           selected_services = []
           global_change_prefixes = [
-              ".github/workflows/backend-cd.yml",
+              ".github/workflows/backend-cd-base.yml",
+              ".github/workflows/backend-cd-dev.yml",
+              ".github/workflows/backend-cd-prod.yml",
               ".github/backend-cd.exclusions.json",
           ]
 
-          for service_name in discovered_services:
-              service = {
-                  "service_name": service_name,
-                  "service_folder": f"Backend/{service_name}",
-                  "dockerfile_path": f"Backend/{service_name}/Dockerfile",
-                  "ecr_repository": service_name,
-                  "deployment_manifest": f"Infraestructura/k8s/aws/{service_name}-deployment.yaml",
-                  "service_manifest": f"Infraestructura/k8s/aws/{service_name}-service.yaml",
-              }
-
+          for service in discovered_services:
               if deploy_all:
                   selected_services.append(service)
                   continue
 
-              if any(path in changed_files for path in global_change_prefixes):
+              if any(
+                  changed.startswith(prefix)
+                  for changed in changed_files
+                  for prefix in global_change_prefixes
+              ):
                   selected_services.append(service)
                   continue
 
               watch_paths = [
-                  f"Backend/{service_name}/",
-                  f"Infraestructura/k8s/aws/{service_name}-deployment.yaml",
-                  f"Infraestructura/k8s/aws/{service_name}-service.yaml",
+                  f"{service['service_folder']}/",
+                  service["dockerfile_path"],
+                  service["deployment_manifest"],
+                  service["service_manifest"],
               ]
-
               if any(
                   changed.startswith(prefix)
                   for changed in changed_files
@@ -166,14 +164,14 @@ jobs:
               fh.write(f"service_count={len(selected_services)}\n")
           PY
 
-  deploy-service:
+  deploy-service-prod:
     name: Deploy ${{ matrix.service_name }} to EKS
     runs-on: ubuntu-latest
     environment: dev
     needs: discover-services
     if: ${{ needs.discover-services.outputs.service_count != '0' }}
     concurrency:
-      group: backend-cd-${{ matrix.service_name }}-dev
+      group: backend-cd-${{ matrix.service_name }}-prod
       cancel-in-progress: true
     strategy:
       fail-fast: false
@@ -235,11 +233,6 @@ jobs:
             exit 1
           fi
 
-          if [ -z "${ECR_REGISTRY_DEV:-}" ]; then
-            echo "::error::Missing required GitHub variable 'ECR_REGISTRY_DEV'."
-            exit 1
-          fi
-
           if [ -z "${EKS_CLUSTER_NAME_DEV:-}" ]; then
             echo "::error::Missing required GitHub variable 'EKS_CLUSTER_NAME_DEV'."
             exit 1
@@ -255,6 +248,28 @@ jobs:
             exit 1
           fi
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve ECR registry
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+          if [ -z "${AWS_ACCOUNT_ID:-}" ] || [ "${AWS_ACCOUNT_ID}" = "None" ]; then
+            echo "::error::Could not resolve AWS account id for ECR registry."
+            exit 1
+          fi
+
+          ECR_REGISTRY_DEV="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          echo "ECR_REGISTRY_DEV=${ECR_REGISTRY_DEV}" >> "${GITHUB_ENV}"
+
       - name: Validate manifest naming and image template
         shell: bash
         run: |
@@ -265,7 +280,7 @@ jobs:
           import yaml
 
           expected = os.environ["SERVICE_NAME"]
-          expected_image = "${ECR_REGISTRY_DEV}/" + expected + ":${GITHUB_SHA}"
+          expected_image = os.environ["ECR_REGISTRY_DEV"] + "/" + expected + ":" + os.environ["GITHUB_SHA"]
           deployment_file = os.environ["DEPLOYMENT_MANIFEST"]
           service_file = os.environ["SERVICE_MANIFEST"]
 
@@ -306,13 +321,6 @@ jobs:
 
           print("Manifest naming and image template OK")
           PY
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
 
       - name: Validate ECR repository exists
         shell: bash
@@ -393,14 +401,8 @@ jobs:
               print("::error::Deployment manifest still contains unresolved placeholders after rendering.")
               sys.exit(1)
 
-          try:
-              with open(dst, "w", encoding="utf-8") as f:
-                  f.write(rendered)
-          except Exception as exc:
-              print(f"::error file={dst}::Failed to write rendered deployment manifest: {exc}")
-              sys.exit(1)
-
-          print(f"Rendered deployment manifest written to {dst}")
+          with open(dst, "w", encoding="utf-8") as f:
+              f.write(rendered)
           PY
 
       - name: Setup kubectl
@@ -410,13 +412,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          if ! aws eks update-kubeconfig \
+          aws eks update-kubeconfig \
             --name "${EKS_CLUSTER_NAME_DEV}" \
-            --region "${AWS_REGION}"; then
-            echo "::error::Failed to update kubeconfig for EKS cluster '${EKS_CLUSTER_NAME_DEV}' in region '${AWS_REGION}'."
-            exit 1
-          fi
+            --region "${AWS_REGION}"
 
       - name: Ensure namespace exists
         shell: bash
@@ -424,10 +422,7 @@ jobs:
           set -euo pipefail
 
           if ! kubectl get namespace "${K8S_NAMESPACE_DEV}" >/dev/null 2>&1; then
-            if ! kubectl create namespace "${K8S_NAMESPACE_DEV}"; then
-              echo "::error::Failed to create namespace '${K8S_NAMESPACE_DEV}'."
-              exit 1
-            fi
+            kubectl create namespace "${K8S_NAMESPACE_DEV}"
           fi
 
       - name: Reconcile service DB secret
@@ -455,26 +450,12 @@ jobs:
               SECRET_MANAGER_ID="${SEARCH_DB_SECRET_NAME_DEV}"
               K8S_SECRET_NAME="search-db-secret"
               ;;
-            *)
-              echo "::error::Unsupported DB-backed service '${SERVICE_NAME}'."
-              exit 1
-              ;;
           esac
-
-          if [ -z "${SECRET_MANAGER_ID:-}" ]; then
-            echo "::error::Missing Secrets Manager identifier for service '${SERVICE_NAME}'."
-            exit 1
-          fi
 
           SECRET_JSON=$(aws secretsmanager get-secret-value \
             --secret-id "${SECRET_MANAGER_ID}" \
             --query 'SecretString' \
             --output text)
-
-          if [ -z "${SECRET_JSON:-}" ] || [ "${SECRET_JSON}" = "None" ]; then
-            echo "::error::Secrets Manager secret '${SECRET_MANAGER_ID}' is empty or unavailable."
-            exit 1
-          fi
 
           export SECRET_JSON DB_SECRET_ENV_FILE
           python - <<'PY'
@@ -493,10 +474,7 @@ jobs:
           }
           missing = [key for key, value in required_keys.items() if value in (None, "")]
           if missing:
-              print(
-                  "::error::Secrets Manager secret is missing required keys: "
-                  + ", ".join(missing)
-              )
+              print("::error::Secrets Manager secret is missing required keys: " + ", ".join(missing))
               sys.exit(1)
 
           with open(env_file, "w", encoding="utf-8") as fh:
@@ -515,7 +493,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           kubectl create secret generic authservice-app-secret \
             --namespace "${K8S_NAMESPACE_DEV}" \
             --from-literal=SECRET_KEY="${AUTHSERVICE_SECRET_KEY_DEV}" \
@@ -526,66 +503,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          if ! kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${SERVICE_MANIFEST}"; then
-            echo "::error file=${SERVICE_MANIFEST}::Failed to apply Service manifest."
-            exit 1
-          fi
-
-          if ! kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${RENDERED_DEPLOYMENT_MANIFEST}"; then
-            echo "::error file=${RENDERED_DEPLOYMENT_MANIFEST}::Failed to apply rendered Deployment manifest."
-            exit 1
-          fi
+          kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${SERVICE_MANIFEST}"
+          kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${RENDERED_DEPLOYMENT_MANIFEST}"
 
       - name: Wait for rollout
-        id: rollout
         shell: bash
-        continue-on-error: true
         run: |
           set -euo pipefail
-
           kubectl rollout status "deployment/${SERVICE_NAME}" \
             --namespace "${K8S_NAMESPACE_DEV}" \
             --timeout=300s
-
-      - name: Collect rollout diagnostics
-        if: ${{ steps.rollout.outcome == 'failure' }}
-        shell: bash
-        run: |
-          set +e
-
-          echo "::group::Deployment describe"
-          kubectl describe deployment "${SERVICE_NAME}" -n "${K8S_NAMESPACE_DEV}"
-          echo "::endgroup::"
-
-          echo "::group::ReplicaSets"
-          kubectl get rs -n "${K8S_NAMESPACE_DEV}" -l "app=${SERVICE_NAME}" -o wide
-          echo "::endgroup::"
-
-          echo "::group::Pods"
-          kubectl get pods -n "${K8S_NAMESPACE_DEV}" -l "app=${SERVICE_NAME}" -o wide
-          echo "::endgroup::"
-
-          for pod in $(kubectl get pods -n "${K8S_NAMESPACE_DEV}" -l "app=${SERVICE_NAME}" -o jsonpath='{.items[*].metadata.name}'); do
-            echo "::group::Describe ${pod}"
-            kubectl describe pod "${pod}" -n "${K8S_NAMESPACE_DEV}"
-            echo "::endgroup::"
-
-            echo "::group::Logs ${pod}"
-            kubectl logs "${pod}" -n "${K8S_NAMESPACE_DEV}" --tail=200
-            echo "::endgroup::"
-
-            echo "::group::Previous logs ${pod}"
-            kubectl logs "${pod}" -n "${K8S_NAMESPACE_DEV}" --previous --tail=200
-            echo "::endgroup::"
-          done
-
-      - name: Fail when rollout did not complete
-        if: ${{ steps.rollout.outcome == 'failure' }}
-        shell: bash
-        run: |
-          echo "::error::Rollout did not complete successfully for deployment '${SERVICE_NAME}' in namespace '${K8S_NAMESPACE_DEV}'."
-          exit 1
 
       - name: Verify service response (port-forward)
         shell: bash
@@ -600,10 +527,5 @@ jobs:
           }
 
           trap cleanup EXIT
-
           sleep 5
-
-          if ! curl -f "http://localhost:8080${HEALTHCHECK_PATH}"; then
-            echo "::error::Service '${SERVICE_NAME}' did not respond correctly on endpoint '${HEALTHCHECK_PATH}'."
-            exit 1
-          fi
+          curl -f "http://localhost:8080${HEALTHCHECK_PATH}"

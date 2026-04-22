@@ -59,6 +59,10 @@ jobs:
             working_directory: Infraestructura/terraform/stacks/ec2
             tfvars_file: ../../environments/dev/ec2/dev.tfvars
             backend_config: ../../environments/dev/ec2/backend.tfvars
+          - name: frontends
+            working_directory: Infraestructura/terraform/stacks/frontends
+            tfvars_file: ../../environments/dev/frontends/dev.tfvars
+            backend_config: ""
 
     defaults:
       run:

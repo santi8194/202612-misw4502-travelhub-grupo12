@@ -58,6 +58,17 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 
+## Deployment
+
+The application is deployed using AWS S3 and CloudFront. 
+
+The deployment is fully automated via GitHub Actions (`frontend-cd.yml`). When code is pushed or merged into the `develop` or `main` branches, the pipeline automatically:
+1. Installs dependencies and builds the project via `npm run build`.
+2. Syncs the compiled output located in `dist/user-web/browser/` to the designated S3 bucket using `aws s3 sync`.
+3. Triggers a cache invalidation on the corresponding CloudFront distribution to serve the latest version immediately.
+
+The Terraform infrastructure for these resources is defined in `Infraestructura/terraform/stacks/frontends`.
+
 ---
 
 ## 🏛 Arquitectura y Reglas del Proyecto (TravelHub)

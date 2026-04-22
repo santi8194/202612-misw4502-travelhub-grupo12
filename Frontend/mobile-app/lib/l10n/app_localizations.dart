@@ -403,6 +403,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PRICE BREAKDOWN'**
   String get priceBreakdownTitle;
+
+  /// No description provided for @profileVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version: {version}'**
+  String profileVersion(String version);
 }
 
 class _AppLocalizationsDelegate

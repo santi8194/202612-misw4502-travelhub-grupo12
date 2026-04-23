@@ -8,8 +8,25 @@ from typing import Any
 import pika
 from fastapi import FastAPI, Header, HTTPException, Request
 
-from models import CreatePaymentRequest, PaymentResponse
-from wompi_client import build_checkout_data, map_wompi_status, verify_event
+from models import (
+    AcceptanceTokensResponse,
+    CardTokenizationRequest,
+    CardTokenizationResponse,
+    CreateCardPaymentRequest,
+    CreatePaymentRequest,
+    PaymentResponse,
+)
+from wompi_client import (
+    WompiAPIError,
+    build_checkout_data,
+    create_card_transaction,
+    create_payment_source,
+    fetch_acceptance_tokens,
+    fetch_transaction,
+    map_wompi_status,
+    tokenize_card,
+    verify_event,
+)
 
 SERVICE_NAME = "payment"
 FINAL_STATES = {"APPROVED", "REJECTED", "CANCELLED"}
@@ -32,6 +49,11 @@ def health() -> dict[str, str]:
     return {"status": healthcheck(), "service": SERVICE_NAME}
 
 
+@app.get("/payments/acceptance-tokens", response_model=AcceptanceTokensResponse)
+def get_acceptance_tokens() -> dict[str, Any]:
+    return handle_wompi_call(fetch_acceptance_tokens)
+
+
 @app.post("/payments", response_model=PaymentResponse, status_code=201)
 def create_payment(request: CreatePaymentRequest) -> dict[str, Any]:
     id_pago = str(uuid.uuid4())
@@ -49,6 +71,12 @@ def create_payment(request: CreatePaymentRequest) -> dict[str, Any]:
         "monto": request.monto,
         "moneda": currency,
         "wompi_transaction_id": None,
+        "payment_source_id": None,
+        "payment_method_type": "CHECKOUT",
+        "customer_email": None,
+        "status_message": "Pendiente de confirmación por checkout",
+        "card_brand": None,
+        "card_last_four": None,
         "checkout": checkout,
         "created_at": now,
         "updated_at": now,
@@ -57,6 +85,78 @@ def create_payment(request: CreatePaymentRequest) -> dict[str, Any]:
 
     payments_by_id[id_pago] = payment
     payment_id_by_reference[reference] = id_pago
+    return payment
+
+
+@app.post("/payments/cards/tokenize", response_model=CardTokenizationResponse)
+def tokenize_card_payment_method(request: CardTokenizationRequest) -> dict[str, Any]:
+    return handle_wompi_call(tokenize_card, request.model_dump())
+
+
+@app.post("/payments/cards", response_model=PaymentResponse, status_code=201)
+def create_card_payment(request: CreateCardPaymentRequest, http_request: Request) -> dict[str, Any]:
+    id_pago = str(uuid.uuid4())
+    reference = f"PAY-{id_pago}"
+    amount_in_cents = int(round(request.monto * 100))
+    currency = request.moneda.upper()
+
+    payment_source_id = request.payment_source_id
+    if payment_source_id is None:
+        source_payload = handle_wompi_call(
+            create_payment_source,
+            card_token=request.card_token or "",
+            customer_email=request.customer_email,
+            acceptance_token=request.acceptance_token,
+            accept_personal_auth=request.accept_personal_auth,
+        )
+        payment_source_id = source_payload.get("data", {}).get("id")
+        if payment_source_id is None:
+            raise HTTPException(status_code=502, detail="Wompi no retornó un payment_source_id válido")
+
+    transaction_payload = handle_wompi_call(
+        create_card_transaction,
+        amount_in_cents=amount_in_cents,
+        currency=currency,
+        customer_email=request.customer_email,
+        acceptance_token=request.acceptance_token,
+        accept_personal_auth=request.accept_personal_auth,
+        reference=reference,
+        payment_source_id=payment_source_id,
+        installments=request.installments,
+        redirect_url=request.redirect_url,
+        ip_address=extract_client_ip(http_request),
+        recurrent=request.recurrent,
+    )
+
+    transaction = transaction_payload.get("data", {})
+    transaction_state = map_wompi_status(transaction.get("status"))
+    now = utc_now()
+    payment = {
+        "id_pago": id_pago,
+        "id_reserva": request.id_reserva,
+        "referencia": reference,
+        "estado": transaction_state,
+        "monto": request.monto,
+        "moneda": currency,
+        "wompi_transaction_id": transaction.get("id"),
+        "payment_source_id": payment_source_id,
+        "payment_method_type": transaction.get("payment_method_type", "CARD"),
+        "customer_email": request.customer_email,
+        "status_message": transaction.get("status_message"),
+        "card_brand": transaction.get("payment_method", {}).get("brand"),
+        "card_last_four": transaction.get("payment_method", {}).get("last_four"),
+        "checkout": None,
+        "created_at": now,
+        "updated_at": now,
+        "event_published": False,
+    }
+
+    payments_by_id[id_pago] = payment
+    payment_id_by_reference[reference] = id_pago
+
+    if transaction_state in {"APPROVED", "REJECTED"}:
+        maybe_publish_final_event(payment)
+
     return payment
 
 
@@ -71,6 +171,11 @@ def get_payment(id_pago: str) -> dict[str, Any]:
     if not payment:
         raise HTTPException(status_code=404, detail="Pago no encontrado")
     return payment
+
+
+@app.get("/payments/transactions/{transaction_id}")
+def get_transaction_status(transaction_id: str) -> dict[str, Any]:
+    return handle_wompi_call(fetch_transaction, transaction_id)
 
 
 @app.post("/webhook")
@@ -108,6 +213,8 @@ async def receive_webhook(
 
     payment["estado"] = new_status
     payment["wompi_transaction_id"] = transaction.get("id")
+    payment["payment_method_type"] = transaction.get("payment_method_type", payment.get("payment_method_type"))
+    payment["status_message"] = transaction.get("status_message", payment.get("status_message"))
     payment["updated_at"] = utc_now()
 
     if new_status in {"APPROVED", "REJECTED"}:
@@ -164,3 +271,23 @@ def publish_payment_event(payment: dict[str, Any], event_type: str, routing_key:
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def extract_client_ip(request: Request) -> str | None:
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+
+    if request.client:
+        return request.client.host
+
+    return None
+
+
+def handle_wompi_call(func: Any, *args: Any, **kwargs: Any) -> dict[str, Any]:
+    try:
+        return func(*args, **kwargs)
+    except ValueError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except WompiAPIError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc

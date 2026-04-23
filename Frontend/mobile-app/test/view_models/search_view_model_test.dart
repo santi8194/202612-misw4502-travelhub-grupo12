@@ -90,9 +90,9 @@ class MockConnectivityService extends ConnectivityService {
       StreamController<bool>.broadcast();
   bool _mockOnline;
 
-  MockConnectivityService({bool online = true})
+  MockConnectivityService({super.online = true})
     : _mockOnline = online,
-      super.test(online: online);
+      super.test();
 
   @override
   bool get isOnline => _mockOnline;

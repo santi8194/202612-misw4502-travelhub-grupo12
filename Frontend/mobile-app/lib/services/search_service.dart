@@ -61,7 +61,7 @@ class SearchService {
 
     // Try network first
     try {
-      final uri = Uri.parse('$baseUrl/api/v1/search').replace(
+      final uri = Uri.parse('$baseUrl/search/api/v1/search').replace(
         queryParameters: {
           'ciudad': ciudad,
           'pais': pais,
@@ -163,7 +163,7 @@ class SearchService {
     // Try network first
     try {
       final uri = Uri.parse(
-        '$baseUrl/api/v1/search/destinations',
+        '$baseUrl/search/api/v1/search/destinations',
       ).replace(queryParameters: {'q': query});
 
       final response = await _httpClient

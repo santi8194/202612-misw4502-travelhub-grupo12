@@ -144,7 +144,7 @@ void main() {
     });
   });
 
-  Widget _buildTestableWidget(SearchViewModel viewModel) {
+  Widget buildTestableWidget(SearchViewModel viewModel) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<SearchViewModel>.value(value: viewModel),
@@ -182,7 +182,7 @@ void main() {
     viewModel.updateDestinationQuery('Empty Place');
     await viewModel.performSearch();
 
-    await tester.pumpWidget(_buildTestableWidget(viewModel));
+    await tester.pumpWidget(buildTestableWidget(viewModel));
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.search_off_rounded), findsOneWidget);
@@ -217,7 +217,7 @@ void main() {
     viewModel.updateDestinationQuery('Some Place');
     await viewModel.performSearch();
 
-    await tester.pumpWidget(_buildTestableWidget(viewModel));
+    await tester.pumpWidget(buildTestableWidget(viewModel));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 

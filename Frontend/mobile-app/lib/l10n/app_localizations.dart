@@ -404,6 +404,12 @@ abstract class AppLocalizations {
   /// **'PRICE BREAKDOWN'**
   String get priceBreakdownTitle;
 
+  /// No description provided for @profileVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version: {version}'**
+  String profileVersion(String version);
+
   /// No description provided for @nightsLabel.
   ///
   /// In en, this message translates to:

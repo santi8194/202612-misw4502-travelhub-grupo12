@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:travel_hub/main.dart';
+import 'package:travel_hub/services/connectivity_service.dart';
 import 'package:travel_hub/view_models/login_view_model.dart';
 import 'package:travel_hub/view_models/register_view_model.dart';
 import 'package:travel_hub/view_models/search_view_model.dart';
-import 'package:travel_hub/services/connectivity_service.dart';
 
 void main() {
   testWidgets('App starts at home view', (WidgetTester tester) async {

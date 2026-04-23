@@ -265,7 +265,7 @@ class _BusquedaViewState extends State<BusquedaView> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 20,
                       offset: const Offset(0, 4),
                     ),
@@ -475,7 +475,9 @@ class _BusquedaViewState extends State<BusquedaView> {
                               )
                             : const Icon(Icons.search),
                         label: Text(
-                          vm.isSearching ? l10n.searchingButton : l10n.searchButton,
+                          vm.isSearching
+                              ? l10n.searchingButton
+                              : l10n.searchButton,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

@@ -175,6 +175,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get priceBreakdownTitle => 'DESGLOSE DE PRECIOS';
 
   @override
+  String profileVersion(String version) {
+    return 'Versión: $version';
+  }
+
+  @override
   String nightsLabel(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

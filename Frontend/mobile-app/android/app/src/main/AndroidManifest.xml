@@ -3,6 +3,7 @@
 
     <application
         android:label="travel_hub"
+        android:usesCleartextTraffic="true"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">

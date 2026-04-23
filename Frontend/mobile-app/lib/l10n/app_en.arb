@@ -64,6 +64,14 @@
   "cardEnding": "Visa ending in •••• 4242",
   "tripDetailsTitle": "TRIP DETAILS",
   "priceBreakdownTitle": "PRICE BREAKDOWN",
+  "profileVersion": "Version: {version}",
+  "@profileVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "nightsLabel": "{count, plural, =1{1 night} other{{count} nights}}",
   "@nightsLabel": {
     "placeholders": {

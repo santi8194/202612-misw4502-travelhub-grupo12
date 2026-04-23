@@ -176,6 +176,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get priceBreakdownTitle => 'PRICE BREAKDOWN';
 
   @override
+  String profileVersion(String version) {
+    return 'Version: $version';
+  }
+
+  @override
   String nightsLabel(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

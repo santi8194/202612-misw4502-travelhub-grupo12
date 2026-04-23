@@ -16,6 +16,8 @@ __pycache__/
 .env
 .env.*
 !Infraestructura/docker/.env.local.example
+!Infraestructura/docker/.env.local.sqlite.example
+!Infraestructura/docker/.env.local.rds.example
 
 #mobile
 .angular/

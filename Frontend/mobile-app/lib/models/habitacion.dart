@@ -5,6 +5,7 @@ class Habitacion {
   final List<String> amenities;
   final bool isSpecialOffer;
   final double price;
+  final String? categoryId;
 
   Habitacion({
     required this.imageUrl,
@@ -13,6 +14,7 @@ class Habitacion {
     required this.amenities,
     required this.price,
     this.isSpecialOffer = false,
+    this.categoryId,
   });
 
   factory Habitacion.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Habitacion {
       amenities: List<String>.from(json['amenities'] ?? []),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       isSpecialOffer: json['isSpecialOffer'] as bool? ?? false,
+      categoryId: json['categoryId'] as String?,
     );
   }
 
@@ -34,6 +37,7 @@ class Habitacion {
       'amenities': amenities,
       'price': price,
       'isSpecialOffer': isSpecialOffer,
+      'categoryId': categoryId,
     };
   }
 }

@@ -51,11 +51,7 @@ class _ResultadosViewState extends State<ResultadosView> {
               child: CircularProgressIndicator(strokeWidth: 2.5),
             )
           else
-            Icon(
-              Icons.hotel_outlined,
-              size: 42,
-              color: Colors.grey.shade500,
-            ),
+            Icon(Icons.hotel_outlined, size: 42, color: Colors.grey.shade500),
           const SizedBox(height: 12),
           Text(
             'Imagen no disponible',
@@ -350,7 +346,9 @@ class _ResultadosViewState extends State<ResultadosView> {
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 ConfirmReservationView(
-                                                  room: hotel,
+                                                  location: hotel.location,
+                                                  categoryId:
+                                                      hotel.categoryId ?? '',
                                                   dateRange: dateRange,
                                                   guests: vm.guestCount,
                                                 ),

@@ -71,7 +71,18 @@
         "type": "String"
       }
     }
-  }
+  },
+  "nightsLabel": "{count, plural, =1{1 noche} other{{count} noches}}",
+  "@nightsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileTitleView": "Perfil",
+  "countryLabel": "País",
+  "countryNotSet": "Sin definir"
 }
 
 

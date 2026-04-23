@@ -85,6 +85,7 @@ class SearchService {
                 amenities: List<String>.from(j['amenidades_destacadas'] ?? []),
                 price: (j['precio_por_noche'] as num?)?.toDouble() ?? 0.0,
                 isSpecialOffer: false,
+                categoryId: j['id_categoria'] as String?,
               ),
             )
             .toList();

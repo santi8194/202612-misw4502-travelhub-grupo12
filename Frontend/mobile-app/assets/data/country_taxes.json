@@ -1,0 +1,86 @@
+{
+  "Colombia": {
+    "currency": "COP",
+    "currencySymbol": "$",
+    "locale": "es_CO",
+    "decimals": 0,
+    "usdRate": 4200.0,
+    "tax": {
+      "name": "IVA",
+      "rate": 0.19,
+      "note": "Precio incluye IVA del 19% según el Estatuto Tributario colombiano (Art. 468) y cargo por servicio."
+    }
+  },
+  "Perú": {
+    "currency": "PEN",
+    "currencySymbol": "S/",
+    "locale": "es_PE",
+    "decimals": 2,
+    "usdRate": 3.75,
+    "tax": {
+      "name": "IGV",
+      "rate": 0.18,
+      "note": "Precio incluye IGV del 18% conforme al Decreto Legislativo 821 de Perú y cargo por servicio."
+    }
+  },
+  "Ecuador": {
+    "currency": "USD",
+    "currencySymbol": "$",
+    "locale": "en_US",
+    "decimals": 2,
+    "usdRate": 1.0,
+    "tax": {
+      "name": "IVA",
+      "rate": 0.15,
+      "note": "Precio incluye IVA del 15% según la Ley de Régimen Tributario Interno de Ecuador y cargo por servicio."
+    }
+  },
+  "México": {
+    "currency": "MXN",
+    "currencySymbol": "$",
+    "locale": "es_MX",
+    "decimals": 2,
+    "usdRate": 17.0,
+    "tax": {
+      "name": "IVA",
+      "rate": 0.16,
+      "note": "Precio incluye IVA del 16% según la Ley del Impuesto al Valor Agregado de México y cargo por servicio."
+    }
+  },
+  "Chile": {
+    "currency": "CLP",
+    "currencySymbol": "$",
+    "locale": "es_CL",
+    "decimals": 0,
+    "usdRate": 950.0,
+    "tax": {
+      "name": "IVA",
+      "rate": 0.19,
+      "note": "Precio incluye IVA del 19% según el Decreto Ley 825 de Chile y cargo por servicio."
+    }
+  },
+  "Argentina": {
+    "currency": "USD",
+    "currencySymbol": "$",
+    "locale": "en_US",
+    "decimals": 2,
+    "usdRate": 1.0,
+    "tax": {
+      "name": "IVA",
+      "rate": 0.21,
+      "note": "Precio incluye IVA del 21% según la Ley 23.349 de Argentina y cargo por servicio."
+    }
+  },
+  "Estados Unidos": {
+    "currency": "USD",
+    "currencySymbol": "$",
+    "locale": "en_US",
+    "decimals": 2,
+    "usdRate": 1.0,
+    "tax": {
+      "name": "Hotel Tax",
+      "rate": 0.12,
+      "note": "Price includes estimated hotel taxes of ~12% (rates vary by state and city) and service charges."
+    }
+  }
+}

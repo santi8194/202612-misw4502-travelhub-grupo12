@@ -68,6 +68,12 @@ class PropertyRepository:
 					capacidad_pax=categoria.capacidad_pax,
 					dias_anticipacion=categoria.politica_cancelacion.dias_anticipacion,
 					porcentaje_penalidad=categoria.politica_cancelacion.porcentaje_penalidad,
+					tarifa_fin_de_semana_monto=categoria.tarifa_fin_de_semana.monto if categoria.tarifa_fin_de_semana else None,
+					tarifa_fin_de_semana_moneda=categoria.tarifa_fin_de_semana.moneda if categoria.tarifa_fin_de_semana else None,
+					tarifa_fin_de_semana_cargo_servicio=categoria.tarifa_fin_de_semana.cargo_servicio if categoria.tarifa_fin_de_semana else None,
+					tarifa_temporada_alta_monto=categoria.tarifa_temporada_alta.monto if categoria.tarifa_temporada_alta else None,
+					tarifa_temporada_alta_moneda=categoria.tarifa_temporada_alta.moneda if categoria.tarifa_temporada_alta else None,
+					tarifa_temporada_alta_cargo_servicio=categoria.tarifa_temporada_alta.cargo_servicio if categoria.tarifa_temporada_alta else None,
 				)
 
 				for media in categoria.media:
@@ -372,6 +378,23 @@ class PropertyRepository:
 			for a in cat_model.amenidades
 		]
 
+		# Reconstruir tarifas diferenciadas (nullable)
+		tarifa_fin_de_semana = None
+		if cat_model.tarifa_fin_de_semana_monto is not None:
+			tarifa_fin_de_semana = VODinero(
+				monto=cat_model.tarifa_fin_de_semana_monto,
+				moneda=cat_model.tarifa_fin_de_semana_moneda,
+				cargo_servicio=cat_model.tarifa_fin_de_semana_cargo_servicio or Decimal("0"),
+			)
+
+		tarifa_temporada_alta = None
+		if cat_model.tarifa_temporada_alta_monto is not None:
+			tarifa_temporada_alta = VODinero(
+				monto=cat_model.tarifa_temporada_alta_monto,
+				moneda=cat_model.tarifa_temporada_alta_moneda,
+				cargo_servicio=cat_model.tarifa_temporada_alta_cargo_servicio or Decimal("0"),
+			)
+
 		return CategoriaHabitacion(
 			# id_categoria ya es UUID nativo (PgUUID(as_uuid=True) lo retorna como UUID)
 			id_categoria=cat_model.id_categoria,
@@ -384,6 +407,8 @@ class PropertyRepository:
 			media=media_list,
 			amenidades=amenidades_list,
 			inventario=inventario_list,
+			tarifa_fin_de_semana=tarifa_fin_de_semana,
+			tarifa_temporada_alta=tarifa_temporada_alta,
 		)
 
 	def _model_to_entity_con_resenas(self, propiedad_model: PropiedadModel) -> Propiedad:

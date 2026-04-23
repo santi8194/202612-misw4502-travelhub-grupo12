@@ -68,7 +68,8 @@ class ConfirmReservationView extends StatelessWidget {
           final nights = dateRange.duration.inDays;
 
           // Delegate all price/currency computation to the ViewModel
-          final fallbackCurrency = (Localizations.localeOf(context).languageCode == 'es')
+          final fallbackCurrency =
+              (Localizations.localeOf(context).languageCode == 'es')
               ? l10n.currencyCodeCOP
               : l10n.currencyCodeUSD;
           final breakdown = viewModel.computePriceBreakdown(
@@ -127,7 +128,10 @@ class ConfirmReservationView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: bodyPadding, vertical: bodyPadding * 0.6),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: bodyPadding,
+                    vertical: bodyPadding * 0.6,
+                  ),
                   child: SizedBox(
                     width: double.infinity,
                     height: buttonHeight,
@@ -422,7 +426,7 @@ class ConfirmReservationView extends StatelessWidget {
             breakdown.fmtTaxesAndCharges,
             fontSize: priceFontSize,
           ),
-          
+
           SizedBox(height: spacing * 0.6),
           Divider(height: 1.5, color: Colors.grey.shade300),
           SizedBox(height: spacing * 0.6),
@@ -432,7 +436,8 @@ class ConfirmReservationView extends StatelessWidget {
             isBold: true,
             fontSize: priceFontSize,
           ),
-          if (breakdown.taxNote != null) ...[            SizedBox(height: spacing * 0.6),
+          if (breakdown.taxNote != null) ...[
+            SizedBox(height: spacing * 0.6),
             Text(
               breakdown.taxNote!,
               style: TextStyle(
@@ -544,6 +549,7 @@ class ConfirmReservationView extends StatelessWidget {
       ],
     );
   }
+
   Widget _priceRow(
     String title,
     String value, {

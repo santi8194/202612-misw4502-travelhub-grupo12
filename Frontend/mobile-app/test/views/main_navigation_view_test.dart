@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
 import 'package:travel_hub/services/connectivity_service.dart';
 import 'package:travel_hub/view_models/search_view_model.dart';
+import 'package:travel_hub/view_models/user_preferences_view_model.dart';
 import 'package:travel_hub/views/main_navigation_view.dart';
 
 class MockSearchViewModel extends Mock implements SearchViewModel {}
@@ -40,6 +41,9 @@ void main() {
             value: mockConnectivity,
           ),
           ChangeNotifierProvider<SearchViewModel>.value(value: mockSearchVM),
+          ChangeNotifierProvider<UserPreferencesViewModel>(
+            create: (_) => UserPreferencesViewModel(),
+          ),
         ],
         child: const MaterialApp(
           localizationsDelegates: [

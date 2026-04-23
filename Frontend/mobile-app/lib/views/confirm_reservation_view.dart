@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/categoria_habitacion.dart';
 import '../models/country_tax.dart';
+import '../services/catalog_service.dart';
 import '../view_models/confirm_reservation_view_model.dart';
 import '../view_models/user_preferences_view_model.dart';
 import '../widgets/app_bottom_nav_bar.dart';
@@ -14,6 +15,7 @@ class ConfirmReservationView extends StatelessWidget {
   final String categoryId;
   final DateTimeRange dateRange;
   final int guests;
+  final CatalogService? catalogService;
 
   const ConfirmReservationView({
     super.key,
@@ -21,6 +23,7 @@ class ConfirmReservationView extends StatelessWidget {
     required this.categoryId,
     required this.dateRange,
     required this.guests,
+    this.catalogService,
   });
 
   @override
@@ -31,6 +34,7 @@ class ConfirmReservationView extends StatelessWidget {
         categoryId: categoryId,
         selectedDateRange: dateRange,
         guests: guests,
+        catalogService: catalogService,
       ),
       child: Consumer<ConfirmReservationViewModel>(
         builder: (context, viewModel, child) {

@@ -1,0 +1,83 @@
+.details-card {
+  width: calc(100% - (2 * var(--content-side-margin)));
+  max-width: calc(var(--content-max-width) - (2 * var(--content-side-margin)));
+  margin: 0 auto;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: clamp(22px, 2vw, 32px);
+}
+
+.card-title {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field-wrap {
+  margin-bottom: 14px;
+}
+
+.field-full {
+  width: 100%;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.field-input,
+.field-textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: #111827;
+  box-sizing: border-box;
+}
+
+.field-textarea {
+  min-height: 132px;
+  resize: vertical;
+}
+
+.pay-btn {
+  width: 100%;
+  border: 0;
+  margin-top: 6px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #1e3a8a;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pay-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .details-card {
+    padding: 18px;
+  }
+}

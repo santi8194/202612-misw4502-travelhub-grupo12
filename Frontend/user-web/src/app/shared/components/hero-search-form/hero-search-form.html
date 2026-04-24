@@ -1,0 +1,107 @@
+<form class="hero-search" data-testid="hero-search-form" (ngSubmit)="onSearch()">
+
+  <div class="search-field relative">
+    <label class="search-field-label" for="location">Ubicación</label>
+    <input
+      id="location"
+      name="location"
+      class="search-field-input"
+      type="text"
+      placeholder="¿A dónde vamos?"
+      autocomplete="off"
+      [ngModel]="form().location"
+      (ngModelChange)="onLocationInput($event)"
+      data-testid="input-location"
+    />
+
+    @if (suggestions().length > 0) {
+      <ul class="suggestions-dropdown" data-testid="suggestions-dropdown">
+        @for (dest of suggestions(); track dest.ciudad) {
+          <li class="suggestion-item" (click)="selectDestination(dest)" data-testid="suggestion-item">
+            <span class="suggestion-city">{{ dest.ciudad }}</span>
+            <span class="suggestion-detail">{{ dest.estado_provincia ? dest.estado_provincia + ', ' : '' }}{{ dest.pais }}</span>
+          </li>
+        }
+      </ul>
+    }
+    @if (formErrors().location) {
+      <div class="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-md absolute top-full left-4 mt-2 z-10 whitespace-nowrap after:content-[''] after:absolute after:bottom-full after:left-4 after:-ml-1 after:border-[5px] after:border-transparent after:border-b-red-600 pointer-events-none">
+        Introduce un destino
+      </div>
+    }
+  </div>
+
+  <div class="search-divider" aria-hidden="true"></div>
+
+  <div class="search-field relative">
+    <label class="search-field-label" for="checkin">Ingreso</label>
+    <input
+      id="checkin"
+      name="checkin"
+      class="search-field-input"
+      type="date"
+      [ngModel]="form().checkIn"
+      (ngModelChange)="updateField('checkIn', $event)"
+      [min]="minCheckInDate()"
+      [max]="maxDate()"
+      data-testid="input-checkin"
+    />
+    @if (formErrors().dates && !form().checkIn) {
+      <div class="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-md absolute top-full left-4 mt-2 z-10 whitespace-nowrap after:content-[''] after:absolute after:bottom-full after:left-4 after:-ml-1 after:border-[5px] after:border-transparent after:border-b-red-600 pointer-events-none">
+        Selecciona ingreso
+      </div>
+    }
+  </div>
+
+  <div class="search-divider" aria-hidden="true"></div>
+
+  <div class="search-field relative">
+    <label class="search-field-label" for="checkout">Salida</label>
+    <input
+      id="checkout"
+      name="checkout"
+      class="search-field-input"
+      type="date"
+      [ngModel]="form().checkOut"
+      (ngModelChange)="updateField('checkOut', $event)"
+      [min]="minCheckOutDate()"
+      [max]="maxDate()"
+      data-testid="input-checkout"
+    />
+    @if (formErrors().dates && !form().checkOut) {
+      <div class="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-md absolute top-full left-4 mt-2 z-10 whitespace-nowrap after:content-[''] after:absolute after:bottom-full after:left-4 after:-ml-1 after:border-[5px] after:border-transparent after:border-b-red-600 pointer-events-none">
+        Selecciona salida
+      </div>
+    }
+  </div>
+
+  <div class="search-divider" aria-hidden="true"></div>
+
+  <div class="search-field relative">
+    <label class="search-field-label" for="guests">Huéspedes</label>
+    <div class="flex items-center gap-4 mt-1">
+      <button 
+        type="button" 
+        class="guest-btn" 
+        (click)="decreaseGuests()">−</button>
+      <span class="font-medium text-gray-700 min-w-[20px] text-center" data-testid="guests-value">{{ form().guests || 0 }}</span>
+      <button 
+        type="button" 
+        class="guest-btn" 
+        (click)="increaseGuests()">+</button>
+    </div>
+    @if (formErrors().guests) {
+      <div class="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-md absolute top-full left-4 mt-2 z-10 whitespace-nowrap after:content-[''] after:absolute after:bottom-full after:left-4 after:-ml-1 after:border-[5px] after:border-transparent after:border-b-red-600 pointer-events-none">
+        Mínimo 1 huésped
+      </div>
+    }
+  </div>
+
+  <button type="submit" class="search-btn" data-testid="btn-search" aria-label="Buscar">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.9"/>
+      <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+</form>

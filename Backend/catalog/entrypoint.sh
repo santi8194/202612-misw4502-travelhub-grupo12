@@ -8,6 +8,8 @@ if [ -n "${DB_HOST:-}" ] && [ -n "${DB_PORT:-}" ] && [ -n "${DB_NAME:-}" ] && [ 
   python -m alembic -c /app/alembic.ini upgrade head
 else
   echo "DB_* not fully configured, skipping catalog migrations."
+  echo "Seeding local catalog SQLite data..."
+  python -m modules.catalog.infrastructure.local_seed
 fi
 
 exec uvicorn main:app --host 0.0.0.0 --port 8000

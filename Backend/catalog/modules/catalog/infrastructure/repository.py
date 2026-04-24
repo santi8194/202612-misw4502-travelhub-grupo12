@@ -29,6 +29,25 @@ from modules.catalog.domain.entities import (
 class PropertyRepository:
 	"""Repositorio para persistencia del agregado Propiedad."""
 
+	@staticmethod
+	def _parse_tipo_media(raw_tipo: str) -> TipoMedia:
+		"""Convierte valores legacy de BD a TipoMedia del dominio."""
+		normalized = (raw_tipo or "").strip().upper()
+		legacy_map = {
+			"IMAGEN": TipoMedia.IMAGEN_GALERIA,
+			"FOTO": TipoMedia.FOTO_PORTADA,
+			"PORTADA": TipoMedia.FOTO_PORTADA,
+			"GALLERY": TipoMedia.IMAGEN_GALERIA,
+		}
+
+		if normalized in legacy_map:
+			return legacy_map[normalized]
+
+		try:
+			return TipoMedia(normalized)
+		except ValueError:
+			return TipoMedia.IMAGEN_GALERIA
+
 	def save(self, propiedad: Propiedad) -> None:
 		"""
 		Guarda una propiedad en el repositorio.
@@ -356,7 +375,7 @@ class PropertyRepository:
 			Media(
 				id_media=media_model.id_media,
 				url_full=media_model.url_full,
-				tipo=TipoMedia(media_model.tipo),
+				tipo=self._parse_tipo_media(media_model.tipo),
 				orden=media_model.orden,
 			)
 			for media_model in sorted(cat_model.media, key=lambda m: m.orden)

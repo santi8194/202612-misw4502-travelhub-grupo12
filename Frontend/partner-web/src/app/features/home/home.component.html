@@ -203,7 +203,7 @@
             </article>
 
             <div class="prices-room-table">
-                <app-precios-por-habitacion (validityChange)="pricingHasErrors = !$event"></app-precios-por-habitacion>
+                <app-precios-por-habitacion [idPropiedad]="user?.partner_id ?? null" (validityChange)="pricingHasErrors = !$event"></app-precios-por-habitacion>
             </div>
         </section>
 

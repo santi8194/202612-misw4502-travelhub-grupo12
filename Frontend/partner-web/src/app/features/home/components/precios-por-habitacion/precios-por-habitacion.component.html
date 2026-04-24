@@ -4,7 +4,27 @@
         <p>{{ 'PRICING_TABLE.SUBTITLE' | translate }}</p>
     </header>
 
-    <div class="tabla-contenido">
+    <!-- Estado de carga -->
+    <div class="tabla-estado" *ngIf="loading">
+        <span class="estado-cargando">{{ 'PRICING_TABLE.LOADING' | translate }}</span>
+    </div>
+
+    <!-- Error al cargar -->
+    <div class="tabla-estado tabla-estado--error" *ngIf="loadError && !loading">
+        <span>{{ 'PRICING_TABLE.LOAD_ERROR' | translate }}</span>
+    </div>
+
+    <!-- Mensaje de éxito al guardar -->
+    <div class="tabla-estado tabla-estado--success" *ngIf="saveSuccess">
+        <span>{{ 'PRICING_TABLE.SAVE_SUCCESS' | translate }}</span>
+    </div>
+
+    <!-- Error al guardar -->
+    <div class="tabla-estado tabla-estado--error" *ngIf="saveError">
+        <span>{{ 'PRICING_TABLE.SAVE_ERROR' | translate }}</span>
+    </div>
+
+    <div class="tabla-contenido" *ngIf="!loading">
         <div class="tabla-encabezado fila-tabla">
             <span>{{ 'PRICING_TABLE.ROOM_TYPE' | translate }}</span>
             <span>{{ 'PRICING_TABLE.BASE_RATE' | translate }}</span>

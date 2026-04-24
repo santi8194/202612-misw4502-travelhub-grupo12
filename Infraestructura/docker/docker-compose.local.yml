@@ -4,12 +4,16 @@ services:
     build:
       context: ../../Backend/authservice
       dockerfile: Dockerfile
+    volumes:
+      - authservice_sqlite_data:/src/data
 
   catalog:
     image: travelhub-local/catalog:dev
     build:
       context: ../../Backend/catalog
       dockerfile: Dockerfile
+    volumes:
+      - catalog_sqlite_data:/app/data
 
   booking:
     image: travelhub-local/booking:dev
@@ -26,12 +30,16 @@ services:
         condition: service_healthy
       rabbitmq-broker:
         condition: service_healthy
+    volumes:
+      - booking_sqlite_data:/src/Booking/instance
 
   search:
     image: travelhub-local/search:dev
     build:
       context: ../../Backend/search
       dockerfile: Dockerfile
+    volumes:
+      - search_sqlite_data:/app/data
 
   rabbitmq-broker:
     image: rabbitmq:3.13-management-alpine
@@ -93,6 +101,8 @@ services:
     restart: unless-stopped
     networks:
       - travelhub-dev-net
+    volumes:
+      - booking_sqlite_data:/src/Booking/instance
 
   notification-api:
     image: travelhub-local/notification:dev
@@ -116,3 +126,9 @@ services:
     restart: unless-stopped
     networks:
       - travelhub-dev-net
+
+volumes:
+  authservice_sqlite_data:
+  catalog_sqlite_data:
+  booking_sqlite_data:
+  search_sqlite_data:

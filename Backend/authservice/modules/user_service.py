@@ -19,6 +19,41 @@ class UserService:
     """
     
     @staticmethod
+    def get_user_by_username(username: str) -> Optional[UserInDB]:
+        """
+        Consulta un usuario utilizando su username de Cognito desde la base de datos.
+
+        Parámetros:
+        - username (str): username del usuario a buscar (campo 'username' del access token de Cognito).
+
+        Retorna:
+        - Optional[UserInDB]: Esquema con datos completos del usuario, o None si no existe.
+        """
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.username == username).first()
+            if not user:
+                logger.warning(f"Usuario no encontrado por username: {username}")
+                return None
+
+            rol = "USER"
+            if user.roles:
+                rol = user.roles[0].name
+
+            return UserInDB(
+                id_usuario=user.id,
+                email=user.email,
+                password_hash=user.password_hash,
+                rol=rol,
+                partner_id=user.partner_id
+            )
+        except Exception as e:
+            logger.error(f"Error al consultar usuario por username {username}: {str(e)}")
+            return None
+        finally:
+            db.close()
+
+    @staticmethod
     def get_user_by_email(email: str) -> Optional[UserInDB]:
         """
         Consulta un usuario utilizando su correo electrónico desde la base de datos.

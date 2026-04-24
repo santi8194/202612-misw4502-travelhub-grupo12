@@ -31,7 +31,7 @@ COPY db/ ./db/
 COPY entrypoint.sh ./entrypoint.sh
 
 # Transferir la propiedad de los archivos al usuario no-root
-RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh && chown -R appuser:appgroup /app
+RUN mkdir -p /app/data && sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh && chown -R appuser:appgroup /app
 
 USER appuser
 

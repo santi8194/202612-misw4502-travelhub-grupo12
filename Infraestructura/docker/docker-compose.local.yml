@@ -1,0 +1,134 @@
+services:
+  authservice:
+    image: travelhub-local/authservice:dev
+    build:
+      context: ../../Backend/authservice
+      dockerfile: Dockerfile
+    volumes:
+      - authservice_sqlite_data:/src/data
+
+  catalog:
+    image: travelhub-local/catalog:dev
+    build:
+      context: ../../Backend/catalog
+      dockerfile: Dockerfile
+    volumes:
+      - catalog_sqlite_data:/app/data
+
+  booking:
+    image: travelhub-local/booking:dev
+    build:
+      context: ../../Backend/booking
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      catalog:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_healthy
+    volumes:
+      - booking_sqlite_data:/src/Booking/instance
+
+  search:
+    image: travelhub-local/search:dev
+    build:
+      context: ../../Backend/search
+      dockerfile: Dockerfile
+    volumes:
+      - search_sqlite_data:/app/data
+
+  rabbitmq-broker:
+    image: rabbitmq:3.13-management-alpine
+    container_name: travelhub-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  redis-db:
+    image: redis:7-alpine
+    container_name: travelhub-redis
+    profiles:
+      - saga
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  booking-saga-worker:
+    image: travelhub-local/booking-saga-worker:dev
+    profiles:
+      - saga
+    build:
+      context: ../../Backend/booking
+      dockerfile: Dockerfile
+    command: python /src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
+    environment:
+      REDIS_HOST: redis-db
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      PYTHONPATH: /src
+      PYTHONUNBUFFERED: "1"
+      DB_HOST: ${BOOKING_DB_HOST}
+      DB_PORT: ${BOOKING_DB_PORT}
+      DB_NAME: ${BOOKING_DB_NAME}
+      DB_USER: ${BOOKING_DB_USER}
+      DB_PASSWORD: ${BOOKING_DB_PASSWORD}
+    depends_on:
+      booking:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_healthy
+      redis-db:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+    volumes:
+      - booking_sqlite_data:/src/Booking/instance
+
+  notification-api:
+    image: travelhub-local/notification:dev
+    profiles:
+      - saga
+    build:
+      context: ../../Backend/notification
+      dockerfile: Dockerfile
+    environment:
+      PORT: 80
+      REDIS_HOST: redis-db
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+      redis-db:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+volumes:
+  authservice_sqlite_data:
+  catalog_sqlite_data:
+  booking_sqlite_data:
+  search_sqlite_data:

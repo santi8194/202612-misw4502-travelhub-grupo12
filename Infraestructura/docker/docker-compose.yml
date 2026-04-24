@@ -5,85 +5,20 @@ services:
     image: nginx:1.27-alpine
     container_name: travelhub-nginx
     ports:
-      - "5001:8000"
-    environment:
-      - CATALOG_SERVICE_URL=http://catalog-api:80/catalog
-      - REDIS_HOST=redis-db
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-      - DB_USER=booking_user
-      - DB_PASSWORD=booking_password
-      - DB_HOST=booking-db
-      - DB_PORT=5432
-      - DB_NAME=booking_db
+      - "${NGINX_PUBLISHED_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      booking-db:
+      authservice:
         condition: service_healthy
-      redis-db:
-        condition: service_started
-      rabbitmq-broker:
-        condition: service_started
-    networks:
-      - microservices-network
-
-  booking-saga-worker:
-    build:
-      context: ../../Backend/booking
-      dockerfile: Dockerfile
-    command: python /src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
-    environment:
-      - REDIS_HOST=redis-db
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-      - PYTHONPATH=/src
-      - PYTHONUNBUFFERED=1
-      - DB_USER=booking_user
-      - DB_PASSWORD=booking_password
-      - DB_HOST=booking-db
-      - DB_PORT=5432
-      - DB_NAME=booking_db
-    depends_on:
-      booking-db:
+      booking:
         condition: service_healthy
-      redis-db:
-        condition: service_started
-      rabbitmq-broker:
-        condition: service_started
-      booking-api:
-        condition: service_started
+      catalog:
+        condition: service_healthy
+      search:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
-      - microservices-network
-
-  notification-api:
-    build:
-      context: ../../Backend/notification
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    environment:
-      - REDIS_HOST=redis-db
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-    depends_on:
-      - redis-db
-      - rabbitmq-broker
-    networks:
-      - microservices-network
-
-  booking-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: booking_user
-      POSTGRES_PASSWORD: booking_password
-      POSTGRES_DB: booking_db
-    ports:
-      - "5432:5432"
       - travelhub-dev-net
 
   authservice:
@@ -136,6 +71,9 @@ services:
       DB_USER: ${BOOKING_DB_USER}
       DB_PASSWORD: ${BOOKING_DB_PASSWORD}
       CATALOG_SERVICE_URL: ${BOOKING_CATALOG_SERVICE_URL}
+    depends_on:
+      catalog:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
       interval: 15s
@@ -165,69 +103,7 @@ services:
     restart: unless-stopped
     networks:
       - travelhub-dev-net
-  auth-api:
-    build:
-      context: ../../Backend/authservice
-      dockerfile: Dockerfile
-    ports:
-      - "8003:8000"
-    networks:
-      - microservices-network
-
-  catalog-api:
-    build:
-      context: ../../Backend/catalog
-      dockerfile: Dockerfile
-    ports:
-      - "8005:80"
-    environment:
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-      - DB_HOST=catalog-db
-      - DB_PORT=5432
-      - DB_NAME=catalog_db
-      - DB_USER=catalog_user
-      - DB_PASSWORD=catalog_password
-    depends_on:
-      - rabbitmq-broker
-      - catalog-db
-    networks:
-      - microservices-network
-
-  catalog-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: catalog_user
-      POSTGRES_PASSWORD: catalog_password
-      POSTGRES_DB: catalog_db
-    ports:
-      - "5434:5432"
-    volumes:
-      - catalog_db_data:/var/lib/postgresql/data
-    networks:
-      - microservices-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U catalog_user -d catalog_db" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  user-web:
-    build:
-      context: ../../Frontend/user-web
-      dockerfile: Dockerfile
-    ports:
-      - "4200:80"
-    networks:
-      - travelhub-dev-net
 
 networks:
   travelhub-dev-net:
     driver: bridge
-
-volumes:
-  booking_db_data:
-  pms_db_data:
-  catalog_db_data:

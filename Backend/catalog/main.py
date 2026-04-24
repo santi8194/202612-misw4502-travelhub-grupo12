@@ -2,7 +2,6 @@ import os
 import threading
 
 from config.app import create_app
-from modules.catalog.infrastructure.database import Base, engine
 from modules.catalog.infrastructure import models
 from modules.catalog.infrastructure.services.consumer import start_consumer
 from data.seed import run_seed
@@ -15,6 +14,7 @@ Base.metadata.create_all(bind=engine)
 run_seed()
 
 ENABLE_EVENTS = os.getenv("ENABLE_EVENTS", "false").lower() == "true"
+
 
 @app.on_event("startup")
 def start_rabbitmq_consumer():

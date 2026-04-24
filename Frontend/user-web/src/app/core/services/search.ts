@@ -9,8 +9,8 @@ import { SearchRequest } from '../../models/search-request.interface';
 @Injectable({ providedIn: 'root' })
 export class SearchService {
   private readonly http = inject(HttpClient);
-  private readonly destinationsUrl = `${environment.apiBaseUrl}/v1/search/destinations`;
-  private readonly searchUrl = `${environment.apiBaseUrl}/v1/search`;
+  private readonly destinationsUrl = `${environment.apiBaseUrl}/search/api/v1/search/destinations`;
+  private readonly searchUrl = `${environment.apiBaseUrl}/search/api/v1/search`;
 
   autocompleteDestinations(query: string): Observable<DestinationResponse> {
     const params = new HttpParams().set('q', query);

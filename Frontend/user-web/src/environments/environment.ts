@@ -1,6 +1,8 @@
+const apiBaseUrl = 'http://localhost:5001';
+
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:8006/api',
-  bookingApiUrl: 'http://localhost:5001/api/reserva',
-  catalogApiUrl: 'http://localhost:8005/catalog',
+  apiBaseUrl,
+  bookingApiUrl: `${apiBaseUrl}/booking/api/reserva`,
+  catalogApiUrl: `${apiBaseUrl}/catalog`,
 };

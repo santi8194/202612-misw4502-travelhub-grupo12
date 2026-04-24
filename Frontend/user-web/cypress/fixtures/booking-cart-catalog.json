@@ -1,0 +1,9 @@
+{
+  "id_propiedad": "propiedad-e2e-001",
+  "nombre": "Hotel Mirador",
+  "propiedad_nombre": "Hotel Mirador",
+  "ciudad": "Cartagena",
+  "pais": "Colombia",
+  "imagen_principal_url": "https://images.example.com/hotel-mirador.jpg",
+  "precio_base": "150"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "email": "admin@sinhotel.com",
+  "full_name": "Admin Sin Hotel",
+  "is_active": true,
+  "partner_id": null,
+  "roles": ["USER"]
+}

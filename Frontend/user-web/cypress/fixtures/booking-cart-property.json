@@ -1,0 +1,8 @@
+{
+  "id_propiedad": "propiedad-e2e-001",
+  "nombre": "Hotel Mirador",
+  "ubicacion": {
+    "ciudad": "Cartagena",
+    "pais": "Colombia"
+  }
+}

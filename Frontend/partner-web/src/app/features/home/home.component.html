@@ -1,0 +1,102 @@
+<app-navbar></app-navbar>
+<div class="home-container">
+
+    <div class="session-card" *ngIf="showSessionInfo">
+        <div class="session-card-header">
+           
+           
+        </div>
+
+        <p class="session-message">
+            Si no registras actividad durante
+            <strong>{{ sessionInfo.idleTimeoutMinutes }} minutos</strong>, la sesión se inactivará automáticamente.
+        </p>
+
+        <p class="session-expiration" *ngIf="sessionExpirationAt">
+            Con la actividad actual, esta sesión se cerrará a las
+            <strong>{{ sessionExpirationAt | date:'HH:mm:ss' }}</strong>.
+        </p>
+
+        <div class="session-metrics">
+            <div class="session-metric">
+                <span class="session-metric-label">Access token</span>
+                <strong>{{ sessionInfo.accessTokenMinutes }} min</strong>
+            </div>
+            <div class="session-metric">
+                <span class="session-metric-label">Inactividad máxima</span>
+                <strong>{{ sessionInfo.idleTimeoutMinutes }} min</strong>
+            </div>
+            <div class="session-metric">
+                <span class="session-metric-label">Refresh token</span>
+                <strong>{{ sessionInfo.refreshTokenDays }} días</strong>
+            </div>
+
+             <button
+                type="button"
+                class="session-close"
+                aria-label="Ocultar información de sesión"
+                (click)="dismissSessionInfo()"
+            >
+                Ocultar
+            </button>
+        </div>
+    </div>
+
+    <div class="lockout-card" *ngIf="showLockoutInfo">
+        <div class="lockout-card-header">
+            <h3 class="lockout-title">Politica de seguridad de acceso</h3>
+            <button
+                type="button"
+                class="lockout-close"
+                aria-label="Ocultar politica de bloqueo"
+                (click)="dismissLockoutInfo()"
+            >
+                Ocultar
+            </button>
+        </div>
+
+        <p class="lockout-message">
+            Si se detectan
+            <strong>{{ lockoutPolicyInfo.maxFailedAttempts }} intentos fallidos</strong>
+            consecutivos, la cuenta se bloqueara temporalmente por
+            <strong>{{ lockoutPolicyInfo.lockoutMinutes }} minutos</strong>
+            para prevenir ataques de fuerza bruta.
+        </p>
+
+        <div class="lockout-metrics">
+            <div class="lockout-metric">
+                <span class="lockout-metric-label">Intentos maximos</span>
+                <strong>{{ lockoutPolicyInfo.maxFailedAttempts }}</strong>
+            </div>
+            <div class="lockout-metric">
+                <span class="lockout-metric-label">Tiempo de desbloqueo</span>
+                <strong>{{ lockoutPolicyInfo.lockoutMinutes }} min</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="welcome-card" *ngIf="!loading && !error && user as currentUser" data-testid="welcome-card">
+        <div class="welcome-icon">🏨</div>
+        <div class="welcome-content">
+            <h2 class="welcome-title" data-testid="welcome-title">¡Bienvenido, {{ currentUser.email }}!</h2>
+            <p class="welcome-subtitle" *ngIf="currentUser.partner_id; else noPartner">
+                Estás gestionando el hotel
+                <span class="partner-badge">{{ currentUser.partner_id }}</span>
+            </p>
+            <ng-template #noPartner>
+                <p class="welcome-subtitle no-partner">
+                    No tienes un hotel asignado aún.
+                </p>
+            </ng-template>
+        </div>
+    </div>
+
+    <div class="welcome-loading" *ngIf="loading" data-testid="welcome-loading">
+        <span>Cargando...</span>
+    </div>
+
+    <div class="welcome-error" *ngIf="error" data-testid="welcome-error">
+        <span>No se pudo cargar la información del usuario.</span>
+    </div>
+
+</div>

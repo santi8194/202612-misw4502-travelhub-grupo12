@@ -2,13 +2,14 @@ from uuid import UUID
 from decimal import Decimal
 from datetime import date
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from .database import SessionLocal
 from .models import (
 	PropiedadModel,
 	CategoriaHabitacionModel,
 	MediaModel,
 	InventarioModel,
+	ResenaModel,
 )
 from modules.catalog.domain.entities import (
 	Propiedad,
@@ -17,6 +18,7 @@ from modules.catalog.domain.entities import (
 	Media,
 	TipoMedia,
 	Amenidad,
+	Resena,
 	Coordenadas,
 	VODireccion,
 	VODinero,
@@ -38,11 +40,13 @@ class PropertyRepository:
 
 		try:
 			# Convertir entidad de dominio a modelo de persistencia
+			# id_propiedad se pasa directamente como UUID nativo (sin convertir a str)
 			propiedad_model = PropiedadModel(
-				id_propiedad=str(propiedad.id_propiedad),
+				id_propiedad=propiedad.id_propiedad,
 				nombre=propiedad.nombre,
 				estrellas=propiedad.estrellas,
 				ciudad=propiedad.ubicacion.ciudad,
+				estado_provincia=propiedad.ubicacion.estado_provincia,
 				pais=propiedad.ubicacion.pais,
 				latitud=propiedad.ubicacion.coordenadas.lat,
 				longitud=propiedad.ubicacion.coordenadas.lng,
@@ -51,9 +55,10 @@ class PropertyRepository:
 
 			# Guardar categorías de habitación
 			for categoria in propiedad.categorias_habitacion:
+				# id_categoria e id_propiedad se pasan directamente como UUID nativo
 				categoria_model = CategoriaHabitacionModel(
 					id_categoria=categoria.id_categoria,
-					id_propiedad=str(propiedad.id_propiedad),
+					id_propiedad=propiedad.id_propiedad,
 					codigo_mapeo_pms=categoria.codigo_mapeo_pms,
 					nombre_comercial=categoria.nombre_comercial,
 					descripcion=categoria.descripcion,
@@ -109,9 +114,16 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
-			propiedad_model = db.query(PropiedadModel).filter(
-				PropiedadModel.id_propiedad == str(id_propiedad)
-			).first()
+			# Cargar amenidades con selectinload para evitar N+1 en la relación M2M
+			propiedad_model = (
+				db.query(PropiedadModel)
+				.options(
+					selectinload(PropiedadModel.categorias_habitacion)
+					.selectinload(CategoriaHabitacionModel.amenidades)
+				)
+				.filter(PropiedadModel.id_propiedad == id_propiedad)
+				.first()
+			)
 
 			if not propiedad_model:
 				return None
@@ -130,7 +142,15 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
-			propiedades_models = db.query(PropiedadModel).all()
+			# Cargar amenidades con selectinload para evitar N+1 en la relación M2M
+			propiedades_models = (
+				db.query(PropiedadModel)
+				.options(
+					selectinload(PropiedadModel.categorias_habitacion)
+					.selectinload(CategoriaHabitacionModel.amenidades)
+				)
+				.all()
+			)
 			return [self._model_to_entity(model) for model in propiedades_models]
 		finally:
 			db.close()
@@ -148,9 +168,18 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
-			categoria_model = db.query(CategoriaHabitacionModel).filter(
-				CategoriaHabitacionModel.id_categoria == id_categoria
-			).first()
+			# Cargar amenidades con selectinload para evitar N+1 en la relación M2M
+			categoria_model = (
+				db.query(CategoriaHabitacionModel)
+				.options(
+					selectinload(CategoriaHabitacionModel.amenidades),
+					joinedload(CategoriaHabitacionModel.propiedad)
+					.selectinload(PropiedadModel.categorias_habitacion)
+					.selectinload(CategoriaHabitacionModel.amenidades),
+				)
+				.filter(CategoriaHabitacionModel.id_categoria == id_categoria)
+				.first()
+			)
 
 			if not categoria_model:
 				return None
@@ -176,9 +205,13 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
-			categoria_model = db.query(CategoriaHabitacionModel).filter(
-				CategoriaHabitacionModel.id_categoria == id_categoria
-			).first()
+			# Cargar amenidades con selectinload para evitar N+1 en la relación M2M
+			categoria_model = (
+				db.query(CategoriaHabitacionModel)
+				.options(selectinload(CategoriaHabitacionModel.amenidades))
+				.filter(CategoriaHabitacionModel.id_categoria == id_categoria)
+				.first()
+			)
 
 			if not categoria_model:
 				return None
@@ -200,8 +233,9 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
+			# Filtrar por UUID nativo directamente sin convertir a str
 			propiedad = db.query(PropiedadModel).filter(
-				PropiedadModel.id_propiedad == str(id_propiedad)
+				PropiedadModel.id_propiedad == id_propiedad
 			).first()
 
 			if not propiedad:
@@ -210,6 +244,50 @@ class PropertyRepository:
 			db.delete(propiedad)
 			db.commit()
 			return True
+		finally:
+			db.close()
+
+	def obtain_view_detail(self, id_categoria: UUID) -> tuple[Propiedad, CategoriaHabitacion] | None:
+		"""
+		Obtiene la propiedad y la categoría con toda la jerarquía en un solo viaje a BD.
+
+		Estrategia de carga anticipada (cero N+1):
+		- CategoriaHabitacion -> media (joinedload)
+		- CategoriaHabitacion -> amenidades (selectinload, M2M via tabla asociativa)
+		- CategoriaHabitacion -> propiedad -> resenas (joinedload + selectinload)
+
+		Args:
+			id_categoria: UUID de la categoría
+
+		Returns:
+			Tupla (Propiedad, CategoriaHabitacion) o None si no se encuentra
+		"""
+		db: Session = SessionLocal()
+		try:
+			categoria_model = (
+				db.query(CategoriaHabitacionModel)
+				.options(
+					# Cargar la propiedad padre y sus reseñas en la misma query
+					joinedload(CategoriaHabitacionModel.propiedad)
+					.selectinload(PropiedadModel.resenas),
+					# Cargar medios de la categoría (relación 1:N)
+					joinedload(CategoriaHabitacionModel.media),
+					# Cargar amenidades (relación M2M via tabla asociativa)
+					selectinload(CategoriaHabitacionModel.amenidades),
+				)
+				.filter(CategoriaHabitacionModel.id_categoria == id_categoria)
+				.first()
+			)
+
+			if not categoria_model:
+				return None
+
+			# Mapear propiedad con reseñas (mapper especializado)
+			propiedad = self._model_to_entity_con_resenas(categoria_model.propiedad)
+			# Reutilizar mapper corregido de categoría (ahora incluye amenidades reales)
+			categoria = self._category_model_to_entity(categoria_model)
+
+			return propiedad, categoria
 		finally:
 			db.close()
 
@@ -223,13 +301,14 @@ class PropertyRepository:
 		Returns:
 			Entidad Propiedad del dominio
 		"""
-		# Reconstruir objeto de valor de ubicación
+		# Reconstruir objeto de valor de ubicación con estado_provincia
 		coordenadas = Coordenadas(
 			lat=propiedad_model.latitud,
 			lng=propiedad_model.longitud,
 		)
 		ubicacion = VODireccion(
 			ciudad=propiedad_model.ciudad,
+			estado_provincia=propiedad_model.estado_provincia,
 			pais=propiedad_model.pais,
 			coordenadas=coordenadas,
 		)
@@ -237,9 +316,9 @@ class PropertyRepository:
 		# Reconstruir categorías de habitación
 		categorias = [self._category_model_to_entity(cat_model) for cat_model in propiedad_model.categorias_habitacion]
 
-		# Crear propiedad
+		# id_propiedad ya es UUID nativo (PgUUID(as_uuid=True) lo retorna como UUID)
 		return Propiedad(
-			id_propiedad=UUID(propiedad_model.id_propiedad),
+			id_propiedad=propiedad_model.id_propiedad,
 			nombre=propiedad_model.nombre,
 			estrellas=propiedad_model.estrellas,
 			ubicacion=ubicacion,
@@ -248,6 +327,11 @@ class PropertyRepository:
 		)
 
 	def _category_model_to_entity(self, cat_model: CategoriaHabitacionModel) -> CategoriaHabitacion:
+		"""Convierte un modelo de categoría a una entidad de dominio.
+
+		Incluye el mapeo de amenidades reales desde la relación M2M.
+		Requiere que las amenidades hayan sido cargadas con eager loading (selectinload).
+		"""
 		precio_base = VODinero(
 			monto=cat_model.precio_base_monto,
 			moneda=cat_model.precio_base_moneda,
@@ -278,7 +362,18 @@ class PropertyRepository:
 			for media_model in sorted(cat_model.media, key=lambda m: m.orden)
 		]
 
+		# Mapear amenidades reales desde la relación M2M (antes era amenidades=[])
+		amenidades_list = [
+			Amenidad(
+				id_amenidad=a.id_amenidad,
+				nombre=a.nombre,
+				icono=a.icono,
+			)
+			for a in cat_model.amenidades
+		]
+
 		return CategoriaHabitacion(
+			# id_categoria ya es UUID nativo (PgUUID(as_uuid=True) lo retorna como UUID)
 			id_categoria=cat_model.id_categoria,
 			codigo_mapeo_pms=cat_model.codigo_mapeo_pms,
 			nombre_comercial=cat_model.nombre_comercial,
@@ -287,6 +382,49 @@ class PropertyRepository:
 			capacidad_pax=cat_model.capacidad_pax,
 			politica_cancelacion=politica,
 			media=media_list,
-			amenidades=[],
+			amenidades=amenidades_list,
 			inventario=inventario_list,
+		)
+
+	def _model_to_entity_con_resenas(self, propiedad_model: PropiedadModel) -> Propiedad:
+		"""Convierte modelo de propiedad a entidad incluyendo reseñas.
+
+		Mapper especializado para el endpoint view-detail donde las reseñas
+		se cargan con eager loading. No incluye categorias_habitacion para
+		evitar trabajo innecesario en esa vista.
+		"""
+		# Reconstruir objeto de valor de ubicación
+		coordenadas = Coordenadas(
+			lat=propiedad_model.latitud,
+			lng=propiedad_model.longitud,
+		)
+		ubicacion = VODireccion(
+			ciudad=propiedad_model.ciudad,
+			estado_provincia=propiedad_model.estado_provincia,
+			pais=propiedad_model.pais,
+			coordenadas=coordenadas,
+		)
+		# Mapear reseñas desde el modelo ORM (cargadas con eager loading)
+		resenas = [
+			Resena(
+				id_resena=r.id_resena,
+				id_propiedad=r.id_propiedad,
+				id_usuario=r.id_usuario,
+				nombre_autor=r.nombre_autor,
+				avatar_url=r.avatar_url,
+				calificacion=r.calificacion,
+				comentario=r.comentario,
+				fecha_creacion=r.fecha_creacion,
+			)
+			for r in propiedad_model.resenas
+		]
+		return Propiedad(
+			id_propiedad=propiedad_model.id_propiedad,
+			nombre=propiedad_model.nombre,
+			estrellas=propiedad_model.estrellas,
+			ubicacion=ubicacion,
+			porcentaje_impuesto=Decimal(str(propiedad_model.porcentaje_impuesto)),
+			# No necesitamos todas las categorías en view-detail, solo la solicitada
+			categorias_habitacion=[],
+			resenas=resenas,
 		)

@@ -6,12 +6,12 @@ import '../view_models/user_preferences_view_model.dart';
 
 const List<String> _kCountries = [
   'Colombia',
+  'USA',
   'Perú',
   'Ecuador',
   'México',
   'Chile',
   'Argentina',
-  'Estados Unidos',
 ];
 
 class ProfileView extends StatelessWidget {

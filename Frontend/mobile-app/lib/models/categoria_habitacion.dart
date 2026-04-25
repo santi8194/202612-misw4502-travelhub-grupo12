@@ -18,6 +18,35 @@ class PrecioBase {
   }
 }
 
+class CategoriaPricing {
+  final String idCategoria;
+  final String nombreComercial;
+  final PrecioBase tarifaBase;
+  final PrecioBase tarifaFinDeSemana;
+  final PrecioBase tarifaTemporadaAlta;
+
+  const CategoriaPricing({
+    required this.idCategoria,
+    required this.nombreComercial,
+    required this.tarifaBase,
+    required this.tarifaFinDeSemana,
+    required this.tarifaTemporadaAlta,
+  });
+
+  factory CategoriaPricing.fromJson(Map<String, dynamic> json) {
+    return CategoriaPricing(
+      idCategoria: json['id_categoria'] as String? ?? '',
+      nombreComercial: json['nombre_comercial'] as String? ?? '',
+      tarifaBase: PrecioBase.fromJson(
+          json['tarifa_base'] as Map<String, dynamic>? ?? {}),
+      tarifaFinDeSemana: PrecioBase.fromJson(
+          json['tarifa_fin_de_semana'] as Map<String, dynamic>? ?? {}),
+      tarifaTemporadaAlta: PrecioBase.fromJson(
+          json['tarifa_temporada_alta'] as Map<String, dynamic>? ?? {}),
+    );
+  }
+}
+
 class PoliticaCancelacion {
   final int diasAnticipacion;
   final String porcentajePenalidad;

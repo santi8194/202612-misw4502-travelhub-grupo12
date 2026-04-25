@@ -38,6 +38,7 @@ class ConfirmReservationViewModel extends ChangeNotifier {
   bool _isConfirming = false;
   String? _errorMessage;
   CategoriaHabitacion? _categoria;
+  CategoriaPricing? _categoriaPricing;
 
   ConfirmReservationViewModel({
     required this.location,
@@ -61,6 +62,22 @@ class ConfirmReservationViewModel extends ChangeNotifier {
 
     try {
       _categoria = await _catalogService.getCategoria(categoryId);
+
+      final resolvedPropertyId = await _catalogService.getPropertyIdByCategory(
+        _categoria!.idCategoria,
+      );
+
+      if (resolvedPropertyId != null && resolvedPropertyId.isNotEmpty) {
+        try {
+          _categoriaPricing = await _catalogService.getCategoryPricing(
+            propertyId: resolvedPropertyId,
+            categoryId: categoryId,
+          );
+        } catch (_) {
+          // Si pricing no responde o no existe configuración, se usa precio base.
+          _categoriaPricing = null;
+        }
+      }
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -87,6 +104,56 @@ class ConfirmReservationViewModel extends ChangeNotifier {
 
   /// Fixed fallback rate COP↔USD when no [CountryTax] config is available.
   static const double _usdToCopFallback = 4200.0;
+
+  static const Set<int> _highSeasonMonths = {1, 6, 7, 12};
+
+  bool _isWeekend(DateTime day) =>
+      day.weekday == DateTime.friday ||
+      day.weekday == DateTime.saturday ||
+      day.weekday == DateTime.sunday;
+
+  bool _isHighSeason(DateTime day) => _highSeasonMonths.contains(day.month);
+
+  bool _rangeMatches(bool Function(DateTime day) predicate) {
+    for (
+      var day = DateTime(
+        selectedDateRange.start.year,
+        selectedDateRange.start.month,
+        selectedDateRange.start.day,
+      );
+      day.isBefore(selectedDateRange.end);
+      day = day.add(const Duration(days: 1))
+    ) {
+      if (predicate(day)) return true;
+    }
+    return false;
+  }
+
+  bool _hasDefinedPrice(PrecioBase price) {
+    final amount = double.tryParse(price.monto);
+    return (amount != null && amount > 0) && price.moneda.isNotEmpty;
+  }
+
+  PrecioBase _resolveNightlyPrice(CategoriaHabitacion category) {
+    final pricing = _categoriaPricing;
+    if (pricing == null) return category.precioBase;
+
+    if (_rangeMatches(_isHighSeason) &&
+        _hasDefinedPrice(pricing.tarifaTemporadaAlta)) {
+      return pricing.tarifaTemporadaAlta;
+    }
+
+    if (_rangeMatches(_isWeekend) &&
+        _hasDefinedPrice(pricing.tarifaFinDeSemana)) {
+      return pricing.tarifaFinDeSemana;
+    }
+
+    if (_hasDefinedPrice(pricing.tarifaBase)) {
+      return pricing.tarifaBase;
+    }
+
+    return category.precioBase;
+  }
 
   double _getUsdRate(String currency, Map<String, CountryTax> taxConfig) {
     if (currency == 'USD') return 1.0;
@@ -135,16 +202,19 @@ class ConfirmReservationViewModel extends ChangeNotifier {
     required String? country,
     required Map<String, CountryTax> taxConfig,
     required String fallbackCurrency,
+    required String localeLanguageCode,
   }) {
     final cat = _categoria;
     if (cat == null) return null;
 
+    final effectivePrice = _resolveNightlyPrice(cat);
+
     final countryTax = country != null ? taxConfig[country] : null;
-    final sourceCurrency = cat.precioBase.moneda;
+    final sourceCurrency = effectivePrice.moneda;
     final displayCurrency = countryTax?.currency ?? fallbackCurrency;
 
-    final pricePerNight = double.tryParse(cat.precioBase.monto) ?? 0.0;
-    final serviceCharge = double.tryParse(cat.precioBase.cargoServicio) ?? 0.0;
+    final pricePerNight = double.tryParse(effectivePrice.monto) ?? 0.0;
+    final serviceCharge = double.tryParse(effectivePrice.cargoServicio) ?? 0.0;
 
     final dispPricePerNight = convertPrice(
       pricePerNight,
@@ -182,7 +252,7 @@ class ConfirmReservationViewModel extends ChangeNotifier {
       ),
       taxLabel: taxLabel,
       fmtTotal: formatPrice(dispTotal, displayCurrency, countryTax),
-      taxNote: countryTax?.tax.note,
+      taxNote: countryTax?.tax.noteForLanguage(localeLanguageCode),
     );
   }
 }

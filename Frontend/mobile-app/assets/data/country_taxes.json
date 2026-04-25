@@ -8,7 +8,10 @@
     "tax": {
       "name": "IVA",
       "rate": 0.19,
-      "note": "Precio incluye IVA del 19% según el Estatuto Tributario colombiano (Art. 468) y cargo por servicio."
+      "note": {
+        "es": "Precio incluye IVA del 19% según el Estatuto Tributario colombiano (Art. 468) y cargo por servicio.",
+        "en": "Price includes 19% VAT under Colombian Tax Statute (Art. 468) and service charges."
+      }
     }
   },
   "Perú": {
@@ -20,7 +23,10 @@
     "tax": {
       "name": "IGV",
       "rate": 0.18,
-      "note": "Precio incluye IGV del 18% conforme al Decreto Legislativo 821 de Perú y cargo por servicio."
+      "note": {
+        "es": "Precio incluye IGV del 18% conforme al Decreto Legislativo 821 de Perú y cargo por servicio.",
+        "en": "Price includes 18% IGV under Peru's Legislative Decree 821 and service charges."
+      }
     }
   },
   "Ecuador": {
@@ -32,7 +38,10 @@
     "tax": {
       "name": "IVA",
       "rate": 0.15,
-      "note": "Precio incluye IVA del 15% según la Ley de Régimen Tributario Interno de Ecuador y cargo por servicio."
+      "note": {
+        "es": "Precio incluye IVA del 15% según la Ley de Régimen Tributario Interno de Ecuador y cargo por servicio.",
+        "en": "Price includes 15% VAT under Ecuador's Internal Tax Regime Law and service charges."
+      }
     }
   },
   "México": {
@@ -44,7 +53,10 @@
     "tax": {
       "name": "IVA",
       "rate": 0.16,
-      "note": "Precio incluye IVA del 16% según la Ley del Impuesto al Valor Agregado de México y cargo por servicio."
+      "note": {
+        "es": "Precio incluye IVA del 16% según la Ley del Impuesto al Valor Agregado de México y cargo por servicio.",
+        "en": "Price includes 16% VAT under Mexico's Value Added Tax Law and service charges."
+      }
     }
   },
   "Chile": {
@@ -56,7 +68,10 @@
     "tax": {
       "name": "IVA",
       "rate": 0.19,
-      "note": "Precio incluye IVA del 19% según el Decreto Ley 825 de Chile y cargo por servicio."
+      "note": {
+        "es": "Precio incluye IVA del 19% según el Decreto Ley 825 de Chile y cargo por servicio.",
+        "en": "Price includes 19% VAT under Chile's Decree Law 825 and service charges."
+      }
     }
   },
   "Argentina": {
@@ -68,10 +83,13 @@
     "tax": {
       "name": "IVA",
       "rate": 0.21,
-      "note": "Precio incluye IVA del 21% según la Ley 23.349 de Argentina y cargo por servicio."
+      "note": {
+        "es": "Precio incluye IVA del 21% según la Ley 23.349 de Argentina y cargo por servicio.",
+        "en": "Price includes 21% VAT under Argentina Law 23.349 and service charges."
+      }
     }
   },
-  "Estados Unidos": {
+  "USA": {
     "currency": "USD",
     "currencySymbol": "$",
     "locale": "en_US",
@@ -80,7 +98,10 @@
     "tax": {
       "name": "Hotel Tax",
       "rate": 0.12,
-      "note": "Price includes estimated hotel taxes of ~12% (rates vary by state and city) and service charges."
+      "note": {
+        "es": "El precio incluye un estimado de impuestos hoteleros (~12%, varía por estado y ciudad) y cargo por servicio.",
+        "en": "Price includes estimated hotel taxes of ~12% (rates vary by state and city) and service charges."
+      }
     }
   }
 }

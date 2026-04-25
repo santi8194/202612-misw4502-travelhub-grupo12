@@ -12,7 +12,7 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import NAMESPACE_DNS, UUID, uuid5
 
-from .database import IS_SQLITE, SessionLocal
+from .database import Base, IS_SQLITE, SessionLocal, engine
 from .models import (
     AmenidadModel,
     CategoriaHabitacionModel,
@@ -33,11 +33,19 @@ class CatalogSeedRow:
     lat: float
     lng: float
     tax_percent: Decimal
-    category_name: str
+    search_category_name: str
     commercial_name: str
     description: str
+
     price: Decimal
     service_fee: Decimal
+
+    # NUEVO 👇
+    weekend_price: Decimal
+    weekend_fee: Decimal
+    high_season_price: Decimal
+    high_season_fee: Decimal
+
     capacity: int
     cancel_days: int
     penalty_percent: Decimal
@@ -55,11 +63,15 @@ SEED_ROWS: tuple[CatalogSeedRow, ...] = (
         lat=10.3910,
         lng=-75.5346,
         tax_percent=Decimal("19.00"),
-        category_name="Hotel",
+        search_category_name="Hotel",
         commercial_name="Hotel Premium Vista Mar",
         description="Habitacion premium con balcon y amenities completas.",
         price=Decimal("450000"),
         service_fee=Decimal("25000"),
+        weekend_price=Decimal("517500"),
+        weekend_fee=Decimal("27500"),
+        high_season_price=Decimal("585000"),
+        high_season_fee=Decimal("30000"),
         capacity=4,
         cancel_days=5,
         penalty_percent=Decimal("35.00"),
@@ -82,11 +94,15 @@ SEED_ROWS: tuple[CatalogSeedRow, ...] = (
         lat=4.6097,
         lng=-74.0817,
         tax_percent=Decimal("19.00"),
-        category_name="Hostal",
+        search_category_name="Hostal",
         commercial_name="Hostal Centro Compartido",
         description="Habitacion funcional para viajeros urbanos.",
         price=Decimal("85000"),
         service_fee=Decimal("5000"),
+        weekend_price=Decimal("97750"),
+        weekend_fee=Decimal("5500"),
+        high_season_price=Decimal("110500"),
+        high_season_fee=Decimal("6000"),
         capacity=2,
         cancel_days=2,
         penalty_percent=Decimal("20.00"),
@@ -109,11 +125,15 @@ SEED_ROWS: tuple[CatalogSeedRow, ...] = (
         lat=6.2442,
         lng=-75.5812,
         tax_percent=Decimal("19.00"),
-        category_name="Cabana",
+        search_category_name="Cabana",
         commercial_name="Cabana Familiar Bosque",
         description="Cabana privada rodeada de naturaleza.",
         price=Decimal("220000"),
         service_fee=Decimal("12000"),
+        weekend_price=Decimal("253000"),
+        weekend_fee=Decimal("13200"),
+        high_season_price=Decimal("286000"),
+        high_season_fee=Decimal("14400"),
         capacity=6,
         cancel_days=4,
         penalty_percent=Decimal("30.00"),
@@ -136,11 +156,15 @@ SEED_ROWS: tuple[CatalogSeedRow, ...] = (
         lat=11.2408,
         lng=-74.1990,
         tax_percent=Decimal("19.00"),
-        category_name="Resort",
+        search_category_name="Resort",
         commercial_name="Suite Resort Todo Incluido",
         description="Suite all-inclusive con acceso a playa privada.",
         price=Decimal("680000"),
         service_fee=Decimal("35000"),
+        weekend_price=Decimal("782000"),
+        weekend_fee=Decimal("38500"),
+        high_season_price=Decimal("884000"),
+        high_season_fee=Decimal("42000"),
         capacity=8,
         cancel_days=7,
         penalty_percent=Decimal("40.00"),
@@ -163,11 +187,15 @@ SEED_ROWS: tuple[CatalogSeedRow, ...] = (
         lat=10.4236,
         lng=-75.5490,
         tax_percent=Decimal("19.00"),
-        category_name="Apartamento",
+        search_category_name="Apartamento",
         commercial_name="Apto Centro Historico Deluxe",
         description="Apartamento completo con cocina y balcon.",
         price=Decimal("320000"),
         service_fee=Decimal("18000"),
+        weekend_price=Decimal("368000"),
+        weekend_fee=Decimal("19800"),
+        high_season_price=Decimal("416000"),
+        high_season_fee=Decimal("21600"),
         capacity=5,
         cancel_days=3,
         penalty_percent=Decimal("25.00"),
@@ -190,11 +218,15 @@ SEED_ROWS: tuple[CatalogSeedRow, ...] = (
         lat=4.5339,
         lng=-75.6811,
         tax_percent=Decimal("19.00"),
-        category_name="Finca",
+        search_category_name="Finca",
         commercial_name="Finca Cafetera Familiar",
         description="Finca rural con experiencia cafetera.",
         price=Decimal("195000"),
         service_fee=Decimal("9000"),
+        weekend_price=Decimal("224250"),
+        weekend_fee=Decimal("9900"),
+        high_season_price=Decimal("253500"),
+        high_season_fee=Decimal("10800"),
         capacity=10,
         cancel_days=4,
         penalty_percent=Decimal("30.00"),
@@ -211,9 +243,8 @@ SEED_ROWS: tuple[CatalogSeedRow, ...] = (
 )
 
 
-def _build_category_id(category_name: str) -> UUID:
-    """Match exact formula used by Search local seed for id_categoria."""
-    return uuid5(NAMESPACE_DNS, f"categoria:{category_name}")
+def _build_category_id(search_category_name: str) -> UUID:
+    return uuid5(NAMESPACE_DNS, f"categoria:{search_category_name}")
 
 
 def _build_property_id(property_name: str) -> UUID:
@@ -221,17 +252,16 @@ def _build_property_id(property_name: str) -> UUID:
 
 
 def run_local_seed() -> None:
-    """Populate Catalog with deterministic local data when using SQLite."""
     if not IS_SQLITE:
         print("[CATALOG] Local seed skipped (database is not SQLite).")
         return
+
+    Base.metadata.create_all(bind=engine)
 
     session = SessionLocal()
     try:
         today = date.today()
 
-        # Reinicia el dataset local en cada arranque para evitar duplicados y mantener
-        # IDs deterministas alineados con Search.
         session.execute(CategoriaHabitacionModel.amenidades.property.secondary.delete())
         session.query(ResenaModel).delete()
         session.query(InventarioModel).delete()
@@ -244,7 +274,7 @@ def run_local_seed() -> None:
 
         for row_index, row in enumerate(SEED_ROWS):
             property_id = _build_property_id(row.property_name)
-            category_id = _build_category_id(row.category_name)
+            category_id = _build_category_id(row.search_category_name)
 
             propiedad = PropiedadModel(
                 id_propiedad=property_id,
@@ -262,12 +292,21 @@ def run_local_seed() -> None:
             categoria = CategoriaHabitacionModel(
                 id_categoria=category_id,
                 id_propiedad=property_id,
-                codigo_mapeo_pms=f"CAT-{row.category_name.upper()}-{row_index + 1:02d}",
+                codigo_mapeo_pms=f"CAT-{row.search_category_name.upper()}-{row_index + 1:02d}",
                 nombre_comercial=row.commercial_name,
                 descripcion=row.description,
                 precio_base_monto=row.price,
                 precio_base_moneda="COP",
                 precio_base_cargo_servicio=row.service_fee,
+
+                tarifa_fin_de_semana_monto=row.weekend_price,
+                tarifa_fin_de_semana_moneda="COP",
+                tarifa_fin_de_semana_cargo_servicio=row.weekend_fee,
+
+                tarifa_temporada_alta_monto=row.high_season_price,
+                tarifa_temporada_alta_moneda="COP",
+                tarifa_temporada_alta_cargo_servicio=row.high_season_fee,
+
                 capacidad_pax=row.capacity,
                 dias_anticipacion=row.cancel_days,
                 porcentaje_penalidad=row.penalty_percent,
@@ -311,13 +350,11 @@ def run_local_seed() -> None:
                 for day_offset in range(30)
             ]
 
-            review_id = uuid5(NAMESPACE_DNS, f"resena:{property_id}")
-            review_user_id = uuid5(NAMESPACE_DNS, f"usuario:{row.category_name}")
             review = ResenaModel(
-                id_resena=review_id,
+                id_resena=uuid5(NAMESPACE_DNS, f"resena:{property_id}"),
                 id_propiedad=property_id,
-                id_usuario=review_user_id,
-                nombre_autor=f"Seed User {row.category_name}",
+                id_usuario=uuid5(NAMESPACE_DNS, f"usuario:{row.search_category_name}"),
+                nombre_autor=f"Seed User {row.search_category_name}",
                 avatar_url=None,
                 calificacion=min(5, max(1, row.stars)),
                 comentario=f"Resena seed para {row.property_name}.",
@@ -326,10 +363,8 @@ def run_local_seed() -> None:
             session.add(review)
 
         session.commit()
-        print(
-            "[CATALOG] Local SQLite seed completed: "
-            f"{len(SEED_ROWS)} propiedades/categorias con inventario, media, amenidades y resenas."
-        )
+        print(f"[CATALOG] Seed completado con {len(SEED_ROWS)} propiedades.")
+
     except Exception:
         session.rollback()
         raise

@@ -82,7 +82,12 @@
   },
   "profileTitleView": "Perfil",
   "countryLabel": "País",
-  "countryNotSet": "Sin definir"
+  "countryNotSet": "Sin definir",
+  "propertyInfoTab": "Información",
+  "aboutProperty": "Sobre la propiedad",
+  "mainAmenities": "Comodidades principales",
+  "reserveNow": "Reservar Ahora",
+  "totalPriceLabel": "PRECIO TOTAL"
 }
 
 

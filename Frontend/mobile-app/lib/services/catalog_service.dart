@@ -16,7 +16,7 @@ class CatalogService {
       final fromEnv = dotenv.env['CATALOG_API_BASE_URL'];
       if (fromEnv != null) return fromEnv;
     } catch (_) {}
-    return 'http://10.0.2.2:8001';
+    return 'http://10.0.2.2:8080';
   }
 
   CatalogService({http.Client? httpClient})
@@ -33,6 +33,19 @@ class CatalogService {
 
     throw Exception(
       'Error al obtener categoría ($categoryId): ${response.statusCode}',
+    );
+  }
+
+  Future<Map<String, dynamic>> getPropertyDetail(String categoryId) async {
+    final uri = Uri.parse('$baseUrl/categories/$categoryId/view-detail');
+    final response = await _httpClient.get(uri);
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+
+    throw Exception(
+      'Error al obtener detalle de propiedad ($categoryId): ${response.statusCode}',
     );
   }
 }

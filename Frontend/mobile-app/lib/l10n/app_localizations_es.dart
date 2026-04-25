@@ -198,4 +198,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get countryNotSet => 'Sin definir';
+
+  @override
+  String get propertyInfoTab => 'Información';
+  @override
+  String get aboutProperty => 'Sobre la propiedad';
+
+  @override
+  String get mainAmenities => 'Comodidades principales';
+
+  @override
+  String get reserveNow => 'Reservar Ahora';
+
+  @override
+  String get totalPriceLabel => 'PRECIO TOTAL';
 }

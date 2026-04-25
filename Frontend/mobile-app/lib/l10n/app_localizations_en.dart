@@ -199,4 +199,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get countryNotSet => 'Not set';
+
+  @override
+  String get propertyInfoTab => 'Information';
+
+  @override
+  String get aboutProperty => 'About the property';
+
+  @override
+  String get mainAmenities => 'Main amenities';
+
+
+  @override
+  String get reserveNow => 'Book Now';
+
+  @override
+  String get totalPriceLabel => 'TOTAL PRICE';
 }

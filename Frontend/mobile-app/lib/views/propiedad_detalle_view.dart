@@ -10,12 +10,14 @@ class PropiedadDetalleView extends StatefulWidget {
   final Habitacion habitacion;
   final DateTimeRange? dateRange;
   final int guests;
+  final CatalogService? catalogService;
 
   const PropiedadDetalleView({
     super.key,
     required this.habitacion,
     this.dateRange,
     required this.guests,
+    this.catalogService,
   });
 
   @override
@@ -25,7 +27,7 @@ class PropiedadDetalleView extends StatefulWidget {
 class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final CatalogService _catalogService = CatalogService();
+  late final CatalogService _catalogService;
 
   Map<String, dynamic>? _propertyDetail;
   bool _isLoading = true;
@@ -38,6 +40,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
   @override
   void initState() {
     super.initState();
+    _catalogService = widget.catalogService ?? CatalogService();
     _tabController = TabController(length: 3, vsync: this);
     _fetchPropertyDetail();
   }

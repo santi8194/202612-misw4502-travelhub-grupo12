@@ -1,0 +1,102 @@
+.confirm-reservation-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f3f7fa 0%, #ffffff 100%);
+}
+
+.confirm-reservation-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem;
+}
+
+.status-card {
+  background: #ffffff;
+  border: 1px solid #d5e4de;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(15, 46, 35, 0.08);
+  padding: 2rem;
+  text-align: center;
+}
+
+.status-card--rejected {
+  border-color: #ebd1d1;
+  box-shadow: 0 12px 32px rgba(112, 27, 27, 0.08);
+}
+
+.status-badge {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 1rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: #1c8f5f;
+}
+
+.status-badge--rejected {
+  background: #c53838;
+}
+
+.status-title {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #1f2937;
+}
+
+.status-id {
+  margin: 0.8rem 0 0;
+  color: #4b5563;
+}
+
+.status-reason {
+  margin: 1.2rem auto 0;
+  max-width: 760px;
+  color: #111827;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  line-height: 1.5;
+}
+
+.status-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.7rem 1.2rem;
+  min-width: 170px;
+}
+
+.action-btn--primary {
+  background: #0d9488;
+  color: #ffffff;
+}
+
+.action-btn--secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+@media (max-width: 640px) {
+  .status-card {
+    padding: 1.4rem 1rem;
+  }
+
+  .status-title {
+    font-size: 1.45rem;
+  }
+}

@@ -12,6 +12,7 @@ import { GuestForm } from '../../../../models/guest.interface';
 export class BookingCartFormComponent {
   @Input({ required: true }) form!: GuestForm;
   @Input() disableContinue = false;
+  @Input() isSubmitting = false;
 
   @Output() fieldChange = new EventEmitter<{ field: keyof GuestForm; value: string }>();
   @Output() continuePayment = new EventEmitter<void>();

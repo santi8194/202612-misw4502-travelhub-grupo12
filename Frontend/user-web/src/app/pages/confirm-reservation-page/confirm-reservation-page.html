@@ -1,0 +1,28 @@
+<div class="confirm-reservation-page">
+  <app-header></app-header>
+
+  <main class="confirm-reservation-content">
+    <section class="status-card" [class.status-card--rejected]="!isConfirmed()" data-testid="confirm-reservation-card">
+      <div class="status-badge" [class.status-badge--rejected]="!isConfirmed()" data-testid="confirm-reservation-badge">
+        {{ isConfirmed() ? 'OK' : 'X' }}
+      </div>
+
+      <h1 class="status-title" data-testid="confirm-reservation-title">{{ title() }}</h1>
+
+      <div class="status-reason" data-testid="confirm-reservation-reason">
+        {{ reason() }}
+      </div>
+
+      <div class="status-actions">
+        @if (isConfirmed()) {
+          <a class="action-btn action-btn--primary" routerLink="/">Ir al inicio</a>
+        } @else {
+          <a class="action-btn action-btn--primary" [routerLink]="['/booking', reservationId()]">Volver al carrito</a>
+        }
+        <a class="action-btn action-btn--secondary" routerLink="/resultados">Buscar otra opción</a>
+      </div>
+    </section>
+  </main>
+
+  <app-footer></app-footer>
+</div>

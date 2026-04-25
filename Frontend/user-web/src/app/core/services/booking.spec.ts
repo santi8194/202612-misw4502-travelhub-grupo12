@@ -53,6 +53,19 @@ describe('BookingService', () => {
     req.flush({ id_reserva: 'reserva-123' });
   });
 
+  it('should send a POST request to formalize a reservation', () => {
+    service.formalizeBookingById('reserva-123').subscribe((response) => {
+      expect(response).toEqual({
+        mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos',
+      });
+    });
+
+    const req = httpTesting.expectOne('http://localhost:5001/api/reserva/reserva-123/formalizar');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush({ mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos' });
+  });
+
   
 
   it('should describe availability errors clearly', () => {

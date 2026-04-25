@@ -1,0 +1,75 @@
+.processing-reservation-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f6fbfd 0%, #ffffff 100%);
+}
+
+.processing-content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem;
+}
+
+.processing-card {
+  background: #ffffff;
+  border: 1px solid #d8e7ea;
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(17, 50, 65, 0.08);
+  padding: 2rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  margin: 0 auto 1rem;
+  border: 4px solid #dbeafe;
+  border-top-color: #0284c7;
+  animation: spin 0.95s linear infinite;
+}
+
+.processing-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.85rem;
+}
+
+.processing-id,
+.processing-message,
+.processing-status {
+  margin: 0.85rem 0 0;
+  color: #334155;
+}
+
+.processing-message {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.processing-action {
+  display: inline-flex;
+  margin-top: 1.25rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  background: #0f766e;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .processing-card {
+    padding: 1.3rem 1rem;
+  }
+
+  .processing-title {
+    font-size: 1.5rem;
+  }
+}

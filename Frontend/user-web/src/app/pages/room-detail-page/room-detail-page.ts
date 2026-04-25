@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
 import { CatalogService } from '../../core/services/catalog';
+import { BookingStore } from '../../core/store/booking-store';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
@@ -20,6 +21,7 @@ export class RoomDetailPage {
   private readonly router = inject(Router);
   private readonly catalogService = inject(CatalogService);
   private readonly bookingService = inject(BookingService);
+  private readonly store = inject(BookingStore);
 
   // ── Estado ──
   readonly loading = signal(true);
@@ -178,6 +180,21 @@ export class RoomDetailPage {
       return;
     }
 
+    const signature = this.buildSessionSignature(categoryId, checkIn, checkOut, guests);
+    const activeSession = this.store.getBookingSession(signature);
+    if (activeSession) {
+      if (activeSession.expiresAt > Date.now()) {
+        this.router.navigate(['/existing-session-redirect'], {
+          queryParams: {
+            reservationId: activeSession.reservationId,
+          },
+        });
+        return;
+      }
+
+      this.store.clearBookingSession(signature);
+    }
+
     this.creatingBooking.set(true);
     this.error.set(null);
 
@@ -212,6 +229,10 @@ export class RoomDetailPage {
       console.info('[RoomDetailPage] Booking created, redirecting', response);
       this.router.navigate(['/booking', response.id_reserva]);
     });
+  }
+
+  private buildSessionSignature(categoryId: string, checkIn: string, checkOut: string, guests: number): string {
+    return [categoryId, checkIn, checkOut, guests].join('|');
   }
 
   private resolveUserId(): string {

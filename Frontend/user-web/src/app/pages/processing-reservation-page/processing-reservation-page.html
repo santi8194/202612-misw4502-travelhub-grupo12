@@ -1,0 +1,22 @@
+<div class="processing-reservation-page">
+  <app-header></app-header>
+
+  <main class="processing-content">
+    <section class="processing-card" data-testid="processing-reservation-card">
+      <div class="spinner" aria-hidden="true"></div>
+      <h1 class="processing-title">Estamos procesando tu reserva</h1>
+      <p class="processing-message" data-testid="processing-reservation-message">
+        {{ message() }}
+      </p>
+      <p class="processing-status" data-testid="processing-reservation-status">
+        Estado actual: <strong>{{ status() }}</strong>
+      </p>
+
+      @if (!isPolling()) {
+        <a class="processing-action" [routerLink]="['/booking', reservationId]">Volver al carrito</a>
+      }
+    </section>
+  </main>
+
+  <app-footer></app-footer>
+</div>

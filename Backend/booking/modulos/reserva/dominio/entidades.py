@@ -182,7 +182,8 @@ class Reserva(AgregacionRaiz):
         self.agregar_evento(ReservaPendiente(
             id_reserva=self.id,
             id_usuario=uuid.UUID(self.usuario.id) if self.usuario and self.usuario.id else None,
-            id_categoria=self.id_categoria
+            id_categoria=self.id_categoria,
+            fecha_reserva=self.fecha_check_in.isoformat() if self.fecha_check_in else None
         ))
 
     def confirmar_reserva(self):

@@ -34,6 +34,7 @@ El servicio modela:
 pip install -r requirements.txt
 uvicorn main:app --reload
 pytest
+pytest --cov=api --cov=config --cov=main --cov=modules/catalog --cov-report=term-missing
 ```
 
 ## PostgreSQL / RDS

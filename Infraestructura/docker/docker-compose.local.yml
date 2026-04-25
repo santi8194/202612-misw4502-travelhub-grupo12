@@ -21,17 +21,19 @@ services:
       context: ../../Backend/booking
       dockerfile: Dockerfile
     environment:
+      BOOKING_DB_MODE: sqlite
       RABBITMQ_HOST: rabbitmq-broker
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+      BOOKING_INSTANCE_PATH: /src/instance
     depends_on:
       catalog:
         condition: service_healthy
       rabbitmq-broker:
         condition: service_healthy
     volumes:
-      - booking_sqlite_data:/src/Booking/instance
+      - booking_sqlite_data:/src/instance
 
   search:
     image: travelhub-local/search:dev
@@ -40,6 +42,54 @@ services:
       dockerfile: Dockerfile
     volumes:
       - search_sqlite_data:/app/data
+
+  payment:
+    image: travelhub-local/payment:dev
+    build:
+      context: ../../Backend/payment
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+    volumes:
+      - payment_sqlite_data:/app/data
+
+  pms-integration:
+    image: travelhub-local/pms-integration:dev
+    build:
+      context: ../../Backend/pms-integration
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+    volumes:
+      - pms_sqlite_data:/app/data
+
+  partner-management:
+    image: travelhub-local/partner-management:dev
+    build:
+      context: ../../Backend/partner-management
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+    volumes:
+      - partner_sqlite_data:/app/data
 
   rabbitmq-broker:
     image: rabbitmq:3.13-management-alpine
@@ -62,8 +112,6 @@ services:
   redis-db:
     image: redis:7-alpine
     container_name: travelhub-redis
-    profiles:
-      - saga
     ports:
       - "6379:6379"
     restart: unless-stopped
@@ -72,12 +120,10 @@ services:
 
   booking-saga-worker:
     image: travelhub-local/booking-saga-worker:dev
-    profiles:
-      - saga
     build:
       context: ../../Backend/booking
       dockerfile: Dockerfile
-    command: python /src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
+    entrypoint: ["python", "/src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py"]
     environment:
       REDIS_HOST: redis-db
       RABBITMQ_HOST: rabbitmq-broker
@@ -86,6 +132,8 @@ services:
       RABBITMQ_PASS: guest
       PYTHONPATH: /src
       PYTHONUNBUFFERED: "1"
+      BOOKING_DB_MODE: sqlite
+      BOOKING_INSTANCE_PATH: /src/instance
       DB_HOST: ${BOOKING_DB_HOST}
       DB_PORT: ${BOOKING_DB_PORT}
       DB_NAME: ${BOOKING_DB_NAME}
@@ -93,6 +141,14 @@ services:
       DB_PASSWORD: ${BOOKING_DB_PASSWORD}
     depends_on:
       booking:
+        condition: service_healthy
+      payment:
+        condition: service_healthy
+      pms-integration:
+        condition: service_healthy
+      partner-management:
+        condition: service_healthy
+      notification:
         condition: service_healthy
       rabbitmq-broker:
         condition: service_healthy
@@ -102,12 +158,10 @@ services:
     networks:
       - travelhub-dev-net
     volumes:
-      - booking_sqlite_data:/src/Booking/instance
+      - booking_sqlite_data:/src/instance
 
-  notification-api:
+  notification:
     image: travelhub-local/notification:dev
-    profiles:
-      - saga
     build:
       context: ../../Backend/notification
       dockerfile: Dockerfile
@@ -126,9 +180,15 @@ services:
     restart: unless-stopped
     networks:
       - travelhub-dev-net
+    volumes:
+      - notification_sqlite_data:/app/data
 
 volumes:
   authservice_sqlite_data:
   catalog_sqlite_data:
   booking_sqlite_data:
   search_sqlite_data:
+  payment_sqlite_data:
+  pms_sqlite_data:
+  partner_sqlite_data:
+  notification_sqlite_data:

@@ -3,7 +3,11 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 
 def create_app(config_name=None):
-    app = Flask(__name__, instance_relative_config=True)
+    # Default to a writable project-local path; allow explicit override via env var.
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    default_instance_path = os.path.join(project_root, 'instance')
+    instance_path = os.getenv('BOOKING_INSTANCE_PATH', default_instance_path)
+    app = Flask(__name__, instance_relative_config=True, instance_path=instance_path)
 
     CORS(
         app,
@@ -14,13 +18,22 @@ def create_app(config_name=None):
 
     # Configuración básica
     # Configuración de base de datos dinámica
+    db_mode = (os.getenv('BOOKING_DB_MODE', '') or '').strip().lower()
     db_user = os.getenv('DB_USER')
     db_password = os.getenv('DB_PASSWORD')
     db_host = os.getenv('DB_HOST')
     db_port = os.getenv('DB_PORT', '5432')
     db_name = os.getenv('DB_NAME')
 
-    if all([db_user, db_password, db_host, db_name]):
+    if db_mode == 'sqlite':
+        os.makedirs(app.instance_path, exist_ok=True)
+        db_path = os.path.join(app.instance_path, 'booking.db')
+        database_uri = f'sqlite:///{db_path}'
+    elif db_mode == 'postgres':
+        if not all([db_user, db_password, db_host, db_name]):
+            raise RuntimeError('BOOKING_DB_MODE=postgres requires DB_USER, DB_PASSWORD, DB_HOST and DB_NAME')
+        database_uri = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    elif all([db_user, db_password, db_host, db_name]):
         database_uri = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
     else:
         os.makedirs(app.instance_path, exist_ok=True)

@@ -1,1 +1,11 @@
-pytest>=8.0,<9.0
+fastapi
+httpx
+uvicorn
+pydantic
+pika
+pytest
+pytest-cov
+python-dotenv
+sqlalchemy
+alembic
+psycopg2-binary

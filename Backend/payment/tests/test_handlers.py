@@ -1,0 +1,47 @@
+from modules.payments.infrastructure.services import handlers as handlers_module
+
+
+def test_handle_process_payment_builds_use_case_and_executes(monkeypatch):
+    captured = {}
+
+    class FakeProcessPayment:
+        def __init__(self, repository, event_bus):
+            captured["repository"] = repository
+            captured["event_bus"] = event_bus
+
+        def execute(self, reservation_id, amount):
+            captured["execute"] = (reservation_id, amount)
+            return {"ok": True}
+
+    monkeypatch.setattr(handlers_module, "PaymentRepository", lambda: "repo")
+    monkeypatch.setattr(handlers_module, "EventBus", lambda: "bus")
+    monkeypatch.setattr(handlers_module, "ProcessPayment", FakeProcessPayment)
+
+    handlers_module.handle_process_payment({"id_reserva": "res-100", "monto": 999.0})
+
+    assert captured["repository"] == "repo"
+    assert captured["event_bus"] == "bus"
+    assert captured["execute"] == ("res-100", 999.0)
+
+
+def test_handle_refund_payment_builds_use_case_and_executes(monkeypatch):
+    captured = {}
+
+    class FakeRefundPayment:
+        def __init__(self, repository, event_bus):
+            captured["repository"] = repository
+            captured["event_bus"] = event_bus
+
+        def execute(self, reservation_id):
+            captured["execute"] = reservation_id
+            return {"ok": True}
+
+    monkeypatch.setattr(handlers_module, "PaymentRepository", lambda: "repo")
+    monkeypatch.setattr(handlers_module, "EventBus", lambda: "bus")
+    monkeypatch.setattr(handlers_module, "RefundPayment", FakeRefundPayment)
+
+    handlers_module.handle_refund_payment({"id_reserva": "res-200"})
+
+    assert captured["repository"] == "repo"
+    assert captured["event_bus"] == "bus"
+    assert captured["execute"] == "res-200"

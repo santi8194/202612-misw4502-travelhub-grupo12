@@ -1,0 +1,51 @@
+{
+  "id_categoria": "CAT-123",
+  "categoria": {
+    "id_categoria": "CAT-123",
+    "nombre_comercial": "Suite Familiar con Vista al Mar",
+    "descripcion": "Una hermosa y amplia suite familiar ideal para vacaciones. Cuenta con sala de estar, dos baños, y un gran balcón con vista directa al océano pacífico. Ideal para descansar del ruido de la ciudad con total comodidad. Con espacio de sobra para disfrutar con toda la familia, no querrás irte nunca de este paraíso terrenal diseñado para tu confort y el de los tuyos. Aquí la magia se hace realidad en tus próximas vacaciones de verano inolvidables.",
+    "capacidad_pax": 4,
+    "precio_base": {
+      "monto": 250000,
+      "moneda": "COP",
+      "cargo_servicio": 25000
+    },
+    "politica_cancelacion": {
+      "dias_anticipacion": 3,
+      "porcentaje_penalidad": 100
+    }
+  },
+  "propiedad": {
+    "id_propiedad": "PROP-001",
+    "nombre": "Hotel Paraíso del Mar",
+    "ubicacion": {
+      "ciudad": "Cartagena",
+      "estado_provincia": "Bolívar",
+      "pais": "Colombia"
+    }
+  },
+  "rating_promedio": 4.8,
+  "total_resenas": 120,
+  "galeria": [
+    { "id_imagen": "img-1", "url_full": "https://placehold.co/600x400?text=IMG+1", "orden": 1 },
+    { "id_imagen": "img-2", "url_full": "https://placehold.co/600x400?text=IMG+2", "orden": 2 },
+    { "id_imagen": "img-3", "url_full": "https://placehold.co/600x400?text=IMG+3", "orden": 3 },
+    { "id_imagen": "img-4", "url_full": "https://placehold.co/600x400?text=IMG+4", "orden": 4 },
+    { "id_imagen": "img-5", "url_full": "https://placehold.co/600x400?text=IMG+5", "orden": 5 }
+  ],
+  "amenidades": [
+    { "id_amenidad": "am-1", "nombre": "Piscina", "icono": "pool-icon" },
+    { "id_amenidad": "am-2", "nombre": "Aire Acondicionado", "icono": "ac-icon" },
+    { "id_amenidad": "am-3", "nombre": "Wi-Fi", "icono": "default" }
+  ],
+  "resenas": [
+    {
+      "id_resena": "res-1",
+      "nombre_autor": "Carlos J.",
+      "avatar_url": "https://placehold.co/50x50",
+      "calificacion": 5,
+      "comentario": "Excelente lugar, volvería sin pensarlo.",
+      "fecha_creacion": "2026-03-15T10:00:00Z"
+    }
+  ]
+}

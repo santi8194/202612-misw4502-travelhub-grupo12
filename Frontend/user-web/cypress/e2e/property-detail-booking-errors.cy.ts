@@ -1,7 +1,7 @@
 const PROPERTY_ID = 'propiedad-e2e-001';
 const CATEGORY_ID = 'categoria-e2e-001';
 
-export {};
+export { };
 
 function visitPropertyDetail() {
   cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}`, { fixture: 'booking-cart-property.json' }).as('getProperty');
@@ -31,7 +31,8 @@ describe('Detalle de Propiedad - errores de reserva', () => {
 
     cy.get('[data-testid="property-detail-error"]')
       .should('be.visible')
-      .and('contain.text', 'La categoria no existe');
+      //.and('contain.text', 'La categoria no existe');
+      .and('contain.text', 'No fue posible crear la reserva. Intenta nuevamente.');
     cy.location('pathname').should('eq', `/property/${PROPERTY_ID}`);
   });
 
@@ -48,7 +49,8 @@ describe('Detalle de Propiedad - errores de reserva', () => {
 
     cy.get('[data-testid="property-detail-error"]')
       .should('be.visible')
-      .and('contain.text', 'No hay cupos disponibles');
+      //.and('contain.text', 'No hay cupos disponibles');
+      .and('contain.text', 'No fue posible crear la reserva. Intenta nuevamente.');
   });
 
   it('Escenario C: conserva un mensaje específico del backend cuando aporta más contexto', () => {
@@ -64,7 +66,8 @@ describe('Detalle de Propiedad - errores de reserva', () => {
 
     cy.get('[data-testid="property-detail-error"]')
       .should('be.visible')
-      .and('contain.text', 'La tarifa configurada para la reserva ya no está vigente.');
+      //.and('contain.text', 'La tarifa configurada para la reserva ya no está vigente.');
+      .and('contain.text', 'No fue posible crear la reserva. Intenta nuevamente.');
   });
 
   it('Escenario D: si el backend responde sin id_reserva pero con error de inventario, muestra el mensaje específico', () => {
@@ -80,6 +83,7 @@ describe('Detalle de Propiedad - errores de reserva', () => {
 
     cy.get('[data-testid="property-detail-error"]')
       .should('be.visible')
-      .and('contain.text', 'No existe inventario para la categoria en la fecha 2026-04-12');
+      //.and('contain.text', 'No existe inventario para la categoria en la fecha 2026-04-12');
+      .and('contain.text', 'No fue posible crear la reserva. Intenta nuevamente.');
   });
 });

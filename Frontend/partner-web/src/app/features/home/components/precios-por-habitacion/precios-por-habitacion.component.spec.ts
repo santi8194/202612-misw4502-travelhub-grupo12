@@ -302,10 +302,10 @@ describe('PreciosPorHabitacionComponent', () => {
     expect(component.filas[0].errores['tarifaBase']).toBe('PRICING_VALIDATION.NUMERIC');
   });
 
-  // â”€â”€â”€ Template rendering â”€â”€â”€
+  // ─── Template rendering ───
 
   it('should render inputs for each room row', () => {
-    const inputs = fixture.nativeElement.querySelectorAll('.fila-datos input');
+    const inputs = fixture.nativeElement.querySelectorAll('[data-testid="price-input"]');
     // 4 rows x 3 inputs each = 12
     expect(inputs.length).toBe(12);
   });
@@ -313,29 +313,29 @@ describe('PreciosPorHabitacionComponent', () => {
   it('should display error message when field has error', () => {
     component.onPriceInput(component.filas[0], 'tarifaBase', '');
     fixture.detectChanges();
-    const errorMsgs = fixture.nativeElement.querySelectorAll('.error-msg');
+    const errorMsgs = fixture.nativeElement.querySelectorAll('[data-testid="error-msg"]');
     expect(errorMsgs.length).toBeGreaterThan(0);
   });
 
-  it('should add input-error class when field has error', () => {
+  it('should add input-error when field has error', () => {
     component.onPriceInput(component.filas[0], 'tarifaBase', 'abc');
     fixture.detectChanges();
-    const errorInputs = fixture.nativeElement.querySelectorAll('.input-error');
+    const errorInputs = fixture.nativeElement.querySelectorAll('[data-testid="input-error"]');
     expect(errorInputs.length).toBeGreaterThan(0);
   });
 
   it('should show variation when no error and variation exists', () => {
     fixture.detectChanges();
-    const variations = fixture.nativeElement.querySelectorAll('.variacion');
+    const variations = fixture.nativeElement.querySelectorAll('[data-testid="variacion"]');
     expect(variations.length).toBeGreaterThan(0);
   });
 
   it('should hide variation when field has error', () => {
     component.onPriceInput(component.filas[0], 'tarifaFinDeSemana', 'bad');
     fixture.detectChanges();
-    const row = fixture.nativeElement.querySelectorAll('.fila-datos')[0];
-    const weekendCol = row.querySelectorAll('.precio-columna')[1];
-    const weekendVar = weekendCol?.querySelector('.variacion');
+    const rows = fixture.nativeElement.querySelectorAll('[data-testid="fila-datos"]');
+    const weekendCol = rows[0].querySelectorAll('[data-testid="precio-columna"]')[1];
+    const weekendVar = weekendCol?.querySelector('[data-testid="variacion"]');
     expect(weekendVar).toBeNull();
   });
 });

@@ -1,1 +1,7 @@
-pytest>=8.0,<9.0
+fastapi
+uvicorn[standard]
+redis
+pika
+python-dotenv
+alembic
+psycopg2-binary

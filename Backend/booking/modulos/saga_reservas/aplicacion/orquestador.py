@@ -153,11 +153,9 @@ class OrquestadorSagaReservas:
                             if log.payload_snapshot and log.payload_snapshot.get('fecha_reserva'):
                                 fecha_ctx = log.payload_snapshot.get('fecha_reserva')
                                 break
-                    
+
                     if not fecha_ctx:
-                         # Fallback temporal con advertencia en logs
-                         logger.info(f"⚠️ [Orquestador] ADVERTENCIA: No se encontró 'fecha_reserva' en ninguna parte de la historia para {comando_nombre}.")
-                         fecha_ctx = "2026-03-14"
+                        raise ValueError(f"Falta 'fecha_reserva' en la historia de la saga para el comando {comando_nombre}")
                     
                     kwargs_filtrados['fecha_reserva'] = fecha_ctx
                         
@@ -179,10 +177,20 @@ class OrquestadorSagaReservas:
                 logger.info(f"[Orquestador] Comando Externo {comando_nombre} emitido para reserva {id_reserva}")
                 self.uow.commit()
 
-    def iniciar_saga(self, id_reserva: uuid.UUID, id_usuario: uuid.UUID, monto: float, id_habitacion: uuid.UUID = None, fecha_reserva: str = None):
+    def iniciar_saga(
+        self,
+        id_reserva: uuid.UUID,
+        id_usuario: uuid.UUID,
+        monto: float = 0.0,
+        id_habitacion: uuid.UUID = None,
+        id_categoria: uuid.UUID = None,
+        fecha_reserva: str = None,
+    ):
         """Invocado cuando la reserva inicial pasa a PENDIENTE"""
         try:
             with self.uow:
+                id_habitacion = id_habitacion or id_categoria
+
                 definicion = self.repositorio.obtener_definicion_saga_activa("RESERVA_ESTANDAR")
                 if not definicion:
                     logger.info("[Orquestador] No se encontró definición de saga activa para RESERVA_ESTANDAR")

@@ -3,7 +3,9 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 
 def create_app(config_name=None):
-    app = Flask(__name__, instance_relative_config=True)
+    # Keep a deterministic instance path across import styles (api vs Booking.api).
+    instance_path = os.getenv('BOOKING_INSTANCE_PATH', '/src/instance')
+    app = Flask(__name__, instance_relative_config=True, instance_path=instance_path)
 
     CORS(
         app,

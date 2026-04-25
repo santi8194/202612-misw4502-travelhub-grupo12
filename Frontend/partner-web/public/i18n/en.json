@@ -68,7 +68,11 @@
     "BASE_RATE": "Base rate",
     "WEEKEND_RATE": "Weekend rate",
     "PEAK_RATE": "Peak season",
-    "TOTAL_ROOMS": "{{count}} total"
+    "TOTAL_ROOMS": "{{count}} total",
+    "LOADING": "Loading prices...",
+    "LOAD_ERROR": "Could not load prices. Please try again.",
+    "SAVE_SUCCESS": "Prices saved successfully!",
+    "SAVE_ERROR": "Could not save prices. Please try again."
   },
   "PRICING_VALIDATION": {
     "REQUIRED": "This field is required",

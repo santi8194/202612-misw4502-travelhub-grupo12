@@ -68,7 +68,11 @@
     "BASE_RATE": "Tarifa base",
     "WEEKEND_RATE": "Tarifa fim de semana",
     "PEAK_RATE": "Alta temporada",
-    "TOTAL_ROOMS": "{{count}} no total"
+    "TOTAL_ROOMS": "{{count}} no total",
+    "LOADING": "Carregando preços...",
+    "LOAD_ERROR": "Não foi possível carregar os preços. Tente novamente.",
+    "SAVE_SUCCESS": "Preços salvos com sucesso!",
+    "SAVE_ERROR": "Não foi possível salvar os preços. Tente novamente."
   },
   "PRICING_VALIDATION": {
     "REQUIRED": "Este campo é obrigatório",

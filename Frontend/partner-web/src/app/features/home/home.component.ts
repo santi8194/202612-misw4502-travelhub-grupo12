@@ -150,10 +150,18 @@ export class HomeComponent implements OnInit, OnDestroy {
         return this.sectionKeys[this.activeSection]?.subtitleKey ?? 'SECTIONS.DASHBOARD_SUBTITLE';
     }
 
+    pricingSaving = false;
+
     guardarCambiosPrecios(): void {
-        if (this.preciosComponent) {
-            const valid = this.preciosComponent.validate();
-            this.pricingHasErrors = !valid;
+        if (!this.preciosComponent) return;
+        const valid = this.preciosComponent.validate();
+        this.pricingHasErrors = !valid;
+        if (valid) {
+            this.pricingSaving = true;
+            this.preciosComponent.save().subscribe(success => {
+                this.pricingSaving = false;
+                this.pricingHasErrors = !success;
+            });
         }
     }
 

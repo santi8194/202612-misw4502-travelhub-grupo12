@@ -1,14 +1,37 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SimpleChange } from '@angular/core';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { of, EMPTY, throwError } from 'rxjs';
 import { PreciosPorHabitacionComponent } from './precios-por-habitacion.component';
+import { CatalogService } from '../../../../core/services/catalog.service';
 import { TranslateModule } from '@ngx-translate/core';
+
+const mockCatalogService = {
+    getCategorias: jasmine.createSpy('getCategorias').and.returnValue(EMPTY),
+    getPricing:    jasmine.createSpy('getPricing').and.returnValue(EMPTY),
+    updatePricing: jasmine.createSpy('updatePricing').and.returnValue(EMPTY),
+};
 
 describe('PreciosPorHabitacionComponent', () => {
   let component: PreciosPorHabitacionComponent;
   let fixture: ComponentFixture<PreciosPorHabitacionComponent>;
 
   beforeEach(async () => {
+    mockCatalogService.getCategorias.calls.reset();
+    mockCatalogService.getPricing.calls.reset();
+    mockCatalogService.updatePricing.calls.reset();
+    mockCatalogService.getCategorias.and.returnValue(EMPTY);
+    mockCatalogService.getPricing.and.returnValue(EMPTY);
+    mockCatalogService.updatePricing.and.returnValue(EMPTY);
+
     await TestBed.configureTestingModule({
       imports: [PreciosPorHabitacionComponent, TranslateModule.forRoot()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CatalogService, useValue: mockCatalogService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PreciosPorHabitacionComponent);
@@ -16,7 +39,7 @@ describe('PreciosPorHabitacionComponent', () => {
     fixture.detectChanges();
   });
 
-  // ─── Creation ───
+  // â”€â”€â”€ Creation â”€â”€â”€
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
@@ -30,7 +53,96 @@ describe('PreciosPorHabitacionComponent', () => {
     expect(component.isValid()).toBeTrue();
   });
 
-  // ─── onPriceInput: empty value ───
+  // â”€â”€â”€ Carga desde catÃ¡logo â”€â”€â”€
+
+  it('should call getCategorias when idPropiedad changes', () => {
+    mockCatalogService.getCategorias.and.returnValue(of({ id_propiedad: 'p1', total_categorias: 0, categorias: [] }));
+    component.idPropiedad = 'p1';
+    component.ngOnChanges({ idPropiedad: new SimpleChange(null, 'p1', true) });
+    expect(mockCatalogService.getCategorias).toHaveBeenCalledWith('p1');
+  });
+
+  it('should not call getCategorias when idPropiedad is null', () => {
+    mockCatalogService.getCategorias.calls.reset();
+    component.idPropiedad = null;
+    component.ngOnChanges({ idPropiedad: new SimpleChange('p1', null, false) });
+    expect(mockCatalogService.getCategorias).not.toHaveBeenCalled();
+  });
+
+  it('should load filas from catalog response', () => {
+    const cat = { id_categoria: 'cat-1', nombre_comercial: 'EstÃ¡ndar', precio_base: { monto: '200000', moneda: 'COP', cargo_servicio: '0' }, capacidad_pax: 2 };
+    const pricing = { id_categoria: 'cat-1', nombre_comercial: 'EstÃ¡ndar', tarifa_base: { monto: '200000', moneda: 'COP', cargo_servicio: '0' }, tarifa_fin_de_semana: { monto: '240000', moneda: 'COP', cargo_servicio: '0' }, tarifa_temporada_alta: { monto: '300000', moneda: 'COP', cargo_servicio: '0' } };
+    mockCatalogService.getCategorias.and.returnValue(of({ id_propiedad: 'p1', total_categorias: 1, categorias: [cat] }));
+    mockCatalogService.getPricing.and.returnValue(of(pricing));
+
+    component.idPropiedad = 'p1';
+    component.ngOnChanges({ idPropiedad: new SimpleChange(null, 'p1', true) });
+
+    expect(component.filas.length).toBe(1);
+    expect(component.filas[0].tarifaBase).toBe(200000);
+    expect(component.filas[0].tarifaFinDeSemana).toBe(240000);
+    expect(component.filas[0].tarifaTemporadaAlta).toBe(300000);
+    expect(component.filas[0].idCategoria).toBe('cat-1');
+  });
+
+  it('should keep default rows when catalog returns empty categories', () => {
+    mockCatalogService.getCategorias.and.returnValue(of({ id_propiedad: 'p1', total_categorias: 0, categorias: [] }));
+    component.idPropiedad = 'p1';
+    component.ngOnChanges({ idPropiedad: new SimpleChange(null, 'p1', true) });
+    expect(component.filas.length).toBe(4);
+  });
+
+  it('should set loadError on getCategorias failure', () => {
+    mockCatalogService.getCategorias.and.returnValue(throwError(() => new Error('Network error')));
+    component.idPropiedad = 'p-error';
+    component.ngOnChanges({ idPropiedad: new SimpleChange(null, 'p-error', true) });
+    expect(component.loadError).toBeTrue();
+  });
+
+  // â”€â”€â”€ save() â”€â”€â”€
+
+  it('save should return false when validation fails', () => {
+    component.filas[0].tarifaBase = null;
+    component.filas[0].errores = {};
+    let result: boolean | undefined;
+    component.save().subscribe(v => result = v);
+    expect(result).toBeFalse();
+  });
+
+  it('save should succeed locally when no idCategoria (fallback rows)', () => {
+    component.idPropiedad = null;
+    let result: boolean | undefined;
+    component.save().subscribe(v => result = v);
+    expect(result).toBeTrue();
+    expect(component.saveSuccess).toBeTrue();
+  });
+
+  it('save should call updatePricing for each row with idCategoria', () => {
+    mockCatalogService.updatePricing.and.returnValue(of({ ok: true }));
+    component.idPropiedad = 'prop-1';
+    component.filas = [
+      { idCategoria: 'cat-1', moneda: 'COP', cargoServicio: '0', tipoHabitacion: 'EstÃ¡ndar', totalHabitaciones: 2, tarifaBase: 100, tarifaFinDeSemana: 120, tarifaTemporadaAlta: 150, variacionFinDeSemana: '+20%', variacionTemporadaAlta: '+50%', errores: {} },
+    ];
+    let result: boolean | undefined;
+    component.save().subscribe(v => result = v);
+    expect(mockCatalogService.updatePricing).toHaveBeenCalledWith('prop-1', 'cat-1', jasmine.any(Object));
+    expect(result).toBeTrue();
+    expect(component.saveSuccess).toBeTrue();
+  });
+
+  it('save should set saveError when updatePricing fails', () => {
+    mockCatalogService.updatePricing.and.returnValue(throwError(() => new Error('error')));
+    component.idPropiedad = 'prop-1';
+    component.filas = [
+      { idCategoria: 'cat-1', moneda: 'COP', cargoServicio: '0', tipoHabitacion: 'EstÃ¡ndar', totalHabitaciones: 2, tarifaBase: 100, tarifaFinDeSemana: 120, tarifaTemporadaAlta: 150, variacionFinDeSemana: '+20%', variacionTemporadaAlta: '+50%', errores: {} },
+    ];
+    let result: boolean | undefined;
+    component.save().subscribe(v => result = v);
+    expect(result).toBeFalse();
+    expect(component.saveError).toBeTrue();
+  });
+
+  // â”€â”€â”€ onPriceInput: empty value â”€â”€â”€
 
   it('should set REQUIRED error when input is empty', () => {
     const fila = component.filas[0];
@@ -46,7 +158,7 @@ describe('PreciosPorHabitacionComponent', () => {
     expect(fila.errores['tarifaBase']).toBe('PRICING_VALIDATION.REQUIRED');
   });
 
-  // ─── onPriceInput: non-numeric ───
+  // â”€â”€â”€ onPriceInput: non-numeric â”€â”€â”€
 
   it('should set NUMERIC error for non-numeric input', () => {
     const fila = component.filas[0];
@@ -62,7 +174,7 @@ describe('PreciosPorHabitacionComponent', () => {
     expect(fila.errores['tarifaFinDeSemana']).toBe('PRICING_VALIDATION.NUMERIC');
   });
 
-  // ─── onPriceInput: zero or negative ───
+  // â”€â”€â”€ onPriceInput: zero or negative â”€â”€â”€
 
   it('should set POSITIVE error for zero', () => {
     const fila = component.filas[0];
@@ -78,14 +190,12 @@ describe('PreciosPorHabitacionComponent', () => {
     expect(fila.errores['tarifaTemporadaAlta']).toBe('PRICING_VALIDATION.POSITIVE');
   });
 
-  // ─── onPriceInput: valid value ───
+  // â”€â”€â”€ onPriceInput: valid value â”€â”€â”€
 
   it('should accept valid positive number and clear error', () => {
     const fila = component.filas[0];
-    // First set an error
     component.onPriceInput(fila, 'tarifaBase', 'abc');
     expect(fila.errores['tarifaBase']).toBeTruthy();
-    // Then set a valid value
     component.onPriceInput(fila, 'tarifaBase', '250');
     expect(fila.tarifaBase).toBe(250);
     expect(fila.errores['tarifaBase']).toBeUndefined();
@@ -98,26 +208,23 @@ describe('PreciosPorHabitacionComponent', () => {
     expect(fila.errores['tarifaBase']).toBeUndefined();
   });
 
-  // ─── onPriceInput: emits validityChange ───
+  // â”€â”€â”€ onPriceInput: emits validityChange â”€â”€â”€
 
   it('should emit validityChange true when all values are valid', () => {
     let emittedValue: boolean | undefined;
     component.validityChange.subscribe(v => emittedValue = v);
-
-    const fila = component.filas[0];
-    component.onPriceInput(fila, 'tarifaBase', '100');
+    component.onPriceInput(component.filas[0], 'tarifaBase', '100');
     expect(emittedValue).toBeTrue();
   });
 
   it('should emit validityChange false when a value is invalid', () => {
     let emittedValue: boolean | undefined;
     component.validityChange.subscribe(v => emittedValue = v);
-
     component.onPriceInput(component.filas[0], 'tarifaBase', '');
     expect(emittedValue).toBeFalse();
   });
 
-  // ─── recalcularVariaciones ───
+  // â”€â”€â”€ recalcularVariaciones â”€â”€â”€
 
   it('should recalculate weekend variation when base and weekend are valid', () => {
     const fila = component.filas[0];
@@ -161,7 +268,7 @@ describe('PreciosPorHabitacionComponent', () => {
     expect(fila.variacionTemporadaAlta).toBe('');
   });
 
-  // ─── isValid ───
+  // â”€â”€â”€ isValid â”€â”€â”€
 
   it('isValid should return false when any field has error', () => {
     component.onPriceInput(component.filas[2], 'tarifaBase', 'bad');
@@ -174,7 +281,7 @@ describe('PreciosPorHabitacionComponent', () => {
     expect(component.isValid()).toBeFalse();
   });
 
-  // ─── validate ───
+  // â”€â”€â”€ validate â”€â”€â”€
 
   it('validate should return true when all data is valid', () => {
     expect(component.validate()).toBeTrue();
@@ -198,7 +305,7 @@ describe('PreciosPorHabitacionComponent', () => {
   // ─── Template rendering ───
 
   it('should render inputs for each room row', () => {
-    const inputs = fixture.nativeElement.querySelectorAll('.fila-datos input');
+    const inputs = fixture.nativeElement.querySelectorAll('[data-testid="price-input"]');
     // 4 rows x 3 inputs each = 12
     expect(inputs.length).toBe(12);
   });
@@ -206,34 +313,29 @@ describe('PreciosPorHabitacionComponent', () => {
   it('should display error message when field has error', () => {
     component.onPriceInput(component.filas[0], 'tarifaBase', '');
     fixture.detectChanges();
-
-    const errorMsgs = fixture.nativeElement.querySelectorAll('.error-msg');
+    const errorMsgs = fixture.nativeElement.querySelectorAll('[data-testid="error-msg"]');
     expect(errorMsgs.length).toBeGreaterThan(0);
   });
 
-  it('should add input-error class when field has error', () => {
+  it('should add input-error when field has error', () => {
     component.onPriceInput(component.filas[0], 'tarifaBase', 'abc');
     fixture.detectChanges();
-
-    const errorInputs = fixture.nativeElement.querySelectorAll('.input-error');
+    const errorInputs = fixture.nativeElement.querySelectorAll('[data-testid="input-error"]');
     expect(errorInputs.length).toBeGreaterThan(0);
   });
 
   it('should show variation when no error and variation exists', () => {
     fixture.detectChanges();
-    const variations = fixture.nativeElement.querySelectorAll('.variacion');
+    const variations = fixture.nativeElement.querySelectorAll('[data-testid="variacion"]');
     expect(variations.length).toBeGreaterThan(0);
   });
 
   it('should hide variation when field has error', () => {
     component.onPriceInput(component.filas[0], 'tarifaFinDeSemana', 'bad');
     fixture.detectChanges();
-
-    const row = fixture.nativeElement.querySelectorAll('.fila-datos')[0];
-    const variaciones = row.querySelectorAll('.variacion');
-    // Weekend column should not show variation
-    const weekendCol = row.querySelectorAll('.precio-columna')[1];
-    const weekendVar = weekendCol?.querySelector('.variacion');
+    const rows = fixture.nativeElement.querySelectorAll('[data-testid="fila-datos"]');
+    const weekendCol = rows[0].querySelectorAll('[data-testid="precio-columna"]')[1];
+    const weekendVar = weekendCol?.querySelector('[data-testid="variacion"]');
     expect(weekendVar).toBeNull();
   });
 });

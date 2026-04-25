@@ -49,6 +49,7 @@ class User(Base):
 
     id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
+    username = Column(String(255), unique=True, nullable=True, index=True)
     full_name = Column(String(255), nullable=True)
     password_hash = Column(String(255), nullable=True)
     partner_id = Column(Uuid(as_uuid=True), nullable=True, index=True)

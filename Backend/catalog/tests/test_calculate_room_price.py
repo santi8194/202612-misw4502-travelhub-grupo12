@@ -71,12 +71,13 @@ def test_tarifa_base_temporada_baja(repo, categoria, tax_cop):
     )
     # 100 USD × 4200 = 420 000 COP/noche; 2 noches
     # Subtotal = 840 000; IVA 19 % = 159 600; cargo = 10 × 4200 = 42 000
-    # Impuestos y cargos = 201 600; Total = 1 041 600
+    # Total = 1 041 600
     assert result["tipo_tarifa"] == "BASE"
     assert result["precio_por_noche"] == 420_000.0
     assert result["noches"] == 2
     assert result["subtotal"] == 840_000.0
-    assert result["impuestos_y_cargos"] == 201_600.0
+    assert result["impuestos"] == 159_600.0
+    assert result["cargo_servicio"] == 42_000.0
     assert result["total"] == 1_041_600.0
     assert result["moneda"] == "COP"
     assert result["simbolo_moneda"] == "$"
@@ -153,7 +154,8 @@ def test_fallback_sin_tax_config(repo, categoria):
     # Sin config: 1 noche, sin conversión, sin impuesto, sólo cargo de servicio
     assert result["precio_por_noche"] == 100.0
     assert result["subtotal"] == 100.0
-    assert result["impuestos_y_cargos"] == 10.0  # sólo el cargo, IVA = 0
+    assert result["impuestos"] == 0.0
+    assert result["cargo_servicio"] == 10.0  # sólo el cargo, IVA = 0
     assert result["total"] == 110.0
     assert result["moneda"] == "USD"
 

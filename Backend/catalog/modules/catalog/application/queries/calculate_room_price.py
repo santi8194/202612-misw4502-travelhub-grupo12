@@ -50,8 +50,9 @@ class CalculateRoomPrice:
 
 		subtotal = precio_noche_convertido * noches
 		impuesto_tasa = tax_config.impuesto_tasa if tax_config else Decimal("0")
-		impuestos_y_cargos = subtotal * impuesto_tasa + cargo_servicio_convertido
-		total = subtotal + impuestos_y_cargos
+		impuestos = subtotal * impuesto_tasa
+		cargo_servicio = cargo_servicio_convertido
+		total = subtotal + impuestos + cargo_servicio
 
 		moneda_display = tax_config.moneda if tax_config else tarifa.moneda
 		simbolo_moneda = tax_config.simbolo_moneda if tax_config else tarifa.moneda
@@ -61,7 +62,8 @@ class CalculateRoomPrice:
 			"precio_por_noche": float(precio_noche_convertido.quantize(Decimal("0.01"))),
 			"noches": noches,
 			"subtotal": float(subtotal.quantize(Decimal("0.01"))),
-			"impuestos_y_cargos": float(impuestos_y_cargos.quantize(Decimal("0.01"))),
+			"impuestos": float(impuestos.quantize(Decimal("0.01"))),
+			"cargo_servicio": float(cargo_servicio.quantize(Decimal("0.01"))),
 			"total": float(total.quantize(Decimal("0.01"))),
 			"moneda": moneda_display,
 			"simbolo_moneda": simbolo_moneda,

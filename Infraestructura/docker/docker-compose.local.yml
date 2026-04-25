@@ -21,10 +21,12 @@ services:
       context: ../../Backend/booking
       dockerfile: Dockerfile
     environment:
+      BOOKING_DB_MODE: sqlite
       RABBITMQ_HOST: rabbitmq-broker
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+      BOOKING_INSTANCE_PATH: /src/instance
     depends_on:
       catalog:
         condition: service_healthy
@@ -130,6 +132,8 @@ services:
       RABBITMQ_PASS: guest
       PYTHONPATH: /src
       PYTHONUNBUFFERED: "1"
+      BOOKING_DB_MODE: sqlite
+      BOOKING_INSTANCE_PATH: /src/instance
       DB_HOST: ${BOOKING_DB_HOST}
       DB_PORT: ${BOOKING_DB_PORT}
       DB_NAME: ${BOOKING_DB_NAME}

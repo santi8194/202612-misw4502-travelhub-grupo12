@@ -18,13 +18,22 @@ def create_app(config_name=None):
 
     # Configuración básica
     # Configuración de base de datos dinámica
+    db_mode = (os.getenv('BOOKING_DB_MODE', '') or '').strip().lower()
     db_user = os.getenv('DB_USER')
     db_password = os.getenv('DB_PASSWORD')
     db_host = os.getenv('DB_HOST')
     db_port = os.getenv('DB_PORT', '5432')
     db_name = os.getenv('DB_NAME')
 
-    if all([db_user, db_password, db_host, db_name]):
+    if db_mode == 'sqlite':
+        os.makedirs(app.instance_path, exist_ok=True)
+        db_path = os.path.join(app.instance_path, 'booking.db')
+        database_uri = f'sqlite:///{db_path}'
+    elif db_mode == 'postgres':
+        if not all([db_user, db_password, db_host, db_name]):
+            raise RuntimeError('BOOKING_DB_MODE=postgres requires DB_USER, DB_PASSWORD, DB_HOST and DB_NAME')
+        database_uri = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    elif all([db_user, db_password, db_host, db_name]):
         database_uri = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
     else:
         os.makedirs(app.instance_path, exist_ok=True)

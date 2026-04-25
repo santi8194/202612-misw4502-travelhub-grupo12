@@ -36,13 +36,22 @@ def configurar_logging():
 def get_db_session():
     # Obtienemos la sesión de BD de SQLAlchemy configurada
     # Ya que corremos fuera de Flask de forma aislada
+    db_mode = (os.getenv('BOOKING_DB_MODE', '') or '').strip().lower()
     db_user = os.getenv('DB_USER')
     db_password = os.getenv('DB_PASSWORD')
     db_host = os.getenv('DB_HOST')
     db_port = os.getenv('DB_PORT', '5432')
     db_name = os.getenv('DB_NAME')
 
-    if all([db_user, db_password, db_host, db_name]):
+    if db_mode == 'sqlite':
+        instance_path = os.getenv('BOOKING_INSTANCE_PATH', '/src/instance')
+        db_path = os.path.join(instance_path, 'booking.db')
+        connection_url = f'sqlite:///{db_path}'
+    elif db_mode == 'postgres':
+        if not all([db_user, db_password, db_host, db_name]):
+            raise RuntimeError('BOOKING_DB_MODE=postgres requires DB_USER, DB_PASSWORD, DB_HOST and DB_NAME')
+        connection_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    elif all([db_user, db_password, db_host, db_name]):
         connection_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
     else:
         instance_path = os.getenv('BOOKING_INSTANCE_PATH', '/src/instance')

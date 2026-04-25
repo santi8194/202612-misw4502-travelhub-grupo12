@@ -73,12 +73,14 @@ services:
     image: ${ECR_REGISTRY_DEV}/booking:${BOOKING_IMAGE_TAG:-latest}
     container_name: travelhub-booking
     environment:
+      BOOKING_DB_MODE: postgres
       DB_HOST: ${BOOKING_DB_HOST}
       DB_PORT: ${BOOKING_DB_PORT}
       DB_NAME: ${BOOKING_DB_NAME}
       DB_USER: ${BOOKING_DB_USER}
       DB_PASSWORD: ${BOOKING_DB_PASSWORD}
       CATALOG_SERVICE_URL: ${BOOKING_CATALOG_SERVICE_URL}
+      BOOKING_INSTANCE_PATH: /src/instance
     depends_on:
       catalog:
         condition: service_healthy
@@ -254,6 +256,8 @@ services:
       RABBITMQ_PASS: guest
       PYTHONPATH: /src
       PYTHONUNBUFFERED: "1"
+      BOOKING_DB_MODE: postgres
+      BOOKING_INSTANCE_PATH: /src/instance
       DB_HOST: ${BOOKING_DB_HOST}
       DB_PORT: ${BOOKING_DB_PORT}
       DB_NAME: ${BOOKING_DB_NAME}

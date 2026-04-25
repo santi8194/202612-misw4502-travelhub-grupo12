@@ -82,6 +82,7 @@ docker cp travelhub-authservice:/src/data/auth.db ./auth.db
 docker cp travelhub-catalog:/app/data/catalog.db ./catalog.db
 docker cp travelhub-search:/app/data/search.db ./search.db
 docker cp travelhub-booking:/src/instance/booking.db ./booking.db
+docker cp travelhub-booking:/src/Booking/instance/booking.db ./booking.db
 docker cp travelhub-payment:/app/data/payments.db ./payments.db
 docker cp travelhub-pms-integration:/app/data/pms.db ./pms.db
 docker cp travelhub-partner-management:/app/data/partner_management.db ./partner_management.db

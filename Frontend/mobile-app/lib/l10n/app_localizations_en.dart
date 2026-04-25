@@ -204,10 +204,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get propertyInfoTab => 'Information';
 
   @override
+  String get propertyRoomsTab => 'Rooms';
+
+  @override
   String get aboutProperty => 'About the property';
 
   @override
   String get mainAmenities => 'Main amenities';
+
+  @override
+  String get roomGallery => 'Room Gallery';
 
 
   @override

@@ -84,8 +84,10 @@
   "countryLabel": "País",
   "countryNotSet": "Sin definir",
   "propertyInfoTab": "Información",
+  "propertyRoomsTab": "Habitaciones",
   "aboutProperty": "Sobre la propiedad",
   "mainAmenities": "Comodidades principales",
+  "roomGallery": "Galería de Habitaciones",
   "reserveNow": "Reservar Ahora",
   "totalPriceLabel": "PRECIO TOTAL"
 }

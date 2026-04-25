@@ -82,6 +82,51 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
     super.dispose();
   }
 
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black,
+      builder: (context) => Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                maxScale: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(40),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 60,
+              right: 30,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 24),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -117,7 +162,10 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
               SliverFillRemaining(
                 child: TabBarView(
                   controller: _tabController,
-                  children: [_buildInfoTab(l10n, theme, category)],
+                  children: [
+                    _buildInfoTab(l10n, theme, category),
+                    _buildRoomsTab(l10n),
+                  ],
                 ),
               ),
             ],
@@ -153,7 +201,10 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(_galleryImages.first, fit: BoxFit.cover),
+            GestureDetector(
+              onTap: () => _showFullScreenImage(context, _galleryImages.first),
+              child: Image.network(_galleryImages.first, fit: BoxFit.cover),
+            ),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -269,7 +320,10 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
         dividerColor: Colors.transparent,
         indicatorSize: TabBarIndicatorSize.tab,
         labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        tabs: [Tab(text: l10n.propertyInfoTab)],
+        tabs: [
+          Tab(text: l10n.propertyInfoTab),
+          Tab(text: l10n.propertyRoomsTab),
+        ],
       ),
     );
   }
@@ -377,6 +431,71 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoomsTab(AppLocalizations l10n) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.roomGallery,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          if (_galleryImages.isNotEmpty)
+            GestureDetector(
+              onTap: () => _showFullScreenImage(context, _galleryImages[0]),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Image.network(
+                  _galleryImages[0],
+                  height: 250,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
+          if (_galleryImages.length >= 3)
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () =>
+                        _showFullScreenImage(context, _galleryImages[1]),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.network(
+                        _galleryImages[1],
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () =>
+                        _showFullScreenImage(context, _galleryImages[2]),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.network(
+                        _galleryImages[2],
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 100),
         ],
       ),
     );

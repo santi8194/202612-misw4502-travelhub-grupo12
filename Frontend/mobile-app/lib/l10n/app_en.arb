@@ -84,8 +84,10 @@
   "countryLabel": "Country",
   "countryNotSet": "Not set",
   "propertyInfoTab": "Information",
+  "propertyRoomsTab": "Rooms",
   "aboutProperty": "About the property",
   "mainAmenities": "Main amenities",
+  "roomGallery": "Room Gallery",
   "reserveNow": "Book Now",
   "totalPriceLabel": "TOTAL PRICE"
 }

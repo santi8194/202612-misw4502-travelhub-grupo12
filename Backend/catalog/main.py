@@ -1,17 +1,22 @@
 import os
+import sys
 import threading
 
 from config.app import create_app
 from modules.catalog.infrastructure import models
+from modules.catalog.infrastructure.database import Base, engine, IS_SQLITE
 from modules.catalog.infrastructure.services.consumer import start_consumer
 from data.seed import run_seed
 
 app = create_app()
-# Crear todas las tablas al inicio (idempotente: no recrea las existentes).
-Base.metadata.create_all(bind=engine)
 
-# Poblar la BD con las propiedades y categorías de demostración si no existen.
-run_seed()
+# Crear tablas locales solo cuando se usa SQLite de desarrollo.
+if IS_SQLITE:
+    Base.metadata.create_all(bind=engine)
+
+# Evita efectos colaterales durante colección de pruebas en CI/pytest.
+if "pytest" not in sys.modules:
+    run_seed()
 
 ENABLE_EVENTS = os.getenv("ENABLE_EVENTS", "false").lower() == "true"
 

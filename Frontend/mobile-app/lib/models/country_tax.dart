@@ -1,15 +1,30 @@
 class TaxInfo {
   final String name;
   final double rate;
-  final String note;
+  final Map<String, String> note;
 
   const TaxInfo({required this.name, required this.rate, required this.note});
 
-  factory TaxInfo.fromJson(Map<String, dynamic> json) => TaxInfo(
-    name: json['name'] as String,
-    rate: (json['rate'] as num).toDouble(),
-    note: json['note'] as String,
-  );
+  String noteForLanguage(String languageCode) {
+    return note[languageCode] ?? note['en'] ?? note['es'] ?? '';
+  }
+
+  factory TaxInfo.fromJson(Map<String, dynamic> json) {
+    final rawNote = json['note'];
+    final parsedNote = switch (rawNote) {
+      String value => {'es': value, 'en': value},
+      Map<String, dynamic> value => value.map(
+        (key, value) => MapEntry(key, value as String),
+      ),
+      _ => const <String, String>{'es': '', 'en': ''},
+    };
+
+    return TaxInfo(
+      name: json['name'] as String,
+      rate: (json['rate'] as num).toDouble(),
+      note: parsedNote,
+    );
+  }
 }
 
 class CountryTax {

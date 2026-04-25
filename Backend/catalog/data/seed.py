@@ -21,7 +21,7 @@ def _build_category_id(search_category_name: str) -> UUID:
 
 
 # 👇 MISMA DATA (resumida aquí pero debes copiarla EXACTA desde el otro archivo)
-from modules.catalog.seed_local_data import SEED_ROWS
+from modules.catalog.infrastructure.local_seed import SEED_ROWS
 
 
 def _codigos_existentes(repository: PropertyRepository, id_propiedad: UUID) -> set[str]:

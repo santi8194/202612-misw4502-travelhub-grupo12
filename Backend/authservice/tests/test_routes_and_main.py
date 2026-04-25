@@ -13,14 +13,13 @@ def test_root_endpoint():
     assert response.status_code == 200
     assert "Welcome to" in response.json()["message"]
 
-
-def test_health_endpoint():
-    response = client.get("/health")
+def test_auth_health_endpoint():
+    response = client.get("/auth/health")
     assert response.status_code == 200
-    assert response.json()["status"] == "ok"
+    assert response.json() == {"status": "ok"}
 
 
-def test_login_endpoint(monkeypatch):
+def test_login_endpoint(monkeypatch, sample_user):
     cognito_result = {
         "AccessToken": "token-login",
         "IdToken": "id-token-login",

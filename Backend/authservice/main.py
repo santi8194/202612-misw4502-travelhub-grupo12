@@ -1,52 +1,50 @@
 """
-Propósito del archivo: Punto de entrada principal para el microservicio de autenticación.
-Rol dentro del microservicio: Inicializa la aplicación FastAPI, configura middlewares (CORS) y registra los enrutadores principales de la API.
+Proposito del archivo: Punto de entrada principal para el microservicio de autenticacion.
+Rol dentro del microservicio: Inicializa la aplicacion FastAPI, configura middlewares (CORS) y registra los enrutadores principales de la API.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from api.routes import auth
 from config.config import settings
+from infrastructure.database import IS_SQLITE, init_db
 
-# Inicialización de la aplicación FastAPI con metadata general
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Microservicio de Autenticación para la plataforma hotelera.",
+    description="Microservicio de Autenticacion para la plataforma hotelera.",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
-# Configuración del middleware CORS para aceptar conexiones desde cualquier origen
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite cualquier origen (frontend, otros servicios)
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Permite todos los métodos HTTP (GET, POST, etc.)
-    allow_headers=["*"],  # Permite cualquier encabezado personalizado
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Inclusión del enrutador de autenticación bajo el prefijo definido en la configuración
 app.include_router(auth.router, prefix=settings.API_V1_STR, tags=["auth"])
 
 
-# Endpoint /health para probes de Kubernetes
+@app.on_event("startup")
+def startup() -> None:
+    """Inicializa el esquema local cuando el servicio corre con SQLite."""
+    if IS_SQLITE:
+        init_db()
+
+
 @app.get("/health")
+@app.get("/auth/health")
 def health_check():
-    """
-    Endpoint de salud para Kubernetes (readiness/liveness probe).
-    Retorna 200 si el servicio está corriendo.
-    """
+    """Endpoint de salud para readiness/liveness probes."""
     return {"status": "ok"}
 
 
 @app.get("/")
 def root():
-    """
-    Endpoint de bienvenida y comprobación de salud básica.
-
-    Retorna:
-    - dict: Mensaje de bienvenida indicando que el servicio está activo.
-    """
+    """Endpoint de bienvenida y comprobacion de salud basica."""
     return {"message": f"Welcome to {settings.PROJECT_NAME}"}

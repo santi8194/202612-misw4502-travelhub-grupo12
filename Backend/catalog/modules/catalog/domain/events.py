@@ -96,3 +96,18 @@ class CategoriasPropiedadConsultadas(DomainEvent):
 	@property
 	def routing_key(self) -> str:
 		return "catalog.property.categories.requested"
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class TarifasActualizadas(DomainEvent):
+	"""Evento emitido cuando se actualizan las tarifas diferenciadas de una categoría."""
+	id_propiedad: UUID
+	id_categoria: UUID
+	tarifa_base_monto: Decimal
+	moneda: str
+	tarifa_fin_de_semana_monto: Decimal | None
+	tarifa_temporada_alta_monto: Decimal | None
+
+	@property
+	def routing_key(self) -> str:
+		return "catalog.category.pricing.updated"

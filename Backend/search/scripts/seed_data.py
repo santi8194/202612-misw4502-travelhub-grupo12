@@ -27,7 +27,7 @@ import urllib3
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
-from uuid import uuid4, uuid5, NAMESPACE_DNS
+from uuid import uuid5, NAMESPACE_DNS
 import asyncpg
 
 # ── Suprimir advertencias de certificados SSL en desarrollo ───────────────────
@@ -227,8 +227,9 @@ def _build_document(prop: dict) -> dict:
     """Construye un documento de hospedaje a partir de una definición de propiedad."""
     today = date.today()
     return {
-        "id_propiedad": str(uuid4()),
-        "id_categoria": str(uuid4()),
+        # IDs deterministas para mantener consistencia entre seeds y microservicios.
+        "id_propiedad": str(uuid5(NAMESPACE_DNS, f"propiedad:{prop['nombre']}")),
+        "id_categoria": str(uuid5(NAMESPACE_DNS, f"categoria:{prop['categoria']}")),
         "propiedad_nombre": prop["nombre"],
         "categoria_nombre": prop["categoria"],
         "imagen_principal_url": prop["imagen"],

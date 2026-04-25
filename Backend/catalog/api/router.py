@@ -12,6 +12,7 @@ from modules.catalog.infrastructure.services.event_bus import EventBus
 from modules.catalog.application.commands.create_property import CreateProperty
 from modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from modules.catalog.application.commands.update_inventory import UpdateInventory
+from modules.catalog.application.commands.update_pricing import UpdatePricing
 from modules.catalog.application.queries.obtain_property_by_category_id import ObtainPropertyByCategoryId
 from modules.catalog.application.queries.obtain_category_by_id import ObtainCategoryById
 from modules.catalog.application.queries.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
@@ -64,6 +65,14 @@ class UpdateInventoryRequest(BaseModel):
 	fecha: date
 	cupos_totales: int
 	cupos_disponibles: int
+
+
+class UpdatePricingRequest(BaseModel):
+	tarifa_base_monto: Decimal
+	moneda: str
+	cargo_servicio: Decimal = Decimal("0")
+	tarifa_fin_de_semana_monto: Decimal | None = None
+	tarifa_temporada_alta_monto: Decimal | None = None
 
 
 # ==================== ENDPOINTS ====================
@@ -202,6 +211,49 @@ def obtener_categoria_por_id(id_categoria: UUID):
 	"""Obtiene una categoría de habitación por su ID."""
 	command = ObtainCategoryById(repository)
 	return command.execute(id_categoria)
+
+
+@router.put("/properties/{id_propiedad}/categories/{id_categoria}/pricing")
+def actualizar_tarifas(id_propiedad: UUID, id_categoria: UUID, request: UpdatePricingRequest):
+	"""Actualiza tarifa base y tarifas diferenciadas (fin de semana, temporada alta)."""
+	command = UpdatePricing(repository, event_bus)
+	result = command.execute(
+		id_propiedad=id_propiedad,
+		id_categoria=id_categoria,
+		tarifa_base_monto=request.tarifa_base_monto,
+		moneda=request.moneda,
+		cargo_servicio=request.cargo_servicio,
+		tarifa_fin_de_semana_monto=request.tarifa_fin_de_semana_monto,
+		tarifa_temporada_alta_monto=request.tarifa_temporada_alta_monto,
+	)
+	if "error" in result:
+		status = 404 if "not found" in result["error"].lower() else 400
+		return JSONResponse(status_code=status, content=result)
+	return result
+
+
+@router.get("/properties/{id_propiedad}/categories/{id_categoria}/pricing")
+def obtener_tarifas(id_propiedad: UUID, id_categoria: UUID):
+	"""Retorna las tarifas actuales de una categoría (base + diferenciadas)."""
+	propiedad = repository.obtain(id_propiedad)
+	if not propiedad:
+		return JSONResponse(status_code=404, content={"error": "Property not found", "id_propiedad": str(id_propiedad)})
+	categoria = propiedad.obtener_categoria(id_categoria)
+	if not categoria:
+		return JSONResponse(status_code=404, content={"error": "Category not found", "id_categoria": str(id_categoria)})
+
+	def _vo(vo):
+		if vo is None:
+			return None
+		return {"monto": str(vo.monto), "moneda": vo.moneda, "cargo_servicio": str(vo.cargo_servicio)}
+
+	return {
+		"id_categoria": str(categoria.id_categoria),
+		"nombre_comercial": categoria.nombre_comercial,
+		"tarifa_base": _vo(categoria.precio_base),
+		"tarifa_fin_de_semana": _vo(categoria.tarifa_fin_de_semana),
+		"tarifa_temporada_alta": _vo(categoria.tarifa_temporada_alta),
+	}
 
 
 @router.get("/properties/{id_propiedad}/categories/{id_categoria}/availability/{fecha}")

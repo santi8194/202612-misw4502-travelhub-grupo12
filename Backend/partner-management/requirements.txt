@@ -1,1 +1,9 @@
-pytest>=8.0,<9.0
+fastapi
+uvicorn
+pydantic
+pika
+pytest
+python-dotenv
+sqlalchemy
+alembic
+psycopg2-binary

@@ -1,13 +1,16 @@
-"""Helpers para aplicar migraciones SQL versionadas del servicio search."""
+"""Helpers to initialize the active database for the search service."""
 
 from __future__ import annotations
 
 import asyncio
+import json
+import sqlite3
 from pathlib import Path
 
 import asyncpg
 
 from app.config import settings
+from app.infrastructure.local_seed_data import build_seed_destinations, build_seed_documents
 
 MIGRATIONS_DIR = Path(__file__).resolve().parents[2] / "db" / "migrations"
 
@@ -42,7 +45,7 @@ async def _ensure_migration_table(conn: asyncpg.Connection) -> None:
 
 
 async def run_migrations(pool: asyncpg.Pool) -> None:
-    """Aplica una sola vez cada archivo SQL versionado en ``db/migrations``."""
+    """Apply versioned PostgreSQL migrations from ``db/migrations``."""
 
     async with pool.acquire() as conn:
         await _ensure_migration_table(conn)
@@ -68,17 +71,135 @@ async def run_migrations(pool: asyncpg.Pool) -> None:
 
 
 async def ensure_schema(pool: asyncpg.Pool) -> None:
-    """Compatibilidad temporal para flujos que aún invocan el nombre anterior."""
-
+    """Temporary compatibility alias for existing scripts."""
     await run_migrations(pool)
 
 
-async def migrate_database_from_env() -> None:
-    pool = await asyncpg.create_pool(settings.database_url)
+def ensure_local_sqlite_database() -> None:
+    """Create and seed the SQLite database used for local docker-compose runs."""
+    db_path = settings.sqlite_database_path
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    connection = sqlite3.connect(db_path)
     try:
-        await run_migrations(pool)
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS hospedajes (
+                id_propiedad TEXT PRIMARY KEY,
+                id_categoria TEXT NOT NULL,
+                propiedad_nombre TEXT NOT NULL,
+                categoria_nombre TEXT NOT NULL,
+                imagen_principal_url TEXT NOT NULL,
+                amenidades_destacadas TEXT NOT NULL,
+                estrellas INTEGER NOT NULL,
+                rating_promedio REAL NOT NULL,
+                ciudad TEXT NOT NULL,
+                estado_provincia TEXT,
+                pais TEXT NOT NULL,
+                coordenadas TEXT NOT NULL,
+                capacidad_pax INTEGER NOT NULL,
+                precio_base REAL NOT NULL,
+                moneda TEXT NOT NULL,
+                es_reembolsable INTEGER NOT NULL,
+                disponibilidad TEXT NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS destinos (
+                id_destino TEXT PRIMARY KEY,
+                ciudad TEXT NOT NULL,
+                ciudad_lower TEXT NOT NULL,
+                estado_provincia TEXT,
+                pais TEXT NOT NULL,
+                UNIQUE(ciudad_lower, estado_provincia, pais)
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_destinos_ciudad_prefix
+            ON destinos (ciudad_lower)
+            """
+        )
+
+        hospedajes_count = connection.execute(
+            "SELECT COUNT(*) FROM hospedajes"
+        ).fetchone()[0]
+        destinos_count = connection.execute(
+            "SELECT COUNT(*) FROM destinos"
+        ).fetchone()[0]
+
+        if hospedajes_count == 0:
+            documents = build_seed_documents()
+            connection.executemany(
+                """
+                INSERT INTO hospedajes (
+                    id_propiedad, id_categoria, propiedad_nombre, categoria_nombre,
+                    imagen_principal_url, amenidades_destacadas, estrellas, rating_promedio,
+                    ciudad, estado_provincia, pais, coordenadas, capacidad_pax,
+                    precio_base, moneda, es_reembolsable, disponibilidad
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    (
+                        doc["id_propiedad"],
+                        doc["id_categoria"],
+                        doc["propiedad_nombre"],
+                        doc["categoria_nombre"],
+                        doc["imagen_principal_url"],
+                        json.dumps(doc["amenidades_destacadas"]),
+                        doc["estrellas"],
+                        doc["rating_promedio"],
+                        doc["ciudad"],
+                        doc["estado_provincia"],
+                        doc["pais"],
+                        json.dumps(doc["coordenadas"]),
+                        doc["capacidad_pax"],
+                        doc["precio_base"],
+                        doc["moneda"],
+                        1 if doc["es_reembolsable"] else 0,
+                        json.dumps(doc["disponibilidad"]),
+                    )
+                    for doc in documents
+                ],
+            )
+
+        if destinos_count == 0:
+            connection.executemany(
+                """
+                INSERT INTO destinos (
+                    id_destino, ciudad, ciudad_lower, estado_provincia, pais
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                [
+                    (
+                        dest["id_destino"],
+                        dest["ciudad"],
+                        dest["ciudad_lower"],
+                        dest["estado_provincia"],
+                        dest["pais"],
+                    )
+                    for dest in build_seed_destinations()
+                ],
+            )
+
+        connection.commit()
     finally:
-        await pool.close()
+        connection.close()
+
+
+async def migrate_database_from_env() -> None:
+    if settings.use_postgres_database:
+        pool = await asyncpg.create_pool(settings.database_url)
+        try:
+            await run_migrations(pool)
+        finally:
+            await pool.close()
+        return
+
+    ensure_local_sqlite_database()
 
 
 if __name__ == "__main__":

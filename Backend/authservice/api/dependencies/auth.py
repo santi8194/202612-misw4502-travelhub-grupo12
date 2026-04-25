@@ -30,18 +30,22 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
 
     try:
         payload = validate_cognito_token(token)
-        # Access tokens: campo 'username'. ID tokens: campo 'email'.
-        email = payload.get("email") or payload.get("username")
-        if email is None:
+        # Access tokens usan 'username' (sub de Cognito). ID tokens usan 'email'.
+        username = payload.get("username")
+        email = payload.get("email")
+        if username is None and email is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
-    # Obtiene al usuario para asegurarse de que existe en nuestro sistema
-    user = UserService.get_user_by_email(email)
+    # Buscar primero por username (access tokens de Cognito); fallback a email (ID tokens)
+    user = UserService.get_user_by_username(username) if username else None
+    if not user and email:
+        user = UserService.get_user_by_email(email)
 
+    lookup_key = username or email
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado en los registros")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado en los registros: " + lookup_key)
 
     return UserResponse(
         id_usuario=user.id_usuario,

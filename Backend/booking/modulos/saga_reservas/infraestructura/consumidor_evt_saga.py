@@ -21,19 +21,41 @@ from modulos.saga_reservas.aplicacion.orquestador import OrquestadorSagaReservas
 from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
 from config.uow import UnidadTrabajoHibrida
 
+
+def configurar_logging():
+    level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+        stream=sys.stdout,
+        force=True,
+    )
+    logger.info("[SAGA WORKER] Logging configurado con nivel %s", level_name)
+
 def get_db_session():
     # Obtienemos la sesión de BD de SQLAlchemy configurada
     # Ya que corremos fuera de Flask de forma aislada
+    db_mode = (os.getenv('BOOKING_DB_MODE', '') or '').strip().lower()
     db_user = os.getenv('DB_USER')
     db_password = os.getenv('DB_PASSWORD')
     db_host = os.getenv('DB_HOST')
     db_port = os.getenv('DB_PORT', '5432')
     db_name = os.getenv('DB_NAME')
 
-    if all([db_user, db_password, db_host, db_name]):
+    if db_mode == 'sqlite':
+        instance_path = os.getenv('BOOKING_INSTANCE_PATH', '/src/instance')
+        db_path = os.path.join(instance_path, 'booking.db')
+        connection_url = f'sqlite:///{db_path}'
+    elif db_mode == 'postgres':
+        if not all([db_user, db_password, db_host, db_name]):
+            raise RuntimeError('BOOKING_DB_MODE=postgres requires DB_USER, DB_PASSWORD, DB_HOST and DB_NAME')
+        connection_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    elif all([db_user, db_password, db_host, db_name]):
         connection_url = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
     else:
-        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'database', 'booking.db'))
+        instance_path = os.getenv('BOOKING_INSTANCE_PATH', '/src/instance')
+        db_path = os.path.join(instance_path, 'booking.db')
         connection_url = f'sqlite:///{db_path}'
         
     engine = create_engine(connection_url)
@@ -168,6 +190,7 @@ if __name__ == '__main__':
     try:
         # Forcing unbuffered stdout for Docker logs
         sys.stdout.reconfigure(line_buffering=True)
+        configurar_logging()
         iniciar_consumidor()
     except KeyboardInterrupt:
         logger.info('Worker detenido manualmente.')

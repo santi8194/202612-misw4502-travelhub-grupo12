@@ -5,85 +5,28 @@ services:
     image: nginx:1.27-alpine
     container_name: travelhub-nginx
     ports:
-      - "5001:8000"
-    environment:
-      - CATALOG_SERVICE_URL=http://catalog-api:80/catalog
-      - REDIS_HOST=redis-db
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-      - DB_USER=booking_user
-      - DB_PASSWORD=booking_password
-      - DB_HOST=booking-db
-      - DB_PORT=5432
-      - DB_NAME=booking_db
+      - "${NGINX_PUBLISHED_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      booking-db:
+      authservice:
         condition: service_healthy
-      redis-db:
-        condition: service_started
-      rabbitmq-broker:
-        condition: service_started
-    networks:
-      - microservices-network
-
-  booking-saga-worker:
-    build:
-      context: ../../Backend/booking
-      dockerfile: Dockerfile
-    command: python /src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
-    environment:
-      - REDIS_HOST=redis-db
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-      - PYTHONPATH=/src
-      - PYTHONUNBUFFERED=1
-      - DB_USER=booking_user
-      - DB_PASSWORD=booking_password
-      - DB_HOST=booking-db
-      - DB_PORT=5432
-      - DB_NAME=booking_db
-    depends_on:
-      booking-db:
+      booking:
         condition: service_healthy
-      redis-db:
-        condition: service_started
-      rabbitmq-broker:
-        condition: service_started
-      booking-api:
-        condition: service_started
+      catalog:
+        condition: service_healthy
+      search:
+        condition: service_healthy
+      payment:
+        condition: service_healthy
+      pms-integration:
+        condition: service_healthy
+      partner-management:
+        condition: service_healthy
+      notification:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
-      - microservices-network
-
-  notification-api:
-    build:
-      context: ../../Backend/notification
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    environment:
-      - REDIS_HOST=redis-db
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-    depends_on:
-      - redis-db
-      - rabbitmq-broker
-    networks:
-      - microservices-network
-
-  booking-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: booking_user
-      POSTGRES_PASSWORD: booking_password
-      POSTGRES_DB: booking_db
-    ports:
-      - "5432:5432"
       - travelhub-dev-net
 
   authservice:
@@ -130,12 +73,19 @@ services:
     image: ${ECR_REGISTRY_DEV}/booking:${BOOKING_IMAGE_TAG:-latest}
     container_name: travelhub-booking
     environment:
+      BOOKING_DB_MODE: postgres
       DB_HOST: ${BOOKING_DB_HOST}
       DB_PORT: ${BOOKING_DB_PORT}
       DB_NAME: ${BOOKING_DB_NAME}
       DB_USER: ${BOOKING_DB_USER}
       DB_PASSWORD: ${BOOKING_DB_PASSWORD}
       CATALOG_SERVICE_URL: ${BOOKING_CATALOG_SERVICE_URL}
+      BOOKING_INSTANCE_PATH: /src/instance
+    depends_on:
+      catalog:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
       interval: 15s
@@ -165,69 +115,173 @@ services:
     restart: unless-stopped
     networks:
       - travelhub-dev-net
-  auth-api:
-    build:
-      context: ../../Backend/authservice
-      dockerfile: Dockerfile
-    ports:
-      - "8003:8000"
-    networks:
-      - microservices-network
 
-  catalog-api:
-    build:
-      context: ../../Backend/catalog
-      dockerfile: Dockerfile
-    ports:
-      - "8005:80"
+  payment:
+    image: ${ECR_REGISTRY_DEV}/payment:${PAYMENT_IMAGE_TAG:-latest}
+    container_name: travelhub-payment
     environment:
-      - RABBITMQ_HOST=rabbitmq-broker
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
-      - DB_HOST=catalog-db
-      - DB_PORT=5432
-      - DB_NAME=catalog_db
-      - DB_USER=catalog_user
-      - DB_PASSWORD=catalog_password
-    depends_on:
-      - rabbitmq-broker
-      - catalog-db
-    networks:
-      - microservices-network
-
-  catalog-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: catalog_user
-      POSTGRES_PASSWORD: catalog_password
-      POSTGRES_DB: catalog_db
-    ports:
-      - "5434:5432"
-    volumes:
-      - catalog_db_data:/var/lib/postgresql/data
-    networks:
-      - microservices-network
+      PAYMENT_DB_HOST: ${PAYMENT_DB_HOST:-}
+      PAYMENT_DB_PORT: ${PAYMENT_DB_PORT:-}
+      PAYMENT_DB_NAME: ${PAYMENT_DB_NAME:-}
+      PAYMENT_DB_USER: ${PAYMENT_DB_USER:-}
+      PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD:-}
+      RABBITMQ_HOST: ${PAYMENT_RABBITMQ_HOST:-rabbitmq-broker}
+      RABBITMQ_PORT: ${PAYMENT_RABBITMQ_PORT:-5672}
+      RABBITMQ_USER: ${PAYMENT_RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${PAYMENT_RABBITMQ_PASS:-guest}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U catalog_user -d catalog_db" ]
-      interval: 10s
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health')\""]
+      interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 20s
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
 
-  user-web:
-    build:
-      context: ../../Frontend/user-web
-      dockerfile: Dockerfile
-    ports:
-      - "4200:80"
+  pms-integration:
+    image: ${ECR_REGISTRY_DEV}/pms-integration:${PMS_INTEGRATION_IMAGE_TAG:-latest}
+    container_name: travelhub-pms-integration
+    environment:
+      PMS_DB_HOST: ${PMS_DB_HOST:-}
+      PMS_DB_PORT: ${PMS_DB_PORT:-}
+      PMS_DB_NAME: ${PMS_DB_NAME:-}
+      PMS_DB_USER: ${PMS_DB_USER:-}
+      PMS_DB_PASSWORD: ${PMS_DB_PASSWORD:-}
+      RABBITMQ_HOST: ${PMS_RABBITMQ_HOST:-rabbitmq-broker}
+      RABBITMQ_PORT: ${PMS_RABBITMQ_PORT:-5672}
+      RABBITMQ_USER: ${PMS_RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${PMS_RABBITMQ_PASS:-guest}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  partner-management:
+    image: ${ECR_REGISTRY_DEV}/partner-management:${PARTNER_MANAGEMENT_IMAGE_TAG:-latest}
+    container_name: travelhub-partner-management
+    environment:
+      PARTNER_DB_HOST: ${PARTNER_DB_HOST:-}
+      PARTNER_DB_PORT: ${PARTNER_DB_PORT:-}
+      PARTNER_DB_NAME: ${PARTNER_DB_NAME:-}
+      PARTNER_DB_USER: ${PARTNER_DB_USER:-}
+      PARTNER_DB_PASSWORD: ${PARTNER_DB_PASSWORD:-}
+      RABBITMQ_HOST: ${PARTNER_RABBITMQ_HOST:-rabbitmq-broker}
+      RABBITMQ_PORT: ${PARTNER_RABBITMQ_PORT:-5672}
+      RABBITMQ_USER: ${PARTNER_RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${PARTNER_RABBITMQ_PASS:-guest}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  notification:
+    image: ${ECR_REGISTRY_DEV}/notification:${NOTIFICATION_IMAGE_TAG:-latest}
+    container_name: travelhub-notification
+    environment:
+      NOTIFICATION_DB_HOST: ${NOTIFICATION_DB_HOST:-}
+      NOTIFICATION_DB_PORT: ${NOTIFICATION_DB_PORT:-}
+      NOTIFICATION_DB_NAME: ${NOTIFICATION_DB_NAME:-}
+      NOTIFICATION_DB_USER: ${NOTIFICATION_DB_USER:-}
+      NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD:-}
+      RABBITMQ_HOST: ${NOTIFICATION_RABBITMQ_HOST:-rabbitmq-broker}
+      RABBITMQ_PORT: ${NOTIFICATION_RABBITMQ_PORT:-5672}
+      RABBITMQ_USER: ${NOTIFICATION_RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${NOTIFICATION_RABBITMQ_PASS:-guest}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+      redis-db:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  rabbitmq-broker:
+    image: rabbitmq:3.13-management-alpine
+    container_name: travelhub-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  redis-db:
+    image: redis:7-alpine
+    container_name: travelhub-redis
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  booking-saga-worker:
+    image: ${ECR_REGISTRY_DEV}/booking:${BOOKING_IMAGE_TAG:-latest}
+    container_name: travelhub-booking-saga-worker
+    entrypoint: ["python", "/src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py"]
+    environment:
+      REDIS_HOST: redis-db
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      PYTHONPATH: /src
+      PYTHONUNBUFFERED: "1"
+      BOOKING_DB_MODE: postgres
+      BOOKING_INSTANCE_PATH: /src/instance
+      DB_HOST: ${BOOKING_DB_HOST}
+      DB_PORT: ${BOOKING_DB_PORT}
+      DB_NAME: ${BOOKING_DB_NAME}
+      DB_USER: ${BOOKING_DB_USER}
+      DB_PASSWORD: ${BOOKING_DB_PASSWORD}
+    depends_on:
+      booking:
+        condition: service_healthy
+      payment:
+        condition: service_healthy
+      pms-integration:
+        condition: service_healthy
+      partner-management:
+        condition: service_healthy
+      notification:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_healthy
+      redis-db:
+        condition: service_started
+    restart: unless-stopped
     networks:
       - travelhub-dev-net
 
 networks:
   travelhub-dev-net:
     driver: bridge
-
-volumes:
-  booking_db_data:
-  pms_db_data:
-  catalog_db_data:

@@ -280,7 +280,7 @@ jobs:
           import yaml
 
           expected = os.environ["SERVICE_NAME"]
-          expected_image = os.environ["ECR_REGISTRY_DEV"] + "/" + expected + ":" + os.environ["GITHUB_SHA"]
+          expected_image = "${ECR_REGISTRY_DEV}/" + expected + ":${GITHUB_SHA}"
           deployment_file = os.environ["DEPLOYMENT_MANIFEST"]
           service_file = os.environ["SERVICE_MANIFEST"]
 

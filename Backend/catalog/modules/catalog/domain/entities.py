@@ -189,6 +189,9 @@ class CategoriaHabitacion:
 	media: list[Media] = field(default_factory=list)
 	amenidades: list[Amenidad] = field(default_factory=list)
 	inventario: list[Inventario] = field(default_factory=list)
+	# Tarifas diferenciadas (opcionales; None = no configurada)
+	tarifa_fin_de_semana: VODinero | None = None
+	tarifa_temporada_alta: VODinero | None = None
 
 	def __post_init__(self) -> None:
 		# Validar que el UUID de categoría no sea nulo
@@ -202,6 +205,15 @@ class CategoriaHabitacion:
 			raise ValueError("La descripcion es obligatoria")
 		if self.capacidad_pax <= 0:
 			raise ValueError("La capacidad de pasajeros debe ser mayor a cero")
+
+	def actualizar_tarifas(
+		self,
+		tarifa_fin_de_semana: VODinero | None,
+		tarifa_temporada_alta: VODinero | None,
+	) -> None:
+		"""Actualiza las tarifas diferenciadas de la categoría."""
+		self.tarifa_fin_de_semana = tarifa_fin_de_semana
+		self.tarifa_temporada_alta = tarifa_temporada_alta
 
 	def actualizar_inventario(self, inventario_actualizado: Inventario) -> Inventario:
 		for index, inventario in enumerate(self.inventario):

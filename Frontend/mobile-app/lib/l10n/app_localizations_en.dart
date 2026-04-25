@@ -207,6 +207,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get propertyRoomsTab => 'Rooms';
 
   @override
+  String get propertyReviewsTab => 'Reviews';
+
+  @override
   String get aboutProperty => 'About the property';
 
   @override
@@ -215,6 +218,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get roomGallery => 'Room Gallery';
 
+  @override
+  String get verifiedReviews => 'VERIFIED REVIEWS';
 
   @override
   String get reserveNow => 'Book Now';

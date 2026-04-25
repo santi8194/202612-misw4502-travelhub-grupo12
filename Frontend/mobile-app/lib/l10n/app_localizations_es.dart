@@ -204,6 +204,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get propertyRoomsTab => 'Habitaciones';
+
+  @override
+  String get propertyReviewsTab => 'Reseñas';
+
   @override
   String get aboutProperty => 'Sobre la propiedad';
 
@@ -212,6 +216,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get roomGallery => 'Galería de Habitaciones';
+
+  @override
+  String get verifiedReviews => 'RESEÑAS VERIFICADAS';
 
   @override
   String get reserveNow => 'Reservar Ahora';

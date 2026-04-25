@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/habitacion.dart';
+import '../models/resena.dart';
 import '../services/catalog_service.dart';
 import 'confirm_reservation_view.dart';
 
@@ -30,6 +31,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
   bool _isLoading = true;
   String? _errorMessage;
 
+  List<Resena> _reviews = [];
   List<String> _galleryImages = [];
   List<Map<String, dynamic>> _amenities = [];
 
@@ -67,6 +69,22 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
         // Extract amenities
         _amenities =
             (detail['amenidades'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+        // Extract reviews
+        final resenas = detail['resenas'] as List? ?? [];
+        _reviews = resenas
+            .map(
+              (r) => Resena(
+                userName: r['nombre_autor'] ?? 'Usuario',
+                rating: (r['calificacion'] as num?)?.toDouble() ?? 5.0,
+                comment: r['comentario'] ?? '',
+                date: r['fecha_creacion'] != null
+                    ? r['fecha_creacion'].toString().split('T')[0]
+                    : 'RECIENTE',
+                userImageUrl: r['avatar_url'],
+              ),
+            )
+            .toList();
       });
     } catch (e) {
       setState(() {
@@ -145,6 +163,9 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
 
     final property = _propertyDetail!['propiedad'];
     final category = _propertyDetail!['categoria'];
+    final ratingPromedio =
+        (_propertyDetail!['rating_promedio'] as num?)?.toDouble() ?? 0.0;
+    final totalResenas = _propertyDetail!['total_resenas'] ?? 0;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -152,7 +173,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
         children: [
           CustomScrollView(
             slivers: [
-              _buildHeader(context, l10n, property),
+              _buildHeader(context, l10n, property, ratingPromedio),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
@@ -165,6 +186,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
                   children: [
                     _buildInfoTab(l10n, theme, category),
                     _buildRoomsTab(l10n),
+                    _buildReviewsTab(l10n, theme, ratingPromedio, totalResenas),
                   ],
                 ),
               ),
@@ -180,6 +202,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
     BuildContext context,
     AppLocalizations l10n,
     dynamic property,
+    double rating,
   ) {
     final stars = property['estrellas'] as int? ?? 0;
 
@@ -323,6 +346,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
         tabs: [
           Tab(text: l10n.propertyInfoTab),
           Tab(text: l10n.propertyRoomsTab),
+          Tab(text: l10n.propertyReviewsTab),
         ],
       ),
     );
@@ -496,6 +520,168 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
               ],
             ),
           const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewsTab(
+    AppLocalizations l10n,
+    ThemeData theme,
+    double rating,
+    int total,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: rating.toStringAsFixed(1),
+                            style: theme.textTheme.displayLarge?.copyWith(
+                              fontSize: 40,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' /5',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$total ${l10n.verifiedReviews}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                const SizedBox(
+                  width: 100,
+                  height: 40,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.grey,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 20,
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.grey,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 40,
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          if (_reviews.isEmpty)
+            const Center(child: Text("Aún no hay reseñas para esta propiedad."))
+          else
+            ..._reviews.map((review) => _buildReviewCard(review, theme)),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewCard(Resena review, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade100),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                review.userName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                review.date,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: List.generate(5, (index) {
+              return Icon(
+                index < review.rating ? Icons.star : Icons.star_border,
+                color: Colors.amber,
+                size: 14,
+              );
+            }),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            review.comment,
+            style: const TextStyle(
+              color: Colors.black54,
+              height: 1.5,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ],
       ),
     );

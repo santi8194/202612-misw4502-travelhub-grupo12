@@ -446,6 +446,12 @@ abstract class AppLocalizations {
   /// **'Rooms'**
   String get propertyRoomsTab;
 
+  /// No description provided for @propertyReviewsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get propertyReviewsTab;
+
   /// No description provided for @aboutProperty.
   ///
   /// In en, this message translates to:
@@ -463,6 +469,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Room Gallery'**
   String get roomGallery;
+
+  /// No description provided for @verifiedReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'VERIFIED REVIEWS'**
+  String get verifiedReviews;
 
   /// No description provided for @reserveNow.
   ///

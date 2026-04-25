@@ -85,9 +85,11 @@
   "countryNotSet": "Not set",
   "propertyInfoTab": "Information",
   "propertyRoomsTab": "Rooms",
+  "propertyReviewsTab": "Reviews",
   "aboutProperty": "About the property",
   "mainAmenities": "Main amenities",
   "roomGallery": "Room Gallery",
+  "verifiedReviews": "VERIFIED REVIEWS",
   "reserveNow": "Book Now",
   "totalPriceLabel": "TOTAL PRICE"
 }

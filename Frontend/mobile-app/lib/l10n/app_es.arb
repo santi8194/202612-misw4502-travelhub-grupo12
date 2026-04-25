@@ -85,9 +85,11 @@
   "countryNotSet": "Sin definir",
   "propertyInfoTab": "Información",
   "propertyRoomsTab": "Habitaciones",
+  "propertyReviewsTab": "Reseñas",
   "aboutProperty": "Sobre la propiedad",
   "mainAmenities": "Comodidades principales",
   "roomGallery": "Galería de Habitaciones",
+  "verifiedReviews": "RESEÑAS VERIFICADAS",
   "reserveNow": "Reservar Ahora",
   "totalPriceLabel": "PRECIO TOTAL"
 }

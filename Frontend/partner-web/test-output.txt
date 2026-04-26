@@ -1,0 +1,215 @@
+﻿[33mÔØ»[39m Building...
+[32mÔ£ö[39m Building...
+[1mInitial chunk files[22m                          [2m | [22m[1mNames[22m                                     [2m | [22m [1mRaw size[22m
+[32mchunk-P2GXTGFI.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m  [36m2.48 MB[39m[2m | [22m
+[32mpolyfills.js[39m                                 [2m | [22m[2mpolyfills[22m                                 [2m | [22m  [36m1.04 MB[39m[2m | [22m
+[32mchunk-44DJXK45.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m[36m253.70 kB[39m[2m | [22m
+[32mchunk-FPIXQUWT.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m[36m242.84 kB[39m[2m | [22m
+[32mchunk-IGOYIETW.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m[36m101.24 kB[39m[2m | [22m
+[32mchunk-KTCPNGQK.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m [36m96.55 kB[39m[2m | [22m
+[32mspec-home.component.spec.js[39m                  [2m | [22m[2mspec-home.component.spec[22m                  [2m | [22m [36m81.50 kB[39m[2m | [22m
+[32mjasmine-cleanup-1.js[39m                         [2m | [22m[2mjasmine-cleanup-1[22m                         [2m | [22m [36m67.20 kB[39m[2m | [22m
+[32mchunk-VKKZWBFI.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m [36m60.93 kB[39m[2m | [22m
+[32mchunk-WO72ULN4.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m [36m53.77 kB[39m[2m | [22m
+[32mchunk-ZUV3RKN2.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m [36m43.38 kB[39m[2m | [22m
+[32mchunk-YRB3UZ2G.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m [36m40.53 kB[39m[2m | [22m
+[32mspec-navbar.component.spec.js[39m                [2m | [22m[2mspec-navbar.component.spec[22m                [2m | [22m [36m36.40 kB[39m[2m | [22m
+[32mspec-login.component.spec.js[39m                 [2m | [22m[2mspec-login.component.spec[22m                 [2m | [22m [36m31.04 kB[39m[2m | [22m
+[32mtest_main.js[39m                                 [2m | [22m[2mtest_main[22m                                 [2m | [22m [36m21.83 kB[39m[2m | [22m
+[32mspec-precios-por-habitacion.component.spec.js[39m[2m | [22m[2mspec-precios-por-habitacion.component.spec[22m[2m | [22m [36m15.38 kB[39m[2m | [22m
+[32mchunk-HQ3SNBHV.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m [36m13.77 kB[39m[2m | [22m
+[32mspec-auth.interceptor.spec.js[39m                [2m | [22m[2mspec-auth.interceptor.spec[22m                [2m | [22m [36m12.90 kB[39m[2m | [22m
+[32mchunk-RRVSZMDI.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m [36m12.24 kB[39m[2m | [22m
+[32mspec-auth.service.spec.js[39m                    [2m | [22m[2mspec-auth.service.spec[22m                    [2m | [22m [36m10.20 kB[39m[2m | [22m
+[32mspec-ajustes-temporada.component.spec.js[39m     [2m | [22m[2mspec-ajustes-temporada.component.spec[22m     [2m | [22m  [36m9.94 kB[39m[2m | [22m
+[32mspec-auth.guard.spec.js[39m                      [2m | [22m[2mspec-auth.guard.spec[22m                      [2m | [22m  [36m6.70 kB[39m[2m | [22m
+[32mspec-app.component.spec.js[39m                   [2m | [22m[2mspec-app.component.spec[22m                   [2m | [22m  [36m5.07 kB[39m[2m | [22m
+[32mchunk-L6DQPBYI.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m  [36m2.13 kB[39m[2m | [22m
+[32mchunk-TTULUY32.js[39m                            [2m | [22m[2m-[22m                                         [2m | [22m  [36m1.99 kB[39m[2m | [22m
+[32mjasmine-cleanup-0.js[39m                         [2m | [22m[2mjasmine-cleanup-0[22m                         [2m | [22m[36m519 bytes[39m[2m | [22m
+[32mstyles.css[39m                                   [2m | [22m[2mstyles[22m                                    [2m | [22m[36m515 bytes[39m[2m | [22m
+
+[1m [22m                                            [2m | [22m[1mInitial total[22m                             [2m | [22m  [1m4.73 MB[22m
+
+Application bundle generation complete. [8.411 seconds] - 2026-04-25T23:35:03.977Z
+
+[32m25 04 2026 18:35:04.544:INFO [karma-server]: [39mKarma v6.4.4 server started at http://localhost:9876/
+[32m25 04 2026 18:35:04.546:INFO [launcher]: [39mLaunching browsers Chrome with concurrency unlimited
+[32m25 04 2026 18:35:04.556:INFO [launcher]: [39mStarting browser Chrome
+[32m25 04 2026 18:35:06.319:INFO [Chrome 147.0.0.0 (Windows 10)]: [39mConnected on socket yVILP6uvgP1OHCqvAAAB with id 23142516
+Chrome 147.0.0.0 (Windows 10): Executed 0 of 166[32m SUCCESS[39m (0 secs / 0 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 1 of 166[32m SUCCESS[39m (0 secs / 0.087 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 2 of 166[32m SUCCESS[39m (0 secs / 0.12 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 3 of 166[32m SUCCESS[39m (0 secs / 0.135 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 4 of 166[32m SUCCESS[39m (0 secs / 0.146 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 5 of 166[32m SUCCESS[39m (0 secs / 0.155 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 6 of 166[32m SUCCESS[39m (0 secs / 0.174 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 7 of 166[32m SUCCESS[39m (0 secs / 0.186 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 8 of 166[32m SUCCESS[39m (0 secs / 0.196 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 9 of 166[32m SUCCESS[39m (0 secs / 0.206 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 10 of 166[32m SUCCESS[39m (0 secs / 0.214 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 11 of 166[32m SUCCESS[39m (0 secs / 0.22 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 12 of 166[32m SUCCESS[39m (0 secs / 0.225 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 13 of 166[32m SUCCESS[39m (0 secs / 0.235 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 14 of 166[32m SUCCESS[39m (0 secs / 0.245 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 15 of 166[32m SUCCESS[39m (0 secs / 0.252 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 16 of 166[32m SUCCESS[39m (0 secs / 0.26 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 17 of 166[32m SUCCESS[39m (0 secs / 0.297 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 18 of 166[32m SUCCESS[39m (0 secs / 0.301 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 19 of 166[32m SUCCESS[39m (0 secs / 0.306 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 20 of 166[32m SUCCESS[39m (0 secs / 0.31 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 21 of 166[32m SUCCESS[39m (0 secs / 0.313 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 22 of 166[32m SUCCESS[39m (0 secs / 0.316 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 23 of 166[32m SUCCESS[39m (0 secs / 0.323 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 24 of 166[32m SUCCESS[39m (0 secs / 0.328 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 25 of 166[32m SUCCESS[39m (0 secs / 0.333 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 26 of 166[32m SUCCESS[39m (0 secs / 0.338 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 27 of 166[32m SUCCESS[39m (0 secs / 0.341 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 28 of 166[32m SUCCESS[39m (0 secs / 0.345 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 29 of 166[32m SUCCESS[39m (0 secs / 0.349 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 30 of 166[32m SUCCESS[39m (0 secs / 0.353 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 31 of 166[32m SUCCESS[39m (0 secs / 0.357 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 32 of 166[32m SUCCESS[39m (0 secs / 0.363 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 33 of 166[32m SUCCESS[39m (0 secs / 0.395 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 34 of 166[32m SUCCESS[39m (0 secs / 0.399 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 35 of 166[32m SUCCESS[39m (0 secs / 0.403 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 36 of 166[32m SUCCESS[39m (0 secs / 0.408 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 37 of 166[32m SUCCESS[39m (0 secs / 0.414 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 38 of 166[32m SUCCESS[39m (0 secs / 0.42 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 39 of 166[32m SUCCESS[39m (0 secs / 0.424 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 40 of 166[32m SUCCESS[39m (0 secs / 0.428 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 41 of 166[32m SUCCESS[39m (0 secs / 0.437 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 42 of 166[32m SUCCESS[39m (0 secs / 0.442 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 43 of 166[32m SUCCESS[39m (0 secs / 0.449 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 44 of 166[32m SUCCESS[39m (0 secs / 0.453 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 45 of 166[32m SUCCESS[39m (0 secs / 0.457 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 46 of 166[32m SUCCESS[39m (0 secs / 0.462 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 47 of 166[32m SUCCESS[39m (0 secs / 0.466 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 48 of 166[32m SUCCESS[39m (0 secs / 0.469 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 49 of 166[32m SUCCESS[39m (0 secs / 0.475 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 50 of 166[32m SUCCESS[39m (0 secs / 0.483 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 51 of 166[32m SUCCESS[39m (0 secs / 0.489 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 52 of 166[32m SUCCESS[39m (0 secs / 0.494 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 53 of 166[32m SUCCESS[39m (0 secs / 0.499 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 54 of 166[32m SUCCESS[39m (0 secs / 0.505 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 55 of 166[32m SUCCESS[39m (0 secs / 0.51 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 56 of 166[32m SUCCESS[39m (0 secs / 0.515 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 57 of 166[32m SUCCESS[39m (0 secs / 0.521 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 58 of 166[32m SUCCESS[39m (0 secs / 0.525 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 59 of 166[32m SUCCESS[39m (0 secs / 0.536 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 60 of 166[32m SUCCESS[39m (0 secs / 0.54 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 61 of 166[32m SUCCESS[39m (0 secs / 0.543 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 62 of 166[32m SUCCESS[39m (0 secs / 0.546 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 63 of 166[32m SUCCESS[39m (0 secs / 0.55 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 64 of 166[32m SUCCESS[39m (0 secs / 0.553 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 65 of 166[32m SUCCESS[39m (0 secs / 0.556 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 66 of 166[32m SUCCESS[39m (0 secs / 0.558 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 67 of 166[32m SUCCESS[39m (0 secs / 0.562 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 68 of 166[32m SUCCESS[39m (0 secs / 0.567 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 69 of 166[32m SUCCESS[39m (0 secs / 0.57 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 70 of 166[32m SUCCESS[39m (0 secs / 0.573 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 71 of 166[32m SUCCESS[39m (0 secs / 0.631 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 72 of 166[32m SUCCESS[39m (0 secs / 0.641 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 73 of 166[32m SUCCESS[39m (0 secs / 0.644 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 74 of 166[32m SUCCESS[39m (0 secs / 0.647 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 75 of 166[32m SUCCESS[39m (0 secs / 0.651 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 76 of 166[32m SUCCESS[39m (0 secs / 0.656 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 77 of 166[32m SUCCESS[39m (0 secs / 0.662 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 78 of 166[32m SUCCESS[39m (0 secs / 0.667 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 79 of 166[32m SUCCESS[39m (0 secs / 0.672 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 80 of 166[32m SUCCESS[39m (0 secs / 0.677 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 81 of 166[32m SUCCESS[39m (0 secs / 0.68 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 82 of 166[32m SUCCESS[39m (0 secs / 0.685 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 83 of 166[32m SUCCESS[39m (0 secs / 0.691 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 84 of 166[32m SUCCESS[39m (0 secs / 0.694 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 85 of 166[32m SUCCESS[39m (0 secs / 0.7 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 86 of 166[32m SUCCESS[39m (0 secs / 0.703 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 87 of 166[32m SUCCESS[39m (0 secs / 0.705 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 88 of 166[32m SUCCESS[39m (0 secs / 0.709 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 89 of 166[32m SUCCESS[39m (0 secs / 0.713 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 90 of 166[32m SUCCESS[39m (0 secs / 0.724 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 91 of 166[32m SUCCESS[39m (0 secs / 0.73 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 92 of 166[32m SUCCESS[39m (0 secs / 0.733 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 93 of 166[32m SUCCESS[39m (0 secs / 0.738 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 94 of 166[32m SUCCESS[39m (0 secs / 0.742 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 95 of 166[32m SUCCESS[39m (0 secs / 0.752 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 96 of 166[32m SUCCESS[39m (0 secs / 0.755 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 97 of 166[32m SUCCESS[39m (0 secs / 0.757 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 98 of 166[32m SUCCESS[39m (0 secs / 0.759 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 99 of 166[32m SUCCESS[39m (0 secs / 0.763 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 100 of 166[32m SUCCESS[39m (0 secs / 0.766 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 101 of 166[32m SUCCESS[39m (0 secs / 0.774 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 102 of 166[32m SUCCESS[39m (0 secs / 0.777 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 103 of 166[32m SUCCESS[39m (0 secs / 0.782 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 104 of 166[32m SUCCESS[39m (0 secs / 0.785 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 105 of 166[32m SUCCESS[39m (0 secs / 0.788 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 106 of 166[32m SUCCESS[39m (0 secs / 0.792 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 107 of 166[32m SUCCESS[39m (0 secs / 0.8 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 108 of 166[32m SUCCESS[39m (0 secs / 0.803 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 109 of 166[32m SUCCESS[39m (0 secs / 0.805 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 110 of 166[32m SUCCESS[39m (0 secs / 0.808 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 111 of 166[32m SUCCESS[39m (0 secs / 0.811 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 112 of 166[32m SUCCESS[39m (0 secs / 0.814 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 113 of 166[32m SUCCESS[39m (0 secs / 0.816 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 114 of 166[32m SUCCESS[39m (0 secs / 0.818 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 115 of 166[32m SUCCESS[39m (0 secs / 0.819 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 116 of 166[32m SUCCESS[39m (0 secs / 0.821 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 117 of 166[32m SUCCESS[39m (0 secs / 0.824 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 118 of 166[32m SUCCESS[39m (0 secs / 0.827 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 119 of 166[32m SUCCESS[39m (0 secs / 0.835 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 120 of 166[32m SUCCESS[39m (0 secs / 0.838 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 121 of 166[32m SUCCESS[39m (0 secs / 0.84 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 122 of 166[32m SUCCESS[39m (0 secs / 0.842 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 123 of 166[32m SUCCESS[39m (0 secs / 0.844 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 124 of 166[32m SUCCESS[39m (0 secs / 0.847 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 125 of 166[32m SUCCESS[39m (0 secs / 0.85 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 126 of 166[32m SUCCESS[39m (0 secs / 0.852 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 127 of 166[32m SUCCESS[39m (0 secs / 0.864 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 128 of 166[32m SUCCESS[39m (0 secs / 0.867 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 129 of 166[32m SUCCESS[39m (0 secs / 0.871 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 130 of 166[32m SUCCESS[39m (0 secs / 0.873 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 131 of 166[32m SUCCESS[39m (0 secs / 0.879 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 132 of 166[32m SUCCESS[39m (0 secs / 0.881 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 133 of 166[32m SUCCESS[39m (0 secs / 0.882 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 134 of 166[32m SUCCESS[39m (0 secs / 0.883 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 135 of 166[32m SUCCESS[39m (0 secs / 0.884 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 136 of 166[32m SUCCESS[39m (0 secs / 0.886 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 137 of 166[32m SUCCESS[39m (0 secs / 0.888 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 138 of 166[32m SUCCESS[39m (0 secs / 0.889 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 139 of 166[32m SUCCESS[39m (0 secs / 0.89 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 140 of 166[32m SUCCESS[39m (0 secs / 0.892 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 141 of 166[32m SUCCESS[39m (0 secs / 0.894 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 142 of 166[32m SUCCESS[39m (0 secs / 0.896 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 143 of 166[32m SUCCESS[39m (0 secs / 0.902 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 144 of 166[32m SUCCESS[39m (0 secs / 0.903 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 145 of 166[32m SUCCESS[39m (0 secs / 0.905 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 146 of 166[32m SUCCESS[39m (0 secs / 0.907 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 147 of 166[32m SUCCESS[39m (0 secs / 0.909 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 148 of 166[32m SUCCESS[39m (0 secs / 0.912 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 149 of 166[32m SUCCESS[39m (0 secs / 0.915 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 150 of 166[32m SUCCESS[39m (0 secs / 0.916 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 151 of 166[32m SUCCESS[39m (0 secs / 0.917 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 152 of 166[32m SUCCESS[39m (0 secs / 0.918 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 153 of 166[32m SUCCESS[39m (0 secs / 0.92 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 154 of 166[32m SUCCESS[39m (0 secs / 0.922 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 155 of 166[32m SUCCESS[39m (0 secs / 0.924 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 156 of 166[32m SUCCESS[39m (0 secs / 0.926 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 157 of 166[32m SUCCESS[39m (0 secs / 0.928 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 158 of 166[32m SUCCESS[39m (0 secs / 0.93 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 159 of 166[32m SUCCESS[39m (0 secs / 0.932 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 160 of 166[32m SUCCESS[39m (0 secs / 0.934 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 161 of 166[32m SUCCESS[39m (0 secs / 0.937 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 162 of 166[32m SUCCESS[39m (0 secs / 0.94 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 163 of 166[32m SUCCESS[39m (0 secs / 0.941 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 164 of 166[32m SUCCESS[39m (0 secs / 0.944 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 165 of 166[32m SUCCESS[39m (0 secs / 0.945 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 166 of 166[32m SUCCESS[39m (0 secs / 0.947 secs)
+[1A[2KChrome 147.0.0.0 (Windows 10): Executed 166 of 166[32m SUCCESS[39m (1.117 secs / 0.947 secs)
+[32mTOTAL: 166 SUCCESS[39m
+
+=============================== Coverage summary ===============================
+Statements   : 95.03% ( 364/383 )
+Branches     : 80.99% ( 98/121 )
+Functions    : 92.66% ( 101/109 )
+Lines        : 96.32% ( 341/354 )
+================================================================================

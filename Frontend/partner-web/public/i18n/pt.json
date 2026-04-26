@@ -79,6 +79,28 @@
     "NUMERIC": "Insira um valor numérico válido",
     "POSITIVE": "O valor deve ser maior que zero"
   },
+  "SEASONS": {
+    "TITLE": "Ajustes de Temporada",
+    "SUBTITLE": "Configure acréscimos percentuais por temporada com datas de início e fim",
+    "ADD": "Adicionar temporada",
+    "LOADING": "Carregando temporadas...",
+    "LOAD_ERROR": "Não foi possível carregar as temporadas. Tente novamente.",
+    "SAVE_ERROR": "Não foi possível salvar a temporada. Tente novamente.",
+    "EMPTY": "Nenhuma temporada configurada.",
+    "FORM_TITLE": "Nova temporada",
+    "FIELD_NOMBRE": "Nome",
+    "FIELD_INICIO": "Data de início",
+    "FIELD_FIN": "Data de fim",
+    "FIELD_PORCENTAJE": "Acréscimo (%)",
+    "SAVE": "Salvar",
+    "SAVING": "Salvando...",
+    "CANCEL": "Cancelar",
+    "DELETE": "Excluir temporada",
+    "ERROR_NOMBRE": "O nome é obrigatório",
+    "ERROR_FECHA": "A data é obrigatória",
+    "ERROR_FECHA_ORDEN": "A data de fim deve ser posterior ao início",
+    "ERROR_PORCENTAJE": "O acréscimo deve ser maior que zero"
+  },
   "LOGIN": {
     "TITLE": "TravelHub Partner",
     "SUBTITLE": "Portal de Parceiros",

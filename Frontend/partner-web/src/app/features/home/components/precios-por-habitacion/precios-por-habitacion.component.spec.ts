@@ -1,4 +1,4 @@
-﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { SimpleChange } from '@angular/core';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
@@ -338,4 +338,100 @@ describe('PreciosPorHabitacionComponent', () => {
     const weekendVar = weekendCol?.querySelector('[data-testid="variacion"]');
     expect(weekendVar).toBeNull();
   });
+
+  // ─── Branch coverage: cargarDesdeCatalog null guard ───
+
+  it('should early-return from cargarDesdeCatalog when idPropiedad is null', () => {
+    component.idPropiedad = null;
+    (component as any).cargarDesdeCatalog();
+    expect(mockCatalogService.getCategorias).not.toHaveBeenCalled();
+  });
+
+  // ─── Branch coverage: resp.categorias ?? [] fallback ───
+
+  it('should handle getCategorias response without categorias property', () => {
+    mockCatalogService.getCategorias.and.returnValue(of({ id_propiedad: 'p1', total_categorias: 0 }));
+    component.idPropiedad = 'p1';
+    component.ngOnChanges({ idPropiedad: new SimpleChange(null, 'p1', true) });
+    expect(component.filas.length).toBe(4); // keeps defaults
+  });
+
+  // ─── Branch coverage: getPricing fails → null pricing → fallback branches ───
+
+  it('should fall back to cat.precio_base when getPricing fails', () => {
+    const cat = {
+      id_categoria: 'cat-1', nombre_comercial: 'Estandar',
+      precio_base: { monto: '180000', moneda: 'USD', cargo_servicio: '5' },
+      capacidad_pax: 3
+    };
+    mockCatalogService.getCategorias.and.returnValue(of({ id_propiedad: 'p1', total_categorias: 1, categorias: [cat] }));
+    mockCatalogService.getPricing.and.returnValue(throwError(() => new Error('not found')));
+    component.idPropiedad = 'p1';
+    component.ngOnChanges({ idPropiedad: new SimpleChange(null, 'p1', true) });
+    expect(component.filas.length).toBe(1);
+    expect(component.filas[0].tarifaBase).toBe(180000);
+    expect(component.filas[0].moneda).toBe('USD');
+    expect(component.filas[0].tarifaFinDeSemana).toBeNull();
+    expect(component.filas[0].tarifaTemporadaAlta).toBeNull();
+  });
+
+  it('should use COP/zero defaults when both pricing and cat.precio_base are null', () => {
+    const cat = {
+      id_categoria: 'cat-2', nombre_comercial: 'Suite',
+      precio_base: null, capacidad_pax: null
+    };
+    mockCatalogService.getCategorias.and.returnValue(of({ id_propiedad: 'p1', total_categorias: 1, categorias: [cat] }));
+    mockCatalogService.getPricing.and.returnValue(throwError(() => new Error('not found')));
+    component.idPropiedad = 'p1';
+    component.ngOnChanges({ idPropiedad: new SimpleChange(null, 'p1', true) });
+    expect(component.filas[0].moneda).toBe('COP');
+    expect(component.filas[0].cargoServicio).toBe('0');
+    expect(component.filas[0].totalHabitaciones).toBe(0);
+    expect(component.filas[0].tarifaBase).toBeNull();
+  });
+
+  // ─── Branch coverage: null tarifaFinDeSemana/tarifaTemporadaAlta in save() ───
+
+  it('save should send null for null tarifaFinDeSemana and tarifaTemporadaAlta', () => {
+    mockCatalogService.updatePricing.and.returnValue(of({ ok: true }));
+    spyOn(component, 'validate').and.returnValue(true);
+    component.idPropiedad = 'prop-1';
+    component.filas = [{
+      idCategoria: 'cat-1', moneda: 'COP', cargoServicio: '0', tipoHabitacion: 'Estandar',
+      totalHabitaciones: 2, tarifaBase: 100, tarifaFinDeSemana: null, tarifaTemporadaAlta: null,
+      variacionFinDeSemana: '', variacionTemporadaAlta: '', errores: {}
+    }];
+    let result: boolean | undefined;
+    component.save().subscribe(v => result = v);
+    expect(mockCatalogService.updatePricing).toHaveBeenCalledWith('prop-1', 'cat-1',
+      jasmine.objectContaining({ tarifa_fin_de_semana_monto: null, tarifa_temporada_alta_monto: null })
+    );
+    expect(result).toBeTrue();
+  });
+
+  // ─── Branch coverage: setTimeout callbacks ───
+
+  it('save should clear saveSuccess after 3 seconds on local save', fakeAsync(() => {
+    component.idPropiedad = null;
+    let result: boolean | undefined;
+    component.save().subscribe(v => result = v);
+    expect(component.saveSuccess).toBeTrue();
+    tick(3000);
+    expect(component.saveSuccess).toBeFalse();
+  }));
+
+  it('save should clear saveSuccess after 3 seconds on API save', fakeAsync(() => {
+    mockCatalogService.updatePricing.and.returnValue(of({ ok: true }));
+    component.idPropiedad = 'prop-1';
+    component.filas = [{
+      idCategoria: 'cat-1', moneda: 'COP', cargoServicio: '0', tipoHabitacion: 'Estandar',
+      totalHabitaciones: 2, tarifaBase: 100, tarifaFinDeSemana: 120, tarifaTemporadaAlta: 150,
+      variacionFinDeSemana: '+20%', variacionTemporadaAlta: '+50%', errores: {}
+    }];
+    let result: boolean | undefined;
+    component.save().subscribe(v => result = v);
+    expect(component.saveSuccess).toBeTrue();
+    tick(3000);
+    expect(component.saveSuccess).toBeFalse();
+  }));
 });

@@ -4,12 +4,13 @@ import { Router } from '@angular/router';
 import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { Subject, takeUntil } from 'rxjs';
 import { PreciosPorHabitacionComponent } from './components/precios-por-habitacion/precios-por-habitacion.component';
+import { AjustesTemporadaComponent } from './components/ajustes-temporada/ajustes-temporada.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent],
+    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })

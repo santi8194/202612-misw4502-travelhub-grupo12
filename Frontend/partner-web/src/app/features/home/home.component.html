@@ -204,6 +204,7 @@
 
             <div class="prices-room-table">
                 <app-precios-por-habitacion [idPropiedad]="user?.partner_id ?? null" (validityChange)="pricingHasErrors = !$event"></app-precios-por-habitacion>
+                <app-ajustes-temporada [idPropiedad]="user?.partner_id ?? null"></app-ajustes-temporada>
             </div>
         </section>
 

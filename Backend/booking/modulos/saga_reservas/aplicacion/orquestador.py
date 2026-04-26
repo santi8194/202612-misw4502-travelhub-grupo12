@@ -1,4 +1,5 @@
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,9 @@ class OrquestadorSagaReservas:
         # Handlers locales inyectados para evitar construcción inline de objetos de otro Bounded Context
         self._handler_confirmar_local = handler_confirmar_local
         self._handler_cancelar_local = handler_cancelar_local
+
+    def _payment_mode(self) -> str:
+        return os.getenv("PAYMENT_MODE", "wompi").strip().lower()
 
     def _get_handler_confirmar_local(self):
         """Lazy-init: crea el handler de confirmación local si no fue inyectado externamente."""
@@ -235,14 +239,20 @@ class OrquestadorSagaReservas:
                 # Avanzamos al paso 1 inmediatamente
                 siguiente_paso = pasos[1] if len(pasos) > 1 else None
                 if siguiente_paso:
-                    self._procesar_siguiente_comando(
-                        saga=saga,
-                        pasos=pasos,
-                        siguiente_paso=siguiente_paso,
-                        id_reserva=id_reserva,
-                        kwargs_comando=payload_inicial,
-                        payload_registro=payload_inicial
-                    )
+                    if self._payment_mode() == "wompi" and siguiente_paso.comando == "ProcesarPagoCmd":
+                        logger.info(
+                            "[Orquestador] PAYMENT_MODE=wompi: saga queda esperando webhook de pago para reserva %s",
+                            id_reserva,
+                        )
+                    else:
+                        self._procesar_siguiente_comando(
+                            saga=saga,
+                            pasos=pasos,
+                            siguiente_paso=siguiente_paso,
+                            id_reserva=id_reserva,
+                            kwargs_comando=payload_inicial,
+                            payload_registro=payload_inicial
+                        )
                 saga.estado_global = EstadoSaga.EN_PROCESO
 
                 self.repositorio.agregar(saga)

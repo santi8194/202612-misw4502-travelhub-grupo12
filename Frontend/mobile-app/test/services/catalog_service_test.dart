@@ -72,4 +72,80 @@ void main() {
       ),
     );
   });
+
+  test('calculateRoomPrice returns parsed breakdown on 200 response', () async {
+    when(
+      () => mockHttpClient.post(
+        any(),
+        headers: any(named: 'headers'),
+        body: any(named: 'body'),
+      ),
+    ).thenAnswer(
+      (_) async => http.Response(
+        jsonEncode({
+          'precio_por_noche': 150000.0,
+          'noches': 2,
+          'subtotal': 300000.0,
+          'impuestos_y_cargos': 57000.0,
+          'total': 357000.0,
+          'moneda': 'COP',
+          'simbolo_moneda': r'$',
+          'tipo_tarifa': 'BASE',
+          'impuesto_nombre': 'IVA',
+        }),
+        200,
+      ),
+    );
+
+    final result = await service.calculateRoomPrice(
+      categoryId: 'cat-1',
+      startDate: DateTime(2026, 4, 22),
+      endDate: DateTime(2026, 4, 24),
+      userCountry: 'Colombia',
+    );
+
+    expect(result.pricePerNight, 150000.0);
+    expect(result.nights, 2);
+    expect(result.total, 357000.0);
+    expect(result.currency, 'COP');
+    expect(result.taxName, 'IVA');
+    verify(
+      () => mockHttpClient.post(
+        Uri.parse('${service.baseUrl}/catalog/calculate-room-price'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_categoria': 'cat-1',
+          'fecha_inicio': '2026-04-22',
+          'fecha_fin': '2026-04-24',
+          'pais_usuario': 'Colombia',
+        }),
+      ),
+    ).called(1);
+  });
+
+  test('calculateRoomPrice throws on non-200 response', () async {
+    when(
+      () => mockHttpClient.post(
+        any(),
+        headers: any(named: 'headers'),
+        body: any(named: 'body'),
+      ),
+    ).thenAnswer((_) async => http.Response('error', 500));
+
+    await expectLater(
+      () => service.calculateRoomPrice(
+        categoryId: 'cat-1',
+        startDate: DateTime(2026, 4, 22),
+        endDate: DateTime(2026, 4, 24),
+        userCountry: 'Colombia',
+      ),
+      throwsA(
+        isA<Exception>().having(
+          (error) => error.toString(),
+          'message',
+          contains('500'),
+        ),
+      ),
+    );
+  });
 }

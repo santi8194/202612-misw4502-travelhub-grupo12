@@ -8,6 +8,9 @@ export interface BookingSummaryData {
   nights: number;
   pricePerNight: number;
   subtotal: number;
-  serviceFee: number;
+  taxesAndFees: number;
   total: number;
+  currency: string;
+  currencySymbol: string;
+  taxesAndFeesLabel: string;
 }

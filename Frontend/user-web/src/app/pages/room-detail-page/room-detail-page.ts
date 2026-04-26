@@ -67,8 +67,17 @@ export class RoomDetailPage {
   readonly subtotal = computed(() => this.roomPrice()?.subtotal ?? 0);
   readonly total = computed(() => this.roomPrice()?.total ?? 0);
 
-  readonly impuestos = computed(() => this.roomPrice()?.impuestos ?? 0);
-  readonly cargoServicio = computed(() => this.roomPrice()?.cargo_servicio ?? 0);
+  readonly impuestos = computed(() => {
+    const roomPrice = this.roomPrice();
+    if (!roomPrice) return 0;
+    if (typeof roomPrice.impuestos_y_cargos === 'number') return roomPrice.impuestos_y_cargos;
+    return roomPrice.impuestos ?? 0;
+  });
+  readonly cargoServicio = computed(() => {
+    const roomPrice = this.roomPrice();
+    if (!roomPrice || typeof roomPrice.impuestos_y_cargos === 'number') return 0;
+    return roomPrice.cargo_servicio ?? 0;
+  });
   readonly impuestoNombre = computed(() => this.roomPrice()?.impuesto_nombre ?? 'IVA');
 
   readonly currencySymbol = computed(() => {

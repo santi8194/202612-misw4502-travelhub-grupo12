@@ -13,10 +13,11 @@ export class BookingCartSummaryComponent {
   @Input({ required: true }) data: BookingSummaryData | null = null;
   @Input() isLoading = false;
 
-  formatCop(value: number): string {
+  formatPrice(value: number): string {
+    const currency = this.data?.currency || 'COP';
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
-      currency: 'COP',
+      currency,
       maximumFractionDigits: 0,
     }).format(value);
   }

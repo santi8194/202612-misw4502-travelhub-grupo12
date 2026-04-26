@@ -192,6 +192,9 @@ jobs:
       ECR_REPOSITORY: ${{ matrix.ecr_repository }}
       HEALTHCHECK_PATH: /health
       AUTHSERVICE_SECRET_KEY_DEV: ${{ secrets.AUTHSERVICE_SECRET_KEY_DEV }}
+      COGNITO_REGION: ${{ secrets.COGNITO_REGION }}
+      COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+      COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
       COGNITO_CLIENT_SECRET: ${{ secrets.COGNITO_CLIENT_SECRET }}
 
     steps:
@@ -507,6 +510,10 @@ jobs:
           kubectl create secret generic authservice-app-secret \
             --namespace "${K8S_NAMESPACE_DEV}" \
             --from-literal=SECRET_KEY="${AUTHSERVICE_SECRET_KEY_DEV}" \
+            --from-literal=COGNITO_REGION="${COGNITO_REGION}" \
+            --from-literal=COGNITO_USER_POOL_ID="${COGNITO_USER_POOL_ID}" \
+            --from-literal=COGNITO_CLIENT_ID="${COGNITO_CLIENT_ID}" \
+            --from-literal=COGNITO_CLIENT_SECRET="${COGNITO_CLIENT_SECRET}" \
             --dry-run=client \
             -o yaml | kubectl apply -f -
 

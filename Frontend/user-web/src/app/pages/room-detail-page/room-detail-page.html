@@ -140,8 +140,7 @@
                     type="date"
                     class="booking-box__field-input"
                     [value]="checkInInput()"
-                    [min]="todayIso()"
-                    (change)="onCheckInChange($any($event.target).value)"
+                    readonly
                     data-testid="room-checkin"
                   />
                 </label>
@@ -151,8 +150,7 @@
                     type="date"
                     class="booking-box__field-input"
                     [value]="checkOutInput()"
-                    [min]="checkInInput() || todayIso()"
-                    (change)="onCheckOutChange($any($event.target).value)"
+                    readonly
                     data-testid="room-checkout"
                   />
                 </label>
@@ -163,10 +161,8 @@
                   <input
                     type="number"
                     class="booking-box__field-input"
-                    min="1"
-                    [max]="roomDetail()!.categoria.capacidad_pax"
                     [value]="guestsInput()"
-                    (input)="onGuestsChange($any($event.target).value)"
+                    readonly
                     data-testid="room-guests"
                   />
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-chevron-down" aria-hidden="true">
@@ -196,16 +192,28 @@
             }
 
             <!-- Desglose de precios -->
-            @if (nightsCount() > 0) {
+            @if (loadingPrice()) {
+              <div class="booking-box__breakdown" data-testid="room-price-loading">
+                <div class="shimmer-meta" style="height:14px; width:100%; border-radius:4px;"></div>
+                <div class="shimmer-meta" style="height:14px; width:80%; border-radius:4px;"></div>
+                <div class="shimmer-meta" style="height:14px; width:90%; border-radius:4px;"></div>
+              </div>
+            } @else if (roomPrice()) {
               <div class="booking-box__breakdown" data-testid="room-price-breakdown">
                 <div class="booking-box__breakdown-row">
-                  <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ nightsCount() }} noches</span>
+                  <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ roomPrice()!.noches }} noches</span>
                   <span>{{ currencySymbol() }} {{ formatCurrency(subtotal()) }}</span>
                 </div>
-                @if (serviceFee() > 0) {
-                  <div class="booking-box__breakdown-row">
-                    <span>Tarifa de servicio</span>
-                    <span>{{ currencySymbol() }} {{ formatCurrency(serviceFee()) }}</span>
+                @if (impuestos() > 0) {
+                  <div class="booking-box__breakdown-row" data-testid="room-impuestos-row">
+                    <span>Impuesto {{ impuestoNombre() }}</span>
+                    <span>{{ currencySymbol() }} {{ formatCurrency(impuestos()) }}</span>
+                  </div>
+                }
+                @if (cargoServicio() > 0) {
+                  <div class="booking-box__breakdown-row" data-testid="room-cargo-servicio-row">
+                    <span>Tarifa del servicio</span>
+                    <span>{{ currencySymbol() }} {{ formatCurrency(cargoServicio()) }}</span>
                   </div>
                 }
                 <hr class="booking-box__breakdown-divider" />

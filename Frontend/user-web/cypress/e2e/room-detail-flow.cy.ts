@@ -52,6 +52,7 @@ describe('Detalle de Habitación (HU-Web-RoomDetail)', () => {
    */
   it('Escenario B: Inicialización con Parámetros URL (Deep Linking)', () => {
     cy.intercept('GET', API_URL, { fixture: 'room-detail-success.json' }).as('getRoomDetail');
+    cy.intercept('POST', '**/catalog/calculate-room-price', { fixture: 'room-price-success.json' }).as('calculatePrice');
 
     // Establecemos parámetros en el futuro para que sean válidos según las reglas de negocio
     const tomorrow = new Date();
@@ -65,6 +66,7 @@ describe('Detalle de Habitación (HU-Web-RoomDetail)', () => {
     cy.visit(`/category/${CATEGORY_ID}?fecha_inicio=${checkInStr}&fecha_fin=${checkOutStr}&huespedes=2`);
 
     cy.wait('@getRoomDetail');
+    cy.wait('@calculatePrice');
 
     // Verificar el "Booking Box"
     cy.get('[data-testid="room-checkin"]').should('have.value', checkInStr);
@@ -73,8 +75,6 @@ describe('Detalle de Habitación (HU-Web-RoomDetail)', () => {
 
     // El precio debe mostrarse y calcularse correctamente
     cy.get('[data-testid="room-price-breakdown"]').scrollIntoView().should('be.visible');
-    // Precio base (250000) * 5 noches = 1.250.000 (depende del locale)
-    // No validamos el string exacto del total si usa toLocaleString, pero verificamos que muestre el cálculo
     cy.get('[data-testid="room-price-breakdown"]').should('contain.text', '5 noches');
 
     // El botón debe estar habilitado
@@ -89,26 +89,22 @@ describe('Detalle de Habitación (HU-Web-RoomDetail)', () => {
   it('Escenario C: Validaciones Dinámicas del Formulario de Reserva', () => {
     cy.intercept('GET', API_URL, { fixture: 'room-detail-success.json' }).as('getRoomDetail');
 
+    // Sin fechas en URL → botón deshabilitado, sin desglose
     cy.visit(`/category/${CATEGORY_ID}`);
     cy.wait('@getRoomDetail');
 
-    // Al inicio (sin fechas), el botón está deshabilitado y el desglose oculto
     cy.get('[data-testid="room-reservar-btn"]').should('be.disabled');
     cy.get('[data-testid="room-price-breakdown"]').should('not.exist');
 
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-
-    // Si ponemos salida igual a entrada, el botón debe seguir deshabilitado
-    cy.get('[data-testid="room-checkin"]').type(todayStr);
-    cy.get('[data-testid="room-checkout"]').type(todayStr);
+    // Con fecha_inicio === fecha_fin → botón deshabilitado, sin desglose (los campos son solo lectura;
+    // la validación se verifica via query params, reflejando el flujo real de la app)
+    const todayStr = new Date().toISOString().split('T')[0];
+    cy.intercept('GET', API_URL, { fixture: 'room-detail-success.json' }).as('getRoomDetail2');
+    cy.visit(`/category/${CATEGORY_ID}?fecha_inicio=${todayStr}&fecha_fin=${todayStr}&huespedes=2`);
+    cy.wait('@getRoomDetail2');
 
     cy.get('[data-testid="room-reservar-btn"]').should('be.disabled');
     cy.get('[data-testid="room-price-breakdown"]').should('not.exist');
-
-    // Para deshabilitar el botón de forma probada, garantizamos que la fecha de salida sea igual a la entrada
-    cy.get('[data-testid="room-checkout"]').clear().type(todayStr);
-    cy.get('[data-testid="room-reservar-btn"]').should('be.disabled');
   });
 
   /**

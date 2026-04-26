@@ -2,11 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { BookingService } from '../../core/services/booking';
 import { CatalogService } from '../../core/services/catalog';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
+import { RoomPriceResponse } from '../../models/room-price.interface';
 
 @Component({
   selector: 'app-room-detail-page',
@@ -18,6 +20,7 @@ import { RoomDetailResponse } from '../../models/room-detail.interface';
 export class RoomDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
   private readonly catalogService = inject(CatalogService);
   private readonly bookingService = inject(BookingService);
 
@@ -28,7 +31,12 @@ export class RoomDetailPage {
   readonly roomDetail = signal<RoomDetailResponse | null>(null);
   readonly descriptionExpanded = signal(false);
 
-  // ── Inputs del Booking Box ──
+  // ── Precio calculado ──
+  readonly roomPrice = signal<RoomPriceResponse | null>(null);
+  readonly loadingPrice = signal(false);
+  readonly paisUsuario = signal('Colombia');
+
+  // ── Datos de búsqueda (solo lectura — vienen de query params) ──
   readonly checkInInput = signal('');
   readonly checkOutInput = signal('');
   readonly guestsInput = signal(1);
@@ -47,21 +55,23 @@ export class RoomDetailPage {
   });
 
   readonly pricePerNight = computed(() => {
+    const fromApi = this.roomPrice()?.precio_por_noche;
+    if (fromApi != null) return fromApi;
     const monto = this.roomDetail()?.categoria?.precio_base?.monto;
     const parsed = Number(monto ?? '0');
     return Number.isFinite(parsed) ? parsed : 0;
   });
 
-  readonly serviceFee = computed(() => {
-    const fee = this.roomDetail()?.categoria?.precio_base?.cargo_servicio;
-    const parsed = Number(fee ?? '0');
-    return Number.isFinite(parsed) ? parsed : 0;
-  });
+  readonly subtotal = computed(() => this.roomPrice()?.subtotal ?? 0);
+  readonly total = computed(() => this.roomPrice()?.total ?? 0);
 
-  readonly subtotal = computed(() => this.pricePerNight() * this.nightsCount());
-  readonly total = computed(() => this.subtotal() + this.serviceFee());
+  readonly impuestos = computed(() => this.roomPrice()?.impuestos ?? 0);
+  readonly cargoServicio = computed(() => this.roomPrice()?.cargo_servicio ?? 0);
+  readonly impuestoNombre = computed(() => this.roomPrice()?.impuesto_nombre ?? 'IVA');
 
   readonly currencySymbol = computed(() => {
+    const fromApi = this.roomPrice()?.simbolo_moneda;
+    if (fromApi) return fromApi;
     const moneda = this.roomDetail()?.categoria?.precio_base?.moneda ?? 'COP';
     return moneda === 'USD' ? '$' : moneda;
   });
@@ -115,6 +125,10 @@ export class RoomDetailPage {
     this.checkInInput.set(this.route.snapshot.queryParamMap.get('fecha_inicio') ?? '');
     this.checkOutInput.set(this.route.snapshot.queryParamMap.get('fecha_fin') ?? '');
     this.guestsInput.set(Number(this.route.snapshot.queryParamMap.get('huespedes') ?? '1') || 1);
+    this.http.get<{ pais: string }>('/assets/data/user-locale.json').subscribe({
+      next: (data) => this.paisUsuario.set(data.pais),
+      error: () => console.warn('[RoomDetailPage] Could not load user-locale.json, using default'),
+    });
     this.loadRoomDetail();
   }
 
@@ -140,24 +154,32 @@ export class RoomDetailPage {
       if (response) {
         this.roomDetail.set(response);
         console.info('[RoomDetailPage] Room detail loaded', response);
+        this.calculatePrice();
       }
     });
   }
 
-  onCheckInChange(value: string): void {
-    this.checkInInput.set(value);
-    if (this.checkOutInput() && this.checkOutInput() <= value) {
-      this.checkOutInput.set('');
-    }
-  }
+  private calculatePrice(): void {
+    const categoryId = this.categoryId();
+    const checkIn = this.checkInInput();
+    const checkOut = this.checkOutInput();
+    if (!categoryId || !checkIn || !checkOut || checkOut <= checkIn) return;
 
-  onCheckOutChange(value: string): void {
-    this.checkOutInput.set(value);
-  }
-
-  onGuestsChange(value: string): void {
-    const parsed = Number(value);
-    this.guestsInput.set(Number.isFinite(parsed) && parsed > 0 ? parsed : 1);
+    this.loadingPrice.set(true);
+    this.catalogService.calculateRoomPrice({
+      id_categoria: categoryId,
+      fecha_inicio: checkIn,
+      fecha_fin: checkOut,
+      pais_usuario: this.paisUsuario(),
+    }).pipe(
+      finalize(() => this.loadingPrice.set(false))
+    ).subscribe({
+      next: (price) => {
+        this.roomPrice.set(price);
+        console.info('[RoomDetailPage] Room price calculated', price);
+      },
+      error: (err) => console.error('[RoomDetailPage] calculateRoomPrice failed', err),
+    });
   }
 
   toggleDescription(): void {

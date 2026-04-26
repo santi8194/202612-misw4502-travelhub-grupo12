@@ -28,6 +28,11 @@ service_databases = {
     db_name     = "catalog_db"
     db_username = "catalog_app"
   }
+  payment = {
+    secret_name = "travelhub/dev/payment/db-credentials"
+    db_name     = "payment_db"
+    db_username = "payment_app"
+  }
   search = {
     secret_name     = "travelhub/dev/search/db-credentials"
     db_name         = "search_db"

@@ -23,6 +23,7 @@ env:
   AUTHSERVICE_DB_SECRET_NAME_DEV: travelhub/dev/authservice/db-credentials
   BOOKING_DB_SECRET_NAME_DEV: travelhub/dev/booking/db-credentials
   CATALOG_DB_SECRET_NAME_DEV: travelhub/dev/catalog/db-credentials
+  PAYMENT_DB_SECRET_NAME_DEV: travelhub/dev/payment/db-credentials
   SEARCH_DB_SECRET_NAME_DEV: travelhub/dev/search/db-credentials
   SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
 
@@ -426,7 +427,7 @@ jobs:
           fi
 
       - name: Reconcile service DB secret
-        if: ${{ matrix.service_name == 'authservice' || matrix.service_name == 'booking' || matrix.service_name == 'catalog' || matrix.service_name == 'search' }}
+        if: ${{ matrix.service_name == 'authservice' || matrix.service_name == 'booking' || matrix.service_name == 'catalog' || matrix.service_name == 'payment' || matrix.service_name == 'search' }}
         shell: bash
         env:
           DB_SECRET_ENV_FILE: /tmp/${{ matrix.service_name }}-db-secret.env
@@ -445,6 +446,10 @@ jobs:
             catalog)
               SECRET_MANAGER_ID="${CATALOG_DB_SECRET_NAME_DEV}"
               K8S_SECRET_NAME="catalog-db-secret"
+              ;;
+            payment)
+              SECRET_MANAGER_ID="${PAYMENT_DB_SECRET_NAME_DEV}"
+              K8S_SECRET_NAME="payment-db-secret"
               ;;
             search)
               SECRET_MANAGER_ID="${SEARCH_DB_SECRET_NAME_DEV}"

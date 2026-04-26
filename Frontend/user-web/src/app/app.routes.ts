@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { ExistingSessionRedirectPage } from './pages/existing-session-redirect-page/existing-session-redirect-page';
+import { ProcessingReservationPage } from './pages/processing-reservation-page/processing-reservation-page';
 
 export const routes: Routes = [
   {
@@ -25,5 +27,18 @@ export const routes: Routes = [
     path: 'booking/:id_reserva',
     loadComponent: () =>
       import('./pages/booking-cart-page/booking-cart-page').then(m => m.BookingCartPage),
+  },
+  {
+    path: 'booking/:id_reserva/confirm-reservation',
+    loadComponent: () =>
+      import('./pages/confirm-reservation-page/confirm-reservation-page').then(m => m.ConfirmReservationPage),
+  },
+  {
+    path: 'booking/:id_reserva/processing-reservation',
+    loadComponent: () => Promise.resolve(ProcessingReservationPage),
+  },
+  {
+    path: 'existing-session-redirect',
+    loadComponent: () => Promise.resolve(ExistingSessionRedirectPage),
   },
 ];

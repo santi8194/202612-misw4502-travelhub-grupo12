@@ -43,7 +43,7 @@ describe('BookingService', () => {
       });
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/api/reserva');
+    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva');
     expect(req.request.method).toBe('POST');
     expect(req.request.body.id_categoria).toBe('1');
     expect(req.request.body.fecha_check_in).toBe('2026-10-10');
@@ -51,6 +51,19 @@ describe('BookingService', () => {
     expect(req.request.body.ocupacion).toEqual({ adultos: 2, ninos: 0, infantes: 0 });
     expect(req.request.body.id_usuario).toEqual(jasmine.any(String));
     req.flush({ id_reserva: 'reserva-123' });
+  });
+
+  it('should send a POST request to formalize a reservation', () => {
+    service.formalizeBookingById('reserva-123').subscribe((response) => {
+      expect(response).toEqual({
+        mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos',
+      });
+    });
+
+    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva/reserva-123/formalizar');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush({ mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos' });
   });
 
   
@@ -99,7 +112,7 @@ describe('BookingService', () => {
       },
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/api/reserva');
+    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva');
     req.flush({ mensaje: 'No existe inventario para la categoria en la fecha 2026-04-12' });
   });
 });

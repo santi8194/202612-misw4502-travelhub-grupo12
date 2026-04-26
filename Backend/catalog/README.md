@@ -34,4 +34,12 @@ El servicio modela:
 pip install -r requirements.txt
 uvicorn main:app --reload
 pytest
+pytest --cov=api --cov=config --cov=main --cov=modules/catalog --cov-report=term-missing
 ```
+
+## PostgreSQL / RDS
+
+Cuando `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD` estan
+definidas, el servicio usa PostgreSQL. En ese modo el schema debe quedar
+administrado por Alembic; `main.py` solo ejecuta `create_all()` para el flujo
+historico con SQLite local.

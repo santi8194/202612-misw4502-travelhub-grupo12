@@ -1,0 +1,65 @@
+name: Backend CD Base
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'Backend/**'
+      - 'Infraestructura/docker/**'
+      - 'Infraestructura/k8s/aws/*-deployment.yaml'
+      - 'Infraestructura/k8s/aws/*-service.yaml'
+      - '.github/workflows/backend-cd-base.yml'
+      - '.github/workflows/backend-cd-dev.yml'
+      - '.github/workflows/backend-cd-prod.yml'
+      - '.github/backend-cd.exclusions.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEPLOYMENT_ENVIRONMENT: ${{ vars.DEPLOYMENT_ENVIRONMENT }}
+
+jobs:
+  validate-deployment-environment:
+    name: Validate deployment environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required GitHub variable
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOYMENT_ENVIRONMENT:-}" ]; then
+            echo "::error::Missing required GitHub variable 'DEPLOYMENT_ENVIRONMENT'."
+            exit 1
+          fi
+
+          if [ "${DEPLOYMENT_ENVIRONMENT}" != "prod" ] && [ "${DEPLOYMENT_ENVIRONMENT}" != "dev" ]; then
+            echo "::error::DEPLOYMENT_ENVIRONMENT must be either 'prod' or 'dev'."
+            exit 1
+          fi
+
+  backend-cd-dev:
+    name: Run backend DEV CD
+    needs: validate-deployment-environment
+    if: ${{ vars.DEPLOYMENT_ENVIRONMENT == 'dev' }}
+    uses: ./.github/workflows/backend-cd-dev.yml
+    with:
+      event_name: ${{ github.event_name }}
+      base_sha: ${{ github.event.before || '' }}
+      head_sha: ${{ github.sha }}
+    secrets: inherit
+
+  backend-cd-prod:
+    name: Run backend PROD CD
+    needs: validate-deployment-environment
+    if: ${{ vars.DEPLOYMENT_ENVIRONMENT == 'prod' }}
+    uses: ./.github/workflows/backend-cd-prod.yml
+    with:
+      event_name: ${{ github.event_name }}
+      base_sha: ${{ github.event.before || '' }}
+      head_sha: ${{ github.sha }}
+    secrets: inherit

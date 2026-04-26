@@ -1,0 +1,60 @@
+name: Infra CD Base
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - 'Infraestructura/terraform/**'
+      - 'Infraestructura/k8s/aws/*-service.yaml'
+      - 'Infraestructura/k8s/aws/backend-ingress.yaml'
+      - 'Infraestructura/k8s/aws/authservice-ingress.yaml'
+      - '.github/workflows/infra-cd-base.yml'
+      - '.github/workflows/infra-cd-dev.yml'
+      - '.github/workflows/infra-cd-prod.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: infraestructura-cd
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DEPLOYMENT_ENVIRONMENT: ${{ vars.DEPLOYMENT_ENVIRONMENT }}
+
+jobs:
+  validate-deployment-environment:
+    name: Validate deployment environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required GitHub variable
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOYMENT_ENVIRONMENT:-}" ]; then
+            echo "::error::Missing required GitHub variable 'DEPLOYMENT_ENVIRONMENT'."
+            exit 1
+          fi
+
+          if [ "${DEPLOYMENT_ENVIRONMENT}" != "prod" ] && [ "${DEPLOYMENT_ENVIRONMENT}" != "dev" ]; then
+            echo "::error::DEPLOYMENT_ENVIRONMENT must be either 'prod' or 'dev'."
+            exit 1
+          fi
+
+  infra-cd-dev:
+    name: Run infra DEV CD
+    needs: validate-deployment-environment
+    if: ${{ vars.DEPLOYMENT_ENVIRONMENT == 'dev' }}
+    uses: ./.github/workflows/infra-cd-dev.yml
+    secrets: inherit
+
+  infra-cd-prod:
+    name: Run infra PROD CD
+    needs: validate-deployment-environment
+    if: ${{ vars.DEPLOYMENT_ENVIRONMENT == 'prod' }}
+    uses: ./.github/workflows/infra-cd-prod.yml
+    secrets: inherit

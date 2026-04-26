@@ -1,8 +1,11 @@
 fastapi
+httpx
+Flask-Cors==4.0.1
 uvicorn
 pydantic
 pika
 pytest
+pytest-cov
 python-dotenv
 sqlalchemy
 psycopg2-binary

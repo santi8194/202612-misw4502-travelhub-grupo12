@@ -13,7 +13,60 @@ from catalog.modules.catalog.domain.entities import (
 	Propiedad,
 	construir_propiedad,
 	TipoMedia,
+	ConfiguracionImpuestosPais,
+	Resena,
 )
+
+
+# ==================== ConfiguracionImpuestosPais ====================
+
+class TestConfiguracionImpuestosPais:
+	"""Pruebas para el value object ConfiguracionImpuestosPais"""
+
+	def test_configuracion_valida(self):
+		config = ConfiguracionImpuestosPais(
+			pais="Colombia",
+			moneda="COP",
+			simbolo_moneda="$",
+			locale="es_CO",
+			decimales=0,
+			tasa_usd=Decimal("4200.00"),
+			impuesto_nombre="IVA",
+			impuesto_tasa=Decimal("0.19")
+		)
+		assert config.pais == "Colombia"
+
+	def test_pais_vacio(self):
+		with pytest.raises(ValueError, match="El pais es obligatorio"):
+			ConfiguracionImpuestosPais("", "COP", "$", "es_CO", 0, Decimal("4200"), "IVA", Decimal("0.19"))
+
+	def test_moneda_invalida(self):
+		with pytest.raises(ValueError, match="La moneda debe tener 3 caracteres"):
+			ConfiguracionImpuestosPais("Colombia", "CO", "$", "es_CO", 0, Decimal("4200"), "IVA", Decimal("0.19"))
+
+	def test_simbolo_vacio(self):
+		with pytest.raises(ValueError, match="El simbolo de moneda es obligatorio"):
+			ConfiguracionImpuestosPais("Colombia", "COP", "", "es_CO", 0, Decimal("4200"), "IVA", Decimal("0.19"))
+
+	def test_locale_vacio(self):
+		with pytest.raises(ValueError, match="El locale es obligatorio"):
+			ConfiguracionImpuestosPais("Colombia", "COP", "$", "", 0, Decimal("4200"), "IVA", Decimal("0.19"))
+
+	def test_decimales_negativos(self):
+		with pytest.raises(ValueError, match="La cantidad de decimales no puede ser negativa"):
+			ConfiguracionImpuestosPais("Colombia", "COP", "$", "es_CO", -1, Decimal("4200"), "IVA", Decimal("0.19"))
+
+	def test_tasa_usd_cero(self):
+		with pytest.raises(ValueError, match="La tasa USD debe ser mayor a cero"):
+			ConfiguracionImpuestosPais("Colombia", "COP", "$", "es_CO", 0, Decimal("0"), "IVA", Decimal("0.19"))
+
+	def test_impuesto_nombre_vacio(self):
+		with pytest.raises(ValueError, match="El nombre del impuesto es obligatorio"):
+			ConfiguracionImpuestosPais("Colombia", "COP", "$", "es_CO", 0, Decimal("4200"), "", Decimal("0.19"))
+
+	def test_impuesto_tasa_fuera_de_rango(self):
+		with pytest.raises(ValueError, match="La tasa de impuesto debe estar entre 0 y 1"):
+			ConfiguracionImpuestosPais("Colombia", "COP", "$", "es_CO", 0, Decimal("4200"), "IVA", Decimal("1.5"))
 
 
 # ==================== Coordenadas ====================
@@ -107,6 +160,14 @@ class TestVODinero:
 		with pytest.raises(ValueError, match="cargo por servicio no puede ser negativo"):
 			VODinero(monto=Decimal("350000.00"), moneda="COP", cargo_servicio=Decimal("-1.00"))
 
+	def test_dinero_monto_tipo_invalido(self):
+		with pytest.raises(ValueError, match="monto debe ser un valor decimal valido"):
+			VODinero(monto="no-numero", moneda="COP")
+
+	def test_dinero_cargo_servicio_tipo_invalido(self):
+		with pytest.raises(ValueError, match="cargo por servicio debe ser un valor decimal valido"):
+			VODinero(monto=Decimal("100"), moneda="COP", cargo_servicio="no-numero")
+
 
 # ==================== VORegla ====================
 
@@ -128,6 +189,10 @@ class TestVORegla:
 		"""Verifica que una penalidad fuera de rango lance error."""
 		with pytest.raises(ValueError, match="penalidad debe estar entre 0 y 100"):
 			VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("150.0"))
+
+	def test_regla_penalidad_tipo_invalido(self):
+		with pytest.raises(ValueError, match="penalidad debe ser un decimal valido"):
+			VORegla(dias_anticipacion=5, porcentaje_penalidad="no-numero")
 
 
 # ==================== Media ====================
@@ -190,6 +255,71 @@ class TestAmenidad:
 		with pytest.raises(ValueError, match="icono de la amenidad es obligatorio"):
 			Amenidad(id_amenidad="am-001", nombre="Wifi", icono="")
 
+	def test_amenidad_id_vacio(self):
+		with pytest.raises(ValueError, match="ID de amenidad es obligatorio"):
+			Amenidad(id_amenidad="", nombre="Wifi", icono="fa-wifi")
+
+# ==================== Resena ====================
+
+class TestResena:
+	"""Pruebas para la entidad Resena"""
+
+	def test_resena_id_nulo(self):
+		from datetime import datetime, timezone
+		with pytest.raises(ValueError, match="ID de reseña es obligatorio"):
+			Resena(
+				id_resena=None,
+				id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				id_usuario=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				nombre_autor="Test",
+				avatar_url=None,
+				calificacion=5,
+				comentario="Good",
+				fecha_creacion=datetime.now(timezone.utc)
+			)
+
+	def test_resena_nombre_autor_vacio(self):
+		from datetime import datetime, timezone
+		with pytest.raises(ValueError, match="nombre del autor es obligatorio"):
+			Resena(
+				id_resena=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				id_usuario=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				nombre_autor="",
+				avatar_url=None,
+				calificacion=5,
+				comentario="Good",
+				fecha_creacion=datetime.now(timezone.utc)
+			)
+
+	def test_resena_calificacion_fuera_rango(self):
+		from datetime import datetime, timezone
+		with pytest.raises(ValueError, match="calificación debe estar entre 1 y 5"):
+			Resena(
+				id_resena=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				id_usuario=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				nombre_autor="Test",
+				avatar_url=None,
+				calificacion=6,
+				comentario="Good",
+				fecha_creacion=datetime.now(timezone.utc)
+			)
+
+	def test_resena_comentario_vacio(self):
+		from datetime import datetime, timezone
+		with pytest.raises(ValueError, match="comentario es obligatorio"):
+			Resena(
+				id_resena=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				id_usuario=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				nombre_autor="Test",
+				avatar_url=None,
+				calificacion=5,
+				comentario="",
+				fecha_creacion=datetime.now(timezone.utc)
+			)
+
 
 # ==================== Inventario ====================
 
@@ -228,6 +358,16 @@ class TestInventario:
 				cupos_totales=-1,
 				cupos_disponibles=0,
 			)
+
+	def test_inventario_id_vacio(self):
+		from datetime import date
+		with pytest.raises(ValueError, match="ID de inventario es obligatorio"):
+			Inventario("", date(2026, 5, 10), 10, 5)
+
+	def test_inventario_cupos_disponibles_negativos(self):
+		from datetime import date
+		with pytest.raises(ValueError, match="cupos disponibles no pueden ser negativos"):
+			Inventario("inv-001", date(2026, 5, 10), 10, -1)
 
 
 # ==================== CategoriaHabitacion ====================
@@ -270,6 +410,38 @@ class TestCategoriaHabitacion:
 				politica_cancelacion=regla,
 			)
 
+	def test_categoria_id_nulo(self):
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		with pytest.raises(ValueError, match="ID de categoria es obligatorio"):
+			CategoriaHabitacion(None, "ROOM-DLX-01", "Deluxe", "Desc", precio, 2, regla)
+
+	def test_categoria_codigo_mapeo_vacio(self):
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		with pytest.raises(ValueError, match="codigo de mapeo PMS es obligatorio"):
+			CategoriaHabitacion(UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"), "", "Deluxe", "Desc", precio, 2, regla)
+
+	def test_categoria_nombre_comercial_vacio(self):
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		with pytest.raises(ValueError, match="nombre comercial es obligatorio"):
+			CategoriaHabitacion(UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"), "ROOM-DLX-01", "", "Desc", precio, 2, regla)
+
+	def test_categoria_descripcion_vacia(self):
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		with pytest.raises(ValueError, match="descripcion es obligatoria"):
+			CategoriaHabitacion(UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"), "ROOM-DLX-01", "Deluxe", "", precio, 2, regla)
+
+	def test_actualizar_tarifas(self):
+		categoria = self._make_categoria()
+		fds = VODinero(monto=Decimal("150"), moneda="USD")
+		ta = VODinero(monto=Decimal("200"), moneda="USD")
+		categoria.actualizar_tarifas(fds, ta)
+		assert categoria.tarifa_fin_de_semana == fds
+		assert categoria.tarifa_temporada_alta == ta
+
 	def test_actualizar_inventario(self):
 		"""Verifica que el inventario se actualice correctamente."""
 		from datetime import date
@@ -283,6 +455,19 @@ class TestCategoriaHabitacion:
 		resultado = categoria.actualizar_inventario(inventario)
 		assert resultado.cupos_disponibles == 5
 		assert len(categoria.inventario) == 1
+
+	def test_actualizar_inventario_reemplaza_existente(self):
+		from datetime import date
+		categoria = self._make_categoria()
+		inventario1 = Inventario("inv-001", date(2026, 5, 10), 10, 5)
+		categoria.actualizar_inventario(inventario1)
+		
+		# Actualizar el mismo día
+		inventario2 = Inventario("inv-001", date(2026, 5, 10), 10, 8)
+		categoria.actualizar_inventario(inventario2)
+		
+		assert len(categoria.inventario) == 1
+		assert categoria.inventario[0].cupos_disponibles == 8
 
 	def test_disponibilidad_para(self):
 		"""Verifica que la disponibilidad para una fecha sea correcta."""
@@ -366,6 +551,30 @@ class TestPropiedad:
 				porcentaje_impuesto=Decimal("19.00"),
 			)
 
+	def test_propiedad_impuesto_tipo_invalido(self):
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", estado_provincia="Bolívar", coordenadas=coords)
+		with pytest.raises(ValueError, match="porcentaje de impuesto debe ser un decimal valido"):
+			Propiedad(
+				id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				nombre="Hotel Test",
+				estrellas=4,
+				ubicacion=ubicacion,
+				porcentaje_impuesto="no-numero",
+			)
+
+	def test_propiedad_impuesto_fuera_de_rango(self):
+		coords = Coordenadas(lat=10.42, lng=-75.54)
+		ubicacion = VODireccion(ciudad="Cartagena", pais="Colombia", estado_provincia="Bolívar", coordenadas=coords)
+		with pytest.raises(ValueError, match="porcentaje de impuesto debe estar entre 0 y 100"):
+			Propiedad(
+				id_propiedad=UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+				nombre="Hotel Test",
+				estrellas=4,
+				ubicacion=ubicacion,
+				porcentaje_impuesto=Decimal("150.00"),
+			)
+
 	def test_registrar_categoria(self):
 		"""Verifica que una nueva categoría se registre correctamente."""
 		propiedad = self._make_propiedad()
@@ -395,3 +604,10 @@ class TestPropiedad:
 		propiedad = self._make_propiedad()
 		result = propiedad.obtener_categoria(UUID("00000000-0000-0000-0000-000000000000"))
 		assert result is None
+
+	def test_propiedad_actualizar_inventario_categoria_inexistente(self):
+		from datetime import date
+		propiedad = self._make_propiedad()
+		inventario = Inventario("inv-001", date(2026, 5, 10), 10, 5)
+		with pytest.raises(ValueError, match="La categoria de habitacion no existe en la propiedad"):
+			propiedad.actualizar_inventario(UUID("00000000-0000-0000-0000-000000000000"), inventario)

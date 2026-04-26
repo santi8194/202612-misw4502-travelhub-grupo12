@@ -79,6 +79,28 @@
     "NUMERIC": "Enter a valid numeric value",
     "POSITIVE": "Value must be greater than zero"
   },
+  "SEASONS": {
+    "TITLE": "Season Adjustments",
+    "SUBTITLE": "Configure percentage surcharges by season with start and end dates",
+    "ADD": "Add season",
+    "LOADING": "Loading seasons...",
+    "LOAD_ERROR": "Could not load seasons. Please try again.",
+    "SAVE_ERROR": "Could not save the season. Please try again.",
+    "EMPTY": "No seasons configured.",
+    "FORM_TITLE": "New season",
+    "FIELD_NOMBRE": "Name",
+    "FIELD_INICIO": "Start date",
+    "FIELD_FIN": "End date",
+    "FIELD_PORCENTAJE": "Surcharge (%)",
+    "SAVE": "Save",
+    "SAVING": "Saving...",
+    "CANCEL": "Cancel",
+    "DELETE": "Delete season",
+    "ERROR_NOMBRE": "Name is required",
+    "ERROR_FECHA": "Date is required",
+    "ERROR_FECHA_ORDEN": "End date must be after start date",
+    "ERROR_PORCENTAJE": "Surcharge must be greater than zero"
+  },
   "LOGIN": {
     "TITLE": "TravelHub Partner",
     "SUBTITLE": "Partner Portal",

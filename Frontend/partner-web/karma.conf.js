@@ -21,7 +21,7 @@ module.exports = function (config) {
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/partner-web'),
       subdir: '.',
-      reporters: [{ type: 'html' }, { type: 'text-summary' }],
+      reporters: [{ type: 'html' }, { type: 'text-summary' }, { type: 'text' }, { type: 'json-summary' }],
     },
     reporters: ['progress', 'kjhtml'],
     restartOnFileChange: true,

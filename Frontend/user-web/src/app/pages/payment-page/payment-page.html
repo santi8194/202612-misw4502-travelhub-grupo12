@@ -1,0 +1,23 @@
+<div class="payment-page">
+  <app-header></app-header>
+
+  <main class="payment-content">
+    <section class="payment-card" data-testid="payment-page">
+      @if (error()) {
+        <h1 class="payment-title">No fue posible iniciar el pago</h1>
+        <p class="payment-message" data-testid="payment-error">{{ error() }}</p>
+        <a class="payment-action" [routerLink]="['/booking', reservationId]">Volver al carrito</a>
+      } @else {
+        <p class="payment-eyebrow">Pago seguro con Wompi</p>
+        <h1 class="payment-title">Finaliza tu reserva</h1>
+        <p class="payment-message">
+          Revisa el valor y continua con el boton de Wompi para pagar con tarjeta.
+        </p>
+        <div class="payment-amount" data-testid="payment-amount">{{ amountLabel() }}</div>
+        <div #wompiWidget class="wompi-widget" data-testid="wompi-widget"></div>
+      }
+    </section>
+  </main>
+
+  <app-footer></app-footer>
+</div>

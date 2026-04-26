@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { switchMap, catchError, of, forkJoin, finalize } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
+import { PAYMENT_STORAGE_PREFIX } from '../../core/storage/payment-storage';
 import { BookingStore } from '../../core/store/booking-store';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
@@ -405,12 +406,32 @@ export class BookingCartPage implements OnDestroy {
       timerActive: this.timerActive(),
     });
 
+    const total = this.summary()?.total ?? 0;
+    if (total <= 0) {
+      this.holdError.set('No fue posible calcular el valor total de la reserva para iniciar el pago.');
+      return;
+    }
+
     this.isSubmittingPayment.set(true);
-    this.bookingService.formalizeBookingById(this.reservationId).pipe(
+    this.bookingService.formalizeBookingById(this.reservationId, {
+      intencion_pago: {
+        monto: total,
+        moneda: 'COP',
+      },
+    }).pipe(
       finalize(() => this.isSubmittingPayment.set(false))
     ).subscribe({
       next: (response) => {
         const reason = response?.mensaje?.trim() || 'Tu reserva está siendo procesada por la saga.';
+        if (response.pago?.checkout) {
+          sessionStorage.setItem(
+            `${PAYMENT_STORAGE_PREFIX}${this.reservationId}`,
+            JSON.stringify(response.pago)
+          );
+          this.router.navigate(['/booking', this.reservationId, 'payment']);
+          return;
+        }
+
         this.router.navigate(['/booking', this.reservationId, 'processing-reservation'], {
           queryParams: {
             reason,

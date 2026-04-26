@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { switchMap, catchError, of, forkJoin, finalize } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
+import { CatalogService } from '../../core/services/catalog';
 import { BookingStore } from '../../core/store/booking-store';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
@@ -13,6 +14,7 @@ import { BookingCartStepperComponent } from '../../shared/components/booking-car
 import { GuestForm } from '../../models/guest.interface';
 import { HoldRequest } from '../../models/hold.interface';
 import { BookingSummaryData } from '../../models/booking-summary.interface';
+import { RoomPriceResponse } from '../../models/room-price.interface';
 
 interface BookingData {
   id_usuario?: string;
@@ -75,8 +77,10 @@ interface PropertyData {
 export class BookingCartPage implements OnDestroy {
   private static readonly HOLD_DURATION_MS = 15 * 60 * 1000;
   private static readonly OPTIMISTIC_HOLD_ID = 'optimistic-hold';
+  private static readonly DEFAULT_USER_COUNTRY = 'Colombia';
 
   private readonly bookingService = inject(BookingService);
+  private readonly catalogService = inject(CatalogService);
   private readonly store = inject(BookingStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -152,8 +156,11 @@ export class BookingCartPage implements OnDestroy {
 
         if (!categoryId) {
           console.warn('[BookingCartPage] Booking does not contain id_categoria', booking);
-          return of({ booking, catalog: null, category: null, property: null });
+          return of({ booking, catalog: null, category: null, property: null, roomPrice: null });
         }
+
+        const checkIn = this.extractCheckIn(booking);
+        const checkOut = this.extractCheckOut(booking);
 
         return forkJoin({
           catalog: this.bookingService.getCatalogByCategoryId(categoryId).pipe(
@@ -167,29 +174,44 @@ export class BookingCartPage implements OnDestroy {
               console.error('[BookingCartPage] Category request failed', { categoryId, error });
               return of(null);
             })
-          )
+          ),
+          roomPrice: checkIn && checkOut
+            ? this.catalogService.calculateRoomPrice({
+              id_categoria: categoryId,
+              fecha_inicio: checkIn,
+              fecha_fin: checkOut,
+              pais_usuario: BookingCartPage.DEFAULT_USER_COUNTRY,
+            }).pipe(
+              catchError((error) => {
+                console.error('[BookingCartPage] Room price request failed', { categoryId, checkIn, checkOut, error });
+                return of(null);
+              })
+            )
+            : of(null)
+          
         }).pipe(
-          switchMap(({ catalog, category }) => {
+          switchMap(({ catalog, category, roomPrice }) => {
             console.info('[BookingCartPage] Catalog loaded', catalog);
             console.info('[BookingCartPage] Category loaded', category);
-            return of({ booking, catalog, category });
+            console.info('[BookingCartPage] Room price loaded', roomPrice);
+            return of({ booking, catalog, category, roomPrice });
           })
         ).pipe(
-          switchMap(({ booking, catalog, category }) => {
+          switchMap(({ booking, catalog, category, roomPrice }) => {
             const propertyId = category?.id_propiedad ?? catalog?.id_propiedad;
             if (!propertyId) {
               console.warn('[BookingCartPage] Property id not found in category/catalog payloads');
-              return of({ booking, catalog, category, property: null });
+              return of({ booking, catalog, category, property: null, roomPrice });
             }
 
             return this.bookingService.getPropertyById(propertyId).pipe(
               switchMap((property: PropertyData) => {
                 console.info('[BookingCartPage] Property loaded', property);
-                return of({ booking, catalog, category, property });
+                return of({ booking, catalog, category, property, roomPrice });
               }),
               catchError((error) => {
                 console.error('[BookingCartPage] Property request failed', { propertyId, error });
-                return of({ booking, catalog, category, property: null });
+                return of({ booking, catalog, category, property: null, roomPrice });
               })
             );
           })
@@ -201,7 +223,7 @@ export class BookingCartPage implements OnDestroy {
       })
     ).subscribe((result) => {
       if (result?.booking) {
-        const { booking, catalog, category, property } = result;
+        const { booking, catalog, category, property, roomPrice } = result;
         this.bookingData.set(booking);
         this.propertyIdForBack.set(property?.id_propiedad ?? category?.id_propiedad ?? catalog?.id_propiedad ?? null);
 
@@ -217,14 +239,7 @@ export class BookingCartPage implements OnDestroy {
         const guests = this.extractGuests(booking);
         const nights = this.calcNights(checkIn, checkOut);
 
-        const categoryAmount = category?.precio_base?.monto ?? category?.monto_precio_base;
-        const fallbackCategoryAmount = category?.precio_base;
-        const pricePerNight = Number.parseFloat(
-          String(categoryAmount ?? fallbackCategoryAmount ?? catalog?.precio_base ?? '0')
-        );
-        const safePricePerNight = Number.isFinite(pricePerNight) ? pricePerNight : 0;
-        const subtotal = safePricePerNight * nights;
-        const serviceFee = Math.round(subtotal * 0.1);
+        const pricing = this.resolveSummaryPricing(roomPrice, category, catalog, nights);
         const categoryName = category?.nombre_comercial;
         const propertyName = property?.nombre ?? catalog?.propiedad_nombre ?? catalog?.nombre ?? 'N/A';
         const city = property?.ubicacion?.ciudad ?? catalog?.ciudad ?? 'N/A';
@@ -239,11 +254,14 @@ export class BookingCartPage implements OnDestroy {
           checkIn,
           checkOut,
           guests,
-          nights,
-          pricePerNight: safePricePerNight,
-          subtotal,
-          serviceFee,
-          total: subtotal + serviceFee,
+          nights: pricing.nights,
+          pricePerNight: pricing.pricePerNight,
+          subtotal: pricing.subtotal,
+          taxesAndFees: pricing.taxesAndFees,
+          total: pricing.total,
+          currency: pricing.currency,
+          currencySymbol: pricing.currencySymbol,
+          taxesAndFeesLabel: pricing.taxesAndFeesLabel,
         });
         console.info('[BookingCartPage] Summary computed', this.summary());
       } else {
@@ -303,6 +321,55 @@ export class BookingCartPage implements OnDestroy {
     const diff = new Date(to).getTime() - new Date(from).getTime();
     const nights = Math.round(diff / (1000 * 60 * 60 * 24));
     return nights > 0 ? nights : 0;
+  }
+
+  private resolveSummaryPricing(
+    roomPrice: RoomPriceResponse | null,
+    category: CategoryData | null,
+    catalog: CatalogData | null,
+    nights: number,
+  ) {
+    if (roomPrice) {
+      const taxesAndFees = this.extractTaxesAndFees(roomPrice);
+      return {
+        nights: roomPrice.noches > 0 ? roomPrice.noches : nights,
+        pricePerNight: roomPrice.precio_por_noche ?? 0,
+        subtotal: roomPrice.subtotal ?? 0,
+        taxesAndFees,
+        total: roomPrice.total ?? (roomPrice.subtotal ?? 0) + taxesAndFees,
+        currency: roomPrice.moneda ?? 'COP',
+        currencySymbol: roomPrice.simbolo_moneda ?? '$',
+        taxesAndFeesLabel: roomPrice.impuesto_nombre ? `${roomPrice.impuesto_nombre} y cargos` : 'Impuestos y cargos',
+      };
+    }
+
+    const categoryAmount = category?.precio_base?.monto ?? category?.monto_precio_base;
+    const fallbackCategoryAmount = category?.precio_base;
+    const pricePerNight = Number.parseFloat(
+      String(categoryAmount ?? fallbackCategoryAmount ?? catalog?.precio_base ?? '0')
+    );
+    const safePricePerNight = Number.isFinite(pricePerNight) ? pricePerNight : 0;
+    const subtotal = safePricePerNight * nights;
+    const taxesAndFees = Math.round(subtotal * 0.1);
+
+    return {
+      nights,
+      pricePerNight: safePricePerNight,
+      subtotal,
+      taxesAndFees,
+      total: subtotal + taxesAndFees,
+      currency: 'COP',
+      currencySymbol: '$',
+      taxesAndFeesLabel: 'Impuestos y cargos',
+    };
+  }
+
+  private extractTaxesAndFees(roomPrice: RoomPriceResponse & { impuestos_y_cargos?: number }): number {
+    if (typeof roomPrice.impuestos_y_cargos === 'number') {
+      return roomPrice.impuestos_y_cargos;
+    }
+
+    return (roomPrice.impuestos ?? 0) + (roomPrice.cargo_servicio ?? 0);
   }
 
   private extractCheckIn(booking: BookingData): string {

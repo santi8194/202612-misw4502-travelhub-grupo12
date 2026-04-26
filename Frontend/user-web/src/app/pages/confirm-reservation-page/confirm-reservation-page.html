@@ -29,7 +29,7 @@
           <button class="action-btn action-btn--primary" type="button" (click)="showStatusNotAvailableAlert()">
             Ver estado de reserva
           </button>
-        } @else {
+        } @else if (!isCancelled()) {
           <a class="action-btn action-btn--primary" [routerLink]="['/booking', reservationId()]">
             Volver al carrito
           </a>

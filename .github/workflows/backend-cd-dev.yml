@@ -22,6 +22,7 @@ env:
   BOOKING_DB_SECRET_NAME_DEV: travelhub/dev/booking/db-credentials
   CATALOG_DB_SECRET_NAME_DEV: travelhub/dev/catalog/db-credentials
   PAYMENT_DB_SECRET_NAME_DEV: travelhub/dev/payment/db-credentials
+  PAYMENT_APP_SECRET_NAME_DEV: travelhub/dev/payment/app-secrets
   SEARCH_DB_SECRET_NAME_DEV: travelhub/dev/search/db-credentials
   SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
   DEV_COMPOSE_FILE: Infraestructura/docker/docker-compose.yml
@@ -333,7 +334,12 @@ jobs:
             --query 'SecretString' \
             --output text)
 
-          export AUTHSERVICE_DB_SECRET_JSON BOOKING_DB_SECRET_JSON CATALOG_DB_SECRET_JSON PAYMENT_DB_SECRET_JSON SEARCH_DB_SECRET_JSON
+          PAYMENT_APP_SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${PAYMENT_APP_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          export AUTHSERVICE_DB_SECRET_JSON BOOKING_DB_SECRET_JSON CATALOG_DB_SECRET_JSON PAYMENT_DB_SECRET_JSON PAYMENT_APP_SECRET_JSON SEARCH_DB_SECRET_JSON
           export AUTHSERVICE_SECRET_KEY_DEV ECR_REGISTRY_DEV
 
           python3 - <<'PY'
@@ -346,6 +352,7 @@ jobs:
               "BOOKING": json.loads(os.environ["BOOKING_DB_SECRET_JSON"]),
               "CATALOG": json.loads(os.environ["CATALOG_DB_SECRET_JSON"]),
               "PAYMENT": json.loads(os.environ["PAYMENT_DB_SECRET_JSON"]),
+              "PAYMENT_APP": json.loads(os.environ["PAYMENT_APP_SECRET_JSON"]),
               "SEARCH": json.loads(os.environ["SEARCH_DB_SECRET_JSON"]),
           }
 
@@ -354,6 +361,12 @@ jobs:
               if value in (None, ""):
                   print(f"::error::Secrets Manager secret for {secret_name.lower()} is missing required key '{key}'.")
                   sys.exit(1)
+              return str(value)
+
+          def get_optional(secret_name, key, default=""):
+              value = secret_payloads[secret_name].get(key)
+              if value is None:
+                  return default
               return str(value)
 
           env_lines = [
@@ -385,6 +398,16 @@ jobs:
               f"PAYMENT_DB_NAME={get_required('PAYMENT', 'dbname')}",
               f"PAYMENT_DB_USER={get_required('PAYMENT', 'username')}",
               f"PAYMENT_DB_PASSWORD={get_required('PAYMENT', 'password')}",
+              f"PAYMENT_MODE={get_required('PAYMENT_APP', 'PAYMENT_MODE')}",
+              f"WOMPI_PUBLIC_KEY={get_optional('PAYMENT_APP', 'WOMPI_PUBLIC_KEY')}",
+              f"WOMPI_PRIVATE_KEY={get_optional('PAYMENT_APP', 'WOMPI_PRIVATE_KEY')}",
+              f"WOMPI_INTEGRITY_SECRET={get_optional('PAYMENT_APP', 'WOMPI_INTEGRITY_SECRET')}",
+              f"WOMPI_EVENTS_SECRET={get_optional('PAYMENT_APP', 'WOMPI_EVENTS_SECRET')}",
+              f"WOMPI_BASE_URL={get_optional('PAYMENT_APP', 'WOMPI_BASE_URL')}",
+              f"PAYMENT_RABBITMQ_HOST={get_required('PAYMENT_APP', 'RABBITMQ_HOST')}",
+              f"PAYMENT_RABBITMQ_PORT={get_required('PAYMENT_APP', 'RABBITMQ_PORT')}",
+              f"PAYMENT_RABBITMQ_USER={get_required('PAYMENT_APP', 'RABBITMQ_USER')}",
+              f"PAYMENT_RABBITMQ_PASS={get_required('PAYMENT_APP', 'RABBITMQ_PASS')}",
               "SEARCH_REPOSITORY_TYPE=postgres",
               f"SEARCH_DB_HOST={get_required('SEARCH', 'host')}",
               f"SEARCH_DB_PORT={get_required('SEARCH', 'port')}",

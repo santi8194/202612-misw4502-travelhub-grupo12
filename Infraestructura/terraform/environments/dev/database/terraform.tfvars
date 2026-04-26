@@ -5,6 +5,7 @@ vpc_id                          = "vpc-0793a4fe4ecc90aec"
 subnet_ids                      = ["subnet-072a1bac7455c1476", "subnet-0612f6b53a6445dd4"]
 allowed_cidr_blocks             = ["0.0.0.0/0"]
 admin_secret_name               = "travelhub/dev/rds/admin-credentials"
+payment_app_secret_name         = "travelhub/dev/payment/app-secrets"
 db_allocated_storage_gib        = 20 # Almacenamiento inicial en GB https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html
 db_name                         = "authservice_db"
 db_identifier                   = "travelhub-rds-dev"

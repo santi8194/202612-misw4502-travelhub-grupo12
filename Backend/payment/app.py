@@ -278,7 +278,12 @@ def publish_payment_event(payment: dict[str, Any], event_type: str, routing_key:
     try:
         host = os.getenv("RABBITMQ_HOST", "localhost")
         port = int(os.getenv("RABBITMQ_PORT", "5672"))
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host=host, port=port))
+        user = os.getenv("RABBITMQ_USER", "guest")
+        password = os.getenv("RABBITMQ_PASS", "guest")
+        credentials = pika.PlainCredentials(user, password)
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=host, port=port, credentials=credentials)
+        )
         channel = connection.channel()
         channel.exchange_declare(exchange=EVENTS_EXCHANGE, exchange_type="topic", durable=True)
         channel.basic_publish(

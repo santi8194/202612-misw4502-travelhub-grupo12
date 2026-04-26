@@ -24,6 +24,7 @@ env:
   BOOKING_DB_SECRET_NAME_DEV: travelhub/dev/booking/db-credentials
   CATALOG_DB_SECRET_NAME_DEV: travelhub/dev/catalog/db-credentials
   PAYMENT_DB_SECRET_NAME_DEV: travelhub/dev/payment/db-credentials
+  PAYMENT_APP_SECRET_NAME_DEV: travelhub/dev/payment/app-secrets
   SEARCH_DB_SECRET_NAME_DEV: travelhub/dev/search/db-credentials
   SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
 
@@ -501,6 +502,56 @@ jobs:
           kubectl create secret generic authservice-app-secret \
             --namespace "${K8S_NAMESPACE_DEV}" \
             --from-literal=SECRET_KEY="${AUTHSERVICE_SECRET_KEY_DEV}" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+      - name: Reconcile payment app secret
+        if: ${{ matrix.service_name == 'payment' }}
+        shell: bash
+        env:
+          PAYMENT_APP_ENV_FILE: /tmp/payment-app-secret.env
+        run: |
+          set -euo pipefail
+
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${PAYMENT_APP_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          export SECRET_JSON PAYMENT_APP_ENV_FILE
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          secret = json.loads(os.environ["SECRET_JSON"])
+          env_file = os.environ["PAYMENT_APP_ENV_FILE"]
+          required_keys = [
+              "PAYMENT_MODE",
+              "WOMPI_PUBLIC_KEY",
+              "WOMPI_PRIVATE_KEY",
+              "WOMPI_INTEGRITY_SECRET",
+              "WOMPI_EVENTS_SECRET",
+              "WOMPI_BASE_URL",
+              "RABBITMQ_HOST",
+              "RABBITMQ_PORT",
+              "RABBITMQ_USER",
+              "RABBITMQ_PASS",
+          ]
+          missing = [key for key in required_keys if key not in secret]
+          if missing:
+              print("::error::Payment app secret is missing required keys: " + ", ".join(missing))
+              sys.exit(1)
+
+          with open(env_file, "w", encoding="utf-8") as fh:
+              for key in required_keys:
+                  value = secret.get(key, "")
+                  fh.write(f"{key}={value}\n")
+          PY
+
+          kubectl create secret generic payment-app-secret \
+            --namespace "${K8S_NAMESPACE_DEV}" \
+            --from-env-file="${PAYMENT_APP_ENV_FILE}" \
             --dry-run=client \
             -o yaml | kubectl apply -f -
 

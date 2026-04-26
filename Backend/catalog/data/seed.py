@@ -138,6 +138,10 @@ def run_seed() -> None:
 
 
 # ── Temporadas de precio ───────────────────────────────────────────────────────
+# IDs de las propiedades derivados con la misma fórmula que usa run_seed().
+HOTEL1_ID: UUID = _build_property_id("Hotel Boutique Las Palmas")
+HOTEL2_ID: UUID = _build_property_id("Hostal El Viajero")
+
 # UUIDs deterministas derivados del nombre de la temporada + hotel para que el
 # seed sea idempotente sin necesidad de consultar la BD primero.
 

@@ -16,9 +16,6 @@ def create_app(config_name=None):
         allow_headers=["Content-Type", "Authorization"],
     )
 
-    # Habilitar CORS para permitir peticiones desde el frontend
-    CORS(app, resources={r"/*": {"origins": "*"}})
-
     # Configuración básica
     # Configuración de base de datos dinámica
     db_mode = (os.getenv('BOOKING_DB_MODE', '') or '').strip().lower()

@@ -5,6 +5,8 @@ on:
     branches:
       - develop
       - main
+    tags:
+      - 'v*-web'
     paths:
       - 'Frontend/partner-web/**'
       - 'Frontend/user-web/**'
@@ -16,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   AWS_REGION: us-east-1
@@ -41,7 +43,7 @@ jobs:
           BASE_SHA=${{ github.event.before }}
           HEAD_SHA=${{ github.sha }}
 
-          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "partner_changed=true" >> $GITHUB_OUTPUT
             echo "user_changed=true" >> $GITHUB_OUTPUT
             exit 0
@@ -164,3 +166,46 @@ jobs:
 
       - name: Invalidate CloudFront
         run: aws cloudfront create-invalidation --distribution-id ${{ steps.tf-outputs.outputs.CLOUDFRONT_ID }} --paths "/*"
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [discover-changes]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build partner-web
+        working-directory: Frontend/partner-web
+        run: |
+          npm ci
+          npm run build
+          cd dist/partner-web/browser
+          zip -r ${{ github.workspace }}/partner-web-build.zip .
+
+      - name: Build user-web
+        working-directory: Frontend/user-web
+        run: |
+          npm ci
+          npm run build
+          cd dist/user-web/browser
+          zip -r ${{ github.workspace }}/user-web-build.zip .
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            partner-web-build.zip
+            user-web-build.zip
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

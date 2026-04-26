@@ -10,6 +10,7 @@ from .models import (
 	MediaModel,
 	InventarioModel,
 	ResenaModel,
+	ConfiguracionImpuestosPaisModel,
 )
 from modules.catalog.domain.entities import (
 	Propiedad,
@@ -23,6 +24,7 @@ from modules.catalog.domain.entities import (
 	VODireccion,
 	VODinero,
 	VORegla,
+	ConfiguracionImpuestosPais,
 )
 
 
@@ -244,6 +246,49 @@ class PropertyRepository:
 			return self._category_model_to_entity(categoria_model)
 		finally:
 			db.close()
+
+	def obtain_tax_config_by_country(self, pais: str) -> ConfiguracionImpuestosPais | None:
+		"""Obtiene la configuración de impuestos de un país por nombre."""
+		db: Session = SessionLocal()
+		try:
+			model = (
+				db.query(ConfiguracionImpuestosPaisModel)
+				.filter(ConfiguracionImpuestosPaisModel.pais == pais)
+				.first()
+			)
+			if not model:
+				return None
+			return self._tax_model_to_entity(model)
+		finally:
+			db.close()
+
+	def obtain_tax_config_by_currency(self, moneda: str) -> ConfiguracionImpuestosPais | None:
+		"""Obtiene la configuración de impuestos de un país por código de moneda."""
+		db: Session = SessionLocal()
+		try:
+			model = (
+				db.query(ConfiguracionImpuestosPaisModel)
+				.filter(ConfiguracionImpuestosPaisModel.moneda == moneda)
+				.first()
+			)
+			if not model:
+				return None
+			return self._tax_model_to_entity(model)
+		finally:
+			db.close()
+
+	@staticmethod
+	def _tax_model_to_entity(model: ConfiguracionImpuestosPaisModel) -> ConfiguracionImpuestosPais:
+		return ConfiguracionImpuestosPais(
+			pais=model.pais,
+			moneda=model.moneda,
+			simbolo_moneda=model.simbolo_moneda,
+			locale=model.locale,
+			decimales=model.decimales,
+			tasa_usd=Decimal(str(model.tasa_usd)),
+			impuesto_nombre=model.impuesto_nombre,
+			impuesto_tasa=Decimal(str(model.impuesto_tasa)),
+		)
 
 	def delete(self, id_propiedad: UUID) -> bool:
 		"""

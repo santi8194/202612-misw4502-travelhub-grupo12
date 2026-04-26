@@ -15,6 +15,36 @@ class TipoMedia(str, Enum):
 
 
 @dataclass(frozen=True, slots=True)
+class ConfiguracionImpuestosPais:
+	pais: str
+	moneda: str
+	simbolo_moneda: str
+	locale: str
+	decimales: int
+	tasa_usd: Decimal
+	impuesto_nombre: str
+	impuesto_tasa: Decimal
+
+	def __post_init__(self) -> None:
+		if not self.pais.strip():
+			raise ValueError("El pais es obligatorio")
+		if len(self.moneda.strip()) != 3:
+			raise ValueError("La moneda debe tener 3 caracteres")
+		if not self.simbolo_moneda.strip():
+			raise ValueError("El simbolo de moneda es obligatorio")
+		if not self.locale.strip():
+			raise ValueError("El locale es obligatorio")
+		if self.decimales < 0:
+			raise ValueError("La cantidad de decimales no puede ser negativa")
+		if self.tasa_usd <= Decimal("0"):
+			raise ValueError("La tasa USD debe ser mayor a cero")
+		if not self.impuesto_nombre.strip():
+			raise ValueError("El nombre del impuesto es obligatorio")
+		if not Decimal("0") <= self.impuesto_tasa <= Decimal("1"):
+			raise ValueError("La tasa de impuesto debe estar entre 0 y 1")
+
+
+@dataclass(frozen=True, slots=True)
 class Coordenadas:
 	lat: float
 	lng: float

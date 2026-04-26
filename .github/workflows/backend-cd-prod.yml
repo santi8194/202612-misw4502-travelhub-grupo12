@@ -192,6 +192,7 @@ jobs:
       ECR_REPOSITORY: ${{ matrix.ecr_repository }}
       HEALTHCHECK_PATH: /health
       AUTHSERVICE_SECRET_KEY_DEV: ${{ secrets.AUTHSERVICE_SECRET_KEY_DEV }}
+      COGNITO_CLIENT_SECRET: ${{ secrets.COGNITO_CLIENT_SECRET }}
 
     steps:
       - name: Checkout repository

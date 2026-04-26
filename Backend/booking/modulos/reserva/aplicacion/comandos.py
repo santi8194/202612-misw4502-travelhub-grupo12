@@ -20,6 +20,8 @@ class FormalizarReserva(Comando):
     id_reserva: uuid.UUID
     fecha_check_in: str = None
     fecha_check_out: str = None
+    monto: float = None
+    moneda: str = "COP"
 
 @dataclass
 class ConfirmarReservaLocalCmd(Comando):

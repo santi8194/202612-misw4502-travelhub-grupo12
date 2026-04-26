@@ -6,6 +6,7 @@ import uuid
 from catalog.modules.catalog.application.commands.create_property import CreateProperty
 from catalog.modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from catalog.modules.catalog.application.commands.update_inventory import UpdateInventory
+from catalog.modules.catalog.application.commands.update_pricing import UpdatePricing
 from catalog.modules.catalog.application.queries.obtain_property_by_category_id import ObtainPropertyByCategoryId
 from catalog.modules.catalog.application.queries.obtain_category_by_id import ObtainCategoryById
 from catalog.modules.catalog.application.queries.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
@@ -322,6 +323,84 @@ class TestUpdateInventory:
 		assert result["error"] == "Category not found"
 		assert not mock_repository.save.called
 
+
+# ==================== UpdatePricing ====================
+
+class TestUpdatePricing:
+	"""Pruebas para el comando UpdatePricing"""
+
+	def _propiedad_con_categoria(self, property_id, ubicacion_base) -> Propiedad:
+		"""Helper: crea propiedad con una categoría."""
+		precio = VODinero(monto=Decimal("350000.00"), moneda="COP")
+		regla = VORegla(dias_anticipacion=5, porcentaje_penalidad=Decimal("50.0"))
+		categoria = CategoriaHabitacion(
+			id_categoria=CATEGORIA_UUID,
+			codigo_mapeo_pms="ROOM-DLX-01",
+			nombre_comercial="Habitación Deluxe",
+			descripcion="Habitación de lujo",
+			precio_base=precio,
+			capacidad_pax=4,
+			politica_cancelacion=regla,
+		)
+		return construir_propiedad(
+			id_propiedad=property_id,
+			nombre="Hotel Test",
+			estrellas=4,
+			ubicacion=ubicacion_base,
+			porcentaje_impuesto=Decimal("19.00"),
+			categorias_habitacion=[categoria],
+		)
+
+	def test_update_pricing_success(self, mock_repository, mock_event_bus, property_id, ubicacion_base):
+		propiedad = self._propiedad_con_categoria(property_id, ubicacion_base)
+		mock_repository.obtain.return_value = propiedad
+
+		command = UpdatePricing(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			id_categoria=CATEGORIA_UUID,
+			tarifa_base_monto=Decimal("400000.00"),
+			moneda="COP",
+			cargo_servicio=Decimal("30000.00"),
+			tarifa_fin_de_semana_monto=Decimal("450000.00"),
+			tarifa_temporada_alta_monto=Decimal("500000.00"),
+		)
+
+		assert result["tarifa_base"]["monto"] == "400000.00"
+		assert result["tarifa_base"]["cargo_servicio"] == "30000.00"
+		assert result["tarifa_fin_de_semana"]["monto"] == "450000.00"
+		assert result["tarifa_temporada_alta"]["monto"] == "500000.00"
+		assert result["message"] == "Tarifas actualizadas correctamente"
+		assert mock_repository.save.called
+		assert mock_event_bus.publish_event.called
+
+	def test_update_pricing_property_not_found(self, mock_repository, mock_event_bus, property_id):
+		mock_repository.obtain.return_value = None
+
+		command = UpdatePricing(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			id_categoria=CATEGORIA_UUID,
+			tarifa_base_monto=Decimal("400000.00"),
+			moneda="COP"
+		)
+
+		assert result["error"] == "Property not found"
+		assert not mock_repository.save.called
+
+	def test_update_pricing_category_not_found(self, mock_repository, mock_event_bus, property_id, propiedad_base):
+		mock_repository.obtain.return_value = propiedad_base
+
+		command = UpdatePricing(mock_repository, mock_event_bus)
+		result = command.execute(
+			id_propiedad=property_id,
+			id_categoria=UUID("00000000-0000-0000-0000-000000000000"),
+			tarifa_base_monto=Decimal("400000.00"),
+			moneda="COP"
+		)
+
+		assert result["error"] == "Category not found"
+		assert not mock_repository.save.called
 
 # ==================== ObtainPropertyByCategoryId ====================
 

@@ -21,11 +21,13 @@ services:
       context: ../../Backend/booking
       dockerfile: Dockerfile
     environment:
-      BOOKING_DB_MODE: sqlite
+      BOOKING_DB_MODE: ${BOOKING_DB_MODE:-sqlite}
       RABBITMQ_HOST: rabbitmq-broker
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+      PAYMENT_SERVICE_URL: http://payment:8002
+      PAYMENT_MODE: ${PAYMENT_MODE:-wompi}
       BOOKING_INSTANCE_PATH: /src/instance
     depends_on:
       catalog:
@@ -53,6 +55,12 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+      PAYMENT_MODE: ${PAYMENT_MODE:-wompi}
+      WOMPI_PUBLIC_KEY: ${WOMPI_PUBLIC_KEY:-}
+      WOMPI_PRIVATE_KEY: ${WOMPI_PRIVATE_KEY:-}
+      WOMPI_INTEGRITY_SECRET: ${WOMPI_INTEGRITY_SECRET:-}
+      WOMPI_EVENTS_SECRET: ${WOMPI_EVENTS_SECRET:-}
+      WOMPI_BASE_URL: ${WOMPI_BASE_URL:-}
     depends_on:
       rabbitmq-broker:
         condition: service_healthy
@@ -132,13 +140,14 @@ services:
       RABBITMQ_PASS: guest
       PYTHONPATH: /src
       PYTHONUNBUFFERED: "1"
-      BOOKING_DB_MODE: sqlite
+      BOOKING_DB_MODE: ${BOOKING_DB_MODE:-sqlite}
       BOOKING_INSTANCE_PATH: /src/instance
       DB_HOST: ${BOOKING_DB_HOST}
       DB_PORT: ${BOOKING_DB_PORT}
       DB_NAME: ${BOOKING_DB_NAME}
       DB_USER: ${BOOKING_DB_USER}
       DB_PASSWORD: ${BOOKING_DB_PASSWORD}
+      PAYMENT_MODE: ${PAYMENT_MODE:-wompi}
     depends_on:
       booking:
         condition: service_healthy

@@ -8,12 +8,18 @@ ENV PYTHONUNBUFFERED=1
 # Directorio de trabajo
 WORKDIR /app
 
-# Copiamos requirements primero (cache eficiente)
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app.py .
+COPY models.py .
+COPY wompi_client.py .
 
 # Instalamos dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
+
+# CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80"]
 # Copiamos el resto del proyecto
 COPY . .
 RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh

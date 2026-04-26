@@ -91,7 +91,7 @@ class FormalizarReservaHandler(Handler):
             if not reserva:
                 raise ValueError(f"No se encontró la reserva con ID: {comando.id_reserva}")
             
-            reserva.formalizar_y_pagar()
+            reserva.formalizar_y_pagar(monto=comando.monto, moneda=comando.moneda)
             
             self.uow.agregar_eventos(reserva.eventos)
             self.repositorio.actualizar(reserva)

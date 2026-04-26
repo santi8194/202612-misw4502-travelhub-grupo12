@@ -165,6 +165,46 @@ def test_formalizar_reserva_returns_200_when_handler_ok(client, monkeypatch):
     assert "Reserva formalizada" in response.json["mensaje"]
 
 
+def test_formalizar_reserva_con_intencion_pago_devuelve_checkout(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, comando):
+            assert comando.monto == 120000
+            assert comando.moneda == "COP"
+            return True
+
+    checkout = {
+        "id_pago": "pay-1",
+        "id_reserva": "reserva-1",
+        "estado": "PENDING",
+        "checkout": {
+            "public_key": "pub_test",
+            "reference": "PAY-1",
+            "amount_in_cents": 12000000,
+            "currency": "COP",
+            "signature_integrity": "sig"
+        }
+    }
+
+    monkeypatch.setattr(reserva_api_mod, 'FormalizarReservaHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'crear_checkout_pago', lambda *_args: checkout)
+
+    id_reserva = str(uuid.uuid4())
+    response = client.post(
+        f'/api/reserva/{id_reserva}/formalizar',
+        json={"intencion_pago": {"monto": 120000, "moneda": "COP"}}
+    )
+
+    assert response.status_code == 200
+    assert response.json["id_reserva"] == id_reserva
+    assert response.json["pago"]["checkout"]["reference"] == "PAY-1"
+
+
 def test_formalizar_reserva_invalid_uuid_returns_400(client):
     response = client.post('/api/reserva/uuid-invalido/formalizar')
 

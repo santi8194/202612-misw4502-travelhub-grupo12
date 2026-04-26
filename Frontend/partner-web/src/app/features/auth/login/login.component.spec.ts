@@ -6,6 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -18,7 +19,7 @@ describe('LoginComponent', () => {
     router = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [LoginComponent, ReactiveFormsModule],
+      imports: [LoginComponent, ReactiveFormsModule, TranslateModule.forRoot()],
       providers: [
         { provide: AuthService, useValue: authService },
         { provide: Router, useValue: router },
@@ -29,6 +30,25 @@ describe('LoginComponent', () => {
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
+
+    const translateService = TestBed.inject(TranslateService);
+    translateService.setTranslation('en', {
+      LOGIN: {
+        TITLE: 'TravelHub Partner',
+        SUBTITLE: 'Partner Portal',
+        EMAIL_LABEL: 'Email',
+        EMAIL_PLACEHOLDER: 'partner@hotel.com',
+        PASSWORD_LABEL: 'Password',
+        PASSWORD_PLACEHOLDER: '••••••••',
+        REMEMBER_ME: 'Remember me',
+        FORGOT_PASSWORD: 'Forgot your password?',
+        SUBMIT: 'Sign In',
+        LOADING: 'Verifying credentials...',
+        ERROR_FALLBACK: 'Could not sign in. Please check your credentials or try again later.'
+      }
+    });
+    translateService.use('en');
+
     fixture.detectChanges();
   });
 
@@ -112,7 +132,7 @@ describe('LoginComponent', () => {
     component.loginForm.patchValue({ email: 'a@b.com', password: 'wrong' });
     component.onSubmit();
 
-    expect(component.errorMessage).toContain('No se pudo iniciar sesión');
+    expect(component.errorMessage).toContain('Could not sign in');
   });
 
   // ─── onSubmit() when form invalid ───

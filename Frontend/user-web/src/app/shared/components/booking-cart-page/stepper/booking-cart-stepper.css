@@ -34,6 +34,16 @@
   color: #fff;
 }
 
+.step-icon-completed-green {
+  background: #22c55e;
+  color: #fff;
+}
+
+.step-icon-error {
+  background: #ef4444;
+  color: #fff;
+}
+
 .step-inactive {
   color: #6b7280;
 }
@@ -42,6 +52,14 @@
   font-size: clamp(12px, 1.3vw, 14px);
   font-weight: 500;
   line-height: 1.2;
+}
+
+.step-completed-green .step-label {
+  color: #16a34a;
+}
+
+.step-error .step-label {
+  color: #dc2626;
 }
 
 .step-svg {

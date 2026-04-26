@@ -416,13 +416,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/pricing",
-                  "host": ["{{base_url}}"],
-                  "path": ["properties", "{{property_id}}", "categories", "{{category_id}}", "pricing"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "properties",
+                    "{{property_id}}",
+                    "categories",
+                    "{{category_id}}",
+                    "pricing"
+                  ]
                 }
               },
               "status": "OK",
               "code": 200,
-              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"id_categoria\": \"{{category_id}}\",\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
               "_postman_previewlanguage": "json"
             }
@@ -467,21 +480,43 @@
               "name": "200 OK",
               "originalRequest": {
                 "method": "PUT",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
-                  "options": {"raw": {"language": "json"}}
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": {
                   "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/pricing",
-                  "host": ["{{base_url}}"],
-                  "path": ["properties", "{{property_id}}", "categories", "{{category_id}}", "pricing"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "properties",
+                    "{{property_id}}",
+                    "categories",
+                    "{{category_id}}",
+                    "pricing"
+                  ]
                 }
               },
               "status": "OK",
               "code": 200,
-              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"id_categoria\": \"{{category_id}}\",\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
               "_postman_previewlanguage": "json"
             },
@@ -489,21 +524,43 @@
               "name": "404 Not Found",
               "originalRequest": {
                 "method": "PUT",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
-                  "options": {"raw": {"language": "json"}}
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": {
                   "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/pricing",
-                  "host": ["{{base_url}}"],
-                  "path": ["properties", "{{property_id}}", "categories", "{{category_id}}", "pricing"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "properties",
+                    "{{property_id}}",
+                    "categories",
+                    "{{category_id}}",
+                    "pricing"
+                  ]
                 }
               },
               "status": "Not Found",
               "code": 404,
-              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\n  \"detail\": \"Categoría no encontrada\"\n}",
               "_postman_previewlanguage": "json"
             }

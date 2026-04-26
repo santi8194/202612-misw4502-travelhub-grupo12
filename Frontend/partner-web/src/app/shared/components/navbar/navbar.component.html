@@ -5,7 +5,7 @@
 
     <div class="navbar-center">
         <div class="search-bar">
-            <span>Comienza tu búsqueda</span>
+            <span>{{ 'NAVBAR.SEARCH_PLACEHOLDER' | translate }}</span>
             <button class="search-btn">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -17,14 +17,27 @@
 
     <div class="navbar-right">
         <div class="lang-currency">
-            <div class="option-group">
+            <div class="option-group lang-selector" (click)="toggleLangDropdown($event)">
                 <svg class="icon small" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                     </path>
                 </svg>
-                <span class="option text-link">Español (SP)</span>
+                <span class="option text-link" data-testid="lang-label">{{ currentLangLabel }}</span>
+                @if (isLangDropdownOpen) {
+                <div class="lang-dropdown" data-testid="lang-dropdown">
+                    @for (lang of availableLanguages; track lang.code) {
+                    <button
+                        class="lang-option"
+                        [class.active]="lang.code === currentLang"
+                        (click)="switchLang(lang.code)"
+                    >
+                        {{ lang.label }}
+                    </button>
+                    }
+                </div>
+                }
             </div>
             <div class="option-group">
                 <span class="font-bold">$</span>
@@ -57,10 +70,10 @@
             @if (isDropdownOpen) {
             <div class="dropdown-menu" data-testid="navbar-dropdown">
                 @if (authService.isAuthenticated$ | async) {
-                <a class="dropdown-item" (click)="logout()" data-testid="btn-logout">Cerrar sesión</a>
+                <a class="dropdown-item" (click)="logout()" data-testid="btn-logout">{{ 'NAVBAR.LOGOUT' | translate }}</a>
                 } @else {
-                <a class="dropdown-item">Registrarse</a>
-                <a routerLink="/login" class="dropdown-item" (click)="isDropdownOpen=false">Iniciar sesión</a>
+                <a class="dropdown-item">{{ 'NAVBAR.REGISTER' | translate }}</a>
+                <a routerLink="/login" class="dropdown-item" (click)="isDropdownOpen=false">{{ 'NAVBAR.LOGIN' | translate }}</a>
                 }
             </div>
             }

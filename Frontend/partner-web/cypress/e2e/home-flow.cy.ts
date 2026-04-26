@@ -81,11 +81,8 @@ describe('Home y Navegación del Partner (HU-Partner-Home)', () => {
   it('Escenario E: Logout desde el navbar redirige a /login', () => {
     visitHomeAuthenticated('current-user.json');
 
-    // 1. Abrir el dropdown del menú
-    cy.get('.user-menu-btn').click();
-    cy.get('[data-testid="navbar-dropdown"]').should('be.visible');
-
-    // 2. Hacer clic en "Cerrar sesión"
+    // El botón de logout está directamente en el sidebar
+    cy.get('[data-testid="btn-logout"]').should('be.visible');
     cy.get('[data-testid="btn-logout"]').click();
 
     // 3. Verificar redirección al login

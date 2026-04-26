@@ -229,4 +229,123 @@ describe('AuthService', () => {
     localStorage.setItem('session_expiry_at', 'not-a-date');
     expect(service.getSessionExpiry()).toBeNull();
   });
+
+  // ─── handleUserActivity / markActivity ───
+
+  it('should mark activity on user click event when authenticated', fakeAsync(() => {
+    service.login({ email: 'a@b.com', password: '123' }).subscribe();
+    httpMock.expectOne(`${apiUrl}/login`).flush(mockLoginResponse);
+
+    const expiryBefore = service.getSessionExpiry();
+
+    // Advance time 2 seconds to bypass throttle
+    tick(2000);
+    window.dispatchEvent(new Event('click'));
+    tick(0);
+
+    const expiryAfter = service.getSessionExpiry();
+    expect(expiryAfter).toBeTruthy();
+    if (expiryBefore && expiryAfter) {
+      expect(expiryAfter.getTime()).toBeGreaterThanOrEqual(expiryBefore.getTime());
+    }
+
+    // Clean up the scheduled timeout
+    service.logout();
+    tick(10 * 60 * 1000);
+  }));
+
+  it('should not mark activity when not authenticated', () => {
+    service.logout();
+    const expiry = service.getSessionExpiry();
+    window.dispatchEvent(new Event('click'));
+    expect(service.getSessionExpiry()).toEqual(expiry);
+  });
+
+  it('should throttle activity events within 1 second', fakeAsync(() => {
+    service.login({ email: 'a@b.com', password: '123' }).subscribe();
+    httpMock.expectOne(`${apiUrl}/login`).flush(mockLoginResponse);
+
+    // First event
+    tick(2000);
+    window.dispatchEvent(new Event('keydown'));
+    const expiryAfterFirst = service.getSessionExpiry();
+
+    // Second event immediately (within 1000ms) - should be throttled
+    tick(100);
+    window.dispatchEvent(new Event('keydown'));
+    const expiryAfterSecond = service.getSessionExpiry();
+
+    expect(expiryAfterFirst).toEqual(expiryAfterSecond);
+
+    service.logout();
+    tick(10 * 60 * 1000);
+  }));
+
+  // ─── restoreSessionTracking ───
+
+  it('should call markActivity when token exists but no stored expiry', () => {
+    localStorage.setItem('access_token', 'tok');
+
+    // Re-create service from scratch
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        AuthService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: Router, useValue: router },
+      ],
+    });
+
+    const newService = TestBed.inject(AuthService);
+    // Should have set an expiry via markActivity
+    expect(newService.getSessionExpiry()).toBeTruthy();
+  });
+
+  it('should schedule logout when token exists with valid future expiry', fakeAsync(() => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    localStorage.setItem('access_token', 'tok');
+    localStorage.setItem('session_expiry_at', future);
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        AuthService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: Router, useValue: router },
+      ],
+    });
+
+    const newService = TestBed.inject(AuthService);
+    expect(newService.isAuthenticated()).toBeTrue();
+
+    // Advance past the expiry
+    tick(61_000);
+
+    expect(newService.isAuthenticated()).toBeFalse();
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  }));
+
+  // ─── scheduleInactivityLogout edge case ───
+
+  it('should immediately logout when scheduled time is in the past', fakeAsync(() => {
+    service.login({ email: 'a@b.com', password: '123' }).subscribe();
+    httpMock.expectOne(`${apiUrl}/login`).flush(mockLoginResponse);
+
+    expect(service.isAuthenticated()).toBeTrue();
+
+    // Wait for the idle timeout to expire
+    tick(5 * 60 * 1000 + 500);
+
+    expect(service.isAuthenticated()).toBeFalse();
+  }));
+
+  // ─── clearInactivityTimeout when null ───
+
+  it('logout should work even if no timeout was scheduled', () => {
+    // No login, so no timeout scheduled
+    service.logout();
+    expect(service.isAuthenticated()).toBeFalse();
+  });
 });

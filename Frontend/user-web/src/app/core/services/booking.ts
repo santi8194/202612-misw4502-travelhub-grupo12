@@ -23,6 +23,12 @@ interface CreateBookingResponse {
   error?: string;
 }
 
+interface FormalizeBookingResponse {
+  mensaje?: string;
+  detail?: string;
+  error?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   private readonly http = inject(HttpClient);
@@ -119,6 +125,18 @@ export class BookingService {
       tap((response) => console.info('[BookingService] expireBookingById success', response)),
       catchError((error) => {
         console.error('[BookingService] expireBookingById error', { idReserva, error });
+        return throwError(() => error);
+      })
+    );
+  }
+
+  formalizeBookingById(idReserva: string): Observable<FormalizeBookingResponse> {
+    const url = `${this.apiUrl}/${idReserva}/formalizar`;
+    console.info('[BookingService] POST', url);
+    return this.http.post<FormalizeBookingResponse>(url, {}).pipe(
+      tap((response) => console.info('[BookingService] formalizeBookingById success', response)),
+      catchError((error) => {
+        console.error('[BookingService] formalizeBookingById error', { idReserva, error });
         return throwError(() => error);
       })
     );

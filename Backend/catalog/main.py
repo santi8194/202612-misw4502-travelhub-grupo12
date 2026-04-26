@@ -73,7 +73,8 @@ def _ensure_legacy_schema_compatibility() -> None:
         )
 
 # Crear tablas locales solo cuando se usa SQLite de desarrollo.
-if IS_SQLITE:
+# Se omite durante pytest para evitar que PgUUID falle al compilar en SQLite.
+if IS_SQLITE and "pytest" not in sys.modules:
     Base.metadata.create_all(bind=engine)
     _recreate_sqlite_if_legacy_schema()
 

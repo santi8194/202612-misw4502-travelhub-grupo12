@@ -9,6 +9,16 @@ provider "aws" {
   }
 }
 
+data "terraform_remote_state" "eks" {
+  backend = "s3"
+
+  config = {
+    bucket = "travelhub-tfstate-dev-us-east-1"
+    key    = "eks/dev/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
 terraform {
   required_version = ">= 1.10"
   required_providers {

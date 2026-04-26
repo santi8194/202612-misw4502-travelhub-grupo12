@@ -40,10 +40,12 @@ def test_crear_reserva_hold_comando_guarda_todos_los_campos():
 def test_formalizar_confirmar_y_cancelar_comandos_guardan_id_reserva():
     id_reserva = uuid.uuid4()
 
-    formalizar = FormalizarReserva(id_reserva=id_reserva)
+    formalizar = FormalizarReserva(id_reserva=id_reserva, monto=120000, moneda="COP")
     confirmar = ConfirmarReservaLocalCmd(id_reserva=id_reserva)
     cancelar = CancelarReservaLocalCmd(id_reserva=id_reserva)
 
     assert formalizar.id_reserva == id_reserva
+    assert formalizar.monto == 120000
+    assert formalizar.moneda == "COP"
     assert confirmar.id_reserva == id_reserva
     assert cancelar.id_reserva == id_reserva

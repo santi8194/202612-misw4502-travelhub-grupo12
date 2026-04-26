@@ -3,6 +3,10 @@ from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarRese
 from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ExpirarReservaHandler
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
 from config.uow import UnidadTrabajoHibrida
+import json
+import os
+import urllib.error
+import urllib.request
 import uuid
 
 reserva_api = Blueprint('reserva_api', __name__)
@@ -55,7 +59,16 @@ def iniciar_reserva_hold():
 @reserva_api.route('/reserva/<id_reserva>/formalizar', methods=['POST'])
 def formalizar_reserva(id_reserva):
     try:
-        comando = FormalizarReserva(id_reserva=uuid.UUID(id_reserva))
+        data = request.get_json(silent=True) or {}
+        intencion_pago = data.get('intencion_pago') or {}
+        monto = intencion_pago.get('monto') or data.get('monto')
+        moneda = intencion_pago.get('moneda') or data.get('moneda') or 'COP'
+
+        comando = FormalizarReserva(
+            id_reserva=uuid.UUID(id_reserva),
+            monto=float(monto) if monto is not None else None,
+            moneda=moneda
+        )
         
         uow = UnidadTrabajoHibrida()
         repositorio = RepositorioReservas()
@@ -63,12 +76,44 @@ def formalizar_reserva(id_reserva):
         
         handler.handle(comando)
 
-        return jsonify({"mensaje": "Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos"}), 200
+        respuesta = {
+            "mensaje": "Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos",
+            "id_reserva": id_reserva
+        }
+        if monto is not None:
+            respuesta["pago"] = crear_checkout_pago(id_reserva, float(monto), moneda)
+
+        return jsonify(respuesta), 200
 
     except ValueError as e:
          return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+def crear_checkout_pago(id_reserva: str, monto: float, moneda: str):
+    payment_url = os.getenv('PAYMENT_SERVICE_URL', 'http://payment:8002').rstrip('/')
+    payload = json.dumps({
+        "id_reserva": id_reserva,
+        "monto": monto,
+        "moneda": moneda
+    }).encode('utf-8')
+
+    request_pago = urllib.request.Request(
+        f"{payment_url}/payments",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+
+    try:
+        with urllib.request.urlopen(request_pago, timeout=10) as response:
+            return json.loads(response.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        detalle = e.read().decode('utf-8')
+        raise RuntimeError(f"No se pudo crear el pago: {detalle}") from e
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"No se pudo conectar con payment: {e.reason}") from e
 
 
 @reserva_api.route('/reserva/<id_reserva>', methods=['GET'])

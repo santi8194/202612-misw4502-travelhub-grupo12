@@ -8,7 +8,7 @@ from config.app import create_app
 from modules.catalog.infrastructure import models
 from modules.catalog.infrastructure.database import Base, engine, IS_SQLITE
 from modules.catalog.infrastructure.services.consumer import start_consumer
-from data.seed import run_seed
+from modules.catalog.infrastructure.seed import run_seed
 
 app = create_app()
 
@@ -43,41 +43,38 @@ def _recreate_sqlite_if_legacy_schema() -> None:
 
 
 def _ensure_legacy_schema_compatibility() -> None:
-    """Corrige diferencias de esquema comunes en bases legadas.
-
-    Actualmente asegura la columna `estado_provincia` en `propiedades`, que
-    puede faltar en entornos locales antiguos y rompe el seed al arrancar.
-    """
+    """Corrige diferencias simples de esquema en bases legadas."""
     inspector = inspect(engine)
     tables = set(inspector.get_table_names())
     if "propiedades" not in tables:
         return
 
     property_columns = {column["name"] for column in inspector.get_columns("propiedades")}
-    if "estado_provincia" in property_columns:
-        return
-
-    print("[CATALOG] Legacy schema detected (missing propiedades.estado_provincia), applying compatibility fix...")
+    has_estado_provincia = "estado_provincia" in property_columns
 
     with engine.begin() as connection:
-        if IS_SQLITE:
-            # SQLite no soporta ALTER COLUMN fácilmente; recrear es más seguro localmente.
-            Base.metadata.drop_all(bind=connection)
-            Base.metadata.create_all(bind=connection)
-        else:
+        if not has_estado_provincia:
+            print("[CATALOG] Legacy schema detected (missing propiedades.estado_provincia), applying compatibility fix...")
+            if IS_SQLITE:
+                Base.metadata.drop_all(bind=connection)
+                Base.metadata.create_all(bind=connection)
+                return
+
             connection.execute(
                 text("ALTER TABLE propiedades ADD COLUMN estado_provincia VARCHAR")
             )
-            connection.execute(
-                text("UPDATE propiedades SET estado_provincia = '' WHERE estado_provincia IS NULL")
-            )
-            connection.execute(
-                text("ALTER TABLE propiedades ALTER COLUMN estado_provincia SET NOT NULL")
-            )
 
+        connection.execute(
+            text(
+                "UPDATE propiedades "
+                "SET estado_provincia = ciudad "
+                "WHERE estado_provincia IS NULL OR estado_provincia = ''"
+            )
+        )
 
 # Crear tablas locales solo cuando se usa SQLite de desarrollo.
-if IS_SQLITE:
+# Se omite durante pytest para evitar que PgUUID falle al compilar en SQLite.
+if IS_SQLITE and "pytest" not in sys.modules:
     Base.metadata.create_all(bind=engine)
     _recreate_sqlite_if_legacy_schema()
 

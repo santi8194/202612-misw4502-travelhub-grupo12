@@ -10,6 +10,8 @@ from .models import (
 	MediaModel,
 	InventarioModel,
 	ResenaModel,
+	TemporadaModel,
+	ConfiguracionImpuestosPaisModel,
 )
 from modules.catalog.domain.entities import (
 	Propiedad,
@@ -23,6 +25,7 @@ from modules.catalog.domain.entities import (
 	VODireccion,
 	VODinero,
 	VORegla,
+	ConfiguracionImpuestosPais,
 )
 
 
@@ -244,6 +247,49 @@ class PropertyRepository:
 			return self._category_model_to_entity(categoria_model)
 		finally:
 			db.close()
+
+	def obtain_tax_config_by_country(self, pais: str) -> ConfiguracionImpuestosPais | None:
+		"""Obtiene la configuración de impuestos de un país por nombre."""
+		db: Session = SessionLocal()
+		try:
+			model = (
+				db.query(ConfiguracionImpuestosPaisModel)
+				.filter(ConfiguracionImpuestosPaisModel.pais == pais)
+				.first()
+			)
+			if not model:
+				return None
+			return self._tax_model_to_entity(model)
+		finally:
+			db.close()
+
+	def obtain_tax_config_by_currency(self, moneda: str) -> ConfiguracionImpuestosPais | None:
+		"""Obtiene la configuración de impuestos de un país por código de moneda."""
+		db: Session = SessionLocal()
+		try:
+			model = (
+				db.query(ConfiguracionImpuestosPaisModel)
+				.filter(ConfiguracionImpuestosPaisModel.moneda == moneda)
+				.first()
+			)
+			if not model:
+				return None
+			return self._tax_model_to_entity(model)
+		finally:
+			db.close()
+
+	@staticmethod
+	def _tax_model_to_entity(model: ConfiguracionImpuestosPaisModel) -> ConfiguracionImpuestosPais:
+		return ConfiguracionImpuestosPais(
+			pais=model.pais,
+			moneda=model.moneda,
+			simbolo_moneda=model.simbolo_moneda,
+			locale=model.locale,
+			decimales=model.decimales,
+			tasa_usd=Decimal(str(model.tasa_usd)),
+			impuesto_nombre=model.impuesto_nombre,
+			impuesto_tasa=Decimal(str(model.impuesto_tasa)),
+		)
 
 	def delete(self, id_propiedad: UUID) -> bool:
 		"""
@@ -472,3 +518,72 @@ class PropertyRepository:
 			categorias_habitacion=[],
 			resenas=resenas,
 		)
+
+	# ==================== TEMPORADAS ====================
+
+	def get_temporadas(self, id_propiedad: UUID) -> list[dict]:
+		db: Session = SessionLocal()
+		try:
+			rows = (
+				db.query(TemporadaModel)
+				.filter(TemporadaModel.id_propiedad == id_propiedad)
+				.order_by(TemporadaModel.fecha_inicio)
+				.all()
+			)
+			return [
+				{
+					"id_temporada": str(r.id_temporada),
+					"nombre": r.nombre,
+					"fecha_inicio": r.fecha_inicio,
+					"fecha_fin": r.fecha_fin,
+					"porcentaje": float(r.porcentaje),
+				}
+				for r in rows
+			]
+		finally:
+			db.close()
+
+	def save_temporada(self, id_propiedad: UUID, id_temporada: UUID, nombre: str, fecha_inicio: str, fecha_fin: str, porcentaje: Decimal) -> dict:
+		db: Session = SessionLocal()
+		try:
+			model = TemporadaModel(
+				id_temporada=id_temporada,
+				id_propiedad=id_propiedad,
+				nombre=nombre,
+				fecha_inicio=fecha_inicio,
+				fecha_fin=fecha_fin,
+				porcentaje=porcentaje,
+			)
+			db.add(model)
+			db.commit()
+			return {
+				"id_temporada": str(id_temporada),
+				"nombre": nombre,
+				"fecha_inicio": fecha_inicio,
+				"fecha_fin": fecha_fin,
+				"porcentaje": float(porcentaje),
+			}
+		except Exception:
+			db.rollback()
+			raise
+		finally:
+			db.close()
+
+	def delete_temporada(self, id_propiedad: UUID, id_temporada: UUID) -> bool:
+		db: Session = SessionLocal()
+		try:
+			row = (
+				db.query(TemporadaModel)
+				.filter(
+					TemporadaModel.id_temporada == id_temporada,
+					TemporadaModel.id_propiedad == id_propiedad,
+				)
+				.first()
+			)
+			if not row:
+				return False
+			db.delete(row)
+			db.commit()
+			return True
+		finally:
+			db.close()

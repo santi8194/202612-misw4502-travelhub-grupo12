@@ -6,6 +6,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { of } from 'rxjs';
 import { RoomDetailPage } from './room-detail-page';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
+import { RoomPriceResponse } from '../../models/room-price.interface';
 
 const mockRoomDetail: RoomDetailResponse = {
   propiedad: {
@@ -71,7 +72,22 @@ const mockRoomDetail: RoomDetailResponse = {
   ],
 };
 
+const mockRoomPrice: RoomPriceResponse = {
+  precio_por_noche: 374000,
+  noches: 3,
+  subtotal: 1122000,
+  impuestos: 213180,
+  cargo_servicio: 20000,
+  total: 1355180,
+  moneda: 'COP',
+  simbolo_moneda: '$',
+  tipo_tarifa: 'NORMAL',
+  impuesto_nombre: 'IVA',
+};
+
 const CATALOG_VIEW_DETAIL_URL_PATTERN = /\/categories\/[^/]+\/view-detail/;
+const CALCULATE_PRICE_URL_PATTERN = /\/calculate-room-price/;
+const USER_LOCALE_URL_PATTERN = /\/assets\/data\/user-locale\.json/;
 const BOOKING_URL_PATTERN = /\/api\/reserva/;
 
 describe('RoomDetailPage', () => {
@@ -116,6 +132,11 @@ describe('RoomDetailPage', () => {
   afterEach(() => httpTesting.verify());
 
   // ── Helpers ──
+  function flushUserLocale(): void {
+    const req = httpTesting.match(r => USER_LOCALE_URL_PATTERN.test(r.url));
+    req.forEach(r => r.flush({ pais: 'Colombia' }));
+  }
+
   function flushViewDetail(body: RoomDetailResponse = mockRoomDetail): void {
     const req = httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url));
     req.flush(body);
@@ -128,14 +149,22 @@ describe('RoomDetailPage', () => {
     fixture.detectChanges();
   }
 
+  function flushCalculatePrice(body: RoomPriceResponse = mockRoomPrice): void {
+    const req = httpTesting.expectOne(r => CALCULATE_PRICE_URL_PATTERN.test(r.url));
+    req.flush(body);
+    fixture.detectChanges();
+  }
+
   // ── Tests ──
 
   it('should create', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     expect(component).toBeTruthy();
   });
 
   it('should render app-header', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     fixture.detectChanges();
     const header = fixture.nativeElement.querySelector('app-header');
@@ -143,6 +172,7 @@ describe('RoomDetailPage', () => {
   });
 
   it('should render app-footer', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     fixture.detectChanges();
     const footer = fixture.nativeElement.querySelector('app-footer');
@@ -152,11 +182,12 @@ describe('RoomDetailPage', () => {
   it('should show loading state initially before API responds', () => {
     const loading = fixture.nativeElement.querySelector('[data-testid="room-detail-loading"]');
     expect(loading).toBeTruthy();
-    // Flush to cleanup
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
   });
 
   it('should show error state when API fails', () => {
+    flushUserLocale();
     flushViewDetailError(500);
     const error = fixture.nativeElement.querySelector('[data-testid="room-detail-error"]');
     expect(error).toBeTruthy();
@@ -164,6 +195,7 @@ describe('RoomDetailPage', () => {
   });
 
   it('should render room title with nombre_comercial on success', () => {
+    flushUserLocale();
     flushViewDetail();
     const title = fixture.nativeElement.querySelector('[data-testid="room-detail-title"]');
     expect(title).toBeTruthy();
@@ -171,12 +203,14 @@ describe('RoomDetailPage', () => {
   });
 
   it('should render image grid on success', () => {
+    flushUserLocale();
     flushViewDetail();
     const grid = fixture.nativeElement.querySelector('[data-testid="room-image-grid"]');
     expect(grid).toBeTruthy();
   });
 
   it('should render amenities section', () => {
+    flushUserLocale();
     flushViewDetail();
     const amenities = fixture.nativeElement.querySelector('[data-testid="room-amenities"]');
     expect(amenities).toBeTruthy();
@@ -185,12 +219,14 @@ describe('RoomDetailPage', () => {
   });
 
   it('should render booking box on success', () => {
+    flushUserLocale();
     flushViewDetail();
     const bookingBox = fixture.nativeElement.querySelector('[data-testid="room-booking-box"]');
     expect(bookingBox).toBeTruthy();
   });
 
   it('should render reviews section with all reseñas', () => {
+    flushUserLocale();
     flushViewDetail();
     const reviews = fixture.nativeElement.querySelector('[data-testid="room-reviews"]');
     expect(reviews).toBeTruthy();
@@ -199,27 +235,43 @@ describe('RoomDetailPage', () => {
   });
 
   it('should render cancellation policy section', () => {
+    flushUserLocale();
     flushViewDetail();
     const policies = fixture.nativeElement.querySelector('[data-testid="room-policies"]');
     expect(policies).toBeTruthy();
   });
 
   it('should calculate nightsCount correctly', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     component.checkInInput.set('2026-01-01');
     component.checkOutInput.set('2026-01-08');
     expect(component.nightsCount()).toBe(7);
   });
 
-  it('should compute subtotal as pricePerNight × nights', () => {
+  it('should return subtotal from roomPrice when available', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
-    component.checkInInput.set('2026-01-01');
-    component.checkOutInput.set('2026-01-02');
-    // 374000 × 1 = 374000
-    expect(component.subtotal()).toBe(374000);
+    component.roomPrice.set(mockRoomPrice);
+    expect(component.subtotal()).toBe(mockRoomPrice.subtotal);
+  });
+
+  it('should return total from roomPrice when available', () => {
+    flushUserLocale();
+    httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
+    component.roomPrice.set(mockRoomPrice);
+    expect(component.total()).toBe(mockRoomPrice.total);
+  });
+
+  it('should return pricePerNight from roomDetail fallback when roomPrice is null', () => {
+    flushUserLocale();
+    httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
+    expect(component.roomPrice()).toBeNull();
+    expect(component.pricePerNight()).toBe(374000);
   });
 
   it('should have canReserve false when dates are missing', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     component.checkInInput.set('');
     component.checkOutInput.set('');
@@ -227,6 +279,7 @@ describe('RoomDetailPage', () => {
   });
 
   it('should have canReserve true when form is valid', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     component.checkInInput.set('2026-06-01');
     component.checkOutInput.set('2026-06-05');
@@ -234,7 +287,45 @@ describe('RoomDetailPage', () => {
     expect(component.canReserve()).toBeTrue();
   });
 
+  it('should render price breakdown with impuestos and cargo_servicio when roomPrice is set', () => {
+    flushUserLocale();
+    flushViewDetail();
+    component.roomPrice.set(mockRoomPrice);
+    fixture.detectChanges();
+    const breakdown = fixture.nativeElement.querySelector('[data-testid="room-price-breakdown"]');
+    expect(breakdown).toBeTruthy();
+    const impuestosRow = fixture.nativeElement.querySelector('[data-testid="room-impuestos-row"]');
+    expect(impuestosRow).toBeTruthy();
+    expect(impuestosRow.textContent).toContain('IVA');
+    const cargoRow = fixture.nativeElement.querySelector('[data-testid="room-cargo-servicio-row"]');
+    expect(cargoRow).toBeTruthy();
+    expect(cargoRow.textContent).toContain('Tarifa del servicio');
+  });
+
+  it('should render loading shimmer in breakdown while loadingPrice is true', () => {
+    flushUserLocale();
+    flushViewDetail();
+    component.loadingPrice.set(true);
+    fixture.detectChanges();
+    const loadingEl = fixture.nativeElement.querySelector('[data-testid="room-price-loading"]');
+    expect(loadingEl).toBeTruthy();
+    const breakdown = fixture.nativeElement.querySelector('[data-testid="room-price-breakdown"]');
+    expect(breakdown).toBeNull();
+  });
+
+  it('date inputs should have readonly attribute', () => {
+    flushUserLocale();
+    flushViewDetail();
+    const checkIn = fixture.nativeElement.querySelector('[data-testid="room-checkin"]');
+    const checkOut = fixture.nativeElement.querySelector('[data-testid="room-checkout"]');
+    const guests = fixture.nativeElement.querySelector('[data-testid="room-guests"]');
+    expect(checkIn.readOnly).toBeTrue();
+    expect(checkOut.readOnly).toBeTrue();
+    expect(guests.readOnly).toBeTrue();
+  });
+
   it('should call createBooking with correct payload on reservar()', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     fixture.detectChanges();
 
@@ -242,7 +333,6 @@ describe('RoomDetailPage', () => {
     component.checkOutInput.set('2026-06-03');
     component.guestsInput.set(2);
 
-    // Manually set categoryId via signal (simulating route param)
     spyOn(component as any, 'resolveUserId').and.returnValue('test-user-uuid');
 
     component.reservar();
@@ -258,10 +348,10 @@ describe('RoomDetailPage', () => {
   });
 
   it('should navigate to /booking/:id_reserva after successful createBooking', () => {
+    flushUserLocale();
     httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
     fixture.detectChanges();
 
-    const router = TestBed.inject(Router);
     const navigateSpy = spyOn((component as any).router, 'navigate');
 
     component.checkInInput.set('2026-06-01');

@@ -1,0 +1,12 @@
+{
+  "precio_por_noche": 250000,
+  "noches": 5,
+  "subtotal": 1250000,
+  "impuestos": 237500,
+  "cargo_servicio": 25000,
+  "total": 1512500,
+  "moneda": "COP",
+  "simbolo_moneda": "$",
+  "tipo_tarifa": "NORMAL",
+  "impuesto_nombre": "IVA"
+}

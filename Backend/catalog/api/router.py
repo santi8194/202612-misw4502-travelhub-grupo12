@@ -17,6 +17,7 @@ from modules.catalog.application.queries.obtain_property_by_category_id import O
 from modules.catalog.application.queries.obtain_category_by_id import ObtainCategoryById
 from modules.catalog.application.queries.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
 from modules.catalog.application.queries.obtain_category_view_detail import ObtainCategoryViewDetail
+from modules.catalog.application.queries.calculate_room_price import CalculateRoomPrice
 
 router = APIRouter()
 repository = PropertyRepository()
@@ -75,7 +76,29 @@ class UpdatePricingRequest(BaseModel):
 	tarifa_temporada_alta_monto: Decimal | None = None
 
 
+class CalculateRoomPriceRequest(BaseModel):
+	id_categoria: UUID
+	fecha_inicio: date
+	fecha_fin: date
+	pais_usuario: str
+
+
 # ==================== ENDPOINTS ====================
+
+
+@router.post("/calculate-room-price")
+def calcular_precio_habitacion(request: CalculateRoomPriceRequest):
+	"""Calcula el precio total de una categoría considerando fechas y país del usuario."""
+	result = CalculateRoomPrice(repository).execute(
+		id_categoria=request.id_categoria,
+		fecha_inicio=request.fecha_inicio,
+		fecha_fin=request.fecha_fin,
+		pais_usuario=request.pais_usuario,
+	)
+	if "error" in result:
+		status_code = 404 if result["error"] == "Category not found" else 400
+		return JSONResponse(status_code=status_code, content=result)
+	return result
 
 
 @router.post("/properties")
@@ -254,6 +277,51 @@ def obtener_tarifas(id_propiedad: UUID, id_categoria: UUID):
 		"tarifa_fin_de_semana": _vo(categoria.tarifa_fin_de_semana),
 		"tarifa_temporada_alta": _vo(categoria.tarifa_temporada_alta),
 	}
+
+
+# ==================== TEMPORADAS ====================
+
+class CreateTemporadaRequest(BaseModel):
+	nombre: str
+	fecha_inicio: str   # "YYYY-MM-DD"
+	fecha_fin: str      # "YYYY-MM-DD"
+	porcentaje: Decimal
+
+
+@router.get("/properties/{id_propiedad}/seasons")
+def obtener_temporadas(id_propiedad: UUID):
+	"""Retorna todas las temporadas de precio de una propiedad."""
+	temporadas = repository.get_temporadas(id_propiedad)
+	return {"id_propiedad": str(id_propiedad), "temporadas": temporadas}
+
+
+@router.post("/properties/{id_propiedad}/seasons")
+def crear_temporada(id_propiedad: UUID, request: CreateTemporadaRequest):
+	"""Crea una nueva temporada de precio para una propiedad."""
+	try:
+		temporada = repository.save_temporada(
+			id_propiedad=id_propiedad,
+			id_temporada=uuid4(),
+			nombre=request.nombre,
+			fecha_inicio=request.fecha_inicio,
+			fecha_fin=request.fecha_fin,
+			porcentaje=request.porcentaje,
+		)
+		return temporada
+	except Exception as exc:
+		return JSONResponse(
+			status_code=500,
+			content={"error": f"No se pudo crear la temporada: {str(exc)}"},
+		)
+
+
+@router.delete("/properties/{id_propiedad}/seasons/{id_temporada}")
+def eliminar_temporada(id_propiedad: UUID, id_temporada: UUID):
+	"""Elimina una temporada de precio."""
+	deleted = repository.delete_temporada(id_propiedad, id_temporada)
+	if not deleted:
+		return JSONResponse(status_code=404, content={"error": "Temporada no encontrada"})
+	return {"deleted": True, "id_temporada": str(id_temporada)}
 
 
 @router.get("/properties/{id_propiedad}/categories/{id_categoria}/availability/{fecha}")

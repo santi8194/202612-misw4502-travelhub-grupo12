@@ -1,5 +1,7 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { convertToParamMap, ActivatedRoute, provideRouter } from '@angular/router';
 import { ConfirmReservationPage } from './confirm-reservation-page';
 
@@ -23,6 +25,8 @@ describe('ConfirmReservationPage', () => {
       imports: [ConfirmReservationPage],
       providers: [
         provideZonelessChangeDetection(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         provideRouter([]),
         {
           provide: ActivatedRoute,
@@ -55,8 +59,8 @@ describe('ConfirmReservationPage', () => {
     const title = fixture.nativeElement.querySelector('[data-testid="confirm-reservation-title"]');
     const reason = fixture.nativeElement.querySelector('[data-testid="confirm-reservation-reason"]');
 
-    expect(title.textContent).toContain('Reserva confirmada');
-    expect(reason.textContent).toContain('Reserva formalizada correctamente');
+    expect(title.textContent).toContain('Reserva Confirmada');
+    expect(reason.textContent).toContain('Tu reserva ha sido confirmada. Se ha enviado un correo con los detalles.');
     expect(component.isConfirmed()).toBeTrue();
   });
 

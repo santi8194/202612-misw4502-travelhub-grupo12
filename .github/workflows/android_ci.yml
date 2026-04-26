@@ -4,7 +4,7 @@ on:
   push:
     branches: ["mobile-main"]
     tags:
-      - "v*"
+      - "v*-mobile"
   pull_request:
     branches: ["mobile-main"]
     paths:
@@ -68,9 +68,17 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.jks
 
+      - name: Extract version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: get_version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/v}
+          VERSION=${TAG_NAME%-mobile}
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Build APK (Release)
         if: startsWith(github.ref, 'refs/tags/v')
-        run: flutter build apk --release --dart-define=SEARCH_API_BASE_URL=$SEARCH_API_BASE_URL
+        run: flutter build apk --release --build-name=${{ steps.get_version.outputs.VERSION }} --dart-define=SEARCH_API_BASE_URL=$SEARCH_API_BASE_URL
         env:
           SEARCH_API_BASE_URL: ${{ secrets.SEARCH_API_BASE_URL }}
           ANDROID_KEYSTORE_PATH: "release.jks"

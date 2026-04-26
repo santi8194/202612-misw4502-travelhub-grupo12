@@ -17,6 +17,7 @@ from modules.catalog.application.queries.obtain_property_by_category_id import O
 from modules.catalog.application.queries.obtain_category_by_id import ObtainCategoryById
 from modules.catalog.application.queries.obtain_categories_by_property_id import ObtainCategoriesByPropertyId
 from modules.catalog.application.queries.obtain_category_view_detail import ObtainCategoryViewDetail
+from modules.catalog.application.queries.calculate_room_price import CalculateRoomPrice
 
 router = APIRouter()
 repository = PropertyRepository()
@@ -75,7 +76,29 @@ class UpdatePricingRequest(BaseModel):
 	tarifa_temporada_alta_monto: Decimal | None = None
 
 
+class CalculateRoomPriceRequest(BaseModel):
+	id_categoria: UUID
+	fecha_inicio: date
+	fecha_fin: date
+	pais_usuario: str
+
+
 # ==================== ENDPOINTS ====================
+
+
+@router.post("/calculate-room-price")
+def calcular_precio_habitacion(request: CalculateRoomPriceRequest):
+	"""Calcula el precio total de una categoría considerando fechas y país del usuario."""
+	result = CalculateRoomPrice(repository).execute(
+		id_categoria=request.id_categoria,
+		fecha_inicio=request.fecha_inicio,
+		fecha_fin=request.fecha_fin,
+		pais_usuario=request.pais_usuario,
+	)
+	if "error" in result:
+		status_code = 404 if result["error"] == "Category not found" else 400
+		return JSONResponse(status_code=status_code, content=result)
+	return result
 
 
 @router.post("/properties")

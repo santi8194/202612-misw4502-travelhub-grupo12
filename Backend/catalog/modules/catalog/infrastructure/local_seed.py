@@ -16,10 +16,22 @@ from .database import Base, IS_SQLITE, SessionLocal, engine
 from .models import (
     AmenidadModel,
     CategoriaHabitacionModel,
+    ConfiguracionImpuestosPaisModel,
     InventarioModel,
     MediaModel,
     PropiedadModel,
     ResenaModel,
+)
+
+
+SEED_TAXES: tuple[dict, ...] = (
+    {"pais": "Colombia",  "moneda": "COP", "simbolo": "$",  "locale": "es_CO", "decimales": 0, "tasa_usd": 4200.0,  "impuesto": "IVA",       "tasa": 0.19},
+    {"pais": "Perú",      "moneda": "PEN", "simbolo": "S/", "locale": "es_PE", "decimales": 2, "tasa_usd": 3.75,    "impuesto": "IGV",       "tasa": 0.18},
+    {"pais": "Ecuador",   "moneda": "USD", "simbolo": "$",  "locale": "en_US", "decimales": 2, "tasa_usd": 1.0,     "impuesto": "IVA",       "tasa": 0.15},
+    {"pais": "México",    "moneda": "MXN", "simbolo": "$",  "locale": "es_MX", "decimales": 2, "tasa_usd": 17.0,    "impuesto": "IVA",       "tasa": 0.16},
+    {"pais": "Chile",     "moneda": "CLP", "simbolo": "$",  "locale": "es_CL", "decimales": 0, "tasa_usd": 950.0,   "impuesto": "IVA",       "tasa": 0.19},
+    {"pais": "Argentina", "moneda": "USD", "simbolo": "$",  "locale": "en_US", "decimales": 2, "tasa_usd": 1.0,     "impuesto": "IVA",       "tasa": 0.21},
+    {"pais": "USA",       "moneda": "USD", "simbolo": "$",  "locale": "en_US", "decimales": 2, "tasa_usd": 1.0,     "impuesto": "Hotel Tax", "tasa": 0.12},
 )
 
 
@@ -269,6 +281,19 @@ def run_local_seed() -> None:
         session.query(CategoriaHabitacionModel).delete()
         session.query(PropiedadModel).delete()
         session.query(AmenidadModel).delete()
+        session.query(ConfiguracionImpuestosPaisModel).delete()
+
+        for row in SEED_TAXES:
+            session.add(ConfiguracionImpuestosPaisModel(
+                pais=row["pais"],
+                moneda=row["moneda"],
+                simbolo_moneda=row["simbolo"],
+                locale=row["locale"],
+                decimales=row["decimales"],
+                tasa_usd=Decimal(str(row["tasa_usd"])),
+                impuesto_nombre=row["impuesto"],
+                impuesto_tasa=Decimal(str(row["tasa"])),
+            ))
 
         amenidades_cache: dict[str, AmenidadModel] = {}
 

@@ -5,8 +5,11 @@ from uuid import UUID, uuid5, NAMESPACE_DNS
 
 from sqlalchemy.exc import IntegrityError
 
+from modules.catalog.infrastructure.database import SessionLocal
+from modules.catalog.infrastructure.models import ConfiguracionImpuestosPaisModel
 from modules.catalog.infrastructure.repository import PropertyRepository
 from modules.catalog.infrastructure.services.event_bus import EventBus
+from modules.catalog.infrastructure.local_seed import SEED_ROWS, SEED_TAXES
 from modules.catalog.application.commands.create_property import CreateProperty
 from modules.catalog.application.commands.register_category_housing import RegisterCategoryHousing
 from modules.catalog.application.commands.update_pricing import UpdatePricing
@@ -18,10 +21,6 @@ def _build_property_id(property_name: str) -> UUID:
 
 def _build_category_id(search_category_name: str) -> UUID:
     return uuid5(NAMESPACE_DNS, f"categoria:{search_category_name}")
-
-
-# 👇 MISMA DATA (resumida aquí pero debes copiarla EXACTA desde el otro archivo)
-from modules.catalog.infrastructure.local_seed import SEED_ROWS
 
 
 def _codigos_existentes(repository: PropertyRepository, id_propiedad: UUID) -> set[str]:
@@ -38,6 +37,28 @@ def run_seed() -> None:
     create_cmd = CreateProperty(repository, event_bus)
     register_cmd = RegisterCategoryHousing(repository, event_bus)
     pricing_cmd = UpdatePricing(repository, event_bus)
+
+    session = SessionLocal()
+    try:
+        if session.query(ConfiguracionImpuestosPaisModel).count() == 0:
+            for row in SEED_TAXES:
+                session.add(ConfiguracionImpuestosPaisModel(
+                    pais=row["pais"],
+                    moneda=row["moneda"],
+                    simbolo_moneda=row["simbolo"],
+                    locale=row["locale"],
+                    decimales=row["decimales"],
+                    tasa_usd=Decimal(str(row["tasa_usd"])),
+                    impuesto_nombre=row["impuesto"],
+                    impuesto_tasa=Decimal(str(row["tasa"])),
+                ))
+            session.commit()
+            print("[seed] Configuracion de impuestos insertada.")
+    except Exception as exc:
+        session.rollback()
+        print(f"[seed] Error insertando impuestos: {exc}")
+    finally:
+        session.close()
 
     for index, row in enumerate(SEED_ROWS):
         property_id = _build_property_id(row.property_name)

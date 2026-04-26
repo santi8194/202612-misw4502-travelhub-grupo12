@@ -4,6 +4,19 @@ from sqlalchemy.orm import relationship
 from .database import Base
 
 
+class ConfiguracionImpuestosPaisModel(Base):
+	__tablename__ = "configuracion_impuestos_pais"
+
+	pais = Column(String, primary_key=True)
+	moneda = Column(String(3), nullable=False)
+	simbolo_moneda = Column(String(5), nullable=False)
+	locale = Column(String(10), nullable=False)
+	decimales = Column(Integer, nullable=False)
+	tasa_usd = Column(Numeric(12, 4), nullable=False)
+	impuesto_nombre = Column(String, nullable=False)
+	impuesto_tasa = Column(Numeric(5, 4), nullable=False)
+
+
 class PropiedadModel(Base):
 	__tablename__ = "propiedades"
 

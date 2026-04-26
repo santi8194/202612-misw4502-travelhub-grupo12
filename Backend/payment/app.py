@@ -165,6 +165,14 @@ def list_payments() -> list[dict[str, Any]]:
     return list(payments_by_id.values())
 
 
+@app.get("/payments/by-reserva/{id_reserva}", response_model=PaymentResponse)
+def get_payment_by_reserva(id_reserva: str) -> dict[str, Any]:
+    for payment in payments_by_id.values():
+        if payment["id_reserva"] == id_reserva:
+            return payment
+    raise HTTPException(status_code=404, detail="Pago no encontrado para la reserva")
+
+
 @app.get("/payments/{id_pago}", response_model=PaymentResponse)
 def get_payment(id_pago: str) -> dict[str, Any]:
     payment = payments_by_id.get(id_pago)

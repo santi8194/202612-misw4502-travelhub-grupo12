@@ -1,6 +1,6 @@
 param(
     [string]$EnvFile = ".env",
-    [string]$Host = "127.0.0.1",
+    [string]$ListenHost = "127.0.0.1",
     [int]$Port = 8000
 )
 
@@ -15,5 +15,5 @@ if (-not (Test-Path -LiteralPath $pythonPath)) {
 
 . $loadEnvScript -EnvFile (Join-Path $paymentRoot $EnvFile) -ValidateRequired
 
-Write-Host "Iniciando payment en http://$Host`:$Port"
-& $pythonPath -m uvicorn app:app --host $Host --port $Port --reload
+Write-Host "Iniciando payment en http://$ListenHost`:$Port"
+& $pythonPath -m uvicorn app:app --host $ListenHost --port $Port --reload

@@ -237,6 +237,24 @@ def test_get_payment_returns_existing_payment():
     assert response.json()["id_pago"] == id_pago
 
 
+def test_get_payment_by_reserva_returns_existing_payment():
+    client.post(
+        "/payments",
+        json={"id_reserva": "reserva-1", "monto": 1000, "moneda": "COP"},
+    )
+
+    response = client.get("/payments/by-reserva/reserva-1")
+
+    assert response.status_code == 200
+    assert response.json()["id_reserva"] == "reserva-1"
+
+
+def test_get_payment_by_reserva_returns_404_when_missing():
+    response = client.get("/payments/by-reserva/no-existe")
+
+    assert response.status_code == 404
+
+
 def test_list_payments_returns_all_created_payments():
     client.post("/payments", json={"id_reserva": "reserva-1", "monto": 1000, "moneda": "COP"})
     client.post("/payments", json={"id_reserva": "reserva-2", "monto": 2000, "moneda": "COP"})

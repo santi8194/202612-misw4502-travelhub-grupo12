@@ -68,12 +68,38 @@
     "BASE_RATE": "Base rate",
     "WEEKEND_RATE": "Weekend rate",
     "PEAK_RATE": "Peak season",
-    "TOTAL_ROOMS": "{{count}} total"
+    "TOTAL_ROOMS": "{{count}} total",
+    "LOADING": "Loading prices...",
+    "LOAD_ERROR": "Could not load prices. Please try again.",
+    "SAVE_SUCCESS": "Prices saved successfully!",
+    "SAVE_ERROR": "Could not save prices. Please try again."
   },
   "PRICING_VALIDATION": {
     "REQUIRED": "This field is required",
     "NUMERIC": "Enter a valid numeric value",
     "POSITIVE": "Value must be greater than zero"
+  },
+  "SEASONS": {
+    "TITLE": "Season Adjustments",
+    "SUBTITLE": "Configure percentage surcharges by season with start and end dates",
+    "ADD": "Add season",
+    "LOADING": "Loading seasons...",
+    "LOAD_ERROR": "Could not load seasons. Please try again.",
+    "SAVE_ERROR": "Could not save the season. Please try again.",
+    "EMPTY": "No seasons configured.",
+    "FORM_TITLE": "New season",
+    "FIELD_NOMBRE": "Name",
+    "FIELD_INICIO": "Start date",
+    "FIELD_FIN": "End date",
+    "FIELD_PORCENTAJE": "Surcharge (%)",
+    "SAVE": "Save",
+    "SAVING": "Saving...",
+    "CANCEL": "Cancel",
+    "DELETE": "Delete season",
+    "ERROR_NOMBRE": "Name is required",
+    "ERROR_FECHA": "Date is required",
+    "ERROR_FECHA_ORDEN": "End date must be after start date",
+    "ERROR_PORCENTAJE": "Surcharge must be greater than zero"
   },
   "LOGIN": {
     "TITLE": "TravelHub Partner",

@@ -79,6 +79,28 @@
     "NUMERIC": "Ingrese un valor numérico válido",
     "POSITIVE": "El valor debe ser mayor a cero"
   },
+  "SEASONS": {
+    "TITLE": "Ajustes de Temporada",
+    "SUBTITLE": "Configura recargos porcentuales por temporada con fechas de inicio y fin",
+    "ADD": "Agregar temporada",
+    "LOADING": "Cargando temporadas...",
+    "LOAD_ERROR": "No se pudieron cargar las temporadas. Intente nuevamente.",
+    "SAVE_ERROR": "No se pudo guardar la temporada. Intente nuevamente.",
+    "EMPTY": "No hay temporadas configuradas.",
+    "FORM_TITLE": "Nueva temporada",
+    "FIELD_NOMBRE": "Nombre",
+    "FIELD_INICIO": "Fecha inicio",
+    "FIELD_FIN": "Fecha fin",
+    "FIELD_PORCENTAJE": "Recargo (%)",
+    "SAVE": "Guardar",
+    "SAVING": "Guardando...",
+    "CANCEL": "Cancelar",
+    "DELETE": "Eliminar temporada",
+    "ERROR_NOMBRE": "El nombre es obligatorio",
+    "ERROR_FECHA": "La fecha es obligatoria",
+    "ERROR_FECHA_ORDEN": "La fecha de fin debe ser posterior al inicio",
+    "ERROR_PORCENTAJE": "El recargo debe ser mayor a cero"
+  },
   "LOGIN": {
     "TITLE": "TravelHub Partner",
     "SUBTITLE": "Portal de Socios",

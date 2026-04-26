@@ -39,6 +39,26 @@ export interface PricingUpdate {
     tarifa_temporada_alta_monto: string | null;
 }
 
+export interface TemporadaApi {
+    id_temporada: string;
+    nombre: string;
+    fecha_inicio: string;   // "YYYY-MM-DD"
+    fecha_fin: string;      // "YYYY-MM-DD"
+    porcentaje: number;
+}
+
+export interface TemporadasResponse {
+    id_propiedad: string;
+    temporadas: TemporadaApi[];
+}
+
+export interface CreateTemporadaBody {
+    nombre: string;
+    fecha_inicio: string;
+    fecha_fin: string;
+    porcentaje: number;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -63,6 +83,25 @@ export class CatalogService {
         return this.http.put(
             `${this.base}/properties/${idPropiedad}/categories/${idCategoria}/pricing`,
             body
+        );
+    }
+
+    getTemporadas(idPropiedad: string): Observable<TemporadasResponse> {
+        return this.http.get<TemporadasResponse>(
+            `${this.base}/properties/${idPropiedad}/seasons`
+        );
+    }
+
+    createTemporada(idPropiedad: string, body: CreateTemporadaBody): Observable<TemporadaApi> {
+        return this.http.post<TemporadaApi>(
+            `${this.base}/properties/${idPropiedad}/seasons`,
+            body
+        );
+    }
+
+    deleteTemporada(idPropiedad: string, idTemporada: string): Observable<unknown> {
+        return this.http.delete(
+            `${this.base}/properties/${idPropiedad}/seasons/${idTemporada}`
         );
     }
 }

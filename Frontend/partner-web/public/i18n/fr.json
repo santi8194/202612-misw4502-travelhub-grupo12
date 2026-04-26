@@ -79,6 +79,28 @@
     "NUMERIC": "Entrez une valeur numérique valide",
     "POSITIVE": "La valeur doit être supérieure à zéro"
   },
+  "SEASONS": {
+    "TITLE": "Ajustements de Saison",
+    "SUBTITLE": "Configurez des suppléments en pourcentage par saison avec dates de début et de fin",
+    "ADD": "Ajouter une saison",
+    "LOADING": "Chargement des saisons...",
+    "LOAD_ERROR": "Impossible de charger les saisons. Veuillez réessayer.",
+    "SAVE_ERROR": "Impossible d'enregistrer la saison. Veuillez réessayer.",
+    "EMPTY": "Aucune saison configurée.",
+    "FORM_TITLE": "Nouvelle saison",
+    "FIELD_NOMBRE": "Nom",
+    "FIELD_INICIO": "Date de début",
+    "FIELD_FIN": "Date de fin",
+    "FIELD_PORCENTAJE": "Supplément (%)",
+    "SAVE": "Enregistrer",
+    "SAVING": "Enregistrement...",
+    "CANCEL": "Annuler",
+    "DELETE": "Supprimer la saison",
+    "ERROR_NOMBRE": "Le nom est obligatoire",
+    "ERROR_FECHA": "La date est obligatoire",
+    "ERROR_FECHA_ORDEN": "La date de fin doit être postérieure au début",
+    "ERROR_PORCENTAJE": "Le supplément doit être supérieur à zéro"
+  },
   "LOGIN": {
     "TITLE": "TravelHub Partner",
     "SUBTITLE": "Portail Partenaires",

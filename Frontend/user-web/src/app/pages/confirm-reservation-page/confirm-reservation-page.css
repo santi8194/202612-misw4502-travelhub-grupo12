@@ -1,89 +1,112 @@
 .confirm-reservation-page {
+  --page-gutter: clamp(24px, 2.4vw, 40px);
+  --content-side-margin: clamp(32px, 4vw, 72px);
+  --content-max-width: 1480px;
+  --step-icon-size: clamp(52px, 6vw, 66px);
   min-height: 100vh;
-  background: linear-gradient(180deg, #f3f7fa 0%, #ffffff 100%);
+  background: #fff;
+  padding: var(--page-gutter);
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
 }
 
 .confirm-reservation-content {
-  max-width: 960px;
+  width: 100%;
   margin: 0 auto;
-  padding: 3rem 1rem 4rem;
+  padding: 18px 0 30px;
+}
+
+app-booking-cart-stepper {
+  display: block;
+  margin-top: 22px;
 }
 
 .status-card {
-  background: #ffffff;
-  border: 1px solid #d5e4de;
+  width: calc(100% - (2 * var(--content-side-margin)));
+  max-width: calc(var(--content-max-width) - (2 * var(--content-side-margin)));
+  margin: 30px auto 30px;
+  box-sizing: border-box;
+  background: #fff;
   border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(15, 46, 35, 0.08);
-  padding: 2rem;
+  border: 1px solid #e5e7eb;
+  padding: clamp(22px, 2vw, 32px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   text-align: center;
 }
 
+.status-title,
+.status-subtitle,
+.status-id,
+.status-actions {
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .status-card--rejected {
-  border-color: #ebd1d1;
-  box-shadow: 0 12px 32px rgba(112, 27, 27, 0.08);
+  border-color: #fecaca;
+  background: #fff9f9;
 }
 
 .status-badge {
   width: 58px;
   height: 58px;
-  margin: 0 auto 1rem;
-  border-radius: 999px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: #1c8f5f;
+  font-size: 1.25rem;
+  background: #22c55e;
+  color: #fff;
+  margin: 0 auto 1rem;
 }
 
 .status-badge--rejected {
-  background: #c53838;
+  background: #ef4444;
 }
 
 .status-title {
-  margin: 0;
-  font-size: 1.8rem;
-  color: #1f2937;
+  font-size: clamp(20px, 1.8vw, 24px);
+  font-weight: 700;
+  margin: 0 auto;
+}
+
+.status-subtitle {
+  margin-top: 0.6rem;
+  color: #6b7280;
+  line-height: 1.45;
 }
 
 .status-id {
-  margin: 0.8rem 0 0;
-  color: #4b5563;
+  margin-top: 1rem;
+  color: #6b7280;
+  line-height: 1.4;
 }
 
-.status-reason {
-  margin: 1.2rem auto 0;
-  max-width: 760px;
+.status-id strong {
+  display: block;
+  margin-top: 4px;
   color: #111827;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1rem;
-  line-height: 1.5;
+  font-weight: 700;
 }
 
 .status-actions {
   margin-top: 1.5rem;
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 0.8rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
   text-decoration: none;
   font-weight: 600;
-  border-radius: 999px;
-  padding: 0.7rem 1.2rem;
-  min-width: 170px;
 }
 
 .action-btn--primary {
-  background: #0d9488;
-  color: #ffffff;
+  background: #1e3a8a;
+  color: #fff;
 }
 
 .action-btn--secondary {
@@ -91,12 +114,13 @@
   color: #111827;
 }
 
-@media (max-width: 640px) {
-  .status-card {
-    padding: 1.4rem 1rem;
+@media (max-width: 900px) {
+  .confirm-reservation-page {
+    --page-gutter: 14px;
+    --content-side-margin: 0px;
   }
 
-  .status-title {
-    font-size: 1.45rem;
+  .status-card {
+    padding: 18px;
   }
 }

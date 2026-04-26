@@ -19,7 +19,7 @@
           <a class="existing-session-btn" routerLink="/resultados">Volver a resultados</a>
         }
       } @else {
-        <button class="existing-session-btn" type="button" (click)="goToActiveSession()">Ir ahora a mi sesión activa</button>
+        <button class="existing-session-btn" type="button" (click)="goToActiveSession()">{{ actionLabel() }}</button>
       }
     </section>
   </main>

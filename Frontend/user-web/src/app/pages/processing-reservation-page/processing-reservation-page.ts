@@ -44,7 +44,7 @@ export class ProcessingReservationPage implements OnDestroy {
     }
 
     if (this.initialReason.trim()) {
-      return this.initialReason;
+      return this.sanitizeUserMessage(this.initialReason);
     }
 
     return 'Tu reserva está en proceso. Estamos confirmando el resultado con hoteles y pagos.';
@@ -99,7 +99,7 @@ export class ProcessingReservationPage implements OnDestroy {
         ?? response?.mensaje
         ?? response?.detail
         ?? response?.error
-        ?? 'La reserva fue cancelada durante el procesamiento de la saga.';
+        ?? 'La reserva no pudo ser confirmada.';
       const reason = this.buildCancellationReason(rawReason);
       this.resolveAndNavigate('rejected', reason);
       return;
@@ -131,7 +131,9 @@ export class ProcessingReservationPage implements OnDestroy {
       return 'No fue posible confirmar tu reserva porque la validación con hoteles o pagos no se completó correctamente. Te recomendamos volver al carrito e intentarlo nuevamente con otra opción.';
     }
 
-    const normalized = trimmed
+    const sanitized = this.sanitizeUserMessage(trimmed);
+
+    const normalized = sanitized
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase();
@@ -140,7 +142,24 @@ export class ProcessingReservationPage implements OnDestroy {
       return 'No pudimos confirmar tu reserva porque una de las validaciones de hoteles o pagos fue rechazada durante el proceso. Puedes volver al carrito para intentarlo de nuevo o elegir otra opción de reserva.';
     }
 
-    return trimmed;
+    return sanitized;
+  }
+
+  private sanitizeUserMessage(message: string): string {
+    const normalized = message
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    if (normalized.includes('saga')) {
+      if (normalized.includes('iniciando')) {
+        return 'Tu reserva fue formalizada. Estamos confirmando la disponibilidad y el pago.';
+      }
+
+      return 'Estamos procesando tu reserva. En breve te mostraremos el resultado.';
+    }
+
+    return message;
   }
 
   private clearPolling(): void {

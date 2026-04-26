@@ -2,26 +2,49 @@
   <app-header></app-header>
 
   <main class="confirm-reservation-content">
-    <section class="status-card" [class.status-card--rejected]="!isConfirmed()" data-testid="confirm-reservation-card">
-      <div class="status-badge" [class.status-badge--rejected]="!isConfirmed()" data-testid="confirm-reservation-badge">
-        {{ isConfirmed() ? 'OK' : 'X' }}
+    <app-booking-cart-stepper [variant]="isConfirmed() ? 'confirmed' : 'rejected'"></app-booking-cart-stepper>
+
+    <section class="status-card" [class.status-card--rejected]="!isConfirmed()">
+      <div class="status-badge" [class.status-badge--rejected]="!isConfirmed()">
+        {{ isConfirmed() ? '✓' : '✕' }}
       </div>
 
-      <h1 class="status-title" data-testid="confirm-reservation-title">{{ title() }}</h1>
+      <h1 class="status-title" data-testid="confirm-reservation-title">
+        {{ isConfirmed() ? '¡Reserva Confirmada!' : 'Reserva no confirmada' }}
+      </h1>
 
-      <div class="status-reason" data-testid="confirm-reservation-reason">
-        {{ reason() }}
-      </div>
+      <p class="status-subtitle" data-testid="confirm-reservation-reason">
+        {{ isConfirmed() ? 'Tu reserva ha sido confirmada. Se ha enviado un correo con los detalles.' : reason() }}
+      </p>
+
+      @if (!isCancelled()) {
+        <div class="status-id">
+          <span>Número de confirmación</span>
+          <strong>{{ reservationId() }}</strong>
+        </div>
+      }
 
       <div class="status-actions">
         @if (isConfirmed()) {
-          <a class="action-btn action-btn--primary" routerLink="/">Ir al inicio</a>
+          <button class="action-btn action-btn--primary" type="button" (click)="showStatusNotAvailableAlert()">
+            Ver estado de reserva
+          </button>
         } @else {
-          <a class="action-btn action-btn--primary" [routerLink]="['/booking', reservationId()]">Volver al carrito</a>
+          <a class="action-btn action-btn--primary" [routerLink]="['/booking', reservationId()]">
+            Volver al carrito
+          </a>
         }
-        <a class="action-btn action-btn--secondary" routerLink="/resultados">Buscar otra opción</a>
+
+        <a class="action-btn action-btn--secondary" routerLink="/">
+          Buscar otra opción
+        </a>
       </div>
     </section>
+
+    @if (!isCancelled()) {
+      <app-booking-cart-summary [data]="summary()" [isLoading]="isLoadingSummary()">
+      </app-booking-cart-summary>
+    }
   </main>
 
   <app-footer></app-footer>

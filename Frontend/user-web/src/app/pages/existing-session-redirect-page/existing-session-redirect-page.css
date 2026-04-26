@@ -1,6 +1,6 @@
 .existing-session-redirect-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
 }
 
 .existing-session-content {
@@ -11,9 +11,9 @@
 
 .existing-session-card {
   background: #ffffff;
-  border: 1px solid #dbe2ea;
+  border: 1px solid #dbeafe;
   border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 24px rgba(30, 58, 138, 0.1);
   padding: 2rem;
   text-align: center;
 }
@@ -37,7 +37,7 @@
 
 .existing-session-btn {
   margin-top: 1.25rem;
-  background: #0f766e;
+  background: #1e3a8a;
   color: #ffffff;
   border: 0;
   border-radius: 999px;

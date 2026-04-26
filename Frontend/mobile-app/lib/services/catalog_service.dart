@@ -23,7 +23,7 @@ class CatalogService {
     : _httpClient = httpClient ?? http.Client();
 
   Future<CategoriaHabitacion> getCategoria(String categoryId) async {
-    final uri = Uri.parse('$baseUrl/categories/$categoryId');
+    final uri = Uri.parse('$baseUrl/catalog/categories/$categoryId');
     final response = await _httpClient.get(uri);
 
     if (response.statusCode == 200) {
@@ -47,5 +47,44 @@ class CatalogService {
     throw Exception(
       'Error al obtener detalle de propiedad ($categoryId): ${response.statusCode}',
     );
+  }
+  
+  Future<CategoriaPricing> getCategoryPricing({
+    required String propertyId,
+    required String categoryId,
+  }) async {
+    final uri = Uri.parse(
+      '$baseUrl/catalog/properties/$propertyId/categories/$categoryId/pricing',
+    );
+    print('CatalogService.getCategoryPricing URI: $uri');
+    final response = await _httpClient
+        .get(uri)
+        .timeout(const Duration(seconds: 8));
+    print('CatalogService.getCategoryPricing status: \${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      return CategoriaPricing.fromJson(data);
+    }
+
+    throw Exception(
+      'Error al obtener pricing ($propertyId/$categoryId): \${response.statusCode}',
+    );
+  }
+
+  Future<String?> getPropertyIdByCategory(String categoryId) async {
+    final uri = Uri.parse(
+      '$baseUrl/catalog/properties/by-category/$categoryId',
+    );
+    final response = await _httpClient
+        .get(uri)
+        .timeout(const Duration(seconds: 8));
+
+    if (response.statusCode != 200) return null;
+
+    final data = json.decode(response.body) as Map<String, dynamic>;
+    final id = data['id_propiedad'] as String?;
+    if (id == null || id.isEmpty) return null;
+    return id;
   }
 }

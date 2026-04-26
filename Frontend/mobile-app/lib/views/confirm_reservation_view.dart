@@ -77,6 +77,7 @@ class ConfirmReservationView extends StatelessWidget {
             country: context.watch<UserPreferencesViewModel>().country,
             taxConfig: context.read<Map<String, CountryTax>>(),
             fallbackCurrency: fallbackCurrency,
+            localeLanguageCode: Localizations.localeOf(context).languageCode,
           )!;
 
           final start = dateRange.start;

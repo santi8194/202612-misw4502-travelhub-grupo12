@@ -46,7 +46,14 @@ void main() {
       locale: 'es_CO',
       decimals: 0,
       usdRate: 4200.0,
-      tax: TaxInfo(name: 'IVA', rate: 0.19, note: 'Incluye IVA y servicio.'),
+      tax: TaxInfo(
+        name: 'IVA',
+        rate: 0.19,
+        note: {
+          'es': 'Incluye IVA y servicio.',
+          'en': 'Includes VAT and service.',
+        },
+      ),
     ),
   };
 
@@ -134,9 +141,11 @@ void main() {
     expect(find.text('COP'), findsOneWidget);
     expect(find.textContaining('420.000'), findsOneWidget);
     expect(find.textContaining('1.062.600'), findsOneWidget);
-    expect(find.text('Incluye IVA y servicio.'), findsOneWidget);
+    expect(find.text('Includes VAT and service.'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Confirm Reservation'));
+    await tester.tap(
+      find.widgetWithText(ElevatedButton, 'Confirm Reservation'),
+    );
     await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);

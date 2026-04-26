@@ -50,8 +50,9 @@ void main() {
     expect(categoria.nombreComercial, 'Suite Deluxe');
     expect(categoria.precioBase.moneda, 'USD');
     verify(
-      () =>
-          mockHttpClient.get(Uri.parse('${service.baseUrl}/categories/cat-1')),
+      () => mockHttpClient.get(
+        Uri.parse('${service.baseUrl}/catalog/categories/cat-1'),
+      ),
     ).called(1);
   });
 

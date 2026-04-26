@@ -2,10 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:travel_hub/view_models/user_preferences_view_model.dart';
 
 void main() {
-  test('starts without a selected country', () {
-    final viewModel = UserPreferencesViewModel();
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    expect(viewModel.country, isNull);
+  test('starts with USA when language is not Spanish', () {
+    final viewModel = UserPreferencesViewModel(languageCode: 'en');
+
+    expect(viewModel.country, 'USA');
+  });
+
+  test('starts with Colombia when language is Spanish', () {
+    final viewModel = UserPreferencesViewModel(languageCode: 'es');
+
+    expect(viewModel.country, 'Colombia');
   });
 
   test('setCountry updates the value and notifies listeners once', () {

@@ -279,6 +279,51 @@ def obtener_tarifas(id_propiedad: UUID, id_categoria: UUID):
 	}
 
 
+# ==================== TEMPORADAS ====================
+
+class CreateTemporadaRequest(BaseModel):
+	nombre: str
+	fecha_inicio: str   # "YYYY-MM-DD"
+	fecha_fin: str      # "YYYY-MM-DD"
+	porcentaje: Decimal
+
+
+@router.get("/properties/{id_propiedad}/seasons")
+def obtener_temporadas(id_propiedad: UUID):
+	"""Retorna todas las temporadas de precio de una propiedad."""
+	temporadas = repository.get_temporadas(id_propiedad)
+	return {"id_propiedad": str(id_propiedad), "temporadas": temporadas}
+
+
+@router.post("/properties/{id_propiedad}/seasons")
+def crear_temporada(id_propiedad: UUID, request: CreateTemporadaRequest):
+	"""Crea una nueva temporada de precio para una propiedad."""
+	try:
+		temporada = repository.save_temporada(
+			id_propiedad=id_propiedad,
+			id_temporada=uuid4(),
+			nombre=request.nombre,
+			fecha_inicio=request.fecha_inicio,
+			fecha_fin=request.fecha_fin,
+			porcentaje=request.porcentaje,
+		)
+		return temporada
+	except Exception as exc:
+		return JSONResponse(
+			status_code=500,
+			content={"error": f"No se pudo crear la temporada: {str(exc)}"},
+		)
+
+
+@router.delete("/properties/{id_propiedad}/seasons/{id_temporada}")
+def eliminar_temporada(id_propiedad: UUID, id_temporada: UUID):
+	"""Elimina una temporada de precio."""
+	deleted = repository.delete_temporada(id_propiedad, id_temporada)
+	if not deleted:
+		return JSONResponse(status_code=404, content={"error": "Temporada no encontrada"})
+	return {"deleted": True, "id_temporada": str(id_temporada)}
+
+
 @router.get("/properties/{id_propiedad}/categories/{id_categoria}/availability/{fecha}")
 def obtener_disponibilidad(id_propiedad: UUID, id_categoria: UUID, fecha: date):
 	"""Obtiene la disponibilidad de una categoría en una fecha específica."""

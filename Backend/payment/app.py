@@ -44,6 +44,24 @@ def healthcheck() -> str:
     return "ok"
 
 
+def get_payment_for_reserva(id_reserva: str) -> dict[str, Any] | None:
+    for payment in payments_by_id.values():
+        if payment["id_reserva"] == id_reserva:
+            return payment
+    return None
+
+
+def mark_payment_refunded_by_reserva(id_reserva: str) -> dict[str, Any] | None:
+    payment = get_payment_for_reserva(id_reserva)
+    if not payment:
+        return None
+
+    payment["estado"] = "REFUNDED"
+    payment["status_message"] = "Pago reversado por compensacion de la saga"
+    payment["updated_at"] = utc_now()
+    return payment
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": healthcheck(), "service": SERVICE_NAME}
@@ -167,9 +185,9 @@ def list_payments() -> list[dict[str, Any]]:
 
 @app.get("/payments/by-reserva/{id_reserva}", response_model=PaymentResponse)
 def get_payment_by_reserva(id_reserva: str) -> dict[str, Any]:
-    for payment in payments_by_id.values():
-        if payment["id_reserva"] == id_reserva:
-            return payment
+    payment = get_payment_for_reserva(id_reserva)
+    if payment:
+        return payment
     raise HTTPException(status_code=404, detail="Pago no encontrado para la reserva")
 
 

@@ -3,6 +3,7 @@ from modules.payments.infrastructure.services import handlers as handlers_module
 
 def test_handle_process_payment_builds_use_case_and_executes(monkeypatch):
     captured = {}
+    monkeypatch.setenv("PAYMENT_MODE", "mock")
 
     class FakeProcessPayment:
         def __init__(self, repository, event_bus):
@@ -26,6 +27,7 @@ def test_handle_process_payment_builds_use_case_and_executes(monkeypatch):
 
 def test_handle_refund_payment_builds_use_case_and_executes(monkeypatch):
     captured = {}
+    monkeypatch.setenv("PAYMENT_MODE", "mock")
 
     class FakeRefundPayment:
         def __init__(self, repository, event_bus):
@@ -45,3 +47,11 @@ def test_handle_refund_payment_builds_use_case_and_executes(monkeypatch):
     assert captured["repository"] == "repo"
     assert captured["event_bus"] == "bus"
     assert captured["execute"] == "res-200"
+
+
+def test_handle_process_payment_wompi_mode_waits_for_webhook(monkeypatch):
+    monkeypatch.setenv("PAYMENT_MODE", "wompi")
+
+    result = handlers_module.handle_process_payment({"id_reserva": "res-300", "monto": 999.0})
+
+    assert result == {"message": "Waiting for Wompi webhook", "state": "PENDING"}

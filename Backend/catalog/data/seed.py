@@ -112,3 +112,90 @@ def run_seed() -> None:
 
         except IntegrityError:
             print(f"[seed]   Categoría {codigo} ya existe (constraint).")
+
+    _seed_temporadas(repository)
+
+
+# ── Temporadas de precio ───────────────────────────────────────────────────────
+# UUIDs deterministas derivados del nombre de la temporada + hotel para que el
+# seed sea idempotente sin necesidad de consultar la BD primero.
+
+TEMPORADAS: list[dict] = [
+    # Hotel 1 – Bogotá
+    {
+        "id_propiedad": HOTEL1_ID,
+        "nombre": "Verano",
+        "fecha_inicio": "2026-06-01",
+        "fecha_fin": "2026-08-31",
+        "porcentaje": "25.00",
+    },
+    {
+        "id_propiedad": HOTEL1_ID,
+        "nombre": "Navidad",
+        "fecha_inicio": "2026-12-15",
+        "fecha_fin": "2027-01-05",
+        "porcentaje": "40.00",
+    },
+    {
+        "id_propiedad": HOTEL1_ID,
+        "nombre": "Mitad de año",
+        "fecha_inicio": "2026-06-15",
+        "fecha_fin": "2026-07-15",
+        "porcentaje": "30.00",
+    },
+    # Hotel 2 – Medellín
+    {
+        "id_propiedad": HOTEL2_ID,
+        "nombre": "Feria de las Flores",
+        "fecha_inicio": "2026-07-28",
+        "fecha_fin": "2026-08-10",
+        "porcentaje": "35.00",
+    },
+    {
+        "id_propiedad": HOTEL2_ID,
+        "nombre": "Temporada Navideña",
+        "fecha_inicio": "2026-12-20",
+        "fecha_fin": "2027-01-06",
+        "porcentaje": "45.00",
+    },
+    {
+        "id_propiedad": HOTEL2_ID,
+        "nombre": "Semana Santa",
+        "fecha_inicio": "2027-03-28",
+        "fecha_fin": "2027-04-06",
+        "porcentaje": "30.00",
+    },
+]
+
+
+def _seed_temporadas(repository: PropertyRepository) -> None:
+    """Inserta temporadas de precio si no existen ya en la BD."""
+    from modules.catalog.infrastructure.database import SessionLocal
+    from modules.catalog.infrastructure.models import TemporadaModel
+    from decimal import Decimal as Dec
+
+    db = SessionLocal()
+    try:
+        for t in TEMPORADAS:
+            id_temporada = uuid5(NAMESPACE_DNS, f"{t['id_propiedad']}-{t['nombre']}-{t['fecha_inicio']}")
+            existe = db.query(TemporadaModel).filter(
+                TemporadaModel.id_temporada == id_temporada
+            ).first()
+            if existe:
+                print(f"[seed]   Temporada '{t['nombre']}' ({t['id_propiedad']}) ya existe, omitiendo.")
+                continue
+            db.add(TemporadaModel(
+                id_temporada=id_temporada,
+                id_propiedad=t["id_propiedad"],
+                nombre=t["nombre"],
+                fecha_inicio=t["fecha_inicio"],
+                fecha_fin=t["fecha_fin"],
+                porcentaje=Dec(t["porcentaje"]),
+            ))
+            print(f"[seed]   Temporada '{t['nombre']}' creada para propiedad {t['id_propiedad']}.")
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[seed] Error en seed de temporadas: {e}")
+    finally:
+        db.close()

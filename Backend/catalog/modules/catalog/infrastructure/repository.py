@@ -10,6 +10,7 @@ from .models import (
 	MediaModel,
 	InventarioModel,
 	ResenaModel,
+	TemporadaModel,
 )
 from modules.catalog.domain.entities import (
 	Propiedad,
@@ -472,3 +473,72 @@ class PropertyRepository:
 			categorias_habitacion=[],
 			resenas=resenas,
 		)
+
+	# ==================== TEMPORADAS ====================
+
+	def get_temporadas(self, id_propiedad: UUID) -> list[dict]:
+		db: Session = SessionLocal()
+		try:
+			rows = (
+				db.query(TemporadaModel)
+				.filter(TemporadaModel.id_propiedad == id_propiedad)
+				.order_by(TemporadaModel.fecha_inicio)
+				.all()
+			)
+			return [
+				{
+					"id_temporada": str(r.id_temporada),
+					"nombre": r.nombre,
+					"fecha_inicio": r.fecha_inicio,
+					"fecha_fin": r.fecha_fin,
+					"porcentaje": float(r.porcentaje),
+				}
+				for r in rows
+			]
+		finally:
+			db.close()
+
+	def save_temporada(self, id_propiedad: UUID, id_temporada: UUID, nombre: str, fecha_inicio: str, fecha_fin: str, porcentaje: Decimal) -> dict:
+		db: Session = SessionLocal()
+		try:
+			model = TemporadaModel(
+				id_temporada=id_temporada,
+				id_propiedad=id_propiedad,
+				nombre=nombre,
+				fecha_inicio=fecha_inicio,
+				fecha_fin=fecha_fin,
+				porcentaje=porcentaje,
+			)
+			db.add(model)
+			db.commit()
+			return {
+				"id_temporada": str(id_temporada),
+				"nombre": nombre,
+				"fecha_inicio": fecha_inicio,
+				"fecha_fin": fecha_fin,
+				"porcentaje": float(porcentaje),
+			}
+		except Exception:
+			db.rollback()
+			raise
+		finally:
+			db.close()
+
+	def delete_temporada(self, id_propiedad: UUID, id_temporada: UUID) -> bool:
+		db: Session = SessionLocal()
+		try:
+			row = (
+				db.query(TemporadaModel)
+				.filter(
+					TemporadaModel.id_temporada == id_temporada,
+					TemporadaModel.id_propiedad == id_propiedad,
+				)
+				.first()
+			)
+			if not row:
+				return False
+			db.delete(row)
+			db.commit()
+			return True
+		finally:
+			db.close()

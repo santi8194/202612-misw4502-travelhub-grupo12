@@ -26,6 +26,10 @@ class PropiedadModel(Base):
 	resenas = relationship(
 		"ResenaModel", back_populates="propiedad", cascade="all, delete-orphan"
 	)
+	# Relación con las temporadas de precio
+	temporadas = relationship(
+		"TemporadaModel", back_populates="propiedad", cascade="all, delete-orphan"
+	)
 
 
 class CategoriaHabitacionModel(Base):
@@ -107,6 +111,19 @@ class InventarioModel(Base):
 	cupos_disponibles = Column(Integer, nullable=False)
 
 	categoria = relationship("CategoriaHabitacionModel", back_populates="inventario")
+
+
+class TemporadaModel(Base):
+	__tablename__ = "temporadas"
+
+	id_temporada = Column(PgUUID(as_uuid=True), primary_key=True)
+	id_propiedad = Column(PgUUID(as_uuid=True), ForeignKey("propiedades.id_propiedad"), nullable=False)
+	nombre = Column(String(100), nullable=False)
+	fecha_inicio = Column(String(10), nullable=False)   # ISO date "YYYY-MM-DD"
+	fecha_fin = Column(String(10), nullable=False)       # ISO date "YYYY-MM-DD"
+	porcentaje = Column(Numeric(5, 2), nullable=False)   # e.g. 25.00
+
+	propiedad = relationship("PropiedadModel", back_populates="temporadas")
 
 
 class ResenaModel(Base):

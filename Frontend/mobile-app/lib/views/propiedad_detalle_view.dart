@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/country_tax.dart';
 import '../models/habitacion.dart';
 import '../models/resena.dart';
 import '../services/catalog_service.dart';
+import '../services/tax_config_service.dart';
+import '../view_models/user_preferences_view_model.dart';
 import 'confirm_reservation_view.dart';
 
 class PropiedadDetalleView extends StatefulWidget {
@@ -30,6 +35,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
   late final CatalogService _catalogService;
 
   Map<String, dynamic>? _propertyDetail;
+  Map<String, CountryTax>? _taxConfigs;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -42,7 +48,21 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
     super.initState();
     _catalogService = widget.catalogService ?? CatalogService();
     _tabController = TabController(length: 3, vsync: this);
+    _fetchTaxConfigs();
     _fetchPropertyDetail();
+  }
+
+  Future<void> _fetchTaxConfigs() async {
+    try {
+      final configs = await TaxConfigService.load();
+      if (mounted) {
+        setState(() {
+          _taxConfigs = configs;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading tax configs: $e');
+    }
   }
 
   Future<void> _fetchPropertyDetail() async {
@@ -696,7 +716,20 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
     dynamic category,
   ) {
     final priceStr = category['precio_base']['monto'] as String? ?? '0';
-    final price = double.tryParse(priceStr) ?? 0.0;
+    final basePriceUsd = double.tryParse(priceStr) ?? 0.0;
+
+    final userPrefs = Provider.of<UserPreferencesViewModel>(context);
+    final countryTax = _taxConfigs?[userPrefs.country];
+
+    final displayPrice =
+        basePriceUsd * (countryTax?.usdRate ?? 1.0) * (1 + (countryTax?.tax.rate ?? 0.0));
+    final currencyTag = countryTax?.currency ?? 'US\$';
+
+    final formatter = NumberFormat.currency(
+      locale: countryTax?.locale ?? 'en_US',
+      symbol: '',
+      decimalDigits: countryTax?.decimals ?? 2,
+    );
 
     return Positioned(
       bottom: 0,
@@ -734,7 +767,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: '${price.toInt()} US\$',
+                          text: '${formatter.format(displayPrice)} $currencyTag',
                           style: theme.textTheme.displayMedium?.copyWith(
                             fontSize: 24,
                           ),

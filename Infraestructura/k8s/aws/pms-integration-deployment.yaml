@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification
+  name: pms-integration
   labels:
-    app: notification
+    app: pms-integration
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notification
+      app: pms-integration
   template:
     metadata:
       labels:
-        app: notification
+        app: pms-integration
     spec:
       containers:
-        - name: notification
-          image: ${ECR_REGISTRY_DEV}/notification:${GITHUB_SHA}
+        - name: pms-integration
+          image: ${ECR_REGISTRY_DEV}/pms-integration:${GITHUB_SHA}
           ports:
-            - containerPort: 8000
+            - containerPort: 8001
           env:
             - name: RABBITMQ_HOST
               value: rabbitmq-broker
@@ -28,23 +28,21 @@ spec:
               value: guest
             - name: RABBITMQ_PASS
               value: guest
-            - name: REDIS_HOST
-              value: redis-db
           startupProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 8001
             periodSeconds: 5
             failureThreshold: 24
           readinessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 8001
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 8001
             initialDelaySeconds: 10
             periodSeconds: 10

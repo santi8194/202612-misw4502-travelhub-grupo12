@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification
+  name: partner-management
   labels:
-    app: notification
+    app: partner-management
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notification
+      app: partner-management
   template:
     metadata:
       labels:
-        app: notification
+        app: partner-management
     spec:
       containers:
-        - name: notification
-          image: ${ECR_REGISTRY_DEV}/notification:${GITHUB_SHA}
+        - name: partner-management
+          image: ${ECR_REGISTRY_DEV}/partner-management:${GITHUB_SHA}
           ports:
             - containerPort: 8000
           env:
@@ -28,8 +28,6 @@ spec:
               value: guest
             - name: RABBITMQ_PASS
               value: guest
-            - name: REDIS_HOST
-              value: redis-db
           startupProbe:
             httpGet:
               path: /health

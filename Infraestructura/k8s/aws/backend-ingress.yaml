@@ -30,7 +30,7 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: payment-service
+            name: payment
             port:
               number: 80
 

@@ -1,9 +1,7 @@
 import threading
 
-from config.app import create_app
+from app import app
 from modules.payments.infrastructure.services.consumer import start_consumer    
-
-app = create_app()
 
 @app.on_event("startup")
 def start_rabbitmq_consumer():

@@ -17,7 +17,7 @@ spec:
       containers:
         - name: booking-saga-worker
           image: ${ECR_REGISTRY_DEV}/booking:${GITHUB_SHA}
-          command: ["python", "/Backend/booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py"]
+          command: ["python", "/src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py"]
           env:
             - name: REDIS_HOST
               value: redis-db
@@ -37,6 +37,10 @@ spec:
               value: postgres
             - name: BOOKING_INSTANCE_PATH
               value: /src/instance
+            - name: PAYMENT_MODE
+              value: wompi
+            - name: PAYMENT_SERVICE_URL
+              value: http://payment
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -62,14 +66,3 @@ spec:
                 secretKeyRef:
                   name: booking-db-secret
                   key: DB_PASSWORD
-            - name: PAYMENT_MODE
-              value: wompi
-          livenessProbe:
-            exec:
-              command:
-                - python
-                - -c
-                - import sys; sys.exit(0)
-            initialDelaySeconds: 30
-            periodSeconds: 60
-            failureThreshold: 3

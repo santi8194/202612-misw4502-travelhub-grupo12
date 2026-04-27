@@ -20,6 +20,31 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: NOTIFICATION_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: notification-db-secret
+                  key: DB_HOST
+            - name: NOTIFICATION_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: notification-db-secret
+                  key: DB_PORT
+            - name: NOTIFICATION_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: notification-db-secret
+                  key: DB_NAME
+            - name: NOTIFICATION_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: notification-db-secret
+                  key: DB_USER
+            - name: NOTIFICATION_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: notification-db-secret
+                  key: DB_PASSWORD
             - name: RABBITMQ_HOST
               value: rabbitmq-broker
             - name: RABBITMQ_PORT

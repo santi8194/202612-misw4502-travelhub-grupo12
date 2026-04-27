@@ -34,6 +34,21 @@ service_databases = {
     db_name     = "payment_db"
     db_username = "payment_app"
   }
+  "pms-integration" = {
+    secret_name = "travelhub/dev/pms-integration/db-credentials"
+    db_name     = "pms_integration_db"
+    db_username = "pms_integration_app"
+  }
+  "partner-management" = {
+    secret_name = "travelhub/dev/partner-management/db-credentials"
+    db_name     = "partner_management_db"
+    db_username = "partner_management_app"
+  }
+  notification = {
+    secret_name = "travelhub/dev/notification/db-credentials"
+    db_name     = "notification_db"
+    db_username = "notification_app"
+  }
   search = {
     secret_name     = "travelhub/dev/search/db-credentials"
     db_name         = "search_db"

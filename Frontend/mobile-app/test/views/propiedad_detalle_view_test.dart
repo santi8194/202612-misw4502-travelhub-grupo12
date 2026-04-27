@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
+import 'package:travel_hub/models/country_tax.dart';
 import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/services/catalog_service.dart';
 import 'package:travel_hub/view_models/user_preferences_view_model.dart';
@@ -40,6 +41,33 @@ void main() {
   late MockHttpClientRequest mockRequest;
   late MockHttpClientResponse mockResponse;
   late MockHttpHeaders mockHeaders;
+
+  final Map<String, CountryTax> mockTaxConfig = {
+    'Colombia': CountryTax(
+      currency: 'COP',
+      currencySymbol: 'COL\$',
+      locale: 'es_CO',
+      decimals: 0,
+      usdRate: 3900.0,
+      tax: const TaxInfo(
+        name: 'IVA',
+        rate: 0.19,
+        note: {'es': 'IVA incluido', 'en': 'VAT included'},
+      ),
+    ),
+    'USA': CountryTax(
+      currency: 'USD',
+      currencySymbol: r'$',
+      locale: 'en_US',
+      decimals: 2,
+      usdRate: 1.0,
+      tax: const TaxInfo(
+        name: 'Sales Tax',
+        rate: 0.07,
+        note: {'es': 'Impuesto de ventas', 'en': 'Sales tax'},
+      ),
+    ),
+  };
 
   final transparentImage = [
     0x89,
@@ -166,8 +194,13 @@ void main() {
   });
 
   Widget createWidgetUnderTest() {
-    return ChangeNotifierProvider<UserPreferencesViewModel>.value(
-      value: mockUserPreferencesViewModel,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<UserPreferencesViewModel>.value(
+          value: mockUserPreferencesViewModel,
+        ),
+        Provider<Map<String, CountryTax>>.value(value: mockTaxConfig),
+      ],
       child: MaterialApp(
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -356,8 +389,13 @@ void main() {
     );
 
     await tester.pumpWidget(
-      ChangeNotifierProvider<UserPreferencesViewModel>.value(
-        value: mockUserPreferencesViewModel,
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UserPreferencesViewModel>.value(
+            value: mockUserPreferencesViewModel,
+          ),
+          Provider<Map<String, CountryTax>>.value(value: mockTaxConfig),
+        ],
         child: MaterialApp(
           localizationsDelegates: const [
             AppLocalizations.delegate,

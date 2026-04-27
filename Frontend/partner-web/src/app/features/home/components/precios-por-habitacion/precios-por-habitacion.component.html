@@ -1,0 +1,86 @@
+<section class="tabla-precios">
+    <header class="tabla-precios-header">
+        <h3>{{ 'PRICING_TABLE.TITLE' | translate }}</h3>
+        <p>{{ 'PRICING_TABLE.SUBTITLE' | translate }}</p>
+    </header>
+
+    <!-- Estado de carga -->
+    <div class="tabla-estado" *ngIf="loading">
+        <span class="estado-cargando">{{ 'PRICING_TABLE.LOADING' | translate }}</span>
+    </div>
+
+    <!-- Error al cargar -->
+    <div class="tabla-estado tabla-estado--error" *ngIf="loadError && !loading">
+        <span>{{ 'PRICING_TABLE.LOAD_ERROR' | translate }}</span>
+    </div>
+
+    <!-- Mensaje de éxito al guardar -->
+    <div class="tabla-estado tabla-estado--success" *ngIf="saveSuccess">
+        <span>{{ 'PRICING_TABLE.SAVE_SUCCESS' | translate }}</span>
+    </div>
+
+    <!-- Error al guardar -->
+    <div class="tabla-estado tabla-estado--error" *ngIf="saveError">
+        <span>{{ 'PRICING_TABLE.SAVE_ERROR' | translate }}</span>
+    </div>
+
+    <div class="tabla-contenido" *ngIf="!loading">
+        <div class="tabla-encabezado fila-tabla">
+            <span>{{ 'PRICING_TABLE.ROOM_TYPE' | translate }}</span>
+            <span>{{ 'PRICING_TABLE.BASE_RATE' | translate }}</span>
+            <span>{{ 'PRICING_TABLE.WEEKEND_RATE' | translate }}</span>
+            <span>{{ 'PRICING_TABLE.PEAK_RATE' | translate }}</span>
+        </div>
+
+        <article class="fila-tabla fila-datos" data-testid="fila-datos" *ngFor="let fila of filas">
+            <div class="habitacion-columna">
+                <strong>{{ fila.tipoHabitacion }}</strong>
+                <small>{{ 'PRICING_TABLE.TOTAL_ROOMS' | translate:{ count: fila.totalHabitaciones } }}</small>
+            </div>
+
+            <div class="precio-columna" data-testid="precio-columna">
+                <div class="input-monto"
+                     [class.input-error]="fila.errores['tarifaBase']"
+                     [attr.data-testid]="fila.errores['tarifaBase'] ? 'input-error' : null">
+                    <span>$</span>
+                    <input type="text" data-testid="price-input"
+                           [value]="fila.tarifaBase ?? ''"
+                           (input)="onPriceInput(fila, 'tarifaBase', $any($event.target).value)" />
+                </div>
+                <small class="error-msg" data-testid="error-msg" *ngIf="fila.errores['tarifaBase']">
+                    {{ fila.errores['tarifaBase'] | translate }}
+                </small>
+            </div>
+
+            <div class="precio-columna" data-testid="precio-columna">
+                <div class="input-monto"
+                     [class.input-error]="fila.errores['tarifaFinDeSemana']"
+                     [attr.data-testid]="fila.errores['tarifaFinDeSemana'] ? 'input-error' : null">
+                    <span>$</span>
+                    <input type="text" data-testid="price-input"
+                           [value]="fila.tarifaFinDeSemana ?? ''"
+                           (input)="onPriceInput(fila, 'tarifaFinDeSemana', $any($event.target).value)" />
+                </div>
+                <small class="error-msg" data-testid="error-msg" *ngIf="fila.errores['tarifaFinDeSemana']">
+                    {{ fila.errores['tarifaFinDeSemana'] | translate }}
+                </small>
+                <small class="variacion" data-testid="variacion" *ngIf="!fila.errores['tarifaFinDeSemana'] && fila.variacionFinDeSemana">{{ fila.variacionFinDeSemana }}</small>
+            </div>
+
+            <div class="precio-columna" data-testid="precio-columna">
+                <div class="input-monto"
+                     [class.input-error]="fila.errores['tarifaTemporadaAlta']"
+                     [attr.data-testid]="fila.errores['tarifaTemporadaAlta'] ? 'input-error' : null">
+                    <span>$</span>
+                    <input type="text" data-testid="price-input"
+                           [value]="fila.tarifaTemporadaAlta ?? ''"
+                           (input)="onPriceInput(fila, 'tarifaTemporadaAlta', $any($event.target).value)" />
+                </div>
+                <small class="error-msg" data-testid="error-msg" *ngIf="fila.errores['tarifaTemporadaAlta']">
+                    {{ fila.errores['tarifaTemporadaAlta'] | translate }}
+                </small>
+                <small class="variacion" data-testid="variacion" *ngIf="!fila.errores['tarifaTemporadaAlta'] && fila.variacionTemporadaAlta">{{ fila.variacionTemporadaAlta }}</small>
+            </div>
+        </article>
+    </div>
+</section>

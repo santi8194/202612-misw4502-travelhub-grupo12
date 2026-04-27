@@ -3,12 +3,15 @@ from typing import Optional
 from seedwork.infraestructura.schema.v1.eventos import EventoIntegracion
 
 class ReservaCreadaPayload:
-    def __init__(self, id_reserva: str, id_usuario: str, id_categoria: str, estado: str, fecha_creacion: str):
+    def __init__(self, id_reserva: str, id_usuario: str, id_categoria: str, estado: str, fecha_creacion: str, fecha_reserva: str = None, monto: float = None, moneda: str = "COP"):
         self.id_reserva = id_reserva
         self.id_usuario = id_usuario
         self.id_categoria = id_categoria
         self.estado = estado
         self.fecha_creacion = fecha_creacion
+        self.fecha_reserva = fecha_reserva
+        self.monto = monto
+        self.moneda = moneda
 
     def to_dict(self):
         return {
@@ -16,7 +19,10 @@ class ReservaCreadaPayload:
             "id_usuario": self.id_usuario,
             "id_categoria": self.id_categoria,
             "estado": self.estado,
-            "fecha_creacion": self.fecha_creacion
+            "fecha_creacion": self.fecha_creacion,
+            "fecha_reserva": self.fecha_reserva,
+            "monto": self.monto,
+            "moneda": self.moneda
         }
 
 class EventoReservaCreada(EventoIntegracion):

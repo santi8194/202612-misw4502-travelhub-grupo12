@@ -16,6 +16,9 @@ class ReservaPendiente(EventoDominio):
     id_reserva: uuid.UUID = None
     id_usuario: uuid.UUID = None
     id_categoria: uuid.UUID = None
+    monto: float = None
+    moneda: str = "COP"
+    fecha_reserva: str = None
 
 @dataclass
 class ReservaConfirmada(EventoDominio):

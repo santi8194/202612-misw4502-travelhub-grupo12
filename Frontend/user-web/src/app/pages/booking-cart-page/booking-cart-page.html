@@ -13,7 +13,8 @@
 
   <app-booking-cart-form
     [form]="form()"
-    [disableContinue]="!timerActive() || isSubmittingPayment()"
+    [disableContinue]="!timerActive() || isSubmittingPayment() || !isGuestFormComplete()"
+    [isSubmitting]="isSubmittingPayment()"
     (fieldChange)="onFieldChange($event)"
     (continuePayment)="createHold()">
   </app-booking-cart-form>

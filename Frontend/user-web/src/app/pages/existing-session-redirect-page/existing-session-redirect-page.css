@@ -1,0 +1,59 @@
+.existing-session-redirect-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.existing-session-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem;
+}
+
+.existing-session-card {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(30, 58, 138, 0.1);
+  padding: 2rem;
+  text-align: center;
+}
+
+.existing-session-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.8rem;
+}
+
+.existing-session-text {
+  margin: 0.9rem 0 0;
+  color: #334155;
+}
+
+.existing-session-error {
+  margin: 1rem 0 0;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.existing-session-btn {
+  margin-top: 1.25rem;
+  background: #1e3a8a;
+  color: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.72rem 1.2rem;
+  text-decoration: none;
+  display: inline-flex;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .existing-session-card {
+    padding: 1.3rem 1rem;
+  }
+
+  .existing-session-title {
+    font-size: 1.45rem;
+  }
+}

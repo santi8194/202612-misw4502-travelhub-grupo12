@@ -20,7 +20,7 @@
     @if (hospedajes().length > 0) {
       <section class="results-grid" data-testid="results-grid">
         @for (hospedaje of hospedajes(); track hospedaje.id_propiedad) {
-          <app-hospedaje-card [hospedaje]="hospedaje" />
+          <app-hospedaje-card [hospedaje]="hospedaje" [searchParams]="currentSearchParams()" />
         }
       </section>
     } @else if (!loading()) {

@@ -311,6 +311,262 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Pricing",
+      "item": [
+        {
+          "name": "Calculate Room Price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_categoria\": \"{{category_id}}\",\n  \"fecha_inicio\": \"2026-10-14\",\n  \"fecha_fin\": \"2026-10-16\",\n  \"pais_usuario\": \"Colombia\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/calculate-room-price",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "calculate-room-price"
+              ]
+            },
+            "description": "Calcula el precio total de una categoría de habitación considerando las fechas de estadía (que determinan la tarifa aplicable: base, fin de semana o temporada alta) y el país del usuario (para aplicar impuestos y conversión de moneda)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id_categoria\": \"{{category_id}}\",\n  \"fecha_inicio\": \"2026-10-14\",\n  \"fecha_fin\": \"2026-10-16\",\n  \"pais_usuario\": \"Colombia\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/calculate-room-price",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "calculate-room-price"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"precio_por_noche\": 150000.0,\n    \"noches\": 2,\n    \"subtotal\": 300000.0,\n    \"impuestos_y_cargos\": 57000.0,\n    \"total\": 357000.0,\n    \"moneda\": \"COP\",\n    \"simbolo_moneda\": \"$\",\n    \"tipo_tarifa\": \"BASE\",\n    \"impuesto_nombre\": \"IVA\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Get Pricing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/pricing",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories",
+                "{{category_id}}",
+                "pricing"
+              ]
+            },
+            "description": "Obtiene las tarifas (base, fin de semana y temporada alta) de una categoría de habitación"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/pricing",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "properties",
+                    "{{property_id}}",
+                    "categories",
+                    "{{category_id}}",
+                    "pricing"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"id_categoria\": \"{{category_id}}\",\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Update Pricing",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/pricing",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "properties",
+                "{{property_id}}",
+                "categories",
+                "{{category_id}}",
+                "pricing"
+              ]
+            },
+            "description": "Actualiza las tarifas diferenciadas (fin de semana y temporada alta) de una categoría de habitación"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/pricing",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "properties",
+                    "{{property_id}}",
+                    "categories",
+                    "{{category_id}}",
+                    "pricing"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id_propiedad\": \"{{property_id}}\",\n  \"id_categoria\": \"{{category_id}}\",\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tarifa_base_monto\": \"150.00\",\n  \"moneda\": \"COP\",\n  \"cargo_servicio\": \"0\",\n  \"tarifa_fin_de_semana_monto\": \"180.00\",\n  \"tarifa_temporada_alta_monto\": \"220.00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/properties/{{property_id}}/categories/{{category_id}}/pricing",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "properties",
+                    "{{property_id}}",
+                    "categories",
+                    "{{category_id}}",
+                    "pricing"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"detail\": \"Categoría no encontrada\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [

@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
@@ -79,6 +80,7 @@ export class BookingCartPage implements OnDestroy {
   private readonly store = inject(BookingStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private hasSentExpireRequest = false;
   private readonly reservationId = this.route.snapshot.paramMap.get('id_reserva');
 
@@ -106,6 +108,16 @@ export class BookingCartPage implements OnDestroy {
     const minutes = Math.floor(total / 60).toString().padStart(2, '0');
     const seconds = (total % 60).toString().padStart(2, '0');
     return `${minutes}:${seconds}`;
+  });
+
+  isGuestFormComplete = computed(() => {
+    const currentForm = this.form();
+    const name = currentForm.name.trim();
+    const lastName = currentForm.lastName.trim();
+    const email = currentForm.email.trim();
+    const phone = currentForm.phone.trim();
+    const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    return name.length > 0 && lastName.length > 0 && phone.length > 0 && emailIsValid;
   });
 
   updateField(field: keyof GuestForm, value: string): void {
@@ -244,11 +256,28 @@ export class BookingCartPage implements OnDestroy {
   }
 
   goBack(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+
     const propertyId = this.propertyIdForBack();
     const booking = this.bookingData();
+    const categoryId = booking?.id_categoria ?? '';
     const checkIn = booking ? this.extractCheckIn(booking) : '';
     const checkOut = booking ? this.extractCheckOut(booking) : '';
     const guests = booking ? this.extractGuests(booking) : 1;
+
+    if (categoryId) {
+      this.router.navigate(['/category', categoryId], {
+        queryParams: {
+          fecha_inicio: checkIn,
+          fecha_fin: checkOut,
+          huespedes: guests,
+        },
+      });
+      return;
+    }
 
     if (propertyId) {
       this.router.navigate(['/property', propertyId], {
@@ -298,6 +327,11 @@ export class BookingCartPage implements OnDestroy {
   }
 
   createHold(): void {
+    if (!this.isGuestFormComplete()) {
+      this.holdError.set('Completa la información del huésped principal (nombre, apellido, email válido y celular) para continuar.');
+      return;
+    }
+
     if (!this.timerActive()) {
       this.holdError.set('El tiempo de hold expiró. Debes volver a seleccionar la reserva.');
       console.warn('[BookingCartPage] createHold blocked because optimistic hold has expired');
@@ -306,6 +340,12 @@ export class BookingCartPage implements OnDestroy {
     }
 
     if (this.isSubmittingPayment()) {
+      return;
+    }
+
+    if (!this.reservationId) {
+      this.holdError.set('No se encontró el identificador de la reserva. Regresa y crea una nueva reserva.');
+      console.warn('[BookingCartPage] createHold blocked because reservation id is missing');
       return;
     }
 
@@ -339,14 +379,13 @@ export class BookingCartPage implements OnDestroy {
       categoryId,
       checkIn,
       checkOut,
-      guests
+      guests,
     };
 
     const currentSession = this.getCurrentBookingSession();
     if (currentSession && currentSession.expiresAt > Date.now()) {
       console.info('[BookingCartPage] Reusing active booking session', currentSession);
       this.startTimer(currentSession.expiresAt);
-      return;
     }
 
     this.holdError.set(null);
@@ -360,6 +399,38 @@ export class BookingCartPage implements OnDestroy {
     this.store.setHold(this.reservationId, { id: this.reservationId ?? BookingCartPage.OPTIMISTIC_HOLD_ID, expiresAt });
     this.storeCurrentSession(expiresAt);
     this.startTimer(expiresAt);
+
+    console.info('[BookingCartPage] Formalizing reservation from continue payment button', {
+      reservationId: this.reservationId,
+      timerActive: this.timerActive(),
+    });
+
+    this.isSubmittingPayment.set(true);
+    this.bookingService.formalizeBookingById(this.reservationId).pipe(
+      finalize(() => this.isSubmittingPayment.set(false))
+    ).subscribe({
+      next: (response) => {
+        const reason = response?.mensaje?.trim() || 'Tu reserva está siendo procesada por la saga.';
+        this.router.navigate(['/booking', this.reservationId, 'processing-reservation'], {
+          queryParams: {
+            reason,
+          },
+        });
+      },
+      error: (error) => {
+        const reason = this.bookingService.getReservationErrorMessage(
+          error,
+          'No fue posible formalizar la reserva. Intenta nuevamente.'
+        );
+        this.holdError.set(reason);
+        this.router.navigate(['/booking', this.reservationId, 'confirm-reservation'], {
+          queryParams: {
+            status: 'rejected',
+            reason,
+          },
+        });
+      }
+    });
   }
 
   private loadHold(): void {

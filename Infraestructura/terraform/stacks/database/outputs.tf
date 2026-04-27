@@ -43,3 +43,8 @@ output "service_secrets_manager_secret_names" {
     service_name => service_module.secret_name
   }
 }
+
+output "payment_app_runtime_secret_name" {
+  description = "Nombre del secreto runtime de payment."
+  value       = aws_secretsmanager_secret.payment_app_runtime.name
+}

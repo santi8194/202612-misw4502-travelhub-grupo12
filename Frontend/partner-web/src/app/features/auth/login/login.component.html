@@ -10,8 +10,8 @@
             </div>
         </div>
 
-        <h2>TravelHub Partner</h2>
-        <p class="subtitle">Portal de Socios</p>
+        <h2>{{ 'LOGIN.TITLE' | translate }}</h2>
+        <p class="subtitle">{{ 'LOGIN.SUBTITLE' | translate }}</p>
 
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" data-testid="login-form">
             <div *ngIf="errorMessage" class="error-banner" data-testid="login-error">
@@ -19,26 +19,26 @@
             </div>
 
             <div class="form-group">
-                <label>Correo Electrónico</label>
+                <label>{{ 'LOGIN.EMAIL_LABEL' | translate }}</label>
                 <div class="input-wrapper">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
                         </path>
                     </svg>
-                    <input type="email" formControlName="email" placeholder="socio@hotel.com" data-testid="input-email">
+                    <input type="email" formControlName="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" data-testid="input-email">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Contraseña</label>
+                <label>{{ 'LOGIN.PASSWORD_LABEL' | translate }}</label>
                 <div class="input-wrapper">
                     <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
                         </path>
                     </svg>
-                    <input type="password" formControlName="password" placeholder="••••••••" data-testid="input-password">
+                    <input type="password" formControlName="password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" data-testid="input-password">
                 </div>
             </div>
 
@@ -46,14 +46,14 @@
                 <label class="checkbox-container">
                     <input type="checkbox" formControlName="rememberMe">
                     <span class="checkmark"></span>
-                    Recordarme
+                    {{ 'LOGIN.REMEMBER_ME' | translate }}
                 </label>
-                <a href="#" class="forgot-link" (click)="$event.preventDefault()">¿Olvidaste tu contraseña?</a>
+                <a href="#" class="forgot-link" (click)="$event.preventDefault()">{{ 'LOGIN.FORGOT_PASSWORD' | translate }}</a>
             </div>
 
             <button type="submit" class="submit-btn" [disabled]="!loginForm.valid || isLoading" data-testid="btn-login">
-                <span *ngIf="isLoading" data-testid="login-loading">Verificando credenciales...</span>
-                <span *ngIf="!isLoading">Iniciar Sesión</span>
+                <span *ngIf="isLoading" data-testid="login-loading">{{ 'LOGIN.LOADING' | translate }}</span>
+                <span *ngIf="!isLoading">{{ 'LOGIN.SUBMIT' | translate }}</span>
             </button>
         </form>
     </div>

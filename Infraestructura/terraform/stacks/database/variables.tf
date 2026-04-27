@@ -95,3 +95,14 @@ variable "service_db_passwords" {
   type        = map(string)
   sensitive   = true
 }
+
+variable "payment_app_secret_name" {
+  description = "Nombre del secreto runtime de payment en AWS Secrets Manager."
+  type        = string
+}
+
+variable "payment_app_runtime_secrets" {
+  description = "Variables sensibles de runtime para payment."
+  type        = map(string)
+  sensitive   = true
+}

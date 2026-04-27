@@ -12,8 +12,15 @@ def _build_database_url() -> str:
 	if db_host and db_name and db_user and db_password:
 		return f"postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
-	current_dir = os.path.dirname(os.path.abspath(__file__))
-	data_dir = os.path.join(current_dir, "..", "..", "..", "data")
+	# SQLite local path (override with SQLITE_DIR). In Docker local this should
+	# resolve to /app/data to persist through the mounted volume.
+	data_dir = os.getenv("SQLITE_DIR")
+	if not data_dir:
+		if os.path.isdir("/app/data"):
+			data_dir = "/app/data"
+		else:
+			current_dir = os.path.dirname(os.path.abspath(__file__))
+			data_dir = os.path.join(current_dir, "..", "..", "..", "data")
 	os.makedirs(data_dir, exist_ok=True)
 	db_path = os.path.join(data_dir, "catalog.db")
 	return f"sqlite:///{db_path}"

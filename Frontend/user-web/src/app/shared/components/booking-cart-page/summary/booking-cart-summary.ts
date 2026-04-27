@@ -12,4 +12,12 @@ import { BookingSummaryData } from '../../../../models/booking-summary.interface
 export class BookingCartSummaryComponent {
   @Input({ required: true }) data: BookingSummaryData | null = null;
   @Input() isLoading = false;
+
+  formatCop(value: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      maximumFractionDigits: 0,
+    }).format(value);
+  }
 }

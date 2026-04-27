@@ -1,4 +1,5 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://d1d660udfb1fc0.cloudfront.net/auth',
+  apiBaseUrl: 'http://localhost:8003/auth',
+  catalogApiUrl: 'http://localhost:8005/catalog',
 };

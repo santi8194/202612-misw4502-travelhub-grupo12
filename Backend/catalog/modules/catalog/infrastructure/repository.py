@@ -10,6 +10,8 @@ from .models import (
 	MediaModel,
 	InventarioModel,
 	ResenaModel,
+	TemporadaModel,
+	ConfiguracionImpuestosPaisModel,
 )
 from modules.catalog.domain.entities import (
 	Propiedad,
@@ -23,11 +25,31 @@ from modules.catalog.domain.entities import (
 	VODireccion,
 	VODinero,
 	VORegla,
+	ConfiguracionImpuestosPais,
 )
 
 
 class PropertyRepository:
 	"""Repositorio para persistencia del agregado Propiedad."""
+
+	@staticmethod
+	def _parse_tipo_media(raw_tipo: str) -> TipoMedia:
+		"""Convierte valores legacy de BD a TipoMedia del dominio."""
+		normalized = (raw_tipo or "").strip().upper()
+		legacy_map = {
+			"IMAGEN": TipoMedia.IMAGEN_GALERIA,
+			"FOTO": TipoMedia.FOTO_PORTADA,
+			"PORTADA": TipoMedia.FOTO_PORTADA,
+			"GALLERY": TipoMedia.IMAGEN_GALERIA,
+		}
+
+		if normalized in legacy_map:
+			return legacy_map[normalized]
+
+		try:
+			return TipoMedia(normalized)
+		except ValueError:
+			return TipoMedia.IMAGEN_GALERIA
 
 	def save(self, propiedad: Propiedad) -> None:
 		"""
@@ -68,6 +90,12 @@ class PropertyRepository:
 					capacidad_pax=categoria.capacidad_pax,
 					dias_anticipacion=categoria.politica_cancelacion.dias_anticipacion,
 					porcentaje_penalidad=categoria.politica_cancelacion.porcentaje_penalidad,
+					tarifa_fin_de_semana_monto=categoria.tarifa_fin_de_semana.monto if categoria.tarifa_fin_de_semana else None,
+					tarifa_fin_de_semana_moneda=categoria.tarifa_fin_de_semana.moneda if categoria.tarifa_fin_de_semana else None,
+					tarifa_fin_de_semana_cargo_servicio=categoria.tarifa_fin_de_semana.cargo_servicio if categoria.tarifa_fin_de_semana else None,
+					tarifa_temporada_alta_monto=categoria.tarifa_temporada_alta.monto if categoria.tarifa_temporada_alta else None,
+					tarifa_temporada_alta_moneda=categoria.tarifa_temporada_alta.moneda if categoria.tarifa_temporada_alta else None,
+					tarifa_temporada_alta_cargo_servicio=categoria.tarifa_temporada_alta.cargo_servicio if categoria.tarifa_temporada_alta else None,
 				)
 
 				for media in categoria.media:
@@ -220,6 +248,49 @@ class PropertyRepository:
 		finally:
 			db.close()
 
+	def obtain_tax_config_by_country(self, pais: str) -> ConfiguracionImpuestosPais | None:
+		"""Obtiene la configuración de impuestos de un país por nombre."""
+		db: Session = SessionLocal()
+		try:
+			model = (
+				db.query(ConfiguracionImpuestosPaisModel)
+				.filter(ConfiguracionImpuestosPaisModel.pais == pais)
+				.first()
+			)
+			if not model:
+				return None
+			return self._tax_model_to_entity(model)
+		finally:
+			db.close()
+
+	def obtain_tax_config_by_currency(self, moneda: str) -> ConfiguracionImpuestosPais | None:
+		"""Obtiene la configuración de impuestos de un país por código de moneda."""
+		db: Session = SessionLocal()
+		try:
+			model = (
+				db.query(ConfiguracionImpuestosPaisModel)
+				.filter(ConfiguracionImpuestosPaisModel.moneda == moneda)
+				.first()
+			)
+			if not model:
+				return None
+			return self._tax_model_to_entity(model)
+		finally:
+			db.close()
+
+	@staticmethod
+	def _tax_model_to_entity(model: ConfiguracionImpuestosPaisModel) -> ConfiguracionImpuestosPais:
+		return ConfiguracionImpuestosPais(
+			pais=model.pais,
+			moneda=model.moneda,
+			simbolo_moneda=model.simbolo_moneda,
+			locale=model.locale,
+			decimales=model.decimales,
+			tasa_usd=Decimal(str(model.tasa_usd)),
+			impuesto_nombre=model.impuesto_nombre,
+			impuesto_tasa=Decimal(str(model.impuesto_tasa)),
+		)
+
 	def delete(self, id_propiedad: UUID) -> bool:
 		"""
 		Elimina una propiedad.
@@ -356,7 +427,7 @@ class PropertyRepository:
 			Media(
 				id_media=media_model.id_media,
 				url_full=media_model.url_full,
-				tipo=TipoMedia(media_model.tipo),
+				tipo=self._parse_tipo_media(media_model.tipo),
 				orden=media_model.orden,
 			)
 			for media_model in sorted(cat_model.media, key=lambda m: m.orden)
@@ -372,6 +443,23 @@ class PropertyRepository:
 			for a in cat_model.amenidades
 		]
 
+		# Reconstruir tarifas diferenciadas (nullable)
+		tarifa_fin_de_semana = None
+		if cat_model.tarifa_fin_de_semana_monto is not None:
+			tarifa_fin_de_semana = VODinero(
+				monto=cat_model.tarifa_fin_de_semana_monto,
+				moneda=cat_model.tarifa_fin_de_semana_moneda,
+				cargo_servicio=cat_model.tarifa_fin_de_semana_cargo_servicio or Decimal("0"),
+			)
+
+		tarifa_temporada_alta = None
+		if cat_model.tarifa_temporada_alta_monto is not None:
+			tarifa_temporada_alta = VODinero(
+				monto=cat_model.tarifa_temporada_alta_monto,
+				moneda=cat_model.tarifa_temporada_alta_moneda,
+				cargo_servicio=cat_model.tarifa_temporada_alta_cargo_servicio or Decimal("0"),
+			)
+
 		return CategoriaHabitacion(
 			# id_categoria ya es UUID nativo (PgUUID(as_uuid=True) lo retorna como UUID)
 			id_categoria=cat_model.id_categoria,
@@ -384,6 +472,8 @@ class PropertyRepository:
 			media=media_list,
 			amenidades=amenidades_list,
 			inventario=inventario_list,
+			tarifa_fin_de_semana=tarifa_fin_de_semana,
+			tarifa_temporada_alta=tarifa_temporada_alta,
 		)
 
 	def _model_to_entity_con_resenas(self, propiedad_model: PropiedadModel) -> Propiedad:
@@ -428,3 +518,72 @@ class PropertyRepository:
 			categorias_habitacion=[],
 			resenas=resenas,
 		)
+
+	# ==================== TEMPORADAS ====================
+
+	def get_temporadas(self, id_propiedad: UUID) -> list[dict]:
+		db: Session = SessionLocal()
+		try:
+			rows = (
+				db.query(TemporadaModel)
+				.filter(TemporadaModel.id_propiedad == id_propiedad)
+				.order_by(TemporadaModel.fecha_inicio)
+				.all()
+			)
+			return [
+				{
+					"id_temporada": str(r.id_temporada),
+					"nombre": r.nombre,
+					"fecha_inicio": r.fecha_inicio,
+					"fecha_fin": r.fecha_fin,
+					"porcentaje": float(r.porcentaje),
+				}
+				for r in rows
+			]
+		finally:
+			db.close()
+
+	def save_temporada(self, id_propiedad: UUID, id_temporada: UUID, nombre: str, fecha_inicio: str, fecha_fin: str, porcentaje: Decimal) -> dict:
+		db: Session = SessionLocal()
+		try:
+			model = TemporadaModel(
+				id_temporada=id_temporada,
+				id_propiedad=id_propiedad,
+				nombre=nombre,
+				fecha_inicio=fecha_inicio,
+				fecha_fin=fecha_fin,
+				porcentaje=porcentaje,
+			)
+			db.add(model)
+			db.commit()
+			return {
+				"id_temporada": str(id_temporada),
+				"nombre": nombre,
+				"fecha_inicio": fecha_inicio,
+				"fecha_fin": fecha_fin,
+				"porcentaje": float(porcentaje),
+			}
+		except Exception:
+			db.rollback()
+			raise
+		finally:
+			db.close()
+
+	def delete_temporada(self, id_propiedad: UUID, id_temporada: UUID) -> bool:
+		db: Session = SessionLocal()
+		try:
+			row = (
+				db.query(TemporadaModel)
+				.filter(
+					TemporadaModel.id_temporada == id_temporada,
+					TemporadaModel.id_propiedad == id_propiedad,
+				)
+				.first()
+			)
+			if not row:
+				return False
+			db.delete(row)
+			db.commit()
+			return True
+		finally:
+			db.close()

@@ -11,6 +11,7 @@ def test_get_current_user_success_access_token(monkeypatch, sample_user):
         "api.dependencies.auth.validate_cognito_token",
         lambda _token: {"sub": "cognito-uuid", "username": sample_user.email, "token_use": "access"},
     )
+    monkeypatch.setattr("api.dependencies.auth.UserService.get_user_by_username", lambda _username: sample_user)
     monkeypatch.setattr("api.dependencies.auth.UserService.get_user_by_email", lambda _email: sample_user)
 
     current = get_current_user(token="valid-cognito-token")
@@ -64,6 +65,7 @@ def test_get_current_user_user_not_found(monkeypatch):
         "api.dependencies.auth.validate_cognito_token",
         lambda _token: {"sub": "cognito-uuid", "username": "missing@travelhub.com", "token_use": "access"},
     )
+    monkeypatch.setattr("api.dependencies.auth.UserService.get_user_by_username", lambda _username: None)
     monkeypatch.setattr("api.dependencies.auth.UserService.get_user_by_email", lambda _email: None)
 
     with pytest.raises(HTTPException) as exc:

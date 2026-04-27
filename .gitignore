@@ -15,6 +15,9 @@ __pycache__/
 # Variables de entorno — nunca versionar
 .env
 .env.*
+!Infraestructura/docker/.env.local.example
+!Infraestructura/docker/.env.local.sqlite.example
+!Infraestructura/docker/.env.local.rds.example
 
 #mobile
 .angular/
@@ -35,3 +38,5 @@ coverage.xml
 *,cover
 .hypothesis/
 .pytest_cache/
+*pytest-cache*
+example_saga_payments/

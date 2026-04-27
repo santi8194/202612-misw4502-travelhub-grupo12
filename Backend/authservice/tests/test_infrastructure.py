@@ -32,15 +32,22 @@ def test_get_db_yields_and_closes(monkeypatch):
 
 def test_init_db_calls_create_all(monkeypatch):
     called = {"bind": None}
+    seeded = {"called": False}
 
     def _fake_create_all(*, bind):
         called["bind"] = bind
 
+    def _fake_seed_sqlite_defaults():
+        seeded["called"] = True
+
     monkeypatch.setattr(database.Base.metadata, "create_all", _fake_create_all)
+    monkeypatch.setattr(database, "_seed_sqlite_defaults", _fake_seed_sqlite_defaults)
+    monkeypatch.setattr(database, "IS_SQLITE", False)
 
     database.init_db()
 
     assert called["bind"] is database.engine
+    assert seeded["called"] is False
 
 
 def test_model_repr():

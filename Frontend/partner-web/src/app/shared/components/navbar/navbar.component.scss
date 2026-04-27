@@ -81,9 +81,46 @@
                 padding: 0.5rem;
                 border-radius: 20px;
                 transition: background 0.2s;
+                position: relative;
 
                 &:hover {
                     background-color: #f7f7f7;
+                }
+            }
+
+            .lang-selector {
+                .lang-dropdown {
+                    position: absolute;
+                    top: 120%;
+                    left: 0;
+                    background: white;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+                    padding: 0.4rem 0;
+                    min-width: 180px;
+                    z-index: 200;
+                    display: flex;
+                    flex-direction: column;
+
+                    .lang-option {
+                        padding: 0.6rem 1rem;
+                        font-size: 0.85rem;
+                        color: #222;
+                        background: none;
+                        border: none;
+                        text-align: left;
+                        cursor: pointer;
+                        transition: background 0.15s;
+
+                        &:hover {
+                            background-color: #f7f7f7;
+                        }
+
+                        &.active {
+                            font-weight: 600;
+                            color: #1a73e8;
+                        }
+                    }
                 }
             }
 

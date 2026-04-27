@@ -82,6 +82,16 @@ module "service_secrets_manager" {
   ]
 }
 
+resource "aws_secretsmanager_secret" "payment_app_runtime" {
+  name        = var.payment_app_secret_name
+  description = "Secret for payment runtime settings"
+}
+
+resource "aws_secretsmanager_secret_version" "payment_app_runtime" {
+  secret_id     = aws_secretsmanager_secret.payment_app_runtime.id
+  secret_string = jsonencode(var.payment_app_runtime_secrets)
+}
+
 resource "postgresql_role" "service_roles" {
   for_each = local.service_database_configs
 

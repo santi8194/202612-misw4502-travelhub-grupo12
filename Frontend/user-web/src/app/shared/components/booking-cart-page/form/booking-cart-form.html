@@ -33,6 +33,6 @@
     class="pay-btn"
     [disabled]="disableContinue"
     data-testid="continue-payment-btn">
-    Continuar con el pago
+    {{ isSubmitting ? 'Confirmando reserva...' : 'Continuar con el pago' }}
   </button>
 </div>

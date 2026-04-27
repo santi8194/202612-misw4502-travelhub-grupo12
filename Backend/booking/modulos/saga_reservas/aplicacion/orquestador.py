@@ -1,4 +1,5 @@
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,9 @@ class OrquestadorSagaReservas:
         # Handlers locales inyectados para evitar construcción inline de objetos de otro Bounded Context
         self._handler_confirmar_local = handler_confirmar_local
         self._handler_cancelar_local = handler_cancelar_local
+
+    def _payment_mode(self) -> str:
+        return os.getenv("PAYMENT_MODE", "wompi").strip().lower()
 
     def _get_handler_confirmar_local(self):
         """Lazy-init: crea el handler de confirmación local si no fue inyectado externamente."""
@@ -90,9 +94,18 @@ class OrquestadorSagaReservas:
             logger.info(f"[Orquestador] Delegando Comando Local: {comando_nombre} al handler inyectado.")
 
             from modulos.reserva.aplicacion.comandos import ConfirmarReservaLocalCmd
-            evento_confirmado = self._get_handler_confirmar_local().handle(
-                ConfirmarReservaLocalCmd(id_reserva=id_reserva)
-            )
+            try:
+                evento_confirmado = self._get_handler_confirmar_local().handle(
+                    ConfirmarReservaLocalCmd(id_reserva=id_reserva)
+                )
+            except ValueError as exc:
+                # Idempotencia: el evento puede llegar tardío/duplicado tras una compensación.
+                if "No se encontró la reserva con ID" in str(exc):
+                    logger.warning(
+                        f"[Orquestador] Confirmación local ignorada para reserva inexistente: {id_reserva}"
+                    )
+                    return
+                raise
 
             if evento_confirmado:
                 logger.info(f"✅ [ORQUESTADOR -> LOCAL] Reserva {id_reserva} CONFIRMADA localmente en BD.")
@@ -153,11 +166,9 @@ class OrquestadorSagaReservas:
                             if log.payload_snapshot and log.payload_snapshot.get('fecha_reserva'):
                                 fecha_ctx = log.payload_snapshot.get('fecha_reserva')
                                 break
-                    
+
                     if not fecha_ctx:
-                         # Fallback temporal con advertencia en logs
-                         logger.info(f"⚠️ [Orquestador] ADVERTENCIA: No se encontró 'fecha_reserva' en ninguna parte de la historia para {comando_nombre}.")
-                         fecha_ctx = "2026-03-14"
+                        raise ValueError(f"Falta 'fecha_reserva' en la historia de la saga para el comando {comando_nombre}")
                     
                     kwargs_filtrados['fecha_reserva'] = fecha_ctx
                         
@@ -179,10 +190,20 @@ class OrquestadorSagaReservas:
                 logger.info(f"[Orquestador] Comando Externo {comando_nombre} emitido para reserva {id_reserva}")
                 self.uow.commit()
 
-    def iniciar_saga(self, id_reserva: uuid.UUID, id_usuario: uuid.UUID, monto: float, id_habitacion: uuid.UUID = None, fecha_reserva: str = None):
+    def iniciar_saga(
+        self,
+        id_reserva: uuid.UUID,
+        id_usuario: uuid.UUID,
+        monto: float = 0.0,
+        id_habitacion: uuid.UUID = None,
+        id_categoria: uuid.UUID = None,
+        fecha_reserva: str = None,
+    ):
         """Invocado cuando la reserva inicial pasa a PENDIENTE"""
         try:
             with self.uow:
+                id_habitacion = id_habitacion or id_categoria
+
                 definicion = self.repositorio.obtener_definicion_saga_activa("RESERVA_ESTANDAR")
                 if not definicion:
                     logger.info("[Orquestador] No se encontró definición de saga activa para RESERVA_ESTANDAR")
@@ -218,14 +239,20 @@ class OrquestadorSagaReservas:
                 # Avanzamos al paso 1 inmediatamente
                 siguiente_paso = pasos[1] if len(pasos) > 1 else None
                 if siguiente_paso:
-                    self._procesar_siguiente_comando(
-                        saga=saga,
-                        pasos=pasos,
-                        siguiente_paso=siguiente_paso,
-                        id_reserva=id_reserva,
-                        kwargs_comando=payload_inicial,
-                        payload_registro=payload_inicial
-                    )
+                    if self._payment_mode() == "wompi" and siguiente_paso.comando == "ProcesarPagoCmd":
+                        logger.info(
+                            "[Orquestador] PAYMENT_MODE=wompi: saga queda esperando webhook de pago para reserva %s",
+                            id_reserva,
+                        )
+                    else:
+                        self._procesar_siguiente_comando(
+                            saga=saga,
+                            pasos=pasos,
+                            siguiente_paso=siguiente_paso,
+                            id_reserva=id_reserva,
+                            kwargs_comando=payload_inicial,
+                            payload_registro=payload_inicial
+                        )
                 saga.estado_global = EstadoSaga.EN_PROCESO
 
                 self.repositorio.agregar(saga)
@@ -358,9 +385,18 @@ class OrquestadorSagaReservas:
                             kwargs_log["id_habitacion"] = str(habitacion)
                         elif ClaseCompensacion == CancelarReservaLocalCmd:
                             logger.info(f"[Orquestador-Fallo] Delegando compensación local al handler inyectado: CancelarReservaLocalCmd")
-                            self._get_handler_cancelar_local().handle(
-                                CancelarReservaLocalCmd(id_reserva=id_reserva)
-                            )
+                            try:
+                                self._get_handler_cancelar_local().handle(
+                                    CancelarReservaLocalCmd(id_reserva=id_reserva)
+                                )
+                            except ValueError as exc:
+                                # Idempotencia: si ya no existe, la compensación local ya quedó aplicada.
+                                if "No se encontró la reserva con ID" in str(exc):
+                                    logger.warning(
+                                        f"[Orquestador-Fallo] Compensación local ignorada para reserva inexistente: {id_reserva}"
+                                    )
+                                else:
+                                    raise
                         
                         saga.registrar_comando_emitido(ClaseCompensacion.__name__, kwargs_log)
 

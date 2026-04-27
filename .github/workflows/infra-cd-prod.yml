@@ -243,6 +243,11 @@ jobs:
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/pms-integration-service.yaml
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/search-service.yaml
 
+      - name: Apply backend worker manifests
+        run: |
+          set -euo pipefail
+          kubectl apply -n "${K8S_NAMESPACE_DEV}" -f ../../../k8s/aws/booking-saga-worker-deployment.yaml
+
       - name: Apply ingress manifests
         run: |
           set -euo pipefail

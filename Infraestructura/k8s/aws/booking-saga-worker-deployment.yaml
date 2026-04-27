@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-saga-worker
+  labels:
+    app: booking-saga-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-saga-worker
+  template:
+    metadata:
+      labels:
+        app: booking-saga-worker
+    spec:
+      containers:
+        - name: booking-saga-worker
+          image: ${ECR_REGISTRY_DEV}/booking:${GITHUB_SHA}
+          command: ["python", "/Backend/booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py"]
+          env:
+            - name: REDIS_HOST
+              value: redis-db
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
+            - name: PYTHONPATH
+              value: /src
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: BOOKING_DB_MODE
+              value: postgres
+            - name: BOOKING_INSTANCE_PATH
+              value: /src/instance
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_PASSWORD
+            - name: PAYMENT_MODE
+              value: wompi
+          livenessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - import sys; sys.exit(0)
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            failureThreshold: 3

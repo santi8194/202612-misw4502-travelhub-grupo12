@@ -6,15 +6,15 @@ on:
       - main
       - develop
     paths:
-      - 'Backend/**'
-      - '.github/workflows/backend-ci.yml'
+      - "Backend/**"
+      - ".github/workflows/backend-ci.yml"
   push:
     branches:
       - main
       - develop
     paths:
-      - 'Backend/**'
-      - '.github/workflows/backend-ci.yml'
+      - "Backend/**"
+      - ".github/workflows/backend-ci.yml"
   workflow_dispatch:
 
 concurrency:
@@ -25,7 +25,7 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: '3.12'
+  PYTHON_VERSION: "3.12"
 
 jobs:
   discover-services:
@@ -112,13 +112,18 @@ jobs:
             python -m pip install .
           fi
 
-          python -m pip install pytest
+          python -m pip install pytest pytest-cov
 
       - name: Run pytest
         shell: bash
         run: |
           mkdir -p test-results
-          python -m pytest tests --junitxml=test-results/junit.xml
+          python -m pytest tests \
+            --junitxml=test-results/junit.xml \
+            --cov=. \
+            --cov-report=xml:test-results/coverage.xml \
+            --cov-report=term \
+            --cov-fail-under=80
 
       - name: Upload test results
         if: always()
@@ -127,4 +132,3 @@ jobs:
           name: test-results-${{ matrix.service }}
           path: Backend/${{ matrix.service }}/test-results/junit.xml
           if-no-files-found: warn
-

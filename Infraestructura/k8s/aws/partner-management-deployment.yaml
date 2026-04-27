@@ -20,6 +20,31 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: PARTNER_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_HOST
+            - name: PARTNER_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_PORT
+            - name: PARTNER_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_NAME
+            - name: PARTNER_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_USER
+            - name: PARTNER_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_PASSWORD
             - name: RABBITMQ_HOST
               value: rabbitmq-broker
             - name: RABBITMQ_PORT

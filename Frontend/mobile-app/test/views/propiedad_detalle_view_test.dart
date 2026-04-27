@@ -4,13 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
 import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/services/catalog_service.dart';
+import 'package:travel_hub/view_models/user_preferences_view_model.dart';
 import 'package:travel_hub/views/confirm_reservation_view.dart';
 import 'package:travel_hub/views/propiedad_detalle_view.dart';
 
 class MockCatalogService extends Mock implements CatalogService {}
+
+class MockUserPreferencesViewModel extends Mock
+    implements UserPreferencesViewModel {}
 
 class MockHttpClient extends Mock implements HttpClient {}
 
@@ -29,6 +34,7 @@ class TestHttpOverrides extends HttpOverrides {
 
 void main() {
   late MockCatalogService mockCatalogService;
+  late MockUserPreferencesViewModel mockUserPreferencesViewModel;
   late Habitacion testHabitacion;
   late MockHttpClient mockHttpClient;
   late MockHttpClientRequest mockRequest;
@@ -146,6 +152,9 @@ void main() {
 
   setUp(() {
     mockCatalogService = MockCatalogService();
+    mockUserPreferencesViewModel = MockUserPreferencesViewModel();
+    when(() => mockUserPreferencesViewModel.country).thenReturn('Colombia');
+
     testHabitacion = Habitacion(
       imageUrl: 'https://example.com/image.jpg',
       title: 'Test Hotel',
@@ -157,19 +166,22 @@ void main() {
   });
 
   Widget createWidgetUnderTest() {
-    return MaterialApp(
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('en'), Locale('es')],
-      locale: const Locale('es'),
-      home: PropiedadDetalleView(
-        habitacion: testHabitacion,
-        guests: 2,
-        catalogService: mockCatalogService,
+    return ChangeNotifierProvider<UserPreferencesViewModel>.value(
+      value: mockUserPreferencesViewModel,
+      child: MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en'), Locale('es')],
+        locale: const Locale('es'),
+        home: PropiedadDetalleView(
+          habitacion: testHabitacion,
+          guests: 2,
+          catalogService: mockCatalogService,
+        ),
       ),
     );
   }
@@ -308,16 +320,27 @@ void main() {
     await tester.pumpWidget(createWidgetUnderTest());
     await tester.pumpAndSettle();
 
-    // Use a smaller surface size to ensure slivers are expanded or use a direct tap
-    // Or just check if the Image exists and is tappable.
-    final imageFinder = find.byType(Image).first;
-    await tester.tap(imageFinder, warnIfMissed: false);
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
+    // Switch to Rooms tab to find a more accessible image
+    await tester.tap(find.text('Habitaciones'));
+    await tester.pumpAndSettle();
 
-    // If the dialog failed to open in test, we'll just verify the main view still exists
-    // and move on. Testing showDialog in SliverAppBar can be flaky.
-    // However, let's try one last thing: find by type Scaffold in the dialog.
+    // Find the first image in the Rooms tab
+    // We use find.byType(Image) and filter for one that is likely in the gallery
+    final imageFinder = find.byType(Image).at(1); // skip the one in the header
+    await tester.ensureVisible(imageFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(imageFinder, warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    // Verify the full screen dialog is shown by looking for the close icon
+    expect(find.byIcon(Icons.close), findsOneWidget);
+
+    // Close the dialog
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.close), findsNothing);
   });
 
   testWidgets('handles missing category ID gracefully', (
@@ -333,19 +356,22 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('en'), Locale('es')],
-        locale: const Locale('es'),
-        home: PropiedadDetalleView(
-          habitacion: habitacionNoId,
-          guests: 2,
-          catalogService: mockCatalogService,
+      ChangeNotifierProvider<UserPreferencesViewModel>.value(
+        value: mockUserPreferencesViewModel,
+        child: MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('es')],
+          locale: const Locale('es'),
+          home: PropiedadDetalleView(
+            habitacion: habitacionNoId,
+            guests: 2,
+            catalogService: mockCatalogService,
+          ),
         ),
       ),
     );

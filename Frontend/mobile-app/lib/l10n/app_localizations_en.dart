@@ -88,6 +88,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultsTitle => 'Search Results';
 
   @override
+  String get confirmReservationTitle => 'Confirm Reservation';
+
+  @override
+  String get reservationDetailsTitle => 'Reservation Details';
+
+  @override
+  String get reservationDatesLabel => 'Dates';
+
+  @override
+  String get reservationGuestsLabel => 'Guests';
+
+  @override
+  String get reservationReferenceLabel => 'Reservation ID';
+
+  @override
+  String get confirmReservationButton => 'Confirm Reservation';
+
+  @override
+  String get reservationSuccessMessage =>
+      'Your reservation has been confirmed successfully.';
+
+  @override
   String get specialOffer => 'Special Offer';
 
   @override
@@ -123,4 +145,85 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cachedResultsBanner =>
       'Showing cached results. They will be updated once connection is restored.';
+
+  @override
+  String currencyBubbleLabel(String currency) {
+    return 'CURRENCY: $currency';
+  }
+
+  @override
+  String get currencyCodeUSD => 'USD';
+
+  @override
+  String get currencyCodeCOP => 'COP';
+
+  @override
+  String get taxesAndCharges => 'Taxes and charges';
+
+  @override
+  String get totalPrice => 'Total';
+
+  @override
+  String get paymentMethod => 'Payment Method';
+
+  @override
+  String get cardEnding => 'Visa ending in •••• 4242';
+
+  @override
+  String get tripDetailsTitle => 'TRIP DETAILS';
+
+  @override
+  String get priceBreakdownTitle => 'PRICE BREAKDOWN';
+
+  @override
+  String profileVersion(String version) {
+    return 'Version: $version';
+  }
+
+  @override
+  String nightsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nights',
+      one: '1 night',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileTitleView => 'Profile';
+
+  @override
+  String get countryLabel => 'Country';
+
+  @override
+  String get countryNotSet => 'Not set';
+
+  @override
+  String get propertyInfoTab => 'Information';
+
+  @override
+  String get propertyRoomsTab => 'Rooms';
+
+  @override
+  String get propertyReviewsTab => 'Reviews';
+
+  @override
+  String get aboutProperty => 'About the property';
+
+  @override
+  String get mainAmenities => 'Main amenities';
+
+  @override
+  String get roomGallery => 'Room Gallery';
+
+  @override
+  String get verifiedReviews => 'VERIFIED REVIEWS';
+
+  @override
+  String get reserveNow => 'Book Now';
+
+  @override
+  String get totalPriceLabel => 'TOTAL PRICE';
 }

@@ -32,7 +32,7 @@ class SearchService {
     } catch (_) {}
     // If not in test, return 10.0.2.2 (android emulator)
     // In test, it should be 127.0.0.1 but we prefer explicit env for tests
-    return 'http://10.0.2.2:8000';
+    return 'http://10.0.2.2:8080';
   }
 
   SearchService({CacheService? cacheService, http.Client? httpClient})
@@ -83,7 +83,9 @@ class SearchService {
                 title: j['propiedad_nombre'] ?? '',
                 location: '${j['ciudad']}, ${j['pais']}',
                 amenities: List<String>.from(j['amenidades_destacadas'] ?? []),
+                price: (j['precio_por_noche'] as num?)?.toDouble() ?? 0.0,
                 isSpecialOffer: false,
+                categoryId: j['id_categoria'] as String?,
               ),
             )
             .toList();

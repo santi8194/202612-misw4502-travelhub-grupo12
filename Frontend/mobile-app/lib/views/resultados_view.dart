@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../view_models/search_view_model.dart';
+import 'propiedad_detalle_view.dart';
 
 class ResultadosView extends StatefulWidget {
   const ResultadosView({super.key});
@@ -177,112 +178,126 @@ class _ResultadosViewState extends State<ResultadosView> {
                     itemCount: vm.searchResults.length,
                     itemBuilder: (context, index) {
                       final hotel = vm.searchResults[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(30),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PropiedadDetalleView(
+                                habitacion: hotel,
+                                dateRange: vm.selectedDateRange,
+                                guests: vm.guestCount,
                               ),
-                              child: Stack(
-                                children: [
-                                  Image.network(
-                                    hotel.imageUrl,
-                                    height: 220,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  if (hotel.isSpecialOffer)
-                                    Positioned(
-                                      top: 16,
-                                      left: 16,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.2,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          l10n.specialOffer,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(30),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Image.network(
+                                      hotel.imageUrl,
+                                      height: 220,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
                                     ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    hotel.title,
-                                    style: theme.textTheme.displayMedium
-                                        ?.copyWith(fontSize: 22),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on_outlined,
-                                        size: 18,
-                                        color: Colors.grey,
+                                    if (hotel.isSpecialOffer)
+                                      Positioned(
+                                        top: 16,
+                                        left: 16,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            l10n.specialOffer,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        hotel.location,
-                                        style: const TextStyle(
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      hotel.title,
+                                      style: theme.textTheme.displayMedium
+                                          ?.copyWith(fontSize: 22),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on_outlined,
+                                          size: 18,
                                           color: Colors.grey,
-                                          fontSize: 14,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Wrap(
-                                    spacing: 16,
-                                    runSpacing: 8,
-                                    children: hotel.amenities.map((amenity) {
-                                      return Text(
-                                        amenity,
-                                        style: TextStyle(
-                                          color: Colors.grey[800],
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.2,
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          hotel.location,
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 14,
+                                          ),
                                         ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Wrap(
+                                      spacing: 16,
+                                      runSpacing: 8,
+                                      children: hotel.amenities.map((amenity) {
+                                        return Text(
+                                          amenity,
+                                          style: TextStyle(
+                                            color: Colors.grey[800],
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },

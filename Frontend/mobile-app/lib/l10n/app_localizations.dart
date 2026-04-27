@@ -254,6 +254,48 @@ abstract class AppLocalizations {
   /// **'Search Results'**
   String get resultsTitle;
 
+  /// No description provided for @confirmReservationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Reservation'**
+  String get confirmReservationTitle;
+
+  /// No description provided for @reservationDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservation Details'**
+  String get reservationDetailsTitle;
+
+  /// No description provided for @reservationDatesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get reservationDatesLabel;
+
+  /// No description provided for @reservationGuestsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Guests'**
+  String get reservationGuestsLabel;
+
+  /// No description provided for @reservationReferenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservation ID'**
+  String get reservationReferenceLabel;
+
+  /// No description provided for @confirmReservationButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Reservation'**
+  String get confirmReservationButton;
+
+  /// No description provided for @reservationSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reservation has been confirmed successfully.'**
+  String get reservationSuccessMessage;
+
   /// No description provided for @specialOffer.
   ///
   /// In en, this message translates to:
@@ -307,6 +349,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Showing cached results. They will be updated once connection is restored.'**
   String get cachedResultsBanner;
+
+  /// No description provided for @currencyBubbleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENCY: {currency}'**
+  String currencyBubbleLabel(String currency);
+
+  /// No description provided for @currencyCodeUSD.
+  ///
+  /// In en, this message translates to:
+  /// **'USD'**
+  String get currencyCodeUSD;
+
+  /// No description provided for @currencyCodeCOP.
+  ///
+  /// In en, this message translates to:
+  /// **'COP'**
+  String get currencyCodeCOP;
+
+  /// No description provided for @taxesAndCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxes and charges'**
+  String get taxesAndCharges;
+
+  /// No description provided for @totalPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalPrice;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get paymentMethod;
+
+  /// No description provided for @cardEnding.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa ending in •••• 4242'**
+  String get cardEnding;
+
+  /// No description provided for @tripDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'TRIP DETAILS'**
+  String get tripDetailsTitle;
+
+  /// No description provided for @priceBreakdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PRICE BREAKDOWN'**
+  String get priceBreakdownTitle;
+
+  /// No description provided for @profileVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version: {version}'**
+  String profileVersion(String version);
+
+  /// No description provided for @nightsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 night} other{{count} nights}}'**
+  String nightsLabel(int count);
+
+  /// No description provided for @profileTitleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitleView;
+
+  /// No description provided for @countryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryLabel;
+
+  /// No description provided for @countryNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get countryNotSet;
+
+  /// No description provided for @propertyInfoTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Information'**
+  String get propertyInfoTab;
+
+  /// No description provided for @propertyRoomsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms'**
+  String get propertyRoomsTab;
+
+  /// No description provided for @propertyReviewsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get propertyReviewsTab;
+
+  /// No description provided for @aboutProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'About the property'**
+  String get aboutProperty;
+
+  /// No description provided for @mainAmenities.
+  ///
+  /// In en, this message translates to:
+  /// **'Main amenities'**
+  String get mainAmenities;
+
+  /// No description provided for @roomGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Room Gallery'**
+  String get roomGallery;
+
+  /// No description provided for @verifiedReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'VERIFIED REVIEWS'**
+  String get verifiedReviews;
+
+  /// No description provided for @reserveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Now'**
+  String get reserveNow;
+
+  /// No description provided for @totalPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTAL PRICE'**
+  String get totalPriceLabel;
 }
 
 class _AppLocalizationsDelegate

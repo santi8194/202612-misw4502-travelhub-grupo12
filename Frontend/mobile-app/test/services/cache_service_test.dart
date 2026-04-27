@@ -25,6 +25,7 @@ void main() {
         title: 'Title',
         location: 'Loc',
         amenities: [],
+        price: 99.0,
       );
 
       when(
@@ -55,6 +56,7 @@ void main() {
           'title': 'Cached Hotel',
           'location': 'Loc',
           'amenities': [],
+          'price': 99.0,
           'isSpecialOffer': false,
         },
       ]);

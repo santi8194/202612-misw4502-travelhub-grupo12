@@ -198,6 +198,7 @@ void main() {
         title: 'Hotel Test 1',
         location: 'City, Country',
         amenities: ['WiFi', 'Pool'],
+        price: 180.0,
       ),
     ];
     final mockService = MockSearchService();

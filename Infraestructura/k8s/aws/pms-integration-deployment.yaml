@@ -1,49 +1,49 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification
+  name: pms-integration
   labels:
-    app: notification
+    app: pms-integration
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notification
+      app: pms-integration
   template:
     metadata:
       labels:
-        app: notification
+        app: pms-integration
     spec:
       containers:
-        - name: notification
-          image: ${ECR_REGISTRY_DEV}/notification:${GITHUB_SHA}
+        - name: pms-integration
+          image: ${ECR_REGISTRY_DEV}/pms-integration:${GITHUB_SHA}
           ports:
-            - containerPort: 8000
+            - containerPort: 8001
           env:
-            - name: NOTIFICATION_DB_HOST
+            - name: PMS_DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: notification-db-secret
+                  name: pms-integration-db-secret
                   key: DB_HOST
-            - name: NOTIFICATION_DB_PORT
+            - name: PMS_DB_PORT
               valueFrom:
                 secretKeyRef:
-                  name: notification-db-secret
+                  name: pms-integration-db-secret
                   key: DB_PORT
-            - name: NOTIFICATION_DB_NAME
+            - name: PMS_DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: notification-db-secret
+                  name: pms-integration-db-secret
                   key: DB_NAME
-            - name: NOTIFICATION_DB_USER
+            - name: PMS_DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: notification-db-secret
+                  name: pms-integration-db-secret
                   key: DB_USER
-            - name: NOTIFICATION_DB_PASSWORD
+            - name: PMS_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: notification-db-secret
+                  name: pms-integration-db-secret
                   key: DB_PASSWORD
             - name: RABBITMQ_HOST
               value: rabbitmq-broker
@@ -53,23 +53,21 @@ spec:
               value: guest
             - name: RABBITMQ_PASS
               value: guest
-            - name: REDIS_HOST
-              value: redis-db
           startupProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 8001
             periodSeconds: 5
             failureThreshold: 24
           readinessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 8001
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 8001
             initialDelaySeconds: 10
             periodSeconds: 10

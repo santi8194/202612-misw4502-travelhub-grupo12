@@ -18,6 +18,49 @@ class FakeCatalogService extends CatalogService {
   Future<CategoriaHabitacion> getCategoria(String categoryId) {
     return loader(categoryId);
   }
+
+  @override
+  Future<String?> getPropertyIdByCategory(String categoryId) {
+    return Future.value('prop-1');
+  }
+
+  @override
+  Future<RoomPriceCalculation> calculateRoomPrice({
+    required String categoryId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String userCountry,
+  }) {
+    if (userCountry.isEmpty) {
+      return Future.value(
+        const RoomPriceCalculation(
+          pricePerNight: 215,
+          nights: 2,
+          subtotal: 430,
+          taxesAndCharges: 0,
+          total: 430,
+          currency: 'USD',
+          currencySymbol: r'$',
+          tariffType: 'BASE',
+          taxName: null,
+        ),
+      );
+    }
+
+    return Future.value(
+      const RoomPriceCalculation(
+        pricePerNight: 420000,
+        nights: 2,
+        subtotal: 840000,
+        taxesAndCharges: 222600,
+        total: 1062600,
+        currency: 'COP',
+        currencySymbol: r'$',
+        tariffType: 'BASE',
+        taxName: 'IVA',
+      ),
+    );
+  }
 }
 
 void main() {
@@ -177,7 +220,7 @@ void main() {
 
       expect(find.text('30 APR - 2 MAY'), findsOneWidget);
       expect(find.text('USD'), findsOneWidget);
-      expect(find.textContaining('\$215.00'), findsOneWidget);
+      expect(find.textContaining(r'$ 430.00'), findsWidgets);
       expect(find.text('Taxes and charges'), findsOneWidget);
     },
   );

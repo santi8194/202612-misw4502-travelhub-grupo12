@@ -12,12 +12,20 @@ class FakeCatalogService extends CatalogService {
     required this.onGetCategoria,
     this.onGetPropertyIdByCategory,
     this.onGetCategoryPricing,
+    this.onCalculateRoomPrice,
   });
 
   final Future<CategoriaHabitacion> Function(String categoryId) onGetCategoria;
   final Future<String?> Function(String categoryId)? onGetPropertyIdByCategory;
   final Future<CategoriaPricing> Function(String propertyId, String categoryId)?
   onGetCategoryPricing;
+  final Future<RoomPriceCalculation> Function(
+    String categoryId,
+    DateTime startDate,
+    DateTime endDate,
+    String userCountry,
+  )?
+  onCalculateRoomPrice;
 
   @override
   Future<CategoriaHabitacion> getCategoria(String categoryId) {
@@ -44,6 +52,32 @@ class FakeCatalogService extends CatalogService {
     }
     return handler(categoryId);
   }
+
+  @override
+  Future<RoomPriceCalculation> calculateRoomPrice({
+    required String categoryId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String userCountry,
+  }) {
+    final handler = onCalculateRoomPrice;
+    if (handler == null) {
+      return Future.value(
+        const RoomPriceCalculation(
+          pricePerNight: 420000,
+          nights: 2,
+          subtotal: 840000,
+          taxesAndCharges: 222600,
+          total: 1062600,
+          currency: 'COP',
+          currencySymbol: r'$',
+          tariffType: 'BASE',
+          taxName: 'IVA',
+        ),
+      );
+    }
+    return handler(categoryId, startDate, endDate, userCountry);
+  }
 }
 
 const _sampleCategory = CategoriaHabitacion(
@@ -61,42 +95,6 @@ const _sampleCategory = CategoriaHabitacion(
   politicaCancelacion: PoliticaCancelacion(
     diasAnticipacion: 3,
     porcentajePenalidad: '20.00',
-  ),
-);
-
-const _samplePricing = CategoriaPricing(
-  idCategoria: 'cat-1',
-  nombreComercial: 'Suite Deluxe',
-  tarifaBase: PrecioBase(
-    monto: '100.00',
-    moneda: 'USD',
-    cargoServicio: '15.00',
-  ),
-  tarifaFinDeSemana: PrecioBase(
-    monto: '130.00',
-    moneda: 'USD',
-    cargoServicio: '18.00',
-  ),
-  tarifaTemporadaAlta: PrecioBase(
-    monto: '160.00',
-    moneda: 'USD',
-    cargoServicio: '22.00',
-  ),
-);
-
-const _samplePricingWithoutSpecials = CategoriaPricing(
-  idCategoria: 'cat-1',
-  nombreComercial: 'Suite Deluxe',
-  tarifaBase: PrecioBase(monto: '0.00', moneda: '', cargoServicio: '0.00'),
-  tarifaFinDeSemana: PrecioBase(
-    monto: '0.00',
-    moneda: '',
-    cargoServicio: '0.00',
-  ),
-  tarifaTemporadaAlta: PrecioBase(
-    monto: '0.00',
-    moneda: '',
-    cargoServicio: '0.00',
   ),
 );
 
@@ -196,6 +194,141 @@ void main() {
     expect(breakdown.fmtTotal, contains('1.062.600'));
   });
 
+  test(
+    'computePriceBreakdown uses no-country endpoint payload when country is null',
+    () async {
+      final viewModel = ConfirmReservationViewModel(
+        location: 'Cartagena, Colombia',
+        categoryId: 'cat-1',
+        selectedDateRange: DateTimeRange(
+          start: DateTime(2026, 4, 22),
+          end: DateTime(2026, 4, 24),
+        ),
+        guests: 2,
+        catalogService: FakeCatalogService(
+          onGetCategoria: (_) async => _sampleCategory,
+          onCalculateRoomPrice: (_, __, ___, userCountry) async {
+            if (userCountry.isEmpty) {
+              return const RoomPriceCalculation(
+                pricePerNight: 215,
+                nights: 2,
+                subtotal: 430,
+                taxesAndCharges: 0,
+                total: 430,
+                currency: 'USD',
+                currencySymbol: r'$',
+                tariffType: 'BASE',
+                taxName: null,
+              );
+            }
+            return const RoomPriceCalculation(
+              pricePerNight: 420000,
+              nights: 2,
+              subtotal: 840000,
+              taxesAndCharges: 222600,
+              total: 1062600,
+              currency: 'COP',
+              currencySymbol: r'$',
+              tariffType: 'BASE',
+              taxName: 'IVA',
+            );
+          },
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      final breakdown = viewModel.computePriceBreakdown(
+        nights: 2,
+        country: null,
+        taxConfig: _taxConfig,
+        fallbackCurrency: 'USD',
+        localeLanguageCode: 'en',
+      );
+
+      expect(breakdown, isNotNull);
+      expect(breakdown!.currencyTag, 'USD');
+      expect(breakdown.fmtTotal, contains(r'$ 430.00'));
+    },
+  );
+
+  test(
+    'computePriceBreakdown resolves country tax config case-insensitively',
+    () async {
+      final viewModel = ConfirmReservationViewModel(
+        location: 'Cartagena, Colombia',
+        categoryId: 'cat-1',
+        selectedDateRange: DateTimeRange(
+          start: DateTime(2026, 4, 22),
+          end: DateTime(2026, 4, 24),
+        ),
+        guests: 2,
+        catalogService: FakeCatalogService(
+          onGetCategoria: (_) async => _sampleCategory,
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      final breakdown = viewModel.computePriceBreakdown(
+        nights: 2,
+        country: 'colombia',
+        taxConfig: _taxConfig,
+        fallbackCurrency: 'USD',
+        localeLanguageCode: 'es',
+      );
+
+      expect(breakdown, isNotNull);
+      expect(breakdown!.taxLabel, 'IVA (19%)');
+      expect(breakdown.taxNote, 'Incluye IVA y servicio.');
+    },
+  );
+
+  test(
+    'computePriceBreakdown derives taxes from total minus subtotal when endpoint sends 0',
+    () async {
+      final viewModel = ConfirmReservationViewModel(
+        location: 'Cartagena, Colombia',
+        categoryId: 'cat-1',
+        selectedDateRange: DateTimeRange(
+          start: DateTime(2026, 4, 22),
+          end: DateTime(2026, 4, 24),
+        ),
+        guests: 2,
+        catalogService: FakeCatalogService(
+          onGetCategoria: (_) async => _sampleCategory,
+          onCalculateRoomPrice: (_, __, ___, ____) async {
+            return const RoomPriceCalculation(
+              pricePerNight: 150000,
+              nights: 2,
+              subtotal: 300000,
+              taxesAndCharges: 0,
+              total: 357000,
+              currency: 'COP',
+              currencySymbol: r'$',
+              tariffType: 'BASE',
+              taxName: 'IVA',
+            );
+          },
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      final breakdown = viewModel.computePriceBreakdown(
+        nights: 2,
+        country: 'Colombia',
+        taxConfig: _taxConfig,
+        fallbackCurrency: 'USD',
+        localeLanguageCode: 'es',
+      );
+
+      expect(breakdown, isNotNull);
+      expect(breakdown!.fmtTaxesAndCharges, contains('57.000'));
+      expect(breakdown.fmtTotal, contains('357.000'));
+    },
+  );
+
   test('returns false for a second confirm attempt while busy', () async {
     final viewModel = ConfirmReservationViewModel(
       location: 'Cartagena, Colombia',
@@ -220,69 +353,8 @@ void main() {
     expect(viewModel.isConfirming, false);
   });
 
-  test('uses weekend pricing when reservation includes weekend', () async {
-    final viewModel = ConfirmReservationViewModel(
-      location: 'Cartagena, Colombia',
-      categoryId: 'cat-1',
-      selectedDateRange: DateTimeRange(
-        start: DateTime(2026, 4, 24),
-        end: DateTime(2026, 4, 26),
-      ),
-      guests: 2,
-      catalogService: FakeCatalogService(
-        onGetCategoria: (_) async => _sampleCategory,
-        onGetCategoryPricing: (_, __) async => _samplePricing,
-      ),
-    );
-
-    await Future<void>.delayed(Duration.zero);
-
-    final breakdown = viewModel.computePriceBreakdown(
-      nights: 2,
-      country: null,
-      taxConfig: _taxConfig,
-      fallbackCurrency: 'USD',
-      localeLanguageCode: 'en',
-    );
-
-    expect(breakdown, isNotNull);
-    expect(breakdown!.fmtPricePerNight, '\$130.00');
-  });
-
   test(
-    'uses high-season pricing when reservation is in high-season months',
-    () async {
-      final viewModel = ConfirmReservationViewModel(
-        location: 'Cartagena, Colombia',
-        categoryId: 'cat-1',
-        selectedDateRange: DateTimeRange(
-          start: DateTime(2026, 12, 10),
-          end: DateTime(2026, 12, 12),
-        ),
-        guests: 2,
-        catalogService: FakeCatalogService(
-          onGetCategoria: (_) async => _sampleCategory,
-          onGetCategoryPricing: (_, __) async => _samplePricing,
-        ),
-      );
-
-      await Future<void>.delayed(Duration.zero);
-
-      final breakdown = viewModel.computePriceBreakdown(
-        nights: 2,
-        country: null,
-        taxConfig: _taxConfig,
-        fallbackCurrency: 'USD',
-        localeLanguageCode: 'en',
-      );
-
-      expect(breakdown, isNotNull);
-      expect(breakdown!.fmtPricePerNight, '\$160.00');
-    },
-  );
-
-  test(
-    'falls back to category base price when pricing values are undefined',
+    'stores error when room-price endpoint fails for all country candidates',
     () async {
       final viewModel = ConfirmReservationViewModel(
         location: 'Cartagena, Colombia',
@@ -294,22 +366,17 @@ void main() {
         guests: 2,
         catalogService: FakeCatalogService(
           onGetCategoria: (_) async => _sampleCategory,
-          onGetCategoryPricing: (_, __) async => _samplePricingWithoutSpecials,
+          onCalculateRoomPrice: (_, __, ___, ____) async =>
+              throw Exception('calculate failed'),
         ),
       );
 
       await Future<void>.delayed(Duration.zero);
 
-      final breakdown = viewModel.computePriceBreakdown(
-        nights: 2,
-        country: null,
-        taxConfig: _taxConfig,
-        fallbackCurrency: 'USD',
-        localeLanguageCode: 'en',
+      expect(
+        viewModel.errorMessage,
+        contains('No fue posible calcular el precio'),
       );
-
-      expect(breakdown, isNotNull);
-      expect(breakdown!.fmtPricePerNight, '\$100.00');
     },
   );
 }

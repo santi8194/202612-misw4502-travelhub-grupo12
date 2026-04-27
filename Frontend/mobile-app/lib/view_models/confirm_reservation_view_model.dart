@@ -38,7 +38,8 @@ class ConfirmReservationViewModel extends ChangeNotifier {
   bool _isConfirming = false;
   String? _errorMessage;
   CategoriaHabitacion? _categoria;
-  CategoriaPricing? _categoriaPricing;
+  final Map<String, RoomPriceCalculation> _priceBreakdownByCountry = {};
+  final Set<String> _countriesBeingFetched = {};
 
   ConfirmReservationViewModel({
     required this.location,
@@ -63,21 +64,7 @@ class ConfirmReservationViewModel extends ChangeNotifier {
     try {
       _categoria = await _catalogService.getCategoria(categoryId);
 
-      final resolvedPropertyId = await _catalogService.getPropertyIdByCategory(
-        _categoria!.idCategoria,
-      );
-
-      if (resolvedPropertyId != null && resolvedPropertyId.isNotEmpty) {
-        try {
-          _categoriaPricing = await _catalogService.getCategoryPricing(
-            propertyId: resolvedPropertyId,
-            categoryId: categoryId,
-          );
-        } catch (_) {
-          // Si pricing no responde o no existe configuración, se usa precio base.
-          _categoriaPricing = null;
-        }
-      }
+      await _preloadPriceBreakdown();
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -100,96 +87,106 @@ class ConfirmReservationViewModel extends ChangeNotifier {
     return true;
   }
 
-  // ── Price & currency ───────────────────────────────────────────────────
-
-  /// Fixed fallback rate COP↔USD when no [CountryTax] config is available.
-  static const double _usdToCopFallback = 4200.0;
-
-  static const Set<int> _highSeasonMonths = {1, 6, 7, 12};
-
-  bool _isWeekend(DateTime day) =>
-      day.weekday == DateTime.friday ||
-      day.weekday == DateTime.saturday ||
-      day.weekday == DateTime.sunday;
-
-  bool _isHighSeason(DateTime day) => _highSeasonMonths.contains(day.month);
-
-  bool _rangeMatches(bool Function(DateTime day) predicate) {
-    for (
-      var day = DateTime(
-        selectedDateRange.start.year,
-        selectedDateRange.start.month,
-        selectedDateRange.start.day,
-      );
-      day.isBefore(selectedDateRange.end);
-      day = day.add(const Duration(days: 1))
-    ) {
-      if (predicate(day)) return true;
-    }
-    return false;
+  String _countryCacheKey(String? country) {
+    final normalized = (country ?? '').trim().toLowerCase();
+    return normalized.isEmpty ? '__no_country__' : normalized;
   }
 
-  bool _hasDefinedPrice(PrecioBase price) {
-    final amount = double.tryParse(price.monto);
-    return (amount != null && amount > 0) && price.moneda.isNotEmpty;
-  }
-
-  PrecioBase _resolveNightlyPrice(CategoriaHabitacion category) {
-    final pricing = _categoriaPricing;
-    if (pricing == null) return category.precioBase;
-
-    if (_rangeMatches(_isHighSeason) &&
-        _hasDefinedPrice(pricing.tarifaTemporadaAlta)) {
-      return pricing.tarifaTemporadaAlta;
-    }
-
-    if (_rangeMatches(_isWeekend) &&
-        _hasDefinedPrice(pricing.tarifaFinDeSemana)) {
-      return pricing.tarifaFinDeSemana;
-    }
-
-    if (_hasDefinedPrice(pricing.tarifaBase)) {
-      return pricing.tarifaBase;
-    }
-
-    return category.precioBase;
-  }
-
-  double _getUsdRate(String currency, Map<String, CountryTax> taxConfig) {
-    if (currency == 'USD') return 1.0;
-    if (currency == 'COP') return _usdToCopFallback;
-    for (final c in taxConfig.values) {
-      if (c.currency == currency) return c.usdRate;
-    }
-    return 1.0;
-  }
-
-  /// Converts [amount] from [from] to [to] using USD as pivot.
-  double convertPrice(
-    double amount,
-    String from,
-    String to,
+  CountryTax? _resolveCountryTax(
+    String? country,
     Map<String, CountryTax> taxConfig,
   ) {
-    if (from == to) return amount;
-    final fromRate = _getUsdRate(from, taxConfig);
-    final toRate = _getUsdRate(to, taxConfig);
-    return (amount / fromRate) * toRate;
+    if (country == null) return null;
+    final exact = taxConfig[country];
+    if (exact != null) return exact;
+
+    final key = country.trim().toLowerCase();
+    for (final entry in taxConfig.entries) {
+      if (entry.key.trim().toLowerCase() == key) {
+        return entry.value;
+      }
+    }
+    return null;
   }
 
-  /// Formats [amount] using [countryTax] rules, or falls back to COP/USD.
-  String formatPrice(double amount, String currency, [CountryTax? countryTax]) {
-    if (countryTax != null) {
-      final sym = countryTax.currencySymbol;
-      if (countryTax.decimals == 0) {
-        return '$sym ${NumberFormat('#,###', countryTax.locale).format(amount.round())}';
+  String _countryFromLocation() {
+    final trimmed = location.trim();
+    if (trimmed.isEmpty) return '';
+    final split = trimmed.split(',');
+    return split.isEmpty ? '' : split.last.trim();
+  }
+
+  Future<void> _preloadPriceBreakdown() async {
+    final cat = _categoria;
+    if (cat == null) return;
+
+    final countryCandidates = <String>{_countryFromLocation(), ''};
+    Object? lastError;
+
+    for (final country in countryCandidates) {
+      try {
+        final result = await _catalogService.calculateRoomPrice(
+          categoryId: cat.idCategoria,
+          startDate: selectedDateRange.start,
+          endDate: selectedDateRange.end,
+          userCountry: country,
+        );
+        _priceBreakdownByCountry[_countryCacheKey(country)] = result;
+      } catch (e) {
+        lastError = e;
       }
-      return '$sym ${NumberFormat('#,##0.00', countryTax.locale).format(amount)}';
+    }
+
+    if (_priceBreakdownByCountry.isEmpty && lastError != null) {
+      throw Exception(
+        'No fue posible calcular el precio de la reserva: $lastError',
+      );
+    }
+  }
+
+  Future<void> _fetchPriceBreakdownForCountry(String? country) async {
+    final cat = _categoria;
+    if (cat == null) return;
+
+    final cacheKey = _countryCacheKey(country);
+    if (_priceBreakdownByCountry.containsKey(cacheKey)) return;
+    if (_countriesBeingFetched.contains(cacheKey)) return;
+
+    _countriesBeingFetched.add(cacheKey);
+    try {
+      final result = await _catalogService.calculateRoomPrice(
+        categoryId: cat.idCategoria,
+        startDate: selectedDateRange.start,
+        endDate: selectedDateRange.end,
+        userCountry: country?.trim() ?? '',
+      );
+      _priceBreakdownByCountry[cacheKey] = result;
+      notifyListeners();
+    } catch (_) {
+      // Keep the last successfully cached value without surfacing a noisy UI error.
+    } finally {
+      _countriesBeingFetched.remove(cacheKey);
+    }
+  }
+
+  // ── Price & currency ───────────────────────────────────────────────────
+
+  String _formatWithSymbol(
+    double amount,
+    String currency,
+    String symbol,
+    CountryTax? countryTax,
+  ) {
+    if (countryTax != null) {
+      if (countryTax.decimals == 0) {
+        return '$symbol ${NumberFormat('#,###', countryTax.locale).format(amount.round())}';
+      }
+      return '$symbol ${NumberFormat('#,##0.00', countryTax.locale).format(amount)}';
     }
     if (currency == 'COP') {
-      return NumberFormat('#,###', 'es_CO').format(amount.round());
+      return '$symbol ${NumberFormat('#,###', 'es_CO').format(amount.round())}';
     }
-    return '\$${NumberFormat('#,##0.00', 'en_US').format(amount)}';
+    return '$symbol ${NumberFormat('#,##0.00', 'en_US').format(amount)}';
   }
 
   /// Computes the full [PriceBreakdown] for the current reservation.
@@ -204,54 +201,70 @@ class ConfirmReservationViewModel extends ChangeNotifier {
     required String fallbackCurrency,
     required String localeLanguageCode,
   }) {
-    final cat = _categoria;
-    if (cat == null) return null;
+    final countryTax = _resolveCountryTax(country, taxConfig);
+    final countryKey = _countryCacheKey(country);
+    if (!_priceBreakdownByCountry.containsKey(countryKey)) {
+      _fetchPriceBreakdownForCountry(country);
+    }
 
-    final effectivePrice = _resolveNightlyPrice(cat);
+    final apiBreakdown =
+        _priceBreakdownByCountry[countryKey] ??
+        _priceBreakdownByCountry[_countryCacheKey(_countryFromLocation())] ??
+        _priceBreakdownByCountry[_countryCacheKey(null)];
+    if (apiBreakdown == null) return null;
 
-    final countryTax = country != null ? taxConfig[country] : null;
-    final sourceCurrency = effectivePrice.moneda;
-    final displayCurrency = countryTax?.currency ?? fallbackCurrency;
-
-    final pricePerNight = double.tryParse(effectivePrice.monto) ?? 0.0;
-    final serviceCharge = double.tryParse(effectivePrice.cargoServicio) ?? 0.0;
-
-    final dispPricePerNight = convertPrice(
-      pricePerNight,
-      sourceCurrency,
-      displayCurrency,
-      taxConfig,
-    );
-    final dispServiceCharge = convertPrice(
-      serviceCharge,
-      sourceCurrency,
-      displayCurrency,
-      taxConfig,
-    );
-    final dispSubtotal = nights * dispPricePerNight;
-    final taxesAndCharges =
-        dispSubtotal * (countryTax?.tax.rate ?? 0.0) + dispServiceCharge;
-    final dispTotal = dispSubtotal + taxesAndCharges;
+    final preferredCurrency = countryTax?.currency ?? fallbackCurrency;
+    final displayCurrency = preferredCurrency.isNotEmpty
+        ? preferredCurrency
+        : (apiBreakdown.currency.isNotEmpty
+              ? apiBreakdown.currency
+              : fallbackCurrency);
+    final currencySymbol =
+        countryTax?.currencySymbol ??
+        (apiBreakdown.currencySymbol.isNotEmpty
+            ? apiBreakdown.currencySymbol
+            : r'$');
 
     final taxLabel = countryTax != null
         ? '${countryTax.tax.name} (${(countryTax.tax.rate * 100).toStringAsFixed(0)}%)'
-        : null;
+        : ((apiBreakdown.taxName != null &&
+                  apiBreakdown.taxName!.trim().isNotEmpty)
+              ? apiBreakdown.taxName!.trim()
+              : null);
+
+    final computedTaxesAndCharges = apiBreakdown.taxesAndCharges > 0
+        ? apiBreakdown.taxesAndCharges
+        : ((apiBreakdown.total - apiBreakdown.subtotal) > 0
+              ? (apiBreakdown.total - apiBreakdown.subtotal)
+              : 0.0);
 
     return PriceBreakdown(
       currencyTag: displayCurrency,
-      fmtPricePerNight: formatPrice(
-        dispPricePerNight,
+      fmtPricePerNight: _formatWithSymbol(
+        apiBreakdown.pricePerNight,
         displayCurrency,
+        currencySymbol,
         countryTax,
       ),
-      fmtSubtotal: formatPrice(dispSubtotal, displayCurrency, countryTax),
-      fmtTaxesAndCharges: formatPrice(
-        taxesAndCharges,
+      fmtSubtotal: _formatWithSymbol(
+        apiBreakdown.subtotal,
         displayCurrency,
+        currencySymbol,
+        countryTax,
+      ),
+      fmtTaxesAndCharges: _formatWithSymbol(
+        computedTaxesAndCharges,
+        displayCurrency,
+        currencySymbol,
         countryTax,
       ),
       taxLabel: taxLabel,
-      fmtTotal: formatPrice(dispTotal, displayCurrency, countryTax),
+      fmtTotal: _formatWithSymbol(
+        apiBreakdown.total,
+        displayCurrency,
+        currencySymbol,
+        countryTax,
+      ),
       taxNote: countryTax?.tax.noteForLanguage(localeLanguageCode),
     );
   }

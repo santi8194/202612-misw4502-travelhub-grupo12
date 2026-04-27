@@ -1,6 +1,8 @@
+import uuid
+
 from modules.payments.application.commands.process_payment import ProcessPayment
 from modules.payments.application.commands.refund_payment import RefundPayment
-from modules.payments.domain.events import PaymentRefunded
+from modules.payments.domain.events import PaymentRefunded, SuccessfulPayment
 from modules.payments.infrastructure.repository import PaymentRepository
 from modules.payments.infrastructure.services.event_bus import EventBus
 import os
@@ -66,3 +68,29 @@ def handle_refund_payment(data):
     result = use_case.execute(reservation_id)
 
     print("[PAYMENTS] Result:", result)
+
+
+def handle_auto_approve_payment(data):
+    """
+    Handles evt.reserva.creada when PAYMENT_AUTO_APPROVE=true.
+    Publishes PagoExitosoEvt directly so the saga can advance without a Wompi webhook.
+    """
+    if os.getenv("PAYMENT_AUTO_APPROVE", "false").lower() != "true":
+        return
+
+    # Extract reservation data — payload is either nested under 'data' or flat
+    payload = data.get("data", data)
+    reservation_id = payload.get("id_reserva")
+
+    if not reservation_id:
+        print("[PAYMENTS] handle_auto_approve_payment: missing id_reserva, skipping")
+        return
+
+    payment_id = str(uuid.uuid4())
+    print(f"[PAYMENTS] Auto-approving payment {payment_id} for reservation {reservation_id}")
+
+    event_bus = EventBus()
+    event = SuccessfulPayment(payment_id, reservation_id)
+    event_bus.publish_event(event.routing_key, event.type, event.to_dict())
+
+    print(f"[PAYMENTS] PagoExitosoEvt published for reservation {reservation_id}")

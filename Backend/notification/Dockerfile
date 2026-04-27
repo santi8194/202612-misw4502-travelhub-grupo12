@@ -1,9 +1,14 @@
-FROM python:3.12-slim
+
+FROM python:3.11-slim
 
 WORKDIR /app
+COPY . /app
 
-COPY app.py .
+ENV PYTHONPATH=/app
 
-EXPOSE 80
+RUN pip install --no-cache-dir -r requirements.txt
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
-CMD ["python", "app.py"]
+EXPOSE 8000
+
+ENTRYPOINT ["/app/entrypoint.sh"]

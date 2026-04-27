@@ -1,0 +1,124 @@
+{
+  "BRAND": {
+    "SUBTITLE": "Portal para socios"
+  },
+  "SIDEBAR": {
+    "DASHBOARD": "Inicio",
+    "RESERVATIONS": "Reservas",
+    "INVENTORY": "Inventario",
+    "PRICING": "Precios",
+    "REPORTS": "Reportes de Ingresos",
+    "EDIT_PROFILE": "Editar perfil",
+    "LOGOUT": "Cerrar sesión",
+    "LANGUAGE": "Idioma"
+  },
+  "SECTIONS": {
+    "DASHBOARD_TITLE": "Inicio",
+    "DASHBOARD_SUBTITLE": "Bienvenido, aquí tienes un resumen general del portal.",
+    "RESERVATIONS_TITLE": "Reservas",
+    "RESERVATIONS_SUBTITLE": "Administra el estado y seguimiento de tus reservas.",
+    "INVENTORY_TITLE": "Inventario",
+    "INVENTORY_SUBTITLE": "Controla disponibilidad y configuración de habitaciones.",
+    "PRICING_TITLE": "Gestión de precios",
+    "PRICING_SUBTITLE": "Gestiona la disponibilidad y asignación de habitaciones.",
+    "REPORTS_TITLE": "Reportes de ingresos",
+    "REPORTS_SUBTITLE": "Consulta resultados, tendencias y desempeño financiero."
+  },
+  "ACTIONS": {
+    "SAVE_CHANGES": "Guardar cambios",
+    "HIDE": "Ocultar"
+  },
+  "TODAY": "Hoy",
+  "SESSION": {
+    "IDLE_WARNING": "Si no registras actividad durante <strong>{{minutes}} minutos</strong>, la sesión se inactivará automáticamente.",
+    "EXPIRY_MESSAGE": "Con la actividad actual, esta sesión se cerrará a las <strong>{{time}}</strong>.",
+    "ACCESS_TOKEN": "Token de acceso",
+    "MAX_IDLE": "Inactividad máxima",
+    "REFRESH_TOKEN": "Token de refresco",
+    "HIDE_LABEL": "Ocultar información de sesión",
+    "DAYS": "días"
+  },
+  "LOCKOUT": {
+    "TITLE": "Política de seguridad de acceso",
+    "HIDE_LABEL": "Ocultar política de bloqueo",
+    "MESSAGE": "Si se detectan <strong>{{attempts}} intentos fallidos</strong> consecutivos, la cuenta se bloqueará temporalmente por <strong>{{minutes}} minutos</strong> para prevenir ataques de fuerza bruta.",
+    "MAX_ATTEMPTS": "Intentos máximos",
+    "UNLOCK_TIME": "Tiempo de desbloqueo"
+  },
+  "WELCOME": {
+    "GREETING": "¡Bienvenido, {{email}}!",
+    "MANAGING_HOTEL": "Estás gestionando el hotel",
+    "NO_HOTEL": "No tienes un hotel asignado aún."
+  },
+  "LOADING": "Cargando...",
+  "ERROR": {
+    "USER_LOAD": "No se pudo cargar la información del usuario."
+  },
+  "PRICING_CARDS": {
+    "AVG_RATE": "Tarifa promedio",
+    "PROMOTIONS": "Promociones",
+    "ACTIVE": "Activas",
+    "MONTHLY_REVENUE": "Ingresos este mes"
+  },
+  "PLACEHOLDER_SECTION": "Esta sección estará disponible en el siguiente sprint.",
+  "PRICING_TABLE": {
+    "TITLE": "Precios por habitación",
+    "SUBTITLE": "Establecer tarifas para temporadas base, fin de semana y temporadas pico",
+    "ROOM_TYPE": "Tipo de habitación",
+    "BASE_RATE": "Tarifa base",
+    "WEEKEND_RATE": "Tarifa fin de semana",
+    "PEAK_RATE": "Temporada alta",
+    "TOTAL_ROOMS": "{{count}} en total",
+    "LOADING": "Cargando precios...",
+    "LOAD_ERROR": "No se pudieron cargar los precios. Intente nuevamente.",
+    "SAVE_SUCCESS": "¡Precios guardados correctamente!",
+    "SAVE_ERROR": "No se pudieron guardar los precios. Intente nuevamente."
+  },
+  "PRICING_VALIDATION": {
+    "REQUIRED": "Este campo es obligatorio",
+    "NUMERIC": "Ingrese un valor numérico válido",
+    "POSITIVE": "El valor debe ser mayor a cero"
+  },
+  "SEASONS": {
+    "TITLE": "Ajustes de Temporada",
+    "SUBTITLE": "Configura recargos porcentuales por temporada con fechas de inicio y fin",
+    "ADD": "Agregar temporada",
+    "LOADING": "Cargando temporadas...",
+    "LOAD_ERROR": "No se pudieron cargar las temporadas. Intente nuevamente.",
+    "SAVE_ERROR": "No se pudo guardar la temporada. Intente nuevamente.",
+    "EMPTY": "No hay temporadas configuradas.",
+    "FORM_TITLE": "Nueva temporada",
+    "FIELD_NOMBRE": "Nombre",
+    "FIELD_INICIO": "Fecha inicio",
+    "FIELD_FIN": "Fecha fin",
+    "FIELD_PORCENTAJE": "Recargo (%)",
+    "SAVE": "Guardar",
+    "SAVING": "Guardando...",
+    "CANCEL": "Cancelar",
+    "DELETE": "Eliminar temporada",
+    "ERROR_NOMBRE": "El nombre es obligatorio",
+    "ERROR_FECHA": "La fecha es obligatoria",
+    "ERROR_FECHA_ORDEN": "La fecha de fin debe ser posterior al inicio",
+    "ERROR_PORCENTAJE": "El recargo debe ser mayor a cero"
+  },
+  "LOGIN": {
+    "TITLE": "TravelHub Partner",
+    "SUBTITLE": "Portal de Socios",
+    "EMAIL_LABEL": "Correo Electrónico",
+    "EMAIL_PLACEHOLDER": "socio@hotel.com",
+    "PASSWORD_LABEL": "Contraseña",
+    "PASSWORD_PLACEHOLDER": "••••••••",
+    "REMEMBER_ME": "Recordarme",
+    "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
+    "SUBMIT": "Iniciar Sesión",
+    "LOADING": "Verificando credenciales...",
+    "ERROR_FALLBACK": "No se pudo iniciar sesión. Verifique sus datos o inténtelo más tarde."
+  },
+  "NAVBAR": {
+    "SEARCH_PLACEHOLDER": "Comienza tu búsqueda",
+    "LANG_LABEL": "Español (ES)",
+    "LOGOUT": "Cerrar sesión",
+    "REGISTER": "Registrarse",
+    "LOGIN": "Iniciar sesión"
+  }
+}

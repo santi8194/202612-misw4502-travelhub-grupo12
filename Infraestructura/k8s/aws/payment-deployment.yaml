@@ -1,9 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: payment-deployment
+  name: payment
+  labels:
+    app: payment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: payment
@@ -14,9 +16,100 @@ spec:
     spec:
       containers:
         - name: payment
-          image: 962273458546.dkr.ecr.us-east-1.amazonaws.com/payment:1.0.4
+          image: ${ECR_REGISTRY_DEV}/payment:${GITHUB_SHA}
           ports:
-            - containerPort: 80
+            - containerPort: 8002
           env:
-            - name: ENABLE_RABBIT
-              value: "false"
+            - name: PAYMENT_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: payment-db-secret
+                  key: DB_HOST
+            - name: PAYMENT_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: payment-db-secret
+                  key: DB_PORT
+            - name: PAYMENT_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: payment-db-secret
+                  key: DB_NAME
+            - name: PAYMENT_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: payment-db-secret
+                  key: DB_USER
+            - name: PAYMENT_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payment-db-secret
+                  key: DB_PASSWORD
+            - name: PAYMENT_MODE
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: PAYMENT_MODE
+            - name: WOMPI_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: WOMPI_PUBLIC_KEY
+            - name: WOMPI_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: WOMPI_PRIVATE_KEY
+            - name: WOMPI_INTEGRITY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: WOMPI_INTEGRITY_SECRET
+            - name: WOMPI_EVENTS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: WOMPI_EVENTS_SECRET
+            - name: WOMPI_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: WOMPI_BASE_URL
+            - name: RABBITMQ_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: RABBITMQ_HOST
+            - name: RABBITMQ_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: RABBITMQ_PORT
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: RABBITMQ_USER
+            - name: RABBITMQ_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: RABBITMQ_PASS
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 10
+            periodSeconds: 10

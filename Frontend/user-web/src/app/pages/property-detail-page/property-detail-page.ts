@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
+import { BookingStore } from '../../core/store/booking-store';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 
@@ -70,6 +71,7 @@ export class PropertyDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookingService = inject(BookingService);
+  private readonly store = inject(BookingStore);
 
   readonly loading = signal(true);
   readonly creatingBooking = signal(false);
@@ -289,6 +291,21 @@ export class PropertyDetailPage {
       return;
     }
 
+    const signature = this.buildSessionSignature(categoryId, checkIn, checkOut, guests);
+    const activeSession = this.store.getBookingSession(signature);
+    if (activeSession) {
+      if (activeSession.expiresAt > Date.now()) {
+        this.router.navigate(['/existing-session-redirect'], {
+          queryParams: {
+            reservationId: activeSession.reservationId,
+          },
+        });
+        return;
+      }
+
+      this.store.clearBookingSession(signature);
+    }
+
     this.creatingBooking.set(true);
     this.error.set(null);
 
@@ -323,6 +340,10 @@ export class PropertyDetailPage {
       console.info('[PropertyDetailPage] Booking created, redirecting', response);
       this.router.navigate(['/booking', response.id_reserva]);
     });
+  }
+
+  private buildSessionSignature(categoryId: string, checkIn: string, checkOut: string, guests: number): string {
+    return [categoryId, checkIn, checkOut, guests].join('|');
   }
 
   private resolveUserId(): string {

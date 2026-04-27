@@ -4,6 +4,19 @@ from sqlalchemy.orm import relationship
 from .database import Base
 
 
+class ConfiguracionImpuestosPaisModel(Base):
+	__tablename__ = "configuracion_impuestos_pais"
+
+	pais = Column(String, primary_key=True)
+	moneda = Column(String(3), nullable=False)
+	simbolo_moneda = Column(String(5), nullable=False)
+	locale = Column(String(10), nullable=False)
+	decimales = Column(Integer, nullable=False)
+	tasa_usd = Column(Numeric(12, 4), nullable=False)
+	impuesto_nombre = Column(String, nullable=False)
+	impuesto_tasa = Column(Numeric(5, 4), nullable=False)
+
+
 class PropiedadModel(Base):
 	__tablename__ = "propiedades"
 
@@ -26,6 +39,10 @@ class PropiedadModel(Base):
 	resenas = relationship(
 		"ResenaModel", back_populates="propiedad", cascade="all, delete-orphan"
 	)
+	# Relación con las temporadas de precio
+	temporadas = relationship(
+		"TemporadaModel", back_populates="propiedad", cascade="all, delete-orphan"
+	)
 
 
 class CategoriaHabitacionModel(Base):
@@ -44,6 +61,14 @@ class CategoriaHabitacionModel(Base):
 	capacidad_pax = Column(Integer, nullable=False)
 	dias_anticipacion = Column(Integer, nullable=False)
 	porcentaje_penalidad = Column(Numeric(5, 2), nullable=False)
+	# Tarifa diferenciada: fin de semana (nullable = no configurada)
+	tarifa_fin_de_semana_monto = Column(Numeric(12, 2), nullable=True)
+	tarifa_fin_de_semana_moneda = Column(String(3), nullable=True)
+	tarifa_fin_de_semana_cargo_servicio = Column(Numeric(12, 2), nullable=True)
+	# Tarifa diferenciada: temporada alta (nullable = no configurada)
+	tarifa_temporada_alta_monto = Column(Numeric(12, 2), nullable=True)
+	tarifa_temporada_alta_moneda = Column(String(3), nullable=True)
+	tarifa_temporada_alta_cargo_servicio = Column(Numeric(12, 2), nullable=True)
 
 	propiedad = relationship("PropiedadModel", back_populates="categorias_habitacion")
 	media = relationship("MediaModel", back_populates="categoria", cascade="all, delete-orphan")
@@ -99,6 +124,19 @@ class InventarioModel(Base):
 	cupos_disponibles = Column(Integer, nullable=False)
 
 	categoria = relationship("CategoriaHabitacionModel", back_populates="inventario")
+
+
+class TemporadaModel(Base):
+	__tablename__ = "temporadas"
+
+	id_temporada = Column(PgUUID(as_uuid=True), primary_key=True)
+	id_propiedad = Column(PgUUID(as_uuid=True), ForeignKey("propiedades.id_propiedad"), nullable=False)
+	nombre = Column(String(100), nullable=False)
+	fecha_inicio = Column(String(10), nullable=False)   # ISO date "YYYY-MM-DD"
+	fecha_fin = Column(String(10), nullable=False)       # ISO date "YYYY-MM-DD"
+	porcentaje = Column(Numeric(5, 2), nullable=False)   # e.g. 25.00
+
+	propiedad = relationship("PropiedadModel", back_populates="temporadas")
 
 
 class ResenaModel(Base):

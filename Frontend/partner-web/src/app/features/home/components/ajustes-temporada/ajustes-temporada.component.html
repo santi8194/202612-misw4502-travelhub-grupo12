@@ -1,0 +1,134 @@
+<section class="temporadas-card">
+    <header class="temporadas-header">
+        <div>
+            <h3>{{ 'SEASONS.TITLE' | translate }}</h3>
+            <p>{{ 'SEASONS.SUBTITLE' | translate }}</p>
+        </div>
+        <button type="button" class="btn-add" (click)="openForm()" data-testid="btn-add-season">
+            + {{ 'SEASONS.ADD' | translate }}
+        </button>
+    </header>
+
+    <!-- Cargando -->
+    <div class="temporadas-estado" *ngIf="loading">
+        <span>{{ 'SEASONS.LOADING' | translate }}</span>
+    </div>
+
+    <!-- Error al cargar -->
+    <div class="temporadas-estado temporadas-estado--error" *ngIf="loadError && !loading">
+        <span>{{ 'SEASONS.LOAD_ERROR' | translate }}</span>
+    </div>
+
+    <!-- Lista de temporadas -->
+    <div class="temporadas-lista" *ngIf="!loading" data-testid="lista-temporadas">
+        <div
+            class="temporada-item"
+            *ngFor="let t of temporadas; let i = index"
+            [style.background-color]="colorBg(i)"
+            data-testid="temporada-item"
+        >
+            <div class="temporada-info">
+                <strong data-testid="temporada-nombre">{{ t.nombre }}</strong>
+                <small data-testid="temporada-fechas">{{ formatDate(t.fecha_inicio) }} – {{ formatDate(t.fecha_fin) }}</small>
+            </div>
+            <div class="temporada-acciones">
+                <span class="temporada-pct" [style.color]="colorText(i)" data-testid="temporada-pct">
+                    +{{ t.porcentaje }}%
+                </span>
+                <button
+                    type="button"
+                    class="btn-delete"
+                    (click)="eliminar(t.id_temporada)"
+                    [attr.aria-label]="'SEASONS.DELETE' | translate"
+                    data-testid="btn-delete-season"
+                >
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <p class="temporadas-vacio" *ngIf="temporadas.length === 0" data-testid="temporadas-vacio">
+            {{ 'SEASONS.EMPTY' | translate }}
+        </p>
+    </div>
+
+    <!-- Formulario de nueva temporada -->
+    <form class="temporada-form" *ngIf="showForm" (ngSubmit)="guardar()" data-testid="form-temporada">
+        <h4>{{ 'SEASONS.FORM_TITLE' | translate }}</h4>
+
+        <div class="form-row">
+            <label>{{ 'SEASONS.FIELD_NOMBRE' | translate }}</label>
+            <input
+                type="text"
+                [(ngModel)]="form.nombre"
+                name="nombre"
+                [class.input-error]="formErrors['nombre']"
+                data-testid="input-nombre"
+            />
+            <small class="error-msg" *ngIf="formErrors['nombre']" data-testid="error-nombre">
+                {{ formErrors['nombre'] | translate }}
+            </small>
+        </div>
+
+        <div class="form-row-dates">
+            <div class="form-row">
+                <label>{{ 'SEASONS.FIELD_INICIO' | translate }}</label>
+                <input
+                    type="date"
+                    [(ngModel)]="form.fecha_inicio"
+                    name="fecha_inicio"
+                    [class.input-error]="formErrors['fecha_inicio']"
+                    data-testid="input-fecha-inicio"
+                />
+                <small class="error-msg" *ngIf="formErrors['fecha_inicio']" data-testid="error-fecha-inicio">
+                    {{ formErrors['fecha_inicio'] | translate }}
+                </small>
+            </div>
+            <div class="form-row">
+                <label>{{ 'SEASONS.FIELD_FIN' | translate }}</label>
+                <input
+                    type="date"
+                    [(ngModel)]="form.fecha_fin"
+                    name="fecha_fin"
+                    [class.input-error]="formErrors['fecha_fin']"
+                    data-testid="input-fecha-fin"
+                />
+                <small class="error-msg" *ngIf="formErrors['fecha_fin']" data-testid="error-fecha-fin">
+                    {{ formErrors['fecha_fin'] | translate }}
+                </small>
+            </div>
+        </div>
+
+        <div class="form-row form-row--pct">
+            <label>{{ 'SEASONS.FIELD_PORCENTAJE' | translate }}</label>
+            <div class="pct-input">
+                <input
+                    type="number"
+                    [(ngModel)]="form.porcentaje"
+                    name="porcentaje"
+                    min="1"
+                    max="999"
+                    [class.input-error]="formErrors['porcentaje']"
+                    data-testid="input-porcentaje"
+                />
+                <span>%</span>
+            </div>
+            <small class="error-msg" *ngIf="formErrors['porcentaje']" data-testid="error-porcentaje">
+                {{ formErrors['porcentaje'] | translate }}
+            </small>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="cancelForm()" data-testid="btn-cancel">
+                {{ 'SEASONS.CANCEL' | translate }}
+            </button>
+            <button type="submit" class="btn-save" [disabled]="saving" data-testid="btn-save-season">
+                {{ saving ? ('SEASONS.SAVING' | translate) : ('SEASONS.SAVE' | translate) }}
+            </button>
+        </div>
+
+        <div class="temporadas-estado temporadas-estado--error" *ngIf="saveError" data-testid="save-error">
+            {{ 'SEASONS.SAVE_ERROR' | translate }}
+        </div>
+    </form>
+</section>

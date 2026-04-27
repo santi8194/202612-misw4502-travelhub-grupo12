@@ -46,22 +46,32 @@ jobs:
           - name: container_registry
             working_directory: Infraestructura/terraform/stacks/container_registry
             tfvars_file: ../../environments/dev/container_registry/dev.tfvars
+            extra_tfvars_file: ""
             backend_config: ""
           - name: eks
             working_directory: Infraestructura/terraform/stacks/eks
             tfvars_file: ../../environments/dev/eks/dev.tfvars
+            extra_tfvars_file: ""
             backend_config: ""
           - name: ingress
             working_directory: Infraestructura/terraform/stacks/ingress
             tfvars_file: ../../environments/dev/ingress/dev.tfvars
+            extra_tfvars_file: ""
             backend_config: ""
           - name: ec2
             working_directory: Infraestructura/terraform/stacks/ec2
             tfvars_file: ../../environments/dev/ec2/dev.tfvars
+            extra_tfvars_file: ""
             backend_config: ../../environments/dev/ec2/backend.tfvars
+          - name: database
+            working_directory: Infraestructura/terraform/stacks/database
+            tfvars_file: ../../environments/dev/database/terraform.tfvars
+            extra_tfvars_file: database.secrets.tfvars
+            backend_config: ../../environments/dev/database/backend.tfvars
           - name: frontends
             working_directory: Infraestructura/terraform/stacks/frontends
             tfvars_file: ../../environments/dev/frontends/dev.tfvars
+            extra_tfvars_file: ""
             backend_config: ""
 
     defaults:
@@ -106,4 +116,12 @@ jobs:
           fi
 
       - name: Terraform plan
-        run: terraform plan -input=false -lock=false -no-color -var-file="${{ matrix.stack.tfvars_file }}"
+        run: |
+          if [ -n "${{ matrix.stack.extra_tfvars_file }}" ]; then
+            terraform plan -input=false -lock=false -no-color \
+              -var-file="${{ matrix.stack.tfvars_file }}" \
+              -var-file="${{ matrix.stack.extra_tfvars_file }}"
+          else
+            terraform plan -input=false -lock=false -no-color \
+              -var-file="${{ matrix.stack.tfvars_file }}"
+          fi

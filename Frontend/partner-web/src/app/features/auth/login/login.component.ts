@@ -4,10 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { NgIf } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-login',
-    imports: [ReactiveFormsModule, RouterLink, NgIf],
+    imports: [ReactiveFormsModule, RouterLink, NgIf, TranslateModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss'
 })
@@ -20,7 +21,8 @@ export class LoginComponent implements OnDestroy {
     constructor(
         private fb: FormBuilder,
         private authService: AuthService,
-        private router: Router
+        private router: Router,
+        private translate: TranslateService
     ) {
         this.loginForm = this.fb.group({
             email: ['', [Validators.required, Validators.email]],
@@ -45,8 +47,7 @@ export class LoginComponent implements OnDestroy {
                     },
                     error: (err) => {
                         this.isLoading = false;
-                        // Validar el detail emitido por FastAPI HTTPException
-                        this.errorMessage = err?.error?.detail || 'No se pudo iniciar sesión. Verifique sus los datos o inténtelo más tarde.';
+                        this.errorMessage = err?.error?.detail || this.translate.instant('LOGIN.ERROR_FALLBACK');
                     }
                 });
         }

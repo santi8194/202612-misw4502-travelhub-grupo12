@@ -266,7 +266,12 @@ class _ResultadosViewState extends State<ResultadosView> {
                               ),
                               child: Stack(
                                 children: [
-                                  _buildHotelImage(hotel.imageUrl),
+                                  Image.network(
+                                    hotel.imageUrl,
+                                    height: 220,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
                                   if (hotel.isSpecialOffer)
                                     Positioned(
                                       top: 16,

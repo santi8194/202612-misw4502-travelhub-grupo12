@@ -26,6 +26,10 @@ function mockConfirmReservationSummary(bookingOverrides: Record<string, unknown>
   cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}`, {
     fixture: 'booking-cart-property.json',
   }).as('getPropertyForSummary');
+
+  cy.intercept('POST', '**/catalog/calculate-room-price', {
+    fixture: 'booking-room-price.json',
+  }).as('calculateRoomPriceForSummary');
 }
 
 describe('Flujos E2E de reserva (confirm, existing session, processing)', () => {
@@ -38,6 +42,7 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
     cy.wait('@getCatalogForSummary');
     cy.wait('@getCategoryForSummary');
     cy.wait('@getPropertyForSummary');
+    cy.wait('@calculateRoomPriceForSummary');
 
     cy.get('[data-testid="confirm-reservation-title"]')
       .should('be.visible')
@@ -63,6 +68,7 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
     cy.wait('@getCatalogForSummary');
     cy.wait('@getCategoryForSummary');
     cy.wait('@getPropertyForSummary');
+    cy.wait('@calculateRoomPriceForSummary');
 
     cy.get('[data-testid="confirm-reservation-title"]')
       .should('be.visible')
@@ -73,7 +79,8 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
 
     cy.contains('Número de confirmación').should('not.exist');
     cy.get('[data-testid="booking-summary"]').should('not.exist');
-    cy.contains('Volver al carrito').should('be.visible');
+    cy.contains('Volver al carrito').should('not.exist');
+    cy.contains('Buscar otra opción').should('be.visible');
   });
 
   it('Existing session: para estado pendiente redirige al seguimiento', () => {

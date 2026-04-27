@@ -208,7 +208,7 @@ class Reserva(AgregacionRaiz):
         ))
 
     def expirar_reserva(self):
-        if self.estado != EstadoReserva.HOLD or self.estado != EstadoReserva.PENDIENTE:
+        if self.estado != EstadoReserva.HOLD:
             raise ValueError("La reserva debe estar en HOLD para marcarse como EXPIRADA")
 
         self.estado = EstadoReserva.EXPIRADA

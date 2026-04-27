@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../view_models/search_view_model.dart';
 import 'confirm_reservation_view.dart';
+import 'propiedad_detalle_view.dart';
 
 class ResultadosView extends StatefulWidget {
   const ResultadosView({super.key});
@@ -230,8 +231,21 @@ class _ResultadosViewState extends State<ResultadosView> {
                     itemCount: vm.searchResults.length,
                     itemBuilder: (context, index) {
                       final hotel = vm.searchResults[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 24),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PropiedadDetalleView(
+                                habitacion: hotel,
+                                dateRange: vm.selectedDateRange,
+                                guests: vm.guestCount,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 24),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(30),
@@ -327,43 +341,11 @@ class _ResultadosViewState extends State<ResultadosView> {
                                       );
                                     }).toList(),
                                   ),
-                                  const SizedBox(height: 24),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 48,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        final dateRange =
-                                            vm.selectedDateRange ??
-                                            DateTimeRange(
-                                              start: DateTime.now(),
-                                              end: DateTime.now().add(
-                                                const Duration(days: 1),
-                                              ),
-                                            );
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                ConfirmReservationView(
-                                                  location: hotel.location,
-                                                  categoryId:
-                                                      hotel.categoryId ?? '',
-                                                  dateRange: dateRange,
-                                                  guests: vm.guestCount,
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                      child: Text(
-                                        l10n.confirmReservationButton,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },

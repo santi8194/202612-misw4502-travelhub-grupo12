@@ -433,6 +433,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not set'**
   String get countryNotSet;
+
+  /// No description provided for @propertyInfoTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Information'**
+  String get propertyInfoTab;
+
+  /// No description provided for @propertyRoomsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms'**
+  String get propertyRoomsTab;
+
+  /// No description provided for @propertyReviewsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get propertyReviewsTab;
+
+  /// No description provided for @aboutProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'About the property'**
+  String get aboutProperty;
+
+  /// No description provided for @mainAmenities.
+  ///
+  /// In en, this message translates to:
+  /// **'Main amenities'**
+  String get mainAmenities;
+
+  /// No description provided for @roomGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Room Gallery'**
+  String get roomGallery;
+
+  /// No description provided for @verifiedReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'VERIFIED REVIEWS'**
+  String get verifiedReviews;
+
+  /// No description provided for @reserveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Now'**
+  String get reserveNow;
+
+  /// No description provided for @totalPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTAL PRICE'**
+  String get totalPriceLabel;
 }
 
 class _AppLocalizationsDelegate

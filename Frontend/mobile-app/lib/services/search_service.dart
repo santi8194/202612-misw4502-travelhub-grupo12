@@ -32,7 +32,7 @@ class SearchService {
     } catch (_) {}
     // If not in test, return 10.0.2.2 (android emulator)
     // In test, it should be 127.0.0.1 but we prefer explicit env for tests
-    return 'http://10.0.2.2:8000';
+    return 'http://10.0.2.2:8080';
   }
 
   SearchService({CacheService? cacheService, http.Client? httpClient})
@@ -61,7 +61,7 @@ class SearchService {
 
     // Try network first
     try {
-      final uri = Uri.parse('$baseUrl/search/api/v1/search').replace(
+      final uri = Uri.parse('$baseUrl/api/v1/search').replace(
         queryParameters: {
           'ciudad': ciudad,
           'pais': pais,
@@ -163,7 +163,7 @@ class SearchService {
     // Try network first
     try {
       final uri = Uri.parse(
-        '$baseUrl/search/api/v1/search/destinations',
+        '$baseUrl/api/v1/search/destinations',
       ).replace(queryParameters: {'q': query});
 
       final response = await _httpClient

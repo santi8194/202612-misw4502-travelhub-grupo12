@@ -198,4 +198,31 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get countryNotSet => 'Sin definir';
+
+  @override
+  String get propertyInfoTab => 'Información';
+
+  @override
+  String get propertyRoomsTab => 'Habitaciones';
+
+  @override
+  String get propertyReviewsTab => 'Reseñas';
+
+  @override
+  String get aboutProperty => 'Sobre la propiedad';
+
+  @override
+  String get mainAmenities => 'Comodidades principales';
+
+  @override
+  String get roomGallery => 'Galería de Habitaciones';
+
+  @override
+  String get verifiedReviews => 'RESEÑAS VERIFICADAS';
+
+  @override
+  String get reserveNow => 'Reservar Ahora';
+
+  @override
+  String get totalPriceLabel => 'PRECIO TOTAL';
 }

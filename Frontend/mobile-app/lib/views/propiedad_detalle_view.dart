@@ -7,7 +7,6 @@ import '../models/country_tax.dart';
 import '../models/habitacion.dart';
 import '../models/resena.dart';
 import '../services/catalog_service.dart';
-import '../services/tax_config_service.dart';
 import '../view_models/user_preferences_view_model.dart';
 import 'confirm_reservation_view.dart';
 
@@ -35,7 +34,6 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
   late final CatalogService _catalogService;
 
   Map<String, dynamic>? _propertyDetail;
-  Map<String, CountryTax>? _taxConfigs;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -48,21 +46,7 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
     super.initState();
     _catalogService = widget.catalogService ?? CatalogService();
     _tabController = TabController(length: 3, vsync: this);
-    _fetchTaxConfigs();
     _fetchPropertyDetail();
-  }
-
-  Future<void> _fetchTaxConfigs() async {
-    try {
-      final configs = await TaxConfigService.load();
-      if (mounted) {
-        setState(() {
-          _taxConfigs = configs;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading tax configs: $e');
-    }
   }
 
   Future<void> _fetchPropertyDetail() async {
@@ -710,25 +694,88 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
     );
   }
 
+  /// Format price with proper locale and currency handling
+  String _formatWithSymbol(
+    double amount,
+    String currency,
+    String symbol,
+    CountryTax? countryTax,
+  ) {
+    if (countryTax != null) {
+      if (countryTax.decimals == 0) {
+        return '$symbol ${NumberFormat('#,###', countryTax.locale).format(amount.round())}';
+      }
+      return '$symbol ${NumberFormat('#,##0.00', countryTax.locale).format(amount)}';
+    }
+    if (currency == 'COP') {
+      return '$symbol ${NumberFormat('#,###', 'es_CO').format(amount.round())}';
+    }
+    return '$symbol ${NumberFormat('#,##0.00', 'en_US').format(amount)}';
+  }
+
+  /// Resolve country tax configuration with case-insensitive matching
+  CountryTax? _resolveCountryTax(
+    String? country,
+    Map<String, CountryTax> taxConfig,
+  ) {
+    if (country == null) return null;
+
+    // Try exact match first
+    final exact = taxConfig[country];
+    if (exact != null) return exact;
+
+    // Try case-insensitive match
+    final key = country.trim().toLowerCase();
+    for (final entry in taxConfig.entries) {
+      if (entry.key.trim().toLowerCase() == key) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
+  /// Find the usdRate for a given currency code by scanning the taxConfig map
+  double _usdRateForCurrency(
+    String currencyCode,
+    Map<String, CountryTax> taxConfig,
+  ) {
+    if (currencyCode == 'USD') return 1.0;
+    for (final entry in taxConfig.entries) {
+      if (entry.value.currency == currencyCode) return entry.value.usdRate;
+    }
+    return 1.0;
+  }
+
   Widget _buildBottomBar(
     AppLocalizations l10n,
     ThemeData theme,
     dynamic category,
   ) {
+    final country = context.watch<UserPreferencesViewModel>().country;
+    final taxConfig = context.read<Map<String, CountryTax>>();
+
     final priceStr = category['precio_base']['monto'] as String? ?? '0';
-    final basePriceUsd = double.tryParse(priceStr) ?? 0.0;
+    final sourceCurrency =
+        category['precio_base']['moneda'] as String? ?? 'COP';
+    final baseAmount = double.tryParse(priceStr) ?? 0.0;
 
-    final userPrefs = Provider.of<UserPreferencesViewModel>(context);
-    final countryTax = _taxConfigs?[userPrefs.country];
+    // Resolve target currency from user preferences
+    final countryTax = _resolveCountryTax(country, taxConfig);
+    final currencySymbol = countryTax?.currencySymbol ?? r'$';
+    final currencyTag = countryTax?.currency ?? 'USD';
+    final targetUsdRate = countryTax?.usdRate ?? 1.0;
 
-    final displayPrice =
-        basePriceUsd * (countryTax?.usdRate ?? 1.0) * (1 + (countryTax?.tax.rate ?? 0.0));
-    final currencyTag = countryTax?.currency ?? 'US\$';
+    // Convert: source currency → USD → target currency
+    final sourceUsdRate = _usdRateForCurrency(sourceCurrency, taxConfig);
+    final amountInUsd = baseAmount / sourceUsdRate;
+    final displayPrice = amountInUsd * targetUsdRate;
 
-    final formatter = NumberFormat.currency(
-      locale: countryTax?.locale ?? 'en_US',
-      symbol: '',
-      decimalDigits: countryTax?.decimals ?? 2,
+    // Format with correct locale and currency symbol
+    final formattedPrice = _formatWithSymbol(
+      displayPrice,
+      currencyTag,
+      currencySymbol,
+      countryTax,
     );
 
     return Positioned(
@@ -763,22 +810,10 @@ class _PropiedadDetalleViewState extends State<PropiedadDetalleView>
                       letterSpacing: 0.5,
                     ),
                   ),
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '${formatter.format(displayPrice)} $currencyTag',
-                          style: theme.textTheme.displayMedium?.copyWith(
-                            fontSize: 24,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' / noche',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    '$formattedPrice / noche',
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontSize: 24,
                     ),
                   ),
                 ],

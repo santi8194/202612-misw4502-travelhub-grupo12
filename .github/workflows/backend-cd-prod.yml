@@ -25,6 +25,9 @@ env:
   CATALOG_DB_SECRET_NAME_DEV: travelhub/dev/catalog/db-credentials
   PAYMENT_DB_SECRET_NAME_DEV: travelhub/dev/payment/db-credentials
   PAYMENT_APP_SECRET_NAME_DEV: travelhub/dev/payment/app-secrets
+  PMS_INTEGRATION_DB_SECRET_NAME_DEV: travelhub/dev/pms-integration/db-credentials
+  PARTNER_MANAGEMENT_DB_SECRET_NAME_DEV: travelhub/dev/partner-management/db-credentials
+  NOTIFICATION_DB_SECRET_NAME_DEV: travelhub/dev/notification/db-credentials
   SEARCH_DB_SECRET_NAME_DEV: travelhub/dev/search/db-credentials
   SERVICE_EXCLUSIONS_FILE: .github/backend-cd.exclusions.json
 
@@ -157,6 +160,8 @@ jobs:
                   service["deployment_manifest"],
                   service["service_manifest"],
               ]
+              if service["service_name"] == "booking":
+                  watch_paths.append("Infraestructura/k8s/aws/booking-saga-worker-deployment.yaml")
               if any(
                   changed.startswith(prefix)
                   for changed in changed_files
@@ -188,6 +193,8 @@ jobs:
       DEPLOYMENT_MANIFEST: ${{ matrix.deployment_manifest }}
       SERVICE_MANIFEST: ${{ matrix.service_manifest }}
       RENDERED_DEPLOYMENT_MANIFEST: /tmp/${{ matrix.service_name }}-deployment.rendered.yaml
+      SAGA_WORKER_DEPLOYMENT_MANIFEST: Infraestructura/k8s/aws/booking-saga-worker-deployment.yaml
+      RENDERED_SAGA_WORKER_DEPLOYMENT_MANIFEST: /tmp/booking-saga-worker-deployment.rendered.yaml
       SERVICE_NAME: ${{ matrix.service_name }}
       ECR_REPOSITORY: ${{ matrix.ecr_repository }}
       HEALTHCHECK_PATH: /health
@@ -218,6 +225,11 @@ jobs:
 
           if [ ! -f "${SERVICE_MANIFEST}" ]; then
             echo "::error file=${SERVICE_MANIFEST}::Missing Kubernetes Service manifest. Expected file '${SERVICE_MANIFEST}' was not found."
+            exit 1
+          fi
+
+          if [ "${SERVICE_NAME}" = "booking" ] && [ ! -f "${SAGA_WORKER_DEPLOYMENT_MANIFEST}" ]; then
+            echo "::error file=${SAGA_WORKER_DEPLOYMENT_MANIFEST}::Missing booking saga worker deployment manifest."
             exit 1
           fi
 
@@ -436,7 +448,7 @@ jobs:
           fi
 
       - name: Reconcile service DB secret
-        if: ${{ matrix.service_name == 'authservice' || matrix.service_name == 'booking' || matrix.service_name == 'catalog' || matrix.service_name == 'payment' || matrix.service_name == 'search' }}
+        if: ${{ matrix.service_name == 'authservice' || matrix.service_name == 'booking' || matrix.service_name == 'catalog' || matrix.service_name == 'payment' || matrix.service_name == 'pms-integration' || matrix.service_name == 'partner-management' || matrix.service_name == 'notification' || matrix.service_name == 'search' }}
         shell: bash
         env:
           DB_SECRET_ENV_FILE: /tmp/${{ matrix.service_name }}-db-secret.env
@@ -459,6 +471,18 @@ jobs:
             payment)
               SECRET_MANAGER_ID="${PAYMENT_DB_SECRET_NAME_DEV}"
               K8S_SECRET_NAME="payment-db-secret"
+              ;;
+            pms-integration)
+              SECRET_MANAGER_ID="${PMS_INTEGRATION_DB_SECRET_NAME_DEV}"
+              K8S_SECRET_NAME="pms-integration-db-secret"
+              ;;
+            partner-management)
+              SECRET_MANAGER_ID="${PARTNER_MANAGEMENT_DB_SECRET_NAME_DEV}"
+              K8S_SECRET_NAME="partner-management-db-secret"
+              ;;
+            notification)
+              SECRET_MANAGER_ID="${NOTIFICATION_DB_SECRET_NAME_DEV}"
+              K8S_SECRET_NAME="notification-db-secret"
               ;;
             search)
               SECRET_MANAGER_ID="${SEARCH_DB_SECRET_NAME_DEV}"
@@ -574,6 +598,39 @@ jobs:
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${SERVICE_MANIFEST}"
           kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${RENDERED_DEPLOYMENT_MANIFEST}"
 
+      - name: Apply booking saga worker manifest
+        if: ${{ matrix.service_name == 'booking' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import sys
+
+          src = os.environ["SAGA_WORKER_DEPLOYMENT_MANIFEST"]
+          dst = os.environ["RENDERED_SAGA_WORKER_DEPLOYMENT_MANIFEST"]
+          registry = os.environ.get("ECR_REGISTRY_DEV", "")
+          sha = os.environ.get("GITHUB_SHA", "")
+
+          try:
+              with open(src, "r", encoding="utf-8") as f:
+                  content = f.read()
+          except Exception as exc:
+              print(f"::error file={src}::Failed to read saga worker manifest: {exc}")
+              sys.exit(1)
+
+          rendered = content.replace("${ECR_REGISTRY_DEV}", registry)
+          rendered = rendered.replace("${GITHUB_SHA}", sha)
+
+          if "${ECR_REGISTRY_DEV}" in rendered or "${GITHUB_SHA}" in rendered:
+              print("::error::Saga worker manifest still contains unresolved placeholders after rendering.")
+              sys.exit(1)
+
+          with open(dst, "w", encoding="utf-8") as f:
+              f.write(rendered)
+          PY
+          kubectl apply -n "${K8S_NAMESPACE_DEV}" -f "${RENDERED_SAGA_WORKER_DEPLOYMENT_MANIFEST}"
+
       - name: Wait for rollout
         shell: bash
         run: |
@@ -581,6 +638,12 @@ jobs:
           kubectl rollout status "deployment/${SERVICE_NAME}" \
             --namespace "${K8S_NAMESPACE_DEV}" \
             --timeout=300s
+
+          if [ "${SERVICE_NAME}" = "booking" ]; then
+            kubectl rollout status "deployment/booking-saga-worker" \
+              --namespace "${K8S_NAMESPACE_DEV}" \
+              --timeout=300s
+          fi
 
       - name: Verify service response (port-forward)
         shell: bash

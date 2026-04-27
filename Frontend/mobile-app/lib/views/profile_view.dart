@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -14,8 +15,30 @@ const List<String> _kCountries = [
   'Argentina',
 ];
 
-class ProfileView extends StatelessWidget {
+class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
+
+  @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView> {
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _version = packageInfo.version;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,68 +65,108 @@ class ProfileView extends StatelessWidget {
             : null,
         automaticallyImplyLeading: false,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(bodyPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionCard(
-              context: context,
-              cardRadius: cardRadius,
-              cardPadding: cardPadding,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(bodyPadding),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - (bodyPadding * 2),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    l10n.countryLabel,
-                    style: TextStyle(
-                      fontSize: titleFontSize,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: cardPadding / 2),
-                  DropdownButtonFormField<String>(
-                    initialValue: prefs.country,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: cardPadding,
-                        vertical: cardPadding / 2,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(cardRadius / 2),
-                      ),
-                    ),
-                    hint: Text(
-                      l10n.countryNotSet,
-                      style: TextStyle(
-                        fontSize: labelFontSize,
-                        color: Colors.black45,
-                      ),
-                    ),
-                    items: _kCountries
-                        .map(
-                          (c) => DropdownMenuItem(
-                            value: c,
-                            child: Text(
-                              c,
-                              style: TextStyle(fontSize: labelFontSize),
-                            ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32.0),
+                          child: Icon(
+                            Icons.person_outline,
+                            size: 100,
+                            color: Colors.grey,
                           ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      context.read<UserPreferencesViewModel>().setCountry(
-                        value,
-                      );
-                    },
+                        ),
+                      ),
+                      _buildSectionCard(
+                        context: context,
+                        cardRadius: cardRadius,
+                        cardPadding: cardPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.countryLabel,
+                              style: TextStyle(
+                                fontSize: titleFontSize,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: cardPadding / 2),
+                            DropdownButtonFormField<String>(
+                              initialValue: prefs.country,
+                              isExpanded: true,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: cardPadding,
+                                  vertical: cardPadding / 2,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    cardRadius / 2,
+                                  ),
+                                ),
+                              ),
+                              hint: Text(
+                                l10n.countryNotSet,
+                                style: TextStyle(
+                                  fontSize: labelFontSize,
+                                  color: Colors.black45,
+                                ),
+                              ),
+                              items: _kCountries
+                                  .map(
+                                    (c) => DropdownMenuItem(
+                                      value: c,
+                                      child: Text(
+                                        c,
+                                        style: TextStyle(
+                                          fontSize: labelFontSize,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                context
+                                    .read<UserPreferencesViewModel>()
+                                    .setCountry(value);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        l10n.profileVersion(_version),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

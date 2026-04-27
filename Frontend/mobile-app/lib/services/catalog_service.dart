@@ -61,7 +61,7 @@ class CatalogService {
     : _httpClient = httpClient ?? http.Client();
 
   Future<CategoriaHabitacion> getCategoria(String categoryId) async {
-    final uri = Uri.parse('$baseUrl/catalog/categories/$categoryId');
+    final uri = Uri.parse('$baseUrl/categories/$categoryId');
     final response = await _httpClient.get(uri);
 
     if (response.statusCode == 200) {
@@ -92,7 +92,7 @@ class CatalogService {
     required String categoryId,
   }) async {
     final uri = Uri.parse(
-      '$baseUrl/catalog/properties/$propertyId/categories/$categoryId/pricing',
+      '$baseUrl/properties/$propertyId/categories/$categoryId/pricing',
     );
     final response = await _httpClient
         .get(uri)
@@ -109,9 +109,7 @@ class CatalogService {
   }
 
   Future<String?> getPropertyIdByCategory(String categoryId) async {
-    final uri = Uri.parse(
-      '$baseUrl/catalog/properties/by-category/$categoryId',
-    );
+    final uri = Uri.parse('$baseUrl/properties/by-category/$categoryId');
     final response = await _httpClient
         .get(uri)
         .timeout(const Duration(seconds: 8));
@@ -130,7 +128,7 @@ class CatalogService {
     required DateTime endDate,
     required String userCountry,
   }) async {
-    final uri = Uri.parse('$baseUrl/catalog/calculate-room-price');
+    final uri = Uri.parse('$baseUrl/calculate-room-price');
     final response = await _httpClient
         .post(
           uri,

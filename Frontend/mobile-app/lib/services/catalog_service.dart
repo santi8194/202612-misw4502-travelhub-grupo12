@@ -86,7 +86,7 @@ class CatalogService {
       'Error al obtener detalle de propiedad ($categoryId): ${response.statusCode}',
     );
   }
-  
+
   Future<CategoriaPricing> getCategoryPricing({
     required String propertyId,
     required String categoryId,
@@ -94,11 +94,9 @@ class CatalogService {
     final uri = Uri.parse(
       '$baseUrl/catalog/properties/$propertyId/categories/$categoryId/pricing',
     );
-    print('CatalogService.getCategoryPricing URI: $uri');
     final response = await _httpClient
         .get(uri)
         .timeout(const Duration(seconds: 8));
-    print('CatalogService.getCategoryPricing status: \${response.statusCode}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body) as Map<String, dynamic>;

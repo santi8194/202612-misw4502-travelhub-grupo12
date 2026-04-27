@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../view_models/search_view_model.dart';
-import 'confirm_reservation_view.dart';
 import 'propiedad_detalle_view.dart';
 
 class ResultadosView extends StatefulWidget {
@@ -15,58 +14,6 @@ class ResultadosView extends StatefulWidget {
 }
 
 class _ResultadosViewState extends State<ResultadosView> {
-  Widget _buildHotelImage(String imageUrl) {
-    return Container(
-      height: 220,
-      width: double.infinity,
-      color: Colors.grey.shade200,
-      child: imageUrl.isEmpty
-          ? _buildImagePlaceholder()
-          : Image.network(
-              imageUrl,
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return _buildImagePlaceholder();
-              },
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return _buildImagePlaceholder(showLoader: true);
-              },
-            ),
-    );
-  }
-
-  Widget _buildImagePlaceholder({bool showLoader = false}) {
-    return Container(
-      color: Colors.grey.shade200,
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (showLoader)
-            const SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(strokeWidth: 2.5),
-            )
-          else
-            Icon(Icons.hotel_outlined, size: 42, color: Colors.grey.shade500),
-          const SizedBox(height: 12),
-          Text(
-            'Imagen no disponible',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _getSubtitle(SearchViewModel vm) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
@@ -246,106 +193,106 @@ class _ResultadosViewState extends State<ResultadosView> {
                         },
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(30),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
                               ),
-                              child: Stack(
-                                children: [
-                                  Image.network(
-                                    hotel.imageUrl,
-                                    height: 220,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  if (hotel.isSpecialOffer)
-                                    Positioned(
-                                      top: 16,
-                                      left: 16,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.2,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          l10n.specialOffer,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(30),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Image.network(
+                                      hotel.imageUrl,
+                                      height: 220,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
                                     ),
-                                ],
+                                    if (hotel.isSpecialOffer)
+                                      Positioned(
+                                        top: 16,
+                                        left: 16,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            l10n.specialOffer,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    hotel.title,
-                                    style: theme.textTheme.displayMedium
-                                        ?.copyWith(fontSize: 22),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on_outlined,
-                                        size: 18,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        hotel.location,
-                                        style: const TextStyle(
+                              Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      hotel.title,
+                                      style: theme.textTheme.displayMedium
+                                          ?.copyWith(fontSize: 22),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on_outlined,
+                                          size: 18,
                                           color: Colors.grey,
-                                          fontSize: 14,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Wrap(
-                                    spacing: 16,
-                                    runSpacing: 8,
-                                    children: hotel.amenities.map((amenity) {
-                                      return Text(
-                                        amenity,
-                                        style: TextStyle(
-                                          color: Colors.grey[800],
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.2,
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          hotel.location,
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 14,
+                                          ),
                                         ),
-                                      );
-                                    }).toList(),
-                                  ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Wrap(
+                                      spacing: 16,
+                                      runSpacing: 8,
+                                      children: hotel.amenities.map((amenity) {
+                                        return Text(
+                                          amenity,
+                                          style: TextStyle(
+                                            color: Colors.grey[800],
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
                                   ],
                                 ),
                               ),

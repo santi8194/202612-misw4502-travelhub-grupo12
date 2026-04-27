@@ -207,7 +207,7 @@ void main() {
         guests: 2,
         catalogService: FakeCatalogService(
           onGetCategoria: (_) async => _sampleCategory,
-          onCalculateRoomPrice: (_, __, ___, userCountry) async {
+          onCalculateRoomPrice: (_, _, _, userCountry) async {
             if (userCountry.isEmpty) {
               return const RoomPriceCalculation(
                 pricePerNight: 215,
@@ -297,7 +297,7 @@ void main() {
         guests: 2,
         catalogService: FakeCatalogService(
           onGetCategoria: (_) async => _sampleCategory,
-          onCalculateRoomPrice: (_, __, ___, ____) async {
+          onCalculateRoomPrice: (_, _, _, _) async {
             return const RoomPriceCalculation(
               pricePerNight: 150000,
               nights: 2,
@@ -366,7 +366,7 @@ void main() {
         guests: 2,
         catalogService: FakeCatalogService(
           onGetCategoria: (_) async => _sampleCategory,
-          onCalculateRoomPrice: (_, __, ___, ____) async =>
+          onCalculateRoomPrice: (_, _, _, _) async =>
               throw Exception('calculate failed'),
         ),
       );

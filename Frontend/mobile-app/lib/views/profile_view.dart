@@ -64,7 +64,7 @@ class ProfileView extends StatelessWidget {
                   ),
                   SizedBox(height: cardPadding / 2),
                   DropdownButtonFormField<String>(
-                    value: prefs.country,
+                    initialValue: prefs.country,
                     isExpanded: true,
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(

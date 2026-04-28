@@ -103,6 +103,13 @@ def create_payment(request: CreatePaymentRequest) -> dict[str, Any]:
 
     payments_by_id[id_pago] = payment
     payment_id_by_reference[reference] = id_pago
+
+    if os.getenv("PAYMENT_AUTO_APPROVE", "false").lower() == "true":
+        payment["estado"] = "APPROVED"
+        payment["status_message"] = "Auto-aprobado (PAYMENT_AUTO_APPROVE=true)"
+        payment["updated_at"] = utc_now()
+        maybe_publish_final_event(payment)
+
     return payment
 
 

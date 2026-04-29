@@ -473,8 +473,8 @@ export class BookingCartPage implements OnDestroy {
       timerActive: this.timerActive(),
     });
 
-    const total = this.summary()?.total ?? 0;
-    if (total <= 0) {
+    const total = Number(this.summary()?.total);
+    if (!Number.isFinite(total) || total <= 0) {
       this.holdError.set('No fue posible calcular el valor total de la reserva para iniciar el pago.');
       return;
     }
@@ -499,10 +499,11 @@ export class BookingCartPage implements OnDestroy {
           return;
         }
 
-        this.router.navigate(['/booking', this.reservationId, 'processing-reservation'], {
-          queryParams: {
-            reason,
-          },
+        this.holdError.set('La reserva fue formalizada, pero el backend no devolvió una intención de pago para Wompi. Intenta nuevamente o valida el payload de formalización.');
+        console.error('[BookingCartPage] formalizeBookingById response without Wompi checkout', {
+          reservationId: this.reservationId,
+          response,
+          reason,
         });
       },
       error: (error) => {

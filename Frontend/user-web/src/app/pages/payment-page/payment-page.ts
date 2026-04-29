@@ -1,10 +1,36 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { PaymentIntentResponse } from '../../core/services/booking';
 import { PAYMENT_STORAGE_PREFIX } from '../../core/storage/payment-storage';
+
+declare global {
+  interface Window {
+    WidgetCheckout?: new (config: WompiCheckoutConfig) => {
+      open(callback: (result: WompiCheckoutResult) => void): void;
+    };
+  }
+}
+
+interface WompiCheckoutConfig {
+  currency: string;
+  amountInCents: number;
+  reference: string;
+  publicKey: string;
+  signature: {
+    integrity: string;
+  };
+  redirectUrl?: string;
+}
+
+interface WompiCheckoutResult {
+  transaction?: {
+    id?: string;
+    status?: string;
+  };
+}
 
 @Component({
   selector: 'app-payment-page',
@@ -13,22 +39,20 @@ import { PAYMENT_STORAGE_PREFIX } from '../../core/storage/payment-storage';
   templateUrl: './payment-page.html',
   styleUrl: './payment-page.css',
 })
-export class PaymentPage implements AfterViewInit, OnDestroy {
-  @ViewChild('wompiWidget', { static: true })
-  private readonly widgetRef!: ElementRef<HTMLDivElement>;
-
+export class PaymentPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   readonly reservationId = this.route.snapshot.paramMap.get('id_reserva') ?? '';
   readonly payment = signal<PaymentIntentResponse | null>(null);
   readonly error = signal<string | null>(null);
+  readonly widgetWarning = signal<string | null>(null);
+  readonly isWidgetReady = signal(false);
+  readonly isOpeningWidget = signal(false);
+  readonly checkoutForm = signal<Record<string, string> | null>(null);
 
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     this.loadPayment();
-  }
-
-  ngOnDestroy(): void {
-    this.clearWidget();
   }
 
   readonly amountLabel = () => {
@@ -39,6 +63,36 @@ export class PaymentPage implements AfterViewInit, OnDestroy {
 
     return `${current.moneda} ${Math.round(current.monto).toLocaleString('es-CO')}`;
   };
+
+  openWidget(): void {
+    const payment = this.payment();
+    if (!payment?.checkout || !window.WidgetCheckout || this.isOpeningWidget()) {
+      return;
+    }
+
+    this.isOpeningWidget.set(true);
+    this.error.set(null);
+    this.widgetWarning.set(null);
+
+    try {
+      const checkout = new window.WidgetCheckout(this.buildCheckoutConfig(payment));
+      checkout.open((result) => {
+        this.router.navigate(['/booking', this.reservationId, 'processing-reservation'], {
+          queryParams: {
+            id_pago: payment.id_pago,
+            transaction_id: result.transaction?.id ?? null,
+            status: result.transaction?.status ?? null,
+          },
+        });
+      });
+      window.setTimeout(() => this.warnIfWidgetDidNotRender(), 1500);
+    } catch (error) {
+      console.error('[PaymentPage] Wompi widget open error', error);
+      this.error.set('No fue posible abrir el widget de Wompi. Puedes intentar de nuevo.');
+    } finally {
+      this.isOpeningWidget.set(false);
+    }
+  }
 
   private loadPayment(): void {
     if (!this.reservationId) {
@@ -60,37 +114,68 @@ export class PaymentPage implements AfterViewInit, OnDestroy {
       }
 
       this.payment.set(payment);
-      this.renderWidget(payment);
+      this.checkoutForm.set(this.buildCheckoutForm(payment));
+      this.waitForWidgetScript();
     } catch {
       this.error.set('No fue posible leer la intencion de pago.');
     }
   }
 
-  private renderWidget(payment: PaymentIntentResponse): void {
+  private buildCheckoutConfig(payment: PaymentIntentResponse): WompiCheckoutConfig {
     const checkout = payment.checkout;
     if (!checkout) {
+      throw new Error('Payment checkout is required');
+    }
+
+    return {
+      currency: checkout.currency,
+      amountInCents: checkout.amount_in_cents,
+      reference: checkout.reference,
+      publicKey: checkout.public_key,
+      signature: {
+        integrity: checkout.signature_integrity,
+      },
+      redirectUrl: `${window.location.origin}/booking/${this.reservationId}/processing-reservation?id_pago=${encodeURIComponent(payment.id_pago)}`,
+    };
+  }
+
+  private buildCheckoutForm(payment: PaymentIntentResponse): Record<string, string> {
+    const checkout = payment.checkout;
+    if (!checkout) {
+      throw new Error('Payment checkout is required');
+    }
+
+    return {
+      'public-key': checkout.public_key,
+      currency: checkout.currency,
+      'amount-in-cents': String(checkout.amount_in_cents),
+      reference: checkout.reference,
+      'signature:integrity': checkout.signature_integrity,
+      'redirect-url': `${window.location.origin}/booking/${this.reservationId}/processing-reservation?id_pago=${encodeURIComponent(payment.id_pago)}`,
+    };
+  }
+
+  private waitForWidgetScript(retries = 20): void {
+    if (window.WidgetCheckout) {
+      this.isWidgetReady.set(true);
       return;
     }
 
-    const redirectUrl = `${window.location.origin}/booking/${this.reservationId}/processing-reservation?id_pago=${encodeURIComponent(payment.id_pago)}`;
-    const form = document.createElement('form');
-    const script = document.createElement('script');
+    if (retries <= 0) {
+      this.error.set('No fue posible cargar el widget de Wompi. Intenta con el checkout web.');
+      return;
+    }
 
-    script.src = 'https://checkout.wompi.co/widget.js';
-    script.setAttribute('data-render', 'button');
-    script.setAttribute('data-public-key', checkout.public_key);
-    script.setAttribute('data-currency', checkout.currency);
-    script.setAttribute('data-amount-in-cents', String(checkout.amount_in_cents));
-    script.setAttribute('data-reference', checkout.reference);
-    script.setAttribute('data-signature:integrity', checkout.signature_integrity);
-    script.setAttribute('data-redirect-url', redirectUrl);
-
-    form.appendChild(script);
-    this.widgetRef.nativeElement.appendChild(form);
+    window.setTimeout(() => this.waitForWidgetScript(retries - 1), 250);
   }
 
-  private clearWidget(): void {
-    this.widgetRef.nativeElement.replaceChildren();
+  private warnIfWidgetDidNotRender(): void {
+    const wompiElement = document.querySelector(
+      'iframe[src*="wompi"], iframe[src*="checkout"], [class*="wompi"], [id*="wompi"]'
+    );
+    if (!wompiElement) {
+      this.widgetWarning.set('Wompi no desplegó el widget. Esto suele pasar cuando la llave pública, la firma de integridad o la referencia no son aceptadas por Wompi. Prueba el checkout web y revisa la configuración de secretos en EKS.');
+    }
   }
 
   private storageKey(): string {

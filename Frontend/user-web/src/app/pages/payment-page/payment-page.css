@@ -39,6 +39,27 @@
   line-height: 1.5;
 }
 
+.payment-error,
+.payment-warning {
+  max-width: 560px;
+  margin: 18px auto 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.payment-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.payment-warning {
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
 .payment-amount {
   margin-top: 24px;
   color: #111827;
@@ -46,20 +67,46 @@
   font-weight: 800;
 }
 
-.wompi-widget {
-  display: flex;
-  justify-content: center;
-  min-height: 56px;
-  margin-top: 24px;
-}
-
-.payment-action {
+.payment-action,
+.wompi-button {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 22px;
   padding: 0.75rem 1rem;
+  min-width: 180px;
   border-radius: 8px;
+  border: 0;
   background: #1e3a8a;
   color: #ffffff;
+  font: inherit;
   font-weight: 700;
   text-decoration: none;
+  cursor: pointer;
+}
+
+.wompi-button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.web-checkout-form {
+  margin: 0;
+}
+
+.payment-secondary-action {
+  display: block;
+  margin: 14px auto 0;
+  border: 0;
+  background: transparent;
+  color: #1e3a8a;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.payment-secondary-action:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
 }

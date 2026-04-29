@@ -7,6 +7,8 @@ import { PAYMENT_STORAGE_PREFIX } from '../../core/storage/payment-storage';
 
 describe('PaymentPage', () => {
   let fixture: ComponentFixture<PaymentPage>;
+  let widgetConfig: unknown;
+  let widgetOpenSpy: jasmine.Spy;
 
   const routeStub = {
     snapshot: {
@@ -16,6 +18,14 @@ describe('PaymentPage', () => {
 
   beforeEach(async () => {
     sessionStorage.clear();
+    widgetConfig = null;
+    widgetOpenSpy = jasmine.createSpy('open');
+    (window as any).WidgetCheckout = function (config: unknown) {
+      widgetConfig = config;
+      return {
+        open: widgetOpenSpy,
+      };
+    };
 
     await TestBed.configureTestingModule({
       imports: [PaymentPage],
@@ -29,6 +39,7 @@ describe('PaymentPage', () => {
 
   afterEach(() => {
     sessionStorage.clear();
+    delete (window as any).WidgetCheckout;
   });
 
   it('should show an error when payment intent is missing', () => {
@@ -40,7 +51,7 @@ describe('PaymentPage', () => {
     expect(error.textContent).toContain('No se encontro una intencion de pago activa');
   });
 
-  it('should render Wompi widget script with required attributes', () => {
+  it('should configure Wompi checkout with required fields', async () => {
     sessionStorage.setItem(
       `${PAYMENT_STORAGE_PREFIX}reserva-123`,
       JSON.stringify({
@@ -62,17 +73,23 @@ describe('PaymentPage', () => {
 
     fixture = TestBed.createComponent(PaymentPage);
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
-    const script = fixture.nativeElement.querySelector('[data-testid="wompi-widget"] script');
-    expect(script).toBeTruthy();
-    expect(script.getAttribute('src')).toBe('https://checkout.wompi.co/widget.js');
-    expect(script.getAttribute('data-render')).toBe('button');
-    expect(script.getAttribute('data-public-key')).toBe('pub_test');
-    expect(script.getAttribute('data-currency')).toBe('COP');
-    expect(script.getAttribute('data-amount-in-cents')).toBe('12000000');
-    expect(script.getAttribute('data-reference')).toBe('PAY-1');
-    expect(script.getAttribute('data-signature:integrity')).toBe('sig');
-    expect(script.getAttribute('data-redirect-url')).toContain('/booking/reserva-123/processing-reservation');
-    expect(script.getAttribute('data-redirect-url')).toContain('id_pago=pay-1');
+    const button = fixture.nativeElement.querySelector('[data-testid="wompi-open-button"]');
+    expect(button).toBeTruthy();
+    expect(button.disabled).toBeFalse();
+
+    button.click();
+
+    expect(widgetOpenSpy).toHaveBeenCalled();
+    expect(widgetConfig).toEqual(jasmine.objectContaining({
+      publicKey: 'pub_test',
+      currency: 'COP',
+      amountInCents: 12000000,
+      reference: 'PAY-1',
+      signature: { integrity: 'sig' },
+      redirectUrl: jasmine.stringContaining('/booking/reserva-123/processing-reservation?id_pago=pay-1'),
+    }));
   });
 });

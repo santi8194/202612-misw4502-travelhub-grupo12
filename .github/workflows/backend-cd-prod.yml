@@ -583,6 +583,11 @@ jobs:
               for key in required_keys:
                   value = secret.get(key, "")
                   fh.write(f"{key}={value}\n")
+              payouts_base_url = secret.get(
+                  "WOMPI_PAYOUTS_BASE_URL",
+                  "https://api.sandbox.payouts.wompi.co/v1",
+              )
+              fh.write(f"WOMPI_PAYOUTS_BASE_URL={payouts_base_url}\n")
           PY
 
           kubectl create secret generic payment-app-secret \

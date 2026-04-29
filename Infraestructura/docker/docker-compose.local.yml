@@ -61,6 +61,7 @@ services:
       WOMPI_INTEGRITY_SECRET: ${WOMPI_INTEGRITY_SECRET:-}
       WOMPI_EVENTS_SECRET: ${WOMPI_EVENTS_SECRET:-}
       WOMPI_BASE_URL: ${WOMPI_BASE_URL:-}
+      WOMPI_PAYOUTS_BASE_URL: ${WOMPI_PAYOUTS_BASE_URL:-}
     depends_on:
       rabbitmq-broker:
         condition: service_healthy

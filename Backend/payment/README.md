@@ -12,6 +12,10 @@ Este flujo prueba el backend local de `payment` contra Wompi Sandbox usando tarj
   - `WOMPI_PRIVATE_KEY=prv_test_...`
   - `WOMPI_INTEGRITY_SECRET=test_integrity_...`
   - `WOMPI_EVENTS_SECRET=test_events_...`
+  - `WOMPI_BASE_URL=https://sandbox.wompi.co/v1`
+  - `WOMPI_PAYOUTS_BASE_URL=https://api.sandbox.payouts.wompi.co/v1`
+
+`WOMPI_BASE_URL` se usa para checkout, tokens, fuentes de pago y transacciones. `WOMPI_PAYOUTS_BASE_URL` se reserva para dispersiones/payouts.
 
 ### Arranque local
 

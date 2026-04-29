@@ -3,18 +3,47 @@
 
   <main class="payment-content">
     <section class="payment-card" data-testid="payment-page">
-      @if (error()) {
-        <h1 class="payment-title">No fue posible iniciar el pago</h1>
-        <p class="payment-message" data-testid="payment-error">{{ error() }}</p>
-        <a class="payment-action" [routerLink]="['/booking', reservationId]">Volver al carrito</a>
-      } @else {
+      @if (payment()) {
         <p class="payment-eyebrow">Pago seguro con Wompi</p>
         <h1 class="payment-title">Finaliza tu reserva</h1>
         <p class="payment-message">
-          Revisa el valor y continua con el boton de Wompi para pagar con tarjeta.
+          Revisa el valor y continua con Wompi para pagar con tarjeta.
         </p>
+        @if (error()) {
+          <p class="payment-error" data-testid="payment-error">{{ error() }}</p>
+        }
+        @if (widgetWarning()) {
+          <p class="payment-warning" data-testid="payment-warning">{{ widgetWarning() }}</p>
+        }
         <div class="payment-amount" data-testid="payment-amount">{{ amountLabel() }}</div>
-        <div #wompiWidget class="wompi-widget" data-testid="wompi-widget"></div>
+        <button
+          type="button"
+          class="wompi-button"
+          [disabled]="!isWidgetReady() || isOpeningWidget()"
+          (click)="openWidget()"
+          data-testid="wompi-open-button">
+          {{ isWidgetReady() ? (isOpeningWidget() ? 'Abriendo Wompi...' : 'Pagar con Wompi') : 'Cargando Wompi...' }}
+        </button>
+        @if (checkoutForm(); as form) {
+          <form action="https://checkout.wompi.co/p/" method="GET" class="web-checkout-form">
+            <input type="hidden" name="public-key" [value]="form['public-key']" />
+            <input type="hidden" name="currency" [value]="form['currency']" />
+            <input type="hidden" name="amount-in-cents" [value]="form['amount-in-cents']" />
+            <input type="hidden" name="reference" [value]="form['reference']" />
+            <input type="hidden" name="signature:integrity" [value]="form['signature:integrity']" />
+            <input type="hidden" name="redirect-url" [value]="form['redirect-url']" />
+            <button
+              type="submit"
+              class="payment-secondary-action"
+              data-testid="wompi-web-checkout-button">
+              Abrir checkout web
+            </button>
+          </form>
+        }
+      } @else {
+        <h1 class="payment-title">No fue posible iniciar el pago</h1>
+        <p class="payment-message" data-testid="payment-error">{{ error() }}</p>
+        <a class="payment-action" [routerLink]="['/booking', reservationId]">Volver al carrito</a>
       }
     </section>
   </main>

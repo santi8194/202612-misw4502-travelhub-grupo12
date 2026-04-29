@@ -11,12 +11,39 @@ import os
 def payment_mode() -> str:
     return os.getenv("PAYMENT_MODE", "wompi").strip().lower()
 
+
+def auto_approve_enabled() -> bool:
+    return os.getenv("PAYMENT_AUTO_APPROVE", "false").lower() == "true"
+
+
+def _publish_auto_approved_payment_event(reservation_id):
+    if not reservation_id:
+        print("[PAYMENTS] auto_approve: missing id_reserva, skipping")
+        return
+
+    payment_id = str(uuid.uuid4())
+    print(f"[PAYMENTS] Auto-approving payment {payment_id} for reservation {reservation_id}")
+
+    event_bus = EventBus()
+    event = SuccessfulPayment(payment_id, reservation_id)
+    event_bus.publish_event(event.routing_key, event.type, event.to_dict())
+
+    print(f"[PAYMENTS] PagoExitosoEvt published for reservation {reservation_id}")
+
 def handle_process_payment(data):
 
     reservation_id = data["id_reserva"]
     amount = data["monto"]
 
     print(f"[PAYMENTS] Command received: ProcessPayment for reservation {reservation_id}")
+
+    if auto_approve_enabled():
+        _publish_auto_approved_payment_event(reservation_id)
+        return {
+            "message": "Auto-approved payment",
+            "state": "APPROVED",
+            "reservation_id": reservation_id,
+        }
 
     if payment_mode() == "wompi":
         print("[PAYMENTS] PAYMENT_MODE=wompi: waiting for Wompi webhook, command ignored")
@@ -75,7 +102,7 @@ def handle_auto_approve_payment(data):
     Handles evt.reserva.creada when PAYMENT_AUTO_APPROVE=true.
     Publishes PagoExitosoEvt directly so the saga can advance without a Wompi webhook.
     """
-    if os.getenv("PAYMENT_AUTO_APPROVE", "false").lower() != "true":
+    if not auto_approve_enabled():
         return
 
     # Extract reservation data — payload is either nested under 'data' or flat
@@ -86,11 +113,4 @@ def handle_auto_approve_payment(data):
         print("[PAYMENTS] handle_auto_approve_payment: missing id_reserva, skipping")
         return
 
-    payment_id = str(uuid.uuid4())
-    print(f"[PAYMENTS] Auto-approving payment {payment_id} for reservation {reservation_id}")
-
-    event_bus = EventBus()
-    event = SuccessfulPayment(payment_id, reservation_id)
-    event_bus.publish_event(event.routing_key, event.type, event.to_dict())
-
-    print(f"[PAYMENTS] PagoExitosoEvt published for reservation {reservation_id}")
+    _publish_auto_approved_payment_event(reservation_id)

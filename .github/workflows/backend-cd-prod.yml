@@ -564,6 +564,7 @@ jobs:
           env_file = os.environ["PAYMENT_APP_ENV_FILE"]
           required_keys = [
               "PAYMENT_MODE",
+              "PAYMENT_AUTO_APPROVE",
               "WOMPI_PUBLIC_KEY",
               "WOMPI_PRIVATE_KEY",
               "WOMPI_INTEGRITY_SECRET",

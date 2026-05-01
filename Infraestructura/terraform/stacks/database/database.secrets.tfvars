@@ -2,11 +2,14 @@ db_username = "travelhub"
 db_password = "Grupo12.2026"
 
 service_db_passwords = {
-  authservice = "Grupo12.2026"
-  booking     = "Grupo12.2026"
-  catalog     = "Grupo12.2026"
-  payment     = "Grupo12.2026"
-  search      = "Grupo12.2026"
+  authservice          = "Grupo12.2026"
+  booking              = "Grupo12.2026"
+  catalog              = "Grupo12.2026"
+  payment              = "Grupo12.2026"
+  "pms-integration"    = "Grupo12.2026"
+  "partner-management" = "Grupo12.2026"
+  notification         = "Grupo12.2026"
+  search               = "Grupo12.2026"
 }
 
 payment_app_runtime_secrets = {

@@ -91,7 +91,14 @@
   "roomGallery": "Galería de Habitaciones",
   "verifiedReviews": "RESEÑAS VERIFICADAS",
   "reserveNow": "Reservar Ahora",
-  "totalPriceLabel": "PRECIO TOTAL"
+  "totalPriceLabel": "PRECIO TOTAL",
+  "reservationStatusActive": "Reserva Activa",
+  "callHotel": "Llamar Hotel",
+  "howToGet": "Cómo llegar",
+  "downloadPdf": "Descargar Comprobante PDF",
+  "cancelReservation": "Cancelar Reserva",
+  "confirmationCodeLabel": "CÓDIGO DE CONFIRMACIÓN",
+  "statusLabel": "ESTADO"
 }
 
 

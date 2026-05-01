@@ -226,4 +226,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalPriceLabel => 'TOTAL PRICE';
+
+  @override
+  String get reservationStatusActive => 'Active Reservation';
+
+  @override
+  String get callHotel => 'Call Hotel';
+
+  @override
+  String get howToGet => 'How to get there';
+
+  @override
+  String get downloadPdf => 'Download PDF Receipt';
+
+  @override
+  String get cancelReservation => 'Cancel Reservation';
+
+  @override
+  String get confirmationCodeLabel => 'CONFIRMATION CODE';
+
+  @override
+  String get statusLabel => 'STATUS';
 }

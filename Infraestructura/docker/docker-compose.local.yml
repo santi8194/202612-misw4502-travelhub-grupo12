@@ -4,6 +4,8 @@ services:
     build:
       context: ../../Backend/authservice
       dockerfile: Dockerfile
+    environment:
+      COGNITO_REGION: ${COGNITO_REGION:-us-east-1}
     volumes:
       - authservice_sqlite_data:/src/data
 

@@ -58,3 +58,31 @@ def test_refund_payment_delegates_to_command(monkeypatch):
 
     assert response.status_code == 200
     assert response.json() == {"reservation_id": "res-456", "state": "REFUNDED"}
+
+
+def test_get_payments_by_reserva_delegates_to_query(monkeypatch):
+    class FakeGetPaymentsByReservation:
+        def __init__(self, repository):
+            pass
+
+        def execute(self, reservation_id):
+            return [
+                {
+                    "id": "pay-123",
+                    "reservation_id": reservation_id,
+                    "amount": 100.0,
+                    "currency": "USD",
+                    "state": "APPROVED",
+                }
+            ]
+
+    monkeypatch.setattr(router_module, "GetPaymentsByReservation", FakeGetPaymentsByReservation)
+
+    response = _client().get("/payments/by-reserva/res-123")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body, list)
+    assert len(body) == 1
+    assert body[0]["reservation_id"] == "res-123"
+    assert body[0]["id"] == "pay-123"

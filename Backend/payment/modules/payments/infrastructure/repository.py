@@ -29,6 +29,16 @@ class PaymentRepository:
         db.close()
         return payment
 
+    def obtain_all_by_reservation(self, reservation_id):
+        db: Session = SessionLocal()
+
+        payments = db.query(PaymentModel)\
+            .filter(PaymentModel.reservation_id == reservation_id)\
+            .all()
+
+        db.close()
+        return payments
+
     def obtain_by_id(self, payment_id):
         db: Session = SessionLocal()
 

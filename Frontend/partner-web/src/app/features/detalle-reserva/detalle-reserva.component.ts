@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReservaDetalleApi, ReservasService } from '../../core/services/reservas.service';
 
 export interface EventoLinea {
     titulo: string;
@@ -44,12 +45,14 @@ export interface DetalleReserva {
     templateUrl: './detalle-reserva.component.html',
     styleUrl: './detalle-reserva.component.scss'
 })
-export class DetalleReservaComponent {
+export class DetalleReservaComponent implements OnChanges {
     @Input() reservaId: string | null = null;
+    @Input() habitacionNombre: string | null = null;
+    @Input() onVolver: (() => void) | null = null;
     @Output() volver = new EventEmitter<void>();
 
-    // Mock data — replace with real service call when API is ready
-    readonly reserva: DetalleReserva = {
+    // Datos base mientras backend no expone toda la información del detalle.
+    reserva: DetalleReserva = {
         id: 'BK-2847',
         codigo: 'BK-2847',
         nombreCompleto: 'John Anderson',
@@ -83,6 +86,21 @@ export class DetalleReservaComponent {
         { titulo: 'Check-Out Programado',    descripcion: 'Se espera que el huésped haga check-out',         fecha: new Date('2026-03-08T11:00:00'), completado: false },
     ];
 
+    constructor(private reservasService: ReservasService) {}
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['habitacionNombre'] && this.habitacionNombre) {
+            this.reserva = {
+                ...this.reserva,
+                tipoHabitacion: this.habitacionNombre,
+            };
+        }
+
+        if (changes['reservaId'] && this.reservaId) {
+            this.cargarDetalleReserva(this.reservaId);
+        }
+    }
+
     get subtotal(): number {
         return this.reserva.tarifaPorNoche * this.reserva.totalNoches;
     }
@@ -95,7 +113,70 @@ export class DetalleReservaComponent {
         return +(this.subtotal + this.impuestos).toFixed(1);
     }
 
+    private cargarDetalleReserva(idReserva: string): void {
+        this.reservasService.getReservaPorId(idReserva).subscribe({
+            next: (detalle) => {
+                this.reserva = this.mapDetalleReserva(detalle);
+            },
+            error: () => {
+                this.reserva = {
+                    ...this.reserva,
+                    id: idReserva,
+                    codigo: idReserva,
+                    tipoHabitacion: this.habitacionNombre ?? this.reserva.tipoHabitacion,
+                };
+            }
+        });
+    }
+
+    private mapDetalleReserva(detalle: ReservaDetalleApi): DetalleReserva {
+        const checkIn = this.parseDate(detalle.fecha_check_in) ?? this.reserva.checkIn;
+        const checkOut = this.parseDate(detalle.fecha_check_out) ?? this.reserva.checkOut;
+
+        return {
+            ...this.reserva,
+            id: detalle.id_reserva,
+            codigo: detalle.id_reserva,
+            tipoHabitacion: this.habitacionNombre ?? this.reserva.tipoHabitacion,
+            checkIn,
+            checkOut,
+            totalNoches: this.calcularNoches(checkIn, checkOut),
+            estado: this.toEstadoUi(detalle.estado),
+            reservadoEl: this.parseDate(detalle.fecha_creacion) ?? this.reserva.reservadoEl,
+        };
+    }
+
+    private parseDate(value: string | null): Date | null {
+        if (!value) {
+            return null;
+        }
+
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    private calcularNoches(checkIn: Date, checkOut: Date): number {
+        const msPorDia = 1000 * 60 * 60 * 24;
+        const diff = Math.round((checkOut.getTime() - checkIn.getTime()) / msPorDia);
+        return diff > 0 ? diff : this.reserva.totalNoches;
+    }
+
+    private toEstadoUi(value: string | null): 'Confirmada' | 'Pendiente' | 'Cancelada' {
+        const estado = (value || '').toUpperCase();
+        if (estado === 'CONFIRMADA') {
+            return 'Confirmada';
+        }
+        if (estado === 'CANCELADA' || estado === 'EXPIRADA') {
+            return 'Cancelada';
+        }
+        return 'Pendiente';
+    }
+
     volverAReservas(): void {
+        if (this.onVolver) {
+            this.onVolver();
+            return;
+        }
         this.volver.emit();
     }
 

@@ -17,6 +17,24 @@ export interface ReservaPorPropiedadApi {
     total: number | null;
 }
 
+export interface ReservaDetalleApi {
+    id_reserva: string;
+    id_usuario: string | null;
+    id_categoria: string | null;
+    codigo_confirmacion_ota: string | null;
+    codigo_localizador_pms: string | null;
+    estado: string | null;
+    fecha_check_in: string | null;
+    fecha_check_out: string | null;
+    ocupacion: {
+        adultos: number;
+        ninos: number;
+        infantes: number;
+    } | null;
+    fecha_creacion: string | null;
+    fecha_actualizacion: string | null;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -28,6 +46,12 @@ export class ReservasService {
     getReservasPorPropiedad(idPropiedad: string): Observable<ReservaPorPropiedadApi[]> {
         return this.http.get<ReservaPorPropiedadApi[]>(
             `${this.base}/reserva/propiedad/${encodeURIComponent(idPropiedad)}`
+        );
+    }
+
+    getReservaPorId(idReserva: string): Observable<ReservaDetalleApi> {
+        return this.http.get<ReservaDetalleApi>(
+            `${this.base}/reserva/${encodeURIComponent(idReserva)}`
         );
     }
 }

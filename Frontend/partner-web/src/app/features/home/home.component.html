@@ -213,7 +213,7 @@
         </section>
 
         <section class="section-content" *ngIf="activeSection === 'detalle-reserva'">
-            <app-detalle-reserva [reservaId]="reservaSeleccionadaId" (volver)="volverDeDetalle()"></app-detalle-reserva>
+            <ng-container *ngComponentOutlet="detalleReservaComponent; inputs: { reservaId: reservaSeleccionadaId, habitacionNombre: habitacionSeleccionada, onVolver: volverDetalleHandler }"></ng-container>
         </section>
 
         <ng-template #sectionPlaceholder>

@@ -26,13 +26,6 @@ export interface ReservationOccupancy {
   infantes: number;
 }
 
-// ─── Category info from Catalog microservice ──────────────────────────────────
-export interface CategoryInfo {
-  id_categoria: string;
-  nombre_comercial: string;
-  foto_portada_url: string | null;
-}
-
 // ─── Payment info from Payment microservice ───────────────────────────────────
 export type PaymentEstado =
   | 'PENDING'
@@ -42,11 +35,29 @@ export type PaymentEstado =
   | 'REFUNDED';
 
 export interface PaymentInfo {
-  id_pago: string;
-  id_reserva: string;
-  estado: PaymentEstado;
-  monto: number;
+  id: string;
+  reservation_id: string;
+  state: PaymentEstado;
+  amount: number;
+  currency: string;
+}
+
+// ─── Catalog: GET /categories/{id_categoria} ──────────────────────────────────
+export interface CategoryApiResponse {
+  id_categoria: string;
+  nombre_comercial: string;
+  foto_portada_url: string | null;
+}
+
+// ─── Catalog: POST /calculate-room-price ──────────────────────────────────────
+export interface CalculateRoomPriceResponse {
+  total: number;
   moneda: string;
+  noches: number;
+  precio_por_noche: number;
+  subtotal: number;
+  impuestos: number;
+  cargo_servicio: number;
 }
 
 // ─── Consolidated status for the view ─────────────────────────────────────────

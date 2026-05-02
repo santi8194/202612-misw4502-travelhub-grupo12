@@ -1,58 +1,30 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import {
+  BookingReservation,
+  CalculateRoomPriceResponse,
+  CategoryApiResponse,
+  PaymentEstado,
+  PaymentInfo,
   ReservationCounters,
   ReservationFilter,
   ReservationViewModel,
+  UserLocale,
 } from '../../models/reservation.interface';
 import { resolveReservationStatus, getStatusLabel } from './reservation-status.resolver';
 
-/** ─── PHASE 1: MOCK DATA ──────────────────────────────────────────────────────
- * In Phase 2, replace MOCK_RESERVATIONS with toSignal(httpObservable$)
- * that fetches from Booking → Catalog → Payment and maps to ReservationViewModel.
- */
-const MOCK_RESERVATIONS: ReservationViewModel[] = [
-  {
-    id_reserva: '441619ae-308c-46bb-ad23-971ced60f3e1',
-    nombre_comercial: 'Bourdeaux Getaway',
-    foto_portada_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
-    estado: resolveReservationStatus('CONFIRMADA', 'APPROVED'),
-    fecha_check_in: '2026-03-07',
-    fecha_check_out: '2026-03-10',
-    total_huespedes: 2,
-    monto_total: 580,
-    moneda: 'USD',
-    codigo_confirmacion: 'TH-GP-001-2026',
-  },
-  {
-    id_reserva: 'b2e34f77-1234-4abc-9def-56789abcdef0',
-    nombre_comercial: 'Coastal Bay Resort',
-    foto_portada_url: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80',
-    estado: resolveReservationStatus('HOLD', null),
-    fecha_check_in: '2026-04-09',
-    fecha_check_out: '2026-04-14',
-    total_huespedes: 4,
-    monto_total: 1725,
-    moneda: 'USD',
-    codigo_confirmacion: null,
-  },
-  {
-    id_reserva: 'c3d45e88-5678-4bcd-aef0-67890bcdef01',
-    nombre_comercial: 'Mountain View Lodge',
-    foto_portada_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-    estado: resolveReservationStatus('CANCELADA', null),
-    fecha_check_in: '2026-02-09',
-    fecha_check_out: '2026-02-12',
-    total_huespedes: 2,
-    monto_total: 1275,
-    moneda: 'USD',
-    codigo_confirmacion: null,
-  },
-];
-
 @Injectable({ providedIn: 'root' })
 export class MyReservationsService {
-  /** Phase 1: static signal. Phase 2: replace with toSignal(http$) */
-  readonly reservations = signal<ReservationViewModel[]>(MOCK_RESERVATIONS);
+  private readonly http = inject(HttpClient);
+  private readonly bookingApiUrl = environment.bookingApiUrl;
+  private readonly catalogApiUrl = environment.catalogApiUrl;
+  private readonly paymentApiUrl = environment.paymentApiUrl;
+
+  readonly reservations = toSignal(this.loadReservations$(), { initialValue: [] });
 
   readonly activeFilter = signal<ReservationFilter>('TODAS');
 
@@ -89,6 +61,103 @@ export class MyReservationsService {
     this.activeFilter.set(filter);
   }
 
-  /** Exposed for template use */
   readonly getStatusLabel = getStatusLabel;
+
+  private loadReservations$(): Observable<ReservationViewModel[]> {
+    return this.http.get<UserLocale>('assets/data/user-locale.json').pipe(
+      switchMap(locale =>
+        this.http.get<BookingReservation[]>(
+          `${this.bookingApiUrl}/usuario/${locale.id_usuario}`
+        ).pipe(
+          switchMap(bookings =>
+            bookings.length === 0
+              ? of([])
+              : forkJoin(
+                  bookings.map(booking =>
+                    this.enrichReservation$(booking, locale.pais)
+                  )
+                )
+          )
+        )
+      ),
+      catchError(() => of([]))
+    );
+  }
+
+  private enrichReservation$(
+    booking: BookingReservation,
+    pais: string
+  ): Observable<ReservationViewModel> {
+    return forkJoin({
+      category: this.http.get<CategoryApiResponse>(
+        `${this.catalogApiUrl}/categories/${booking.id_categoria}`
+      ).pipe(catchError(() => of(null))),
+      payments: this.http.get<PaymentInfo[]>(
+        `${this.paymentApiUrl}/payments/by-reserva/${booking.id_reserva}`
+      ).pipe(catchError(() => of([]))),
+    }).pipe(
+      switchMap(({ category, payments }) => {
+        const approvedPayment = payments.find(p => p.state === 'APPROVED') ?? null;
+
+        if (approvedPayment) {
+          return of(
+            this.buildViewModel(
+              booking, category,
+              approvedPayment.amount, approvedPayment.currency,
+              'APPROVED'
+            )
+          );
+        }
+
+        const firstPaymentState: PaymentEstado | null = payments[0]?.state ?? null;
+
+        return this.http.post<CalculateRoomPriceResponse>(
+          `${this.catalogApiUrl}/calculate-room-price`,
+          {
+            id_categoria: booking.id_categoria,
+            fecha_inicio: booking.fecha_check_in,
+            fecha_fin: booking.fecha_check_out,
+            pais_usuario: pais,
+          }
+        ).pipe(
+          catchError(() => of(null)),
+          map(priceCalc =>
+            this.buildViewModel(
+              booking, category,
+              priceCalc?.total ?? null,
+              priceCalc?.moneda ?? '',
+              firstPaymentState
+            )
+          )
+        );
+      })
+    );
+  }
+
+  private buildViewModel(
+    booking: BookingReservation,
+    category: CategoryApiResponse | null,
+    monto_total: number | null,
+    moneda: string,
+    paymentStateForResolver: PaymentEstado | null
+  ): ReservationViewModel {
+    const estado = resolveReservationStatus(booking.estado, paymentStateForResolver);
+
+    return {
+      id_reserva: booking.id_reserva,
+      nombre_comercial: category?.nombre_comercial ?? '—',
+      foto_portada_url: category?.foto_portada_url ?? null,
+      estado,
+      fecha_check_in: booking.fecha_check_in,
+      fecha_check_out: booking.fecha_check_out,
+      total_huespedes:
+        (booking.ocupacion?.adultos ?? 0) +
+        (booking.ocupacion?.ninos ?? 0) +
+        (booking.ocupacion?.infantes ?? 0),
+      monto_total,
+      moneda,
+      codigo_confirmacion:
+        booking.codigo_confirmacion_ota || booking.codigo_localizador_pms || null,
+    };
+  }
 }

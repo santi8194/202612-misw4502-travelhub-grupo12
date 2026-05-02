@@ -1,12 +1,51 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MyReservationsPage } from './my-reservations-page';
 import { MyReservationsService } from '../../core/services/my-reservations';
+import { environment } from '../../../environments/environment';
+import { BookingReservation, CategoryApiResponse, PaymentInfo } from '../../models/reservation.interface';
+
+const MOCK_LOCALE = { pais: 'Colombia', id_usuario: 'cc912e74-927e-4166-802b-3ba6a3615ebf' };
+
+const MOCK_BOOKING: BookingReservation = {
+  id_reserva: 'res-001',
+  id_usuario: MOCK_LOCALE.id_usuario,
+  id_categoria: 'cat-001',
+  estado: 'CONFIRMADA',
+  fecha_check_in: '2026-03-07',
+  fecha_check_out: '2026-03-10',
+  fecha_creacion: '2026-01-01T00:00:00',
+  fecha_actualizacion: '2026-01-01T00:00:00',
+  codigo_confirmacion_ota: 'TH-001',
+  codigo_localizador_pms: '',
+  ocupacion: { adultos: 2, ninos: 0, infantes: 0 },
+};
+
+const MOCK_CATEGORY: CategoryApiResponse = {
+  id_categoria: 'cat-001',
+  nombre_comercial: 'Suite Deluxe',
+  foto_portada_url: 'https://example.com/img.jpg',
+};
+
+const MOCK_PAYMENT: PaymentInfo = {
+  id: 'pay-001',
+  reservation_id: 'res-001',
+  state: 'APPROVED',
+  amount: 580,
+  currency: 'USD',
+};
 
 describe('MyReservationsPage', () => {
   let fixture: ComponentFixture<MyReservationsPage>;
   let service: MyReservationsService;
+  let httpTesting: HttpTestingController;
+
+  const BOOKING_URL = environment.bookingApiUrl;
+  const CATALOG_URL = environment.catalogApiUrl;
+  const PAYMENT_URL = environment.paymentApiUrl;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -14,12 +53,25 @@ describe('MyReservationsPage', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
+    httpTesting = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(MyReservationsPage);
     service = TestBed.inject(MyReservationsService);
+
+    httpTesting.expectOne('assets/data/user-locale.json').flush(MOCK_LOCALE);
+    httpTesting.expectOne(`${BOOKING_URL}/usuario/${MOCK_LOCALE.id_usuario}`).flush([MOCK_BOOKING]);
+    httpTesting.expectOne(`${CATALOG_URL}/categories/${MOCK_BOOKING.id_categoria}`).flush(MOCK_CATEGORY);
+    httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING.id_reserva}`).flush([MOCK_PAYMENT]);
+
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTesting.verify();
   });
 
   it('should create the component', () => {
@@ -110,8 +162,6 @@ describe('MyReservationsPage', () => {
   });
 
   it('should show empty state when no reservations match the filter', async () => {
-    // Force an empty filtered result by setting all to CONFIRMADA and filtering CANCELADA
-    service.reservations.set([]);
     service.setFilter('CANCELADA');
     fixture.detectChanges();
     const emptyState = fixture.nativeElement.querySelector('[data-testid="empty-state"]');

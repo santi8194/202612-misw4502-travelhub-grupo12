@@ -38,6 +38,14 @@ describe('resolveReservationStatus', () => {
   it('should return CANCELADA for EXPIRADA booking state', () => {
     expect(resolveReservationStatus('EXPIRADA', null)).toBe('CANCELADA');
   });
+
+  it('should return PENDIENTE_PAGO when booking is HOLD and payment is REFUNDED', () => {
+    expect(resolveReservationStatus('HOLD', 'REFUNDED')).toBe('PENDIENTE_PAGO');
+  });
+
+  it('should return PENDIENTE_PAGO when booking is HOLD and payment is CANCELLED', () => {
+    expect(resolveReservationStatus('HOLD', 'CANCELLED')).toBe('PENDIENTE_PAGO');
+  });
 });
 
 describe('getStatusLabel', () => {

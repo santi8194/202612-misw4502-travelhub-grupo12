@@ -1,6 +1,7 @@
 
 import json
 import pika
+import time
 from config.rabbitmq import create_connection
 from modules.services.email_service import send_voucher_email
 from modules.publishers.voucher_enviado_publisher import publish_voucher_enviado
@@ -8,6 +9,7 @@ from modules.publishers.voucher_enviado_publisher import publish_voucher_enviado
 EVENTS_EXCHANGE = "travelhub.events.exchange"
 QUEUE_NAME = "notification.events.queue"
 ROUTING_KEY = "evt.reserva.confirmada"
+RETRY_DELAY_SECONDS = 5
 
 def callback(ch, method, properties, body):
     try:
@@ -38,13 +40,9 @@ def callback(ch, method, properties, body):
     except Exception as e:
         print("Error procesando evento:", e)
 
-def start_consumer():
-
+def _configure_consumer_channel(channel):
     print("Notification service started")
     print("Waiting for evt.reserva.confirmada...")
-
-    connection = create_connection()
-    channel = connection.channel()
 
     # Declarar exchange de eventos
     channel.exchange_declare(
@@ -73,4 +71,30 @@ def start_consumer():
     )
 
     print("Waiting for events...")
-    channel.start_consuming()
+
+
+def start_consumer():
+    while True:
+        connection = None
+        channel = None
+        try:
+            connection = create_connection(max_attempts=None, retry_delay=RETRY_DELAY_SECONDS)
+            channel = connection.channel()
+            _configure_consumer_channel(channel)
+            channel.start_consuming()
+            print("[NOTIFICATION] Consumer stopped unexpectedly, reconnecting...")
+        except Exception as exc:
+            print(f"[NOTIFICATION] Consumer error: {exc}. Retrying in {RETRY_DELAY_SECONDS} seconds...")
+            time.sleep(RETRY_DELAY_SECONDS)
+        finally:
+            try:
+                if channel and channel.is_open:
+                    channel.close()
+            except Exception:
+                pass
+
+            try:
+                if connection and connection.is_open:
+                    connection.close()
+            except Exception:
+                pass

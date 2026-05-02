@@ -3,10 +3,11 @@ Propósito del archivo: Integración con la base de datos de usuarios.
 Rol dentro del microservicio: Sirve de intermediario para obtener los registros y contraseñas (hasheadas) de un usuario desde PostgreSQL.
 """
 
+from datetime import datetime
 from typing import Optional
 from data.user import UserInDB
 from infrastructure.database import SessionLocal
-from infrastructure.models import User
+from infrastructure.models import Role, User
 import logging
 
 logger = logging.getLogger(__name__)
@@ -88,5 +89,88 @@ class UserService:
         except Exception as e:
             logger.error(f"Error al consultar usuario {email}: {str(e)}")
             return None
+        finally:
+            db.close()
+
+    @staticmethod
+    def create_or_update_registered_user(
+        *,
+        email: str,
+        full_name: str,
+        username: str,
+        active: bool,
+    ) -> Optional[UserInDB]:
+        """
+        Crea o actualiza un usuario local sincronizado con Cognito y garantiza el rol USER.
+
+        Parámetros:
+        - email (str): correo del usuario.
+        - full_name (str): nombre completo del usuario.
+        - username (str): username de Cognito (en este flujo usamos el email).
+        - active (bool): estado local del usuario según etapa de confirmación.
+
+        Retorna:
+        - Optional[UserInDB]: Usuario sincronizado o None ante error.
+        """
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.email == email).first()
+            if user is None:
+                user = User(
+                    email=email,
+                    username=username,
+                    full_name=full_name,
+                    # Cognito gestiona la contraseña, se almacena marcador por compatibilidad de esquema histórico.
+                    password_hash="COGNITO_MANAGED",
+                    is_active="true" if active else "false",
+                )
+                db.add(user)
+            else:
+                user.full_name = full_name
+                user.username = username
+                user.is_active = "true" if active else "false"
+                if not user.password_hash:
+                    user.password_hash = "COGNITO_MANAGED"
+                user.updated_at = datetime.utcnow()
+
+            role_user = db.query(Role).filter(Role.name == "USER").first()
+            if role_user and role_user not in user.roles:
+                user.roles.append(role_user)
+
+            db.commit()
+            db.refresh(user)
+
+            rol = user.roles[0].name if user.roles else "USER"
+            return UserInDB(
+                id_usuario=user.id,
+                email=user.email,
+                password_hash=user.password_hash,
+                rol=rol,
+                partner_id=user.partner_id,
+            )
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error al crear/actualizar usuario registrado {email}: {str(e)}")
+            return None
+        finally:
+            db.close()
+
+    @staticmethod
+    def activate_user(email: str) -> bool:
+        """Marca un usuario local como activo al confirmar su código de registro."""
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.email == email).first()
+            if not user:
+                return False
+
+            user.is_active = "true"
+            user.updated_at = datetime.utcnow()
+            db.commit()
+            return True
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error al activar usuario {email}: {str(e)}")
+            return False
         finally:
             db.close()

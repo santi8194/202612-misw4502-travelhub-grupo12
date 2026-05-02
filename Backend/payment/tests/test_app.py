@@ -363,6 +363,50 @@ def test_duplicate_webhook_does_not_publish_twice(monkeypatch):
     assert published_events == [("PagoExitosoEvt", "evt.pago.exitoso")]
 
 
+def test_create_payment_auto_approves_and_publishes_event_when_flag_enabled(monkeypatch):
+    monkeypatch.setenv("PAYMENT_AUTO_APPROVE", "true")
+    monkeypatch.setenv("WOMPI_PUBLIC_KEY", "pub_test_123")
+    monkeypatch.setenv("WOMPI_INTEGRITY_SECRET", "integrity_secret")
+    published_events = []
+    monkeypatch.setattr(
+        payment_app,
+        "publish_payment_event",
+        lambda payment, event_type, routing_key: published_events.append((event_type, routing_key)) or True,
+    )
+
+    response = client.post(
+        "/payments",
+        json={"id_reserva": "reserva-auto", "monto": 5000, "moneda": "COP"},
+    )
+
+    body = response.json()
+    assert response.status_code == 201
+    assert body["estado"] == "APPROVED"
+    assert published_events == [("PagoExitosoEvt", "evt.pago.exitoso")]
+
+
+def test_create_payment_does_not_auto_approve_when_flag_disabled(monkeypatch):
+    monkeypatch.setenv("PAYMENT_AUTO_APPROVE", "false")
+    monkeypatch.setenv("WOMPI_PUBLIC_KEY", "pub_test_123")
+    monkeypatch.setenv("WOMPI_INTEGRITY_SECRET", "integrity_secret")
+    published_events = []
+    monkeypatch.setattr(
+        payment_app,
+        "publish_payment_event",
+        lambda payment, event_type, routing_key: published_events.append((event_type, routing_key)) or True,
+    )
+
+    response = client.post(
+        "/payments",
+        json={"id_reserva": "reserva-no-auto", "monto": 5000, "moneda": "COP"},
+    )
+
+    body = response.json()
+    assert response.status_code == 201
+    assert body["estado"] == "PENDING"
+    assert published_events == []
+
+
 def create_pending_payment():
     response = client.post(
         "/payments",

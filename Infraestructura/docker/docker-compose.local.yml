@@ -4,6 +4,8 @@ services:
     build:
       context: ../../Backend/authservice
       dockerfile: Dockerfile
+    environment:
+      COGNITO_REGION: ${COGNITO_REGION:-us-east-1}
     volumes:
       - authservice_sqlite_data:/src/data
 
@@ -56,6 +58,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
       PAYMENT_MODE: ${PAYMENT_MODE:-wompi}
+      PAYMENT_AUTO_APPROVE: ${PAYMENT_AUTO_APPROVE:-true}
       WOMPI_PUBLIC_KEY: ${WOMPI_PUBLIC_KEY:-}
       WOMPI_PRIVATE_KEY: ${WOMPI_PRIVATE_KEY:-}
       WOMPI_INTEGRITY_SECRET: ${WOMPI_INTEGRITY_SECRET:-}

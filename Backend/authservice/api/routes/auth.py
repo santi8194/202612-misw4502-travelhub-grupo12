@@ -7,9 +7,18 @@ La autenticación y gestión de tokens es delegada a AWS Cognito.
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from data.auth import Token, LoginRequest, RefreshTokenRequest
+from data.auth import (
+    ConfirmRegisterRequest,
+    LoginRequest,
+    MessageResponse,
+    RefreshTokenRequest,
+    RegisterRequest,
+    RegisterResponse,
+    Token,
+)
 from data.user import UserResponse
 from modules.auth_service import AuthService
+from modules.user_service import UserService
 from api.dependencies.auth import get_current_user
 
 router = APIRouter()
@@ -26,6 +35,59 @@ def login(request: LoginRequest) -> Any:
         "refresh_token": result["RefreshToken"],
         "token_type": "bearer",
     }
+
+
+@router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
+def register(request: RegisterRequest) -> Any:
+    """
+    Endpoint: Registra un viajero y dispara el envío del código de validación por Cognito.
+    """
+    cognito_response = AuthService.register_user(
+        email=request.email,
+        password=request.password,
+        first_name=request.first_name,
+        last_name=request.last_name,
+        phone_number=request.phone_number,
+    )
+
+    full_name = f"{request.first_name} {request.last_name}".strip()
+    # UserSub es el UUID que Cognito usará como claim 'username' en el Access Token
+    cognito_sub = cognito_response.get("UserSub", request.email)
+    saved_user = UserService.create_or_update_registered_user(
+        email=request.email,
+        full_name=full_name,
+        username=cognito_sub,
+        active=False,
+    )
+    if not saved_user:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No fue posible sincronizar el usuario en la base local",
+        )
+
+    code_delivery = cognito_response.get("CodeDeliveryDetails", {})
+    return {
+        "message": "Registro exitoso. Se envió un código de validación.",
+        "destination": code_delivery.get("Destination"),
+        "delivery_medium": code_delivery.get("DeliveryMedium"),
+    }
+
+
+@router.post("/register/confirm", response_model=MessageResponse)
+def confirm_register(request: ConfirmRegisterRequest) -> Any:
+    """
+    Endpoint: Confirma el código de validación para activar la cuenta del viajero.
+    """
+    AuthService.confirm_registration(email=request.email, code=request.code)
+
+    user_activated = UserService.activate_user(email=request.email)
+    if not user_activated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado en la base local",
+        )
+
+    return {"message": "Cuenta confirmada correctamente. Ya puedes iniciar sesión."}
 
 
 @router.post("/login/form", response_model=Token)

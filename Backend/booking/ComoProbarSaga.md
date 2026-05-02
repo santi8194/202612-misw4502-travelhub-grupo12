@@ -74,7 +74,7 @@ Arranca la API para poder inyectar la reserva inicial. (Nota: Necesitas tener in
 flask --app=api run --port=5001
 
 # Opción Uvicorn (Recomendada):
-uvicorn Booking.asgi:app --reload --port 5001
+uvicorn booking.asgi:app --reload --port 5001
 ```
 
 ### 4. Disparar el Flujo

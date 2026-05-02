@@ -101,3 +101,76 @@ def test_refresh_endpoint(monkeypatch):
     assert response.json()["access_token"] == "new-access-token"
     # Cognito no retorna un nuevo refresh token; se mantiene el original
     assert response.json()["refresh_token"] == "refresh-current"
+
+
+def test_register_endpoint(monkeypatch):
+    monkeypatch.setattr(
+        "api.routes.auth.AuthService.register_user",
+        lambda **_kwargs: {
+            "CodeDeliveryDetails": {
+                "Destination": "a***@mail.com",
+                "DeliveryMedium": "EMAIL",
+            }
+        },
+    )
+    monkeypatch.setattr(
+        "api.routes.auth.UserService.create_or_update_registered_user",
+        lambda **_kwargs: object(),
+    )
+
+    response = client.post(
+        "/auth/register",
+        json={
+            "first_name": "Ana",
+            "last_name": "Gomez",
+            "email": "ana@travelhub.com",
+            "phone_number": "+573001234567",
+            "password": "Str0ng!Pass",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["delivery_medium"] == "EMAIL"
+
+
+def test_register_endpoint_password_policy_validation():
+    response = client.post(
+        "/auth/register",
+        json={
+            "first_name": "Ana",
+            "last_name": "Gomez",
+            "email": "ana@travelhub.com",
+            "phone_number": "+573001234567",
+            "password": "weak",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_register_endpoint_requires_international_phone_prefix():
+    response = client.post(
+        "/auth/register",
+        json={
+            "first_name": "Ana",
+            "last_name": "Gomez",
+            "email": "ana2@travelhub.com",
+            "phone_number": "3001234567",
+            "password": "Str0ng!Pass",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_confirm_register_endpoint(monkeypatch):
+    monkeypatch.setattr("api.routes.auth.AuthService.confirm_registration", lambda **_kwargs: None)
+    monkeypatch.setattr("api.routes.auth.UserService.activate_user", lambda **_kwargs: True)
+
+    response = client.post(
+        "/auth/register/confirm",
+        json={"email": "ana@travelhub.com", "code": "123456"},
+    )
+
+    assert response.status_code == 200
+    assert "Cuenta confirmada" in response.json()["message"]

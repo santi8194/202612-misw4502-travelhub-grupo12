@@ -1,5 +1,5 @@
 from asgiref.wsgi import WsgiToAsgi
-from Booking.api import create_app
+from booking.api import create_app
 
 # Creamos la aplicación WSGI de Flask
 flask_app = create_app()

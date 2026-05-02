@@ -182,3 +182,13 @@ class CancelarReservaLocalHandler(Handler):
             self.uow.commit() 
             logger.info(f"❌ [HANDLER LOCAL] Reserva {reserva.id} CANCELADA localmente por compensación.")
         return evento_falla
+
+
+class ObtenerReservasPorUsuarioHandler(Handler):
+    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
+        self.repositorio = repositorio
+        self.uow = uow
+
+    def handle(self, query) -> list[Reserva]:
+        with self.uow:
+            return self.repositorio.obtener_por_usuario(str(query.id_usuario))

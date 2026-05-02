@@ -5,12 +5,13 @@ import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { Subject, takeUntil } from 'rxjs';
 import { PreciosPorHabitacionComponent } from './components/precios-por-habitacion/precios-por-habitacion.component';
 import { AjustesTemporadaComponent } from './components/ajustes-temporada/ajustes-temporada.component';
+import { ReservasComponent } from './components/reservas/reservas.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent],
+    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent, ReservasComponent],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })

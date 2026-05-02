@@ -208,6 +208,10 @@
             </div>
         </section>
 
+        <section class="section-content" *ngIf="activeSection === 'reservas'">
+            <app-reservas></app-reservas>
+        </section>
+
         <ng-template #sectionPlaceholder>
             <section class="placeholder-section">
                 <h3>{{ activeSection | titlecase }}</h3>
@@ -215,7 +219,7 @@
             </section>
         </ng-template>
 
-        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected()">
+        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected() && activeSection !== 'reservas'">
             <ng-container *ngTemplateOutlet="sectionPlaceholder"></ng-container>
         </ng-container>
     </main>

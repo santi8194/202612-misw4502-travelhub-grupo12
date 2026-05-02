@@ -360,7 +360,7 @@ describe('HomeComponent', () => {
 
   it('should show placeholder for non-dashboard non-pricing sections', () => {
     fixture.detectChanges();
-    component.setActiveSection('reservas');
+    component.setActiveSection('inventario');
     fixture.detectChanges();
 
     const placeholder = fixture.nativeElement.querySelector('.placeholder-section');

@@ -164,7 +164,7 @@
             <div class="welcome-card" *ngIf="!loading && !error && user as currentUser" data-testid="welcome-card">
                 <div class="welcome-icon">🏨</div>
                 <div class="welcome-content">
-                    <h2 class="welcome-title" data-testid="welcome-title">{{ 'WELCOME.GREETING' | translate:{ email: currentUser.email } }}</h2>
+                    <h2 class="welcome-title" data-testid="welcome-title">{{ 'WELCOME.GREETING' | translate:{ full_name: (currentUser.full_name || currentUser.email), email: currentUser.email } }}</h2>
                     <p class="welcome-subtitle" *ngIf="currentUser.partner_id; else noPartner">
                         {{ 'WELCOME.MANAGING_HOTEL' | translate }}
                         <span class="partner-badge">{{ currentUser.partner_id }}</span>
@@ -209,7 +209,7 @@
         </section>
 
         <section class="section-content" *ngIf="activeSection === 'reservas'">
-            <app-reservas></app-reservas>
+            <app-reservas [idPropiedad]="user?.partner_id ?? null"></app-reservas>
         </section>
 
         <ng-template #sectionPlaceholder>

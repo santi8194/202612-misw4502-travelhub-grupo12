@@ -41,6 +41,14 @@
                 </tr>
             </thead>
             <tbody>
+                <tr *ngIf="loading">
+                    <td colspan="10" class="empty-row">Cargando reservas...</td>
+                </tr>
+
+                <tr *ngIf="!loading && loadError">
+                    <td colspan="10" class="empty-row">No fue posible cargar las reservas.</td>
+                </tr>
+
                 <tr *ngFor="let reserva of reservasPagina">
                     <td>
                         <button type="button" class="btn-ver-detalle" (click)="verDetalle(reserva)">
@@ -66,7 +74,7 @@
                     <td class="cell-total">${{ reserva.total }}</td>
                 </tr>
 
-                <tr *ngIf="reservasPagina.length === 0">
+                <tr *ngIf="!loading && !loadError && reservasPagina.length === 0">
                     <td colspan="10" class="empty-row">No se encontraron reservas.</td>
                 </tr>
             </tbody>

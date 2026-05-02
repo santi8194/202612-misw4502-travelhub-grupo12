@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ReservasService, ReservaPorPropiedadApi } from '../../../../core/services/reservas.service';
 
 export interface Reserva {
     id: string;
@@ -14,19 +15,6 @@ export interface Reserva {
     total: number;
 }
 
-const MOCK_RESERVAS: Reserva[] = [
-    { id: 'BK001', propietario: 'John Smith',      habitacion: 'Suite Deluxe',        checkIn: new Date('2026-03-14'), checkOut: new Date('2026-03-17'), huespedes: 2, estado: 'Confirmada', pago: 'Pago',      total: 450  },
-    { id: 'BK002', propietario: 'Sarah Johnson',   habitacion: 'Habitación Estándar', checkIn: new Date('2026-03-16'), checkOut: new Date('2026-03-20'), huespedes: 1, estado: 'Confirmada', pago: 'Pago',      total: 320  },
-    { id: 'BK003', propietario: 'Michael Brown',   habitacion: 'Suite Ejecutiva',     checkIn: new Date('2026-03-19'), checkOut: new Date('2026-03-24'), huespedes: 3, estado: 'Pendiente',  pago: 'Pago',      total: 750  },
-    { id: 'BK004', propietario: 'Emily Davis',     habitacion: 'Suite Presidencial',  checkIn: new Date('2026-03-22'), checkOut: new Date('2026-03-28'), huespedes: 2, estado: 'Pendiente',  pago: 'Pendiente', total: 1800 },
-    { id: 'BK005', propietario: 'James Miller',    habitacion: 'Suite Deluxe',        checkIn: new Date('2026-03-24'), checkOut: new Date('2026-03-29'), huespedes: 2, estado: 'Cancelada',  pago: 'Reembolso', total: 600  },
-    { id: 'BK006', propietario: 'Lisa Anderson',   habitacion: 'Habitación Estándar', checkIn: new Date('2026-03-07'), checkOut: new Date('2026-03-09'), huespedes: 2, estado: 'Pendiente',  pago: 'Pago',      total: 220  },
-    { id: 'BK007', propietario: 'Robert Chen',     habitacion: 'Suite Presidencial',  checkIn: new Date('2026-03-21'), checkOut: new Date('2026-03-26'), huespedes: 4, estado: 'Pendiente',  pago: 'Pago',      total: 2500 },
-    { id: 'BK008', propietario: 'Maria Garcia',    habitacion: 'Suite Ejecutiva',     checkIn: new Date('2026-04-01'), checkOut: new Date('2026-04-05'), huespedes: 2, estado: 'Confirmada', pago: 'Pago',      total: 900  },
-    { id: 'BK009', propietario: 'David Wilson',    habitacion: 'Habitación Estándar', checkIn: new Date('2026-04-03'), checkOut: new Date('2026-04-07'), huespedes: 1, estado: 'Pendiente',  pago: 'Pendiente', total: 360  },
-    { id: 'BK010', propietario: 'Anna Martinez',   habitacion: 'Suite Deluxe',        checkIn: new Date('2026-04-10'), checkOut: new Date('2026-04-14'), huespedes: 3, estado: 'Confirmada', pago: 'Pago',      total: 680  },
-];
-
 const PAGE_SIZE = 5;
 
 @Component({
@@ -36,15 +24,28 @@ const PAGE_SIZE = 5;
     templateUrl: './reservas.component.html',
     styleUrl: './reservas.component.scss'
 })
-export class ReservasComponent {
+export class ReservasComponent implements OnChanges {
+    @Input() idPropiedad: string | null = null;
+
     busqueda = '';
     filtroFecha = '';
     paginaActual = 1;
     readonly tamanioPagina = PAGE_SIZE;
+    loading = false;
+    loadError = false;
+    reservas: Reserva[] = [];
+
+    constructor(private reservasService: ReservasService) {}
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['idPropiedad']) {
+            this.cargarReservas();
+        }
+    }
 
     get reservasFiltradas(): Reserva[] {
         const termino = this.busqueda.toLowerCase().trim();
-        return MOCK_RESERVAS.filter(r => {
+        return this.reservas.filter(r => {
             const coincideTexto = !termino ||
                 r.propietario.toLowerCase().includes(termino) ||
                 r.id.toLowerCase().includes(termino);
@@ -76,6 +77,73 @@ export class ReservasComponent {
 
     onBusqueda(): void {
         this.paginaActual = 1;
+    }
+
+    private cargarReservas(): void {
+        this.paginaActual = 1;
+        this.loadError = false;
+
+        if (!this.idPropiedad) {
+            this.reservas = [];
+            return;
+        }
+
+        this.loading = true;
+        this.reservasService.getReservasPorPropiedad(this.idPropiedad).subscribe({
+            next: (items) => {
+                this.reservas = items.map((item) => this.mapReserva(item));
+                this.loading = false;
+            },
+            error: () => {
+                this.reservas = [];
+                this.loading = false;
+                this.loadError = true;
+            }
+        });
+    }
+
+    private mapReserva(item: ReservaPorPropiedadApi): Reserva {
+        return {
+            id: item.id_reserva,
+            propietario: item.id_usuario ?? 'N/A',
+            habitacion: item.habitacion ?? 'Categoría sin nombre',
+            checkIn: this.parseDate(item.fecha_check_in),
+            checkOut: this.parseDate(item.fecha_check_out),
+            huespedes: item.huespedes ?? 0,
+            estado: this.toEstadoUi(item.estado),
+            pago: this.toPagoUi(item.pago),
+            total: item.total ?? 0,
+        };
+    }
+
+    private parseDate(value: string | null): Date {
+        if (!value) {
+            return new Date();
+        }
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+    }
+
+    private toEstadoUi(value: string | null): 'Confirmada' | 'Pendiente' | 'Cancelada' {
+        const estado = (value || '').toUpperCase();
+        if (estado === 'CONFIRMADA') {
+            return 'Confirmada';
+        }
+        if (estado === 'CANCELADA' || estado === 'EXPIRADA') {
+            return 'Cancelada';
+        }
+        return 'Pendiente';
+    }
+
+    private toPagoUi(value: string | null): 'Pago' | 'Reembolso' | 'Pendiente' {
+        const pago = (value || '').toUpperCase();
+        if (pago === 'PAGO' || pago === 'PAGADO' || pago === 'PAID') {
+            return 'Pago';
+        }
+        if (pago === 'REEMBOLSO' || pago === 'REEMBOLSADO' || pago === 'REFUND') {
+            return 'Reembolso';
+        }
+        return 'Pendiente';
     }
 
     verDetalle(reserva: Reserva): void {

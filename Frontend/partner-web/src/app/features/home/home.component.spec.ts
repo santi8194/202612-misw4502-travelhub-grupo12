@@ -68,7 +68,7 @@ describe('HomeComponent', () => {
       TODAY: 'Today',
       SESSION: { IDLE_WARNING: 'If you have no activity for <strong>{{minutes}} minutes</strong>, the session will be automatically deactivated.', EXPIRY_MESSAGE: 'With current activity, session closes at <strong>{{time}}</strong>.', ACCESS_TOKEN: 'Access token', MAX_IDLE: 'Max idle time', REFRESH_TOKEN: 'Refresh token', HIDE_LABEL: 'Hide session info', DAYS: 'days' },
       LOCKOUT: { TITLE: 'Access Security Policy', HIDE_LABEL: 'Hide lockout policy', MESSAGE: 'If <strong>{{attempts}} failed attempts</strong> detected, account locked for <strong>{{minutes}} minutes</strong>.', MAX_ATTEMPTS: 'Max attempts', UNLOCK_TIME: 'Unlock time' },
-      WELCOME: { GREETING: 'Welcome, {{email}}!', MANAGING_HOTEL: 'You are managing the hotel', NO_HOTEL: 'You don\'t have an assigned hotel yet.' },
+      WELCOME: { GREETING: 'Welcome, {{full_name}} ({{email}})!', MANAGING_HOTEL: 'You are managing the hotel', NO_HOTEL: 'You don\'t have an assigned hotel yet.' },
       LOADING: 'Loading...',
       ERROR: { USER_LOAD: 'Could not load user information.' },
       PLACEHOLDER_SECTION: 'This section will be available in the next sprint.',
@@ -110,10 +110,11 @@ describe('HomeComponent', () => {
     expect(component.error).toBeFalse();
   });
 
-  it('should display user email in welcome card', () => {
+  it('should display user full_name and email in welcome card', () => {
     fixture.detectChanges();
 
     const title = fixture.nativeElement.querySelector('[data-testid="welcome-title"]');
+    expect(title.textContent).toContain('Socio Test');
     expect(title.textContent).toContain('socio@hotel.com');
   });
 

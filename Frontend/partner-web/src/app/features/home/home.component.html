@@ -78,7 +78,7 @@
     </aside>
 
     <main class="dashboard-main">
-        <header class="dashboard-header">
+        <header class="dashboard-header" *ngIf="activeSection !== 'detalle-reserva'">
             <div>
                 <h2>{{ currentSectionTitleKey | translate }}</h2>
                 <p>{{ currentSectionSubtitleKey | translate }}</p>
@@ -209,7 +209,11 @@
         </section>
 
         <section class="section-content" *ngIf="activeSection === 'reservas'">
-            <app-reservas [idPropiedad]="user?.partner_id ?? null"></app-reservas>
+            <app-reservas [idPropiedad]="user?.partner_id ?? null" (verDetalleReserva)="abrirDetalleReserva($event)"></app-reservas>
+        </section>
+
+        <section class="section-content" *ngIf="activeSection === 'detalle-reserva'">
+            <app-detalle-reserva [reservaId]="reservaSeleccionadaId" (volver)="volverDeDetalle()"></app-detalle-reserva>
         </section>
 
         <ng-template #sectionPlaceholder>
@@ -219,7 +223,7 @@
             </section>
         </ng-template>
 
-        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected() && activeSection !== 'reservas'">
+        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected() && activeSection !== 'reservas' && activeSection !== 'detalle-reserva'">
             <ng-container *ngTemplateOutlet="sectionPlaceholder"></ng-container>
         </ng-container>
     </main>

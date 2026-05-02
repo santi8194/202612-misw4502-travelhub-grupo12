@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReservasService, ReservaPorPropiedadApi } from '../../../../core/services/reservas.service';
@@ -26,6 +26,7 @@ const PAGE_SIZE = 5;
 })
 export class ReservasComponent implements OnChanges {
     @Input() idPropiedad: string | null = null;
+    @Output() verDetalleReserva = new EventEmitter<Reserva>();
 
     busqueda = '';
     filtroFecha = '';
@@ -147,7 +148,7 @@ export class ReservasComponent implements OnChanges {
     }
 
     verDetalle(reserva: Reserva): void {
-        console.log('Ver detalle:', reserva.id);
+        this.verDetalleReserva.emit(reserva);
     }
 
     estadoClass(estado: string): string {

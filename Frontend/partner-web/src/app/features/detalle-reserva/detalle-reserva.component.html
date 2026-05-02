@@ -1,0 +1,169 @@
+<div class="detalle-shell">
+
+    <header class="detalle-header">
+        <button type="button" class="back-link" (click)="volverAReservas()">
+            ← Volver a Reservas
+        </button>
+        <h1 class="detalle-titulo">Detalles de Reserva: {{ reserva.codigo }}</h1>
+        <p class="detalle-subtitulo">Información completa de la reserva y línea de tiempo</p>
+    </header>
+
+    <div class="detalle-content">
+
+        <!-- Información del Huésped -->
+        <div class="card">
+            <h2 class="card-title">Información del Huésped</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-icon">👤</span>
+                    <div>
+                        <span class="info-label">Nombre Completo</span>
+                        <span class="info-value">{{ reserva.nombreCompleto }}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">✉️</span>
+                    <div>
+                        <span class="info-label">Correo</span>
+                        <span class="info-value">{{ reserva.correo }}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">📞</span>
+                    <div>
+                        <span class="info-label">Teléfono</span>
+                        <span class="info-value">{{ reserva.telefono }}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">📍</span>
+                    <div>
+                        <span class="info-label">Dirección</span>
+                        <span class="info-value">{{ reserva.direccion }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalles de Habitación y Estadía -->
+        <div class="card">
+            <h2 class="card-title">Detalles de Habitación y Estadía</h2>
+            <div class="stay-grid">
+                <div class="stay-col">
+                    <p class="stay-group-label">Información de Habitación</p>
+                    <div class="stay-row">
+                        <span class="stay-label">Tipo de Habitación:</span>
+                        <span class="stay-value">{{ reserva.tipoHabitacion }}</span>
+                    </div>
+                    <div class="stay-row">
+                        <span class="stay-label">Número de Habitación:</span>
+                        <span class="stay-value">{{ reserva.numeroHabitacion }}</span>
+                    </div>
+                    <div class="stay-row">
+                        <span class="stay-label">Piso:</span>
+                        <span class="stay-value">{{ reserva.piso }}</span>
+                    </div>
+                </div>
+                <div class="stay-col">
+                    <p class="stay-group-label">Información de Estadía</p>
+                    <div class="stay-row">
+                        <span class="stay-label">Check-In:</span>
+                        <span class="stay-value">{{ reserva.checkIn | date:'d MMM yyyy' }}</span>
+                    </div>
+                    <div class="stay-row">
+                        <span class="stay-label">Check-Out:</span>
+                        <span class="stay-value">{{ reserva.checkOut | date:'d MMM yyyy' }}</span>
+                    </div>
+                    <div class="stay-row">
+                        <span class="stay-label">Total de Noches:</span>
+                        <span class="stay-value">{{ reserva.totalNoches }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="solicitudes-block" *ngIf="reserva.solicitudesEspeciales">
+                <p class="stay-label">Solicitudes Especiales</p>
+                <div class="solicitudes-box">{{ reserva.solicitudesEspeciales }}</div>
+            </div>
+        </div>
+
+        <!-- Línea de Tiempo -->
+        <div class="card">
+            <h2 class="card-title">Línea de Tiempo de la Reserva</h2>
+            <div class="timeline">
+                <div class="timeline-item" *ngFor="let evento of lineasDeTiempo; let last = last">
+                    <div class="timeline-left">
+                        <div class="timeline-dot" [class.dot-pendiente]="!evento.completado">
+                            <span class="dot-icon">✓</span>
+                        </div>
+                        <div class="timeline-line" *ngIf="!last"></div>
+                    </div>
+                    <div class="timeline-body">
+                        <div class="timeline-row">
+                            <div>
+                                <p class="timeline-titulo">{{ evento.titulo }}</p>
+                                <p class="timeline-desc">{{ evento.descripcion }}</p>
+                            </div>
+                            <span class="timeline-fecha">{{ evento.fecha | date:'d MMM yyyy HH:mm' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado de la Reserva -->
+        <div class="card">
+            <p class="stay-label">Estado de la Reserva</p>
+            <div class="estado-row">
+                <span class="estado-check">✔</span>
+                <span class="estado-texto" [ngClass]="estadoClass(reserva.estado)">{{ reserva.estado }}</span>
+            </div>
+            <p class="stay-label" style="margin-top:12px">Reservado el</p>
+            <p class="estado-fecha">{{ reserva.reservadoEl | date:"d 'de' MMMM 'de' yyyy" }}</p>
+        </div>
+
+        <!-- Desglose de Precios -->
+        <div class="card">
+            <h2 class="card-title">Desglose de Precios</h2>
+            <div class="precio-row">
+                <span class="precio-label">Tarifa por Noche × {{ reserva.totalNoches }} noches</span>
+                <span class="precio-value">${{ subtotal }}</span>
+            </div>
+            <div class="precio-row">
+                <span class="precio-label">Impuestos y Tasas ({{ reserva.impuestosPorcentaje }}%)</span>
+                <span class="precio-value">${{ impuestos }}</span>
+            </div>
+            <div class="precio-divider"></div>
+            <div class="precio-row precio-total">
+                <span>Monto Total</span>
+                <span class="precio-total-value">${{ total }}</span>
+            </div>
+        </div>
+
+        <!-- Información de Pago -->
+        <div class="card">
+            <h2 class="card-title">Información de Pago</h2>
+            <div class="pago-estado-row">
+                <div class="pago-icon-wrap">💳</div>
+                <div>
+                    <p class="stay-label">Estado del Pago</p>
+                    <p class="pago-estado-valor" [ngClass]="pagoClass(reserva.pago)">{{ reserva.pago === 'Pago' ? 'Pagado' : reserva.pago }}</p>
+                </div>
+            </div>
+            <div class="precio-divider"></div>
+            <div class="precio-row">
+                <span class="precio-label">Método:</span>
+                <span class="precio-value">{{ reserva.metodoPago }}</span>
+            </div>
+            <div class="precio-row">
+                <span class="precio-label">ID de Transacción:</span>
+                <span class="precio-value">{{ reserva.idTransaccion }}</span>
+            </div>
+            <div class="precio-row">
+                <span class="precio-label">Pagado el:</span>
+                <span class="precio-value">{{ reserva.pagadoEl | date:'d MMM yyyy' }}</span>
+            </div>
+        </div>
+
+    </div>
+</div>

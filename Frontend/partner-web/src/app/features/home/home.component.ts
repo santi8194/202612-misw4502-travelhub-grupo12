@@ -5,13 +5,14 @@ import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { Subject, takeUntil } from 'rxjs';
 import { PreciosPorHabitacionComponent } from './components/precios-por-habitacion/precios-por-habitacion.component';
 import { AjustesTemporadaComponent } from './components/ajustes-temporada/ajustes-temporada.component';
-import { ReservasComponent } from './components/reservas/reservas.component';
+import { ReservasComponent, Reserva } from './components/reservas/reservas.component';
+import { DetalleReservaComponent } from '../detalle-reserva/detalle-reserva.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent, ReservasComponent],
+    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent, ReservasComponent, DetalleReservaComponent],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
@@ -20,6 +21,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     loading = true;
     error = false;
     activeSection = 'dashboard';
+    reservaSeleccionadaId: string | null = null;
     readonly todayLabel = new Date();
     showSessionInfo = true;
     showLockoutInfo = true;
@@ -134,6 +136,17 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     setActiveSection(section: string): void {
         this.activeSection = section;
+        this.reservaSeleccionadaId = null;
+    }
+
+    abrirDetalleReserva(reserva: Reserva): void {
+        this.reservaSeleccionadaId = reserva.id;
+        this.activeSection = 'detalle-reserva';
+    }
+
+    volverDeDetalle(): void {
+        this.activeSection = 'reservas';
+        this.reservaSeleccionadaId = null;
     }
 
     isDashboardSelected(): boolean {

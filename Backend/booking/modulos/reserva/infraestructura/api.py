@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva, ExpirarReserva
-from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ExpirarReservaHandler
+from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ObtenerReservasPorUsuarioHandler, ExpirarReservaHandler
+from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
 from config.uow import UnidadTrabajoHibrida
 import json
@@ -145,6 +146,44 @@ def obtener_reserva_por_id(id_reserva):
             "fecha_creacion": reserva.fecha_creacion.isoformat() if reserva.fecha_creacion else None,
             "fecha_actualizacion": reserva.fecha_actualizacion.isoformat() if reserva.fecha_actualizacion else None,
         }), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@reserva_api.route('/reserva/usuario/<id_usuario>', methods=['GET'])
+def obtener_reservas_por_usuario(id_usuario):
+    try:
+        usuario_uuid = uuid.UUID(id_usuario)
+        query = ObtenerReservasPorUsuario(id_usuario=usuario_uuid)
+        uow = UnidadTrabajoHibrida()
+        repositorio = RepositorioReservas()
+        handler = ObtenerReservasPorUsuarioHandler(repositorio=repositorio, uow=uow)
+        reservas = handler.handle(query)
+
+        resultado = []
+        for reserva in reservas:
+            resultado.append({
+                "id_reserva": str(reserva.id),
+                "id_usuario": str(reserva.usuario.id) if reserva.usuario and reserva.usuario.id else None,
+                "id_categoria": str(reserva.id_categoria) if reserva.id_categoria else None,
+                "codigo_confirmacion_ota": reserva.codigo_confirmacion_ota,
+                "codigo_localizador_pms": reserva.codigo_localizador_pms,
+                "estado": reserva.estado.value if reserva.estado else None,
+                "fecha_check_in": reserva.fecha_check_in.isoformat() if reserva.fecha_check_in else None,
+                "fecha_check_out": reserva.fecha_check_out.isoformat() if reserva.fecha_check_out else None,
+                "ocupacion": {
+                    "adultos": reserva.ocupacion.adultos,
+                    "ninos": reserva.ocupacion.ninos,
+                    "infantes": reserva.ocupacion.infantes,
+                } if reserva.ocupacion else None,
+                "fecha_creacion": reserva.fecha_creacion.isoformat() if reserva.fecha_creacion else None,
+                "fecha_actualizacion": reserva.fecha_actualizacion.isoformat() if reserva.fecha_actualizacion else None,
+            })
+
+        return jsonify(resultado), 200
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

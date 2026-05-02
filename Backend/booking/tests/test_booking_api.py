@@ -347,3 +347,64 @@ def test_get_reserva_by_id_invalid_uuid_returns_400(client):
     assert response.status_code == 400
     assert response.is_json
     assert 'badly formed hexadecimal UUID' in response.json['error']
+
+
+# --- Tests: GET /api/reserva/usuario/<id_usuario> ---
+
+def _payload_reserva(id_usuario: str) -> dict:
+    return {
+        'id_usuario': id_usuario,
+        'id_categoria': str(uuid.uuid4()),
+        'fecha_check_in': '2026-04-01',
+        'fecha_check_out': '2026-04-05',
+        'ocupacion': {'adultos': 2, 'ninos': 0, 'infantes': 0}
+    }
+
+
+def test_get_reservas_por_usuario_returns_200_con_lista(client):
+    id_usuario = str(uuid.uuid4())
+
+    client.post('/api/reserva', json=_payload_reserva(id_usuario))
+    client.post('/api/reserva', json=_payload_reserva(id_usuario))
+
+    response = client.get(f'/api/reserva/usuario/{id_usuario}')
+
+    assert response.status_code == 200
+    assert response.is_json
+    body = response.json
+    assert len(body) == 2
+    assert all(r['id_usuario'] == id_usuario for r in body)
+
+
+def test_get_reservas_por_usuario_orden_descendente(client):
+    id_usuario = str(uuid.uuid4())
+
+    r1 = client.post('/api/reserva', json=_payload_reserva(id_usuario))
+    r2 = client.post('/api/reserva', json=_payload_reserva(id_usuario))
+    id_reserva_reciente = r2.json['id_reserva']
+
+    response = client.get(f'/api/reserva/usuario/{id_usuario}')
+
+    assert response.status_code == 200
+    body = response.json
+    assert len(body) == 2
+    # La reserva más reciente debe aparecer primero
+    assert body[0]['id_reserva'] == id_reserva_reciente
+
+
+def test_get_reservas_por_usuario_sin_reservas_returns_200_lista_vacia(client):
+    id_usuario = str(uuid.uuid4())
+
+    response = client.get(f'/api/reserva/usuario/{id_usuario}')
+
+    assert response.status_code == 200
+    assert response.is_json
+    assert response.json == []
+
+
+def test_get_reservas_por_usuario_invalid_uuid_returns_400(client):
+    response = client.get('/api/reserva/usuario/uuid-invalido')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert 'badly formed hexadecimal UUID' in response.json['error']

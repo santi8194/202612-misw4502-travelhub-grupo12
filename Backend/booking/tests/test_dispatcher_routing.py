@@ -1,9 +1,9 @@
 # import unittest
 # from unittest.mock import MagicMock, patch
 
-# from Booking.seedwork.infraestructura.dispatchers import DespachadorRabbitMQ
-# from Booking.seedwork.aplicacion.comandos import Comando
-# from Booking.seedwork.dominio.eventos import EventoDominio
+# from booking.seedwork.infraestructura.dispatchers import DespachadorRabbitMQ
+# from booking.seedwork.aplicacion.comandos import Comando
+# from booking.seedwork.dominio.eventos import EventoDominio
 # from dataclasses import dataclass
 # import uuid
 
@@ -147,7 +147,7 @@
 #                 self.assertIn(".", key, f"Routing key sin jerarquía para {tipo}: {key}")
 
 #     # --- Publicación sin conexión real (mock de la conexión) ---
-#     @patch("Booking.seedwork.infraestructura.dispatchers.pika.BlockingConnection")
+#     @patch("booking.seedwork.infraestructura.dispatchers.pika.BlockingConnection")
 #     def test_publicar_evento_comando_llama_basic_publish(self, mock_connection_cls):
 #         mock_channel = MagicMock()
 #         mock_connection = MagicMock()

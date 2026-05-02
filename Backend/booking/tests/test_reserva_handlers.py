@@ -15,7 +15,9 @@ from modulos.reserva.aplicacion.handlers import (
 	ConfirmarReservaLocalHandler,
 	CrearReservaHoldHandler,
 	FormalizarReservaHandler,
+	ObtenerReservasPorUsuarioHandler,
 )
+from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
 from modulos.reserva.dominio.entidades import Reserva, Usuario
 from modulos.reserva.dominio.eventos import FallaActualizacionLocalEvt, ReservaConfirmadaEvt
 from modulos.reserva.dominio.objetos_valor import EstadoReserva, Pax
@@ -230,3 +232,31 @@ def test_cancelar_handler_no_encontrada_lanza_error():
 
 	with pytest.raises(ValueError, match="No se encontró la reserva"):
 		handler.handle(CancelarReservaLocalCmd(id_reserva=uuid.uuid4()))
+
+
+def test_obtener_reservas_por_usuario_handler_devuelve_lista():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	reserva1 = _reserva_en_hold()
+	reserva2 = _reserva_en_hold()
+	repositorio.obtener_por_usuario.return_value = [reserva1, reserva2]
+	handler = ObtenerReservasPorUsuarioHandler(repositorio=repositorio, uow=uow)
+
+	query = ObtenerReservasPorUsuario(id_usuario=uuid.uuid4())
+	resultado = handler.handle(query)
+
+	assert len(resultado) == 2
+	repositorio.obtener_por_usuario.assert_called_once_with(str(query.id_usuario))
+
+
+def test_obtener_reservas_por_usuario_handler_devuelve_lista_vacia():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	repositorio.obtener_por_usuario.return_value = []
+	handler = ObtenerReservasPorUsuarioHandler(repositorio=repositorio, uow=uow)
+
+	query = ObtenerReservasPorUsuario(id_usuario=uuid.uuid4())
+	resultado = handler.handle(query)
+
+	assert resultado == []
+	repositorio.obtener_por_usuario.assert_called_once_with(str(query.id_usuario))

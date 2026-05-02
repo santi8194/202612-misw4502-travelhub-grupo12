@@ -67,6 +67,7 @@ def test_me_endpoint(monkeypatch, sample_user):
         return UserResponse(
             id_usuario=sample_user.id_usuario,
             email=sample_user.email,
+            full_name=sample_user.full_name,
             rol=sample_user.rol,
             partner_id=None,
         )
@@ -80,6 +81,7 @@ def test_me_endpoint(monkeypatch, sample_user):
 
     assert response.status_code == 200
     assert response.json()["email"] == sample_user.email
+    assert response.json()["full_name"] == sample_user.full_name
     app.dependency_overrides = {}
 
 

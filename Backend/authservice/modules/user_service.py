@@ -44,6 +44,7 @@ class UserService:
             return UserInDB(
                 id_usuario=user.id,
                 email=user.email,
+                full_name=user.full_name,
                 password_hash=user.password_hash,
                 rol=rol,
                 partner_id=user.partner_id
@@ -82,6 +83,7 @@ class UserService:
             return UserInDB(
                 id_usuario=user.id,
                 email=user.email,
+                full_name=user.full_name,
                 password_hash=user.password_hash,
                 rol=rol,
                 partner_id=user.partner_id
@@ -144,6 +146,7 @@ class UserService:
             return UserInDB(
                 id_usuario=user.id,
                 email=user.email,
+                full_name=user.full_name,
                 password_hash=user.password_hash,
                 rol=rol,
                 partner_id=user.partner_id,

@@ -47,6 +47,9 @@ class CatalogServiceClient:
     def get_category_by_id(self, id_categoria: str) -> dict:
         return self._request_json("GET", f"/categories/{parse.quote(id_categoria)}")
 
+    def get_categories_by_property_id(self, id_propiedad: str) -> dict:
+        return self._request_json("GET", f"/properties/{parse.quote(id_propiedad)}/categories")
+
     def update_inventory(self, id_propiedad: str, id_categoria: str, inventory_item: dict) -> dict:
         payload = {
             "id_propiedad": id_propiedad,

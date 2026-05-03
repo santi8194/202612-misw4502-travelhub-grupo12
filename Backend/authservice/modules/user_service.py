@@ -5,6 +5,7 @@ Rol dentro del microservicio: Sirve de intermediario para obtener los registros 
 
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 from data.user import UserInDB
 from infrastructure.database import SessionLocal
 from infrastructure.models import Role, User
@@ -88,6 +89,35 @@ class UserService:
             return UserService._map_user_to_schema(user, rol)
         except Exception as e:
             logger.error(f"Error al consultar usuario {email}: {str(e)}")
+            return None
+        finally:
+            db.close()
+
+    @staticmethod
+    def get_user_by_id(user_id: UUID) -> Optional[UserInDB]:
+        """
+        Consulta un usuario utilizando su identificador único desde la base de datos.
+
+        Parámetros:
+        - user_id (UUID): identificador del usuario a buscar.
+
+        Retorna:
+        - Optional[UserInDB]: Esquema con datos completos del usuario, o None si no existe.
+        """
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                logger.warning(f"Usuario no encontrado por id: {user_id}")
+                return None
+
+            rol = "USER"
+            if user.roles:
+                rol = user.roles[0].name
+
+            return UserService._map_user_to_schema(user, rol)
+        except Exception as e:
+            logger.error(f"Error al consultar usuario por id {user_id}: {str(e)}")
             return None
         finally:
             db.close()

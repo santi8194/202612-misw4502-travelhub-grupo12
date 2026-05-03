@@ -1,7 +1,6 @@
 describe('My Reservations Flow', () => {
-  const BOOKING_URL = Cypress.env('bookingApiUrl') || 'http://192.168.0.178:5001/api/reserva';
-  const CATALOG_URL = Cypress.env('catalogApiUrl') || 'http://192.168.0.178:8000/catalog';
-  const PAYMENT_URL = Cypress.env('paymentApiUrl') || 'http://192.168.0.178:8003';
+  // Los interceptores usan comodines (**) para ser agnósticos del environment.
+  // Así funcionan sin importar si environment.ts apunta a localhost o a una IP.
 
   beforeEach(() => {
     cy.fixture('my-reservations-mock.json').then((mockData) => {
@@ -9,10 +8,10 @@ describe('My Reservations Flow', () => {
       cy.intercept('GET', '**/assets/data/user-locale.json', mockData.locale).as('getLocale');
 
       // Intercept Booking
-      cy.intercept('GET', `${BOOKING_URL}/usuario/${mockData.locale.id_usuario}`, mockData.bookings).as('getBookings');
+      cy.intercept('GET', `**/usuario/${mockData.locale.id_usuario}`, mockData.bookings).as('getBookings');
 
       // Intercept Catalog Categories
-      cy.intercept('GET', `${CATALOG_URL}/categories/*`, (req) => {
+      cy.intercept('GET', `**/categories/*`, (req) => {
         const id = req.url.split('/').pop();
         if (id && mockData.categories[id]) {
           req.reply(mockData.categories[id]);
@@ -22,7 +21,7 @@ describe('My Reservations Flow', () => {
       }).as('getCategory');
 
       // Intercept Payment
-      cy.intercept('GET', `${PAYMENT_URL}/payments/by-reserva/*`, (req) => {
+      cy.intercept('GET', `**/payments/by-reserva/*`, (req) => {
         const id = req.url.split('/').pop();
         if (id && mockData.payments[id]) {
           req.reply(mockData.payments[id]);
@@ -32,7 +31,7 @@ describe('My Reservations Flow', () => {
       }).as('getPayments');
 
       // Intercept Calculate Price
-      cy.intercept('POST', `${CATALOG_URL}/calculate-room-price`, mockData.priceFallback).as('calculatePrice');
+      cy.intercept('POST', `**/calculate-room-price`, mockData.priceFallback).as('calculatePrice');
     });
   });
 
@@ -90,7 +89,7 @@ describe('My Reservations Flow', () => {
       // Change the mock to have no CANCELADA reservations dynamically
       cy.fixture('my-reservations-mock.json').then((mockData) => {
         const noCancelledBookings = mockData.bookings.filter((b: any) => b.estado !== 'CANCELADA');
-        cy.intercept('GET', `${BOOKING_URL}/usuario/${mockData.locale.id_usuario}`, noCancelledBookings).as('getBookingsEmptyCancel');
+        cy.intercept('GET', `**/usuario/${mockData.locale.id_usuario}`, noCancelledBookings).as('getBookingsEmptyCancel');
       });
 
       cy.visit('/mis-reservas');
@@ -101,7 +100,7 @@ describe('My Reservations Flow', () => {
 
       // Filter Canceladas
       cy.get('[data-testid="filter-canceladas"]').click();
-      
+
       // Should show empty state and no cards
       cy.get('[data-testid="reservation-card"]').should('not.exist');
       cy.get('[data-testid="empty-state"]').should('be.visible');
@@ -127,7 +126,7 @@ describe('My Reservations Flow', () => {
 
       // Filter Canceladas to see res-003 easily
       cy.get('[data-testid="filter-canceladas"]').click();
-      
+
       // Validate that it shows the price from calculate-room-price (COP 1,500)
       cy.get('[data-testid="reservation-card"]').within(() => {
         cy.get('[data-testid="reservation-price"]').should('contain.text', 'COP').and('contain.text', '1,500');
@@ -139,7 +138,7 @@ describe('My Reservations Flow', () => {
     it('should handle API failure gracefully and show empty state without crashing', () => {
       cy.fixture('my-reservations-mock.json').then((mockData) => {
         // Force a 500 error on the main Booking API call
-        cy.intercept('GET', `${BOOKING_URL}/usuario/${mockData.locale.id_usuario}`, {
+        cy.intercept('GET', `**/usuario/${mockData.locale.id_usuario}`, {
           statusCode: 500,
           body: { error: 'Internal Server Error' }
         }).as('getBookings500');

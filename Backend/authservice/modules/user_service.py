@@ -3,7 +3,7 @@ Propósito del archivo: Integración con la base de datos de usuarios.
 Rol dentro del microservicio: Sirve de intermediario para obtener los registros y contraseñas (hasheadas) de un usuario desde PostgreSQL.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 from uuid import UUID
 from data.user import UserInDB
@@ -161,7 +161,7 @@ class UserService:
                 user.is_active = "true" if active else "false"
                 if not user.password_hash:
                     user.password_hash = "COGNITO_MANAGED"
-                user.updated_at = datetime.utcnow()
+                user.updated_at = datetime.now(UTC)
 
             role_user = db.query(Role).filter(Role.name == "USER").first()
             if role_user and role_user not in user.roles:
@@ -189,7 +189,7 @@ class UserService:
                 return False
 
             user.is_active = "true"
-            user.updated_at = datetime.utcnow()
+            user.updated_at = datetime.now(UTC)
             db.commit()
             return True
         except Exception as e:

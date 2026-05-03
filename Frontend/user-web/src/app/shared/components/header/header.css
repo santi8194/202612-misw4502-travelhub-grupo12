@@ -218,3 +218,64 @@ app-compact-search-bar {
 		margin-left: auto;
 	}
 }
+
+/* ── User menu: relative positioning for dropdown ── */
+.user-menu {
+	position: relative;
+}
+
+/* ── Dropdown panel ── */
+.user-dropdown {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	min-width: 180px;
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	z-index: 100;
+	padding: 6px;
+	animation: dropdown-in 0.15s ease;
+}
+
+@keyframes dropdown-in {
+	from { opacity: 0; transform: translateY(-6px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 10px 14px;
+	border: none;
+	background: transparent;
+	border-radius: 8px;
+	font-family: Inter, sans-serif;
+	font-size: 14px;
+	color: #0f172a;
+	cursor: pointer;
+	text-align: left;
+	transition: background 0.12s ease;
+}
+
+.dropdown-item:hover {
+	background: #f1f5f9;
+}
+
+.dropdown-item svg {
+	width: 16px;
+	height: 16px;
+	color: #64748b;
+	flex-shrink: 0;
+}
+
+/* ── Backdrop to close on outside click ── */
+.dropdown-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 99;
+	background: transparent;
+}

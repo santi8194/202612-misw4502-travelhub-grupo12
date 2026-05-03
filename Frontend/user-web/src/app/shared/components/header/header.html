@@ -26,13 +26,13 @@
 				</svg>
 				<span>USD</span>
 			</button>
-
 			<div class="profile-wrapper">
 				<button
 					class="user-menu"
 					type="button"
 					aria-label="Abrir menú de perfil"
 					[attr.aria-expanded]="profileMenuOpen()"
+					aria-haspopup="true"
 					(click)="toggleProfileMenu($event)">
 					<span class="menu-btn" aria-hidden="true">
 						<svg viewBox="0 0 24 24">
@@ -55,6 +55,9 @@
 								<p class="profile-name">{{ userSession()?.userName }}</p>
 								<p class="profile-email">{{ userSession()?.email }}</p>
 							</div>
+							<button class="dropdown-item dropdown-item--button" type="button" (click)="goToMyReservations()">
+								Mis Reservas
+							</button>
 							<button class="dropdown-item dropdown-item--button" type="button" (click)="logout()">
 								Cerrar sesión
 							</button>

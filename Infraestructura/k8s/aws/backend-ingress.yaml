@@ -22,7 +22,7 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: notification-service
+            name: notification
             port:
               number: 80
 
@@ -38,7 +38,7 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: pmsintegration-service
+            name: pms-integration
             port:
               number: 80
 
@@ -46,7 +46,7 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: partnermanagement-service
+            name: partner-management
             port:
               number: 80
 

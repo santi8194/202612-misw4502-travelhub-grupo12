@@ -1,0 +1,89 @@
+{
+  "locale": {
+    "pais": "Colombia",
+    "id_usuario": "cc912e74-927e-4166-802b-3ba6a3615ebf"
+  },
+  "bookings": [
+    {
+      "id_reserva": "res-001",
+      "id_usuario": "cc912e74-927e-4166-802b-3ba6a3615ebf",
+      "id_categoria": "cat-001",
+      "estado": "CONFIRMADA",
+      "fecha_check_in": "2026-03-07",
+      "fecha_check_out": "2026-03-10",
+      "fecha_creacion": "2026-01-01T00:00:00Z",
+      "fecha_actualizacion": "2026-01-01T00:00:00Z",
+      "codigo_confirmacion_ota": "TH-001",
+      "codigo_localizador_pms": null,
+      "ocupacion": { "adultos": 2, "ninos": 0, "infantes": 0 }
+    },
+    {
+      "id_reserva": "res-002",
+      "id_usuario": "cc912e74-927e-4166-802b-3ba6a3615ebf",
+      "id_categoria": "cat-002",
+      "estado": "HOLD",
+      "fecha_check_in": "2026-04-09",
+      "fecha_check_out": "2026-04-14",
+      "fecha_creacion": "2026-01-02T00:00:00Z",
+      "fecha_actualizacion": "2026-01-02T00:00:00Z",
+      "codigo_confirmacion_ota": null,
+      "codigo_localizador_pms": null,
+      "ocupacion": { "adultos": 4, "ninos": 0, "infantes": 0 }
+    },
+    {
+      "id_reserva": "res-003",
+      "id_usuario": "cc912e74-927e-4166-802b-3ba6a3615ebf",
+      "id_categoria": "cat-003",
+      "estado": "CANCELADA",
+      "fecha_check_in": "2026-02-09",
+      "fecha_check_out": "2026-02-12",
+      "fecha_creacion": "2026-01-03T00:00:00Z",
+      "fecha_actualizacion": "2026-01-03T00:00:00Z",
+      "codigo_confirmacion_ota": null,
+      "codigo_localizador_pms": null,
+      "ocupacion": { "adultos": 2, "ninos": 0, "infantes": 0 }
+    }
+  ],
+  "categories": {
+    "cat-001": {
+      "id_categoria": "cat-001",
+      "nombre_comercial": "Suite Deluxe",
+      "foto_portada_url": "https://example.com/img1.jpg"
+    },
+    "cat-002": {
+      "id_categoria": "cat-002",
+      "nombre_comercial": "Coastal Bay Room",
+      "foto_portada_url": null
+    },
+    "cat-003": {
+      "id_categoria": "cat-003",
+      "nombre_comercial": "Mountain View Lodge",
+      "foto_portada_url": "https://example.com/img3.jpg"
+    }
+  },
+  "payments": {
+    "res-001": {
+      "id_pago": "pay-001",
+      "id_reserva": "res-001",
+      "estado": "APPROVED",
+      "monto": 580,
+      "moneda": "USD"
+    },
+    "res-002": {
+      "id_pago": "pay-002",
+      "id_reserva": "res-002",
+      "estado": "APPROVED",
+      "monto": 1200,
+      "moneda": "USD"
+    }
+  },
+  "priceFallback": {
+    "total": 1500.00,
+    "moneda": "COP",
+    "noches": 5,
+    "precio_por_noche": 300.0,
+    "subtotal": 1500.0,
+    "impuestos": 0,
+    "cargo_servicio": 0
+  }
+}

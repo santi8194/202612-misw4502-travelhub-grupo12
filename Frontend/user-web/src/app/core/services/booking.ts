@@ -28,6 +28,32 @@ interface FormalizeBookingResponse {
   mensaje?: string;
   detail?: string;
   error?: string;
+  pago?: PaymentIntentResponse;
+}
+
+export interface PaymentCheckoutData {
+  public_key: string;
+  currency: string;
+  amount_in_cents: number;
+  reference: string;
+  signature_integrity: string;
+}
+
+export interface PaymentIntentResponse {
+  id_pago: string;
+  id_reserva: string;
+  referencia: string;
+  estado: string;
+  monto: number;
+  moneda: string;
+  checkout?: PaymentCheckoutData | null;
+}
+
+interface FormalizeBookingRequest {
+  intencion_pago?: {
+    monto: number;
+    moneda: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -137,10 +163,13 @@ export class BookingService {
     );
   }
 
-  formalizeBookingById(idReserva: string): Observable<FormalizeBookingResponse> {
+  formalizeBookingById(
+    idReserva: string,
+    request: FormalizeBookingRequest = {}
+  ): Observable<FormalizeBookingResponse> {
     const url = `${this.apiUrl}/${idReserva}/formalizar`;
-    console.info('[BookingService] POST', url);
-    return this.http.post<FormalizeBookingResponse>(url, {}).pipe(
+    console.info('[BookingService] POST', url, request);
+    return this.http.post<FormalizeBookingResponse>(url, request).pipe(
       tap((response) => console.info('[BookingService] formalizeBookingById success', response)),
       catchError((error) => {
         console.error('[BookingService] formalizeBookingById error', { idReserva, error });

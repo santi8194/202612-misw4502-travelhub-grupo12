@@ -1,7 +1,9 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:5001/search/api',
-  bookingApiUrl: 'http://localhost:5001/booking/api/reserva',
-  catalogApiUrl: 'http://localhost:5001/catalog',
-  authApiUrl: 'http://localhost:5001/auth',
+  searchApiUrl: 'http://127.0.0.1:8080/search/api',
+  bookingApiUrl: 'http://127.0.0.1:8080/booking/api/reserva',
+  catalogApiUrl: 'http://127.0.0.1:8080/catalog',
+  paymentApiUrl: 'http://127.0.0.1:8080/payment',
+  authApiUrl: 'http://127.0.0.1:8080/auth',
 };
+

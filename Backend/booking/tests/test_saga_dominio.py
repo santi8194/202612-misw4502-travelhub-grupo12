@@ -1,8 +1,8 @@
 # import unittest
 # import uuid
 
-# from Booking.modulos.saga_reservas.dominio.entidades import SagaInstance
-# from Booking.modulos.saga_reservas.dominio.objetos_valor import EstadoSaga, TipoMensajeSaga
+# from booking.modulos.saga_reservas.dominio.entidades import SagaInstance
+# from booking.modulos.saga_reservas.dominio.objetos_valor import EstadoSaga, TipoMensajeSaga
 
 # class TestSagaDominio(unittest.TestCase):
     

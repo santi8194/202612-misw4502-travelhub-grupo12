@@ -49,3 +49,22 @@ class RepositorioReservas(Repositorio):
     def obtener_todos(self) -> list[Reserva]:
         dtos = db.session.query(ReservaDTO).all()
         return [self._mapeador.dto_a_entidad(dto) for dto in dtos]
+
+    def obtener_por_usuario(self, id_usuario: str) -> list[Reserva]:
+        dtos = (db.session.query(ReservaDTO)
+                .filter_by(usuario=id_usuario)
+                .order_by(ReservaDTO.fecha_creacion.desc())
+                .all())
+        return [self._mapeador.dto_a_entidad(dto) for dto in dtos]
+
+    def obtener_por_categorias(self, ids_categoria: list[str]) -> list[Reserva]:
+        if not ids_categoria:
+            return []
+
+        dtos = (
+            db.session.query(ReservaDTO)
+            .filter(ReservaDTO.id_categoria.in_(ids_categoria))
+            .order_by(ReservaDTO.fecha_creacion.desc())
+            .all()
+        )
+        return [self._mapeador.dto_a_entidad(dto) for dto in dtos]

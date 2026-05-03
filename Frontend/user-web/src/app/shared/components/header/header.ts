@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar';
 import { CompactSearchBarComponent } from '../compact-search-bar/compact-search-bar';
 import { AuthService } from '../../../core/services/auth';
@@ -14,6 +15,7 @@ import { AuthService } from '../../../core/services/auth';
 export class HeaderComponent {
   private readonly hostElement = inject(ElementRef<HTMLElement>);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   mode = input<'default' | 'compact'>('default');
   profileMenuOpen = signal(false);
@@ -37,6 +39,11 @@ export class HeaderComponent {
   logout(): void {
     this.authService.clearSession();
     this.closeProfileMenu();
+  }
+
+  goToMyReservations(): void {
+    this.closeProfileMenu();
+    this.router.navigate(['/mis-reservas']);
   }
 
   @HostListener('document:click', ['$event'])

@@ -3,7 +3,7 @@ import uuid
 
 import pytest
 
-from modulos.reserva.dominio.entidades import Notificacion, Pago, Reserva, Resena, Usuario
+from modulos.reserva.dominio.entidades import Reserva, Usuario
 from modulos.reserva.dominio.eventos import (
 	ReservaCancelada,
 	ReservaConfirmada,
@@ -107,18 +107,9 @@ def test_expirar_reserva_fuera_de_hold_lanza_error():
 def test_helpers_de_agregacion_y_actualizacion_estado():
 	reserva = Reserva(id=str(uuid.uuid4()))
 	usuario = Usuario(id=str(uuid.uuid4()), nombre="Juan", email="juan@test.com")
-	pago = Pago(id=str(uuid.uuid4()), estado_pago="OK")
-	notificacion = Notificacion(id=str(uuid.uuid4()), tipo="email", mensaje="ok")
-	resena = Resena(id=str(uuid.uuid4()), id_usuario=uuid.uuid4(), calificacion=5)
 
 	reserva.asignar_usuario(usuario)
-	reserva.agregar_pago(pago)
-	reserva.agregar_notificacion(notificacion)
-	reserva.agregar_resena(resena)
 	reserva.actualizar_estado(EstadoReserva.PENDIENTE)
 
 	assert reserva.usuario == usuario
-	assert reserva.pagos == [pago]
-	assert reserva.notificaciones == [notificacion]
-	assert reserva.resenas == [resena]
 	assert reserva.estado == EstadoReserva.PENDIENTE

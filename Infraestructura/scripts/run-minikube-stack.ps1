@@ -66,6 +66,7 @@ try {
     }
 
     $deployments = @(
+        "rabbitmq-broker",
         "authservice",
         "booking",
         "catalog",
@@ -73,7 +74,8 @@ try {
         "notification-deployment",
         "payment-deployment",
         "pmsintegration-deployment",
-        "partnermanagement-deployment"
+        "partnermanagement-deployment",
+        "booking-saga-worker"
     )
 
     foreach ($deployment in $deployments) {

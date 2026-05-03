@@ -96,6 +96,17 @@ def get_base_url() -> str:
     return "https://sandbox.wompi.co/v1"
 
 
+def get_payouts_base_url() -> str:
+    configured = os.getenv("WOMPI_PAYOUTS_BASE_URL")
+    if configured:
+        return configured.rstrip("/")
+
+    private_key = os.getenv("WOMPI_PRIVATE_KEY", "")
+    if private_key.startswith("priv_prod_"):
+        return "https://api.payouts.wompi.co/v1"
+    return "https://api.sandbox.payouts.wompi.co/v1"
+
+
 def build_integrity_signature(
     reference: str,
     amount_in_cents: int,

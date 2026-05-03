@@ -56,3 +56,15 @@ class RepositorioReservas(Repositorio):
                 .order_by(ReservaDTO.fecha_creacion.desc())
                 .all())
         return [self._mapeador.dto_a_entidad(dto) for dto in dtos]
+
+    def obtener_por_categorias(self, ids_categoria: list[str]) -> list[Reserva]:
+        if not ids_categoria:
+            return []
+
+        dtos = (
+            db.session.query(ReservaDTO)
+            .filter(ReservaDTO.id_categoria.in_(ids_categoria))
+            .order_by(ReservaDTO.fecha_creacion.desc())
+            .all()
+        )
+        return [self._mapeador.dto_a_entidad(dto) for dto in dtos]

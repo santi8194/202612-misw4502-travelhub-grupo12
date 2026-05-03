@@ -25,6 +25,7 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+ADMIN_HOTEL1_USERNAME = "e468d448-9051-7099-89d5-5740f302b523"
 
 
 def get_db():
@@ -72,6 +73,7 @@ def _seed_sqlite_defaults() -> None:
         User(
             id=UUID("a90e8400-e29b-41d4-a716-446655440000"),
             email="admin@hotel1.com",
+            username=ADMIN_HOTEL1_USERNAME,
             full_name="Admin Hotel 1",
             password_hash=admin_password_hash,
             partner_id=UUID("cc0e8400-e29b-41d4-a716-446655440001"),
@@ -109,6 +111,10 @@ def _seed_sqlite_defaults() -> None:
                 user = seed_user
                 db.add(user)
                 existing_users[user.email] = user
+
+            if user.email == "admin@hotel1.com" and user.username != ADMIN_HOTEL1_USERNAME:
+                user.username = ADMIN_HOTEL1_USERNAME
+
             if admin_role not in user.roles:
                 user.roles.append(admin_role)
 

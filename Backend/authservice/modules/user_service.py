@@ -18,6 +18,18 @@ class UserService:
     Clase de servicio que maneja la lógica de negocio para interactuar con la identidad de los usuarios.
     Consulta la base de datos PostgreSQL para obtener información de usuarios.
     """
+
+    @staticmethod
+    def _map_user_to_schema(user, rol: str) -> UserInDB:
+        """Mapea un modelo ORM (o doble de prueba) a UserInDB de forma tolerante."""
+        return UserInDB(
+            id_usuario=getattr(user, "id", None),
+            email=getattr(user, "email", None),
+            full_name=getattr(user, "full_name", None),
+            password_hash=getattr(user, "password_hash", None),
+            rol=rol,
+            partner_id=getattr(user, "partner_id", None),
+        )
     
     @staticmethod
     def get_user_by_username(username: str) -> Optional[UserInDB]:
@@ -41,13 +53,7 @@ class UserService:
             if user.roles:
                 rol = user.roles[0].name
 
-            return UserInDB(
-                id_usuario=user.id,
-                email=user.email,
-                password_hash=user.password_hash,
-                rol=rol,
-                partner_id=user.partner_id
-            )
+            return UserService._map_user_to_schema(user, rol)
         except Exception as e:
             logger.error(f"Error al consultar usuario por username {username}: {str(e)}")
             return None
@@ -79,13 +85,7 @@ class UserService:
                 rol = user.roles[0].name
             
             # Convertir el modelo ORM a UserInDB
-            return UserInDB(
-                id_usuario=user.id,
-                email=user.email,
-                password_hash=user.password_hash,
-                rol=rol,
-                partner_id=user.partner_id
-            )
+            return UserService._map_user_to_schema(user, rol)
         except Exception as e:
             logger.error(f"Error al consultar usuario {email}: {str(e)}")
             return None
@@ -141,13 +141,7 @@ class UserService:
             db.refresh(user)
 
             rol = user.roles[0].name if user.roles else "USER"
-            return UserInDB(
-                id_usuario=user.id,
-                email=user.email,
-                password_hash=user.password_hash,
-                rol=rol,
-                partner_id=user.partner_id,
-            )
+            return UserService._map_user_to_schema(user, rol)
         except Exception as e:
             db.rollback()
             logger.error(f"Error al crear/actualizar usuario registrado {email}: {str(e)}")

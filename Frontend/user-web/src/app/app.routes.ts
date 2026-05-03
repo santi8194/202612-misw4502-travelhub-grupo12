@@ -46,4 +46,14 @@ export const routes: Routes = [
     path: 'existing-session-redirect',
     loadComponent: () => Promise.resolve(ExistingSessionRedirectPage),
   },
+  {
+    path: 'mis-reservas',
+    loadComponent: () =>
+      import('./pages/my-reservations-page/my-reservations-page').then(m => m.MyReservationsPage),
+  },
+  {
+    path: 'mis-reservas/:id_reserva',
+    loadComponent: () =>
+      import('./pages/my-reservations-page/my-reservations-page').then(m => m.MyReservationsPage),
+  },
 ];

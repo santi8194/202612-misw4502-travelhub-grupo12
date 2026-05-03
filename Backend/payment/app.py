@@ -7,6 +7,7 @@ from typing import Any
 
 import pika
 from fastapi import FastAPI, Header, HTTPException, Request
+from starlette.middleware.cors import CORSMiddleware
 
 from modules.payments.infrastructure.database import SessionLocal
 from modules.payments.infrastructure.models import PaymentModel
@@ -38,6 +39,14 @@ EVENTS_EXCHANGE = "travelhub.events.exchange"
 app = FastAPI(title="TravelHub Payment Service")
 logger = logging.getLogger(SERVICE_NAME)
 logging.basicConfig(level=logging.INFO)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 payments_by_id: dict[str, dict[str, Any]] = {}
 payment_id_by_reference: dict[str, str] = {}

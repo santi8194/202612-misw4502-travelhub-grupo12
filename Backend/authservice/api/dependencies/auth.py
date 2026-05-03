@@ -38,6 +38,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
     except JWTError:
         raise credentials_exception
 
+    #imprimir username
+    print(f"Username: {username}, Email: {email}")
     # Buscar primero por username (access tokens de Cognito); fallback a email (ID tokens)
     user = UserService.get_user_by_username(username) if username else None
     if not user and email:
@@ -50,6 +52,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
     return UserResponse(
         id_usuario=user.id_usuario,
         email=user.email,
+        full_name=user.full_name,
         rol=user.rol,
         partner_id=user.partner_id
     )

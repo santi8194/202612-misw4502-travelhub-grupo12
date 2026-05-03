@@ -24,9 +24,9 @@ export const routes: Routes = [
       import('./pages/room-detail-page/room-detail-page').then(m => m.RoomDetailPage),
   },
   {
-    path: 'booking/:id_reserva',
+    path: 'booking/:id_reserva/payment',
     loadComponent: () =>
-      import('./pages/booking-cart-page/booking-cart-page').then(m => m.BookingCartPage),
+      import('./pages/payment-page/payment-page').then(m => m.PaymentPage),
   },
   {
     path: 'booking/:id_reserva/confirm-reservation',
@@ -36,6 +36,11 @@ export const routes: Routes = [
   {
     path: 'booking/:id_reserva/processing-reservation',
     loadComponent: () => Promise.resolve(ProcessingReservationPage),
+  },
+  {
+    path: 'booking/:id_reserva',
+    loadComponent: () =>
+      import('./pages/booking-cart-page/booking-cart-page').then(m => m.BookingCartPage),
   },
   {
     path: 'existing-session-redirect',

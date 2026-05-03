@@ -9,12 +9,15 @@ import pika
 from fastapi import FastAPI, Header, HTTPException, Request
 from starlette.middleware.cors import CORSMiddleware
 
+from modules.payments.infrastructure.database import SessionLocal
+from modules.payments.infrastructure.models import PaymentModel
 from models import (
     AcceptanceTokensResponse,
     CardTokenizationRequest,
     CardTokenizationResponse,
     CreateCardPaymentRequest,
     CreatePaymentRequest,
+    PaymentCheckoutResponse,
     PaymentResponse,
 )
 from wompi_client import (
@@ -54,20 +57,19 @@ def healthcheck() -> str:
 
 
 def get_payment_for_reserva(id_reserva: str) -> dict[str, Any] | None:
-    for payment in payments_by_id.values():
-        if payment["id_reserva"] == id_reserva:
-            return payment
-    return None
+    payment = get_payment_model_by_reserva(id_reserva)
+    return payment_model_to_dict(payment) if payment else None
 
 
 def mark_payment_refunded_by_reserva(id_reserva: str) -> dict[str, Any] | None:
-    payment = get_payment_for_reserva(id_reserva)
-    if not payment:
+    payment_model = get_payment_model_by_reserva(id_reserva)
+    if not payment_model:
         return None
 
+    payment = payment_model_to_dict(payment_model)
     payment["estado"] = "REFUNDED"
-    payment["status_message"] = "Pago reversado por compensacion de la saga"
     payment["updated_at"] = utc_now()
+    save_payment(payment)
     return payment
 
 
@@ -81,7 +83,7 @@ def get_acceptance_tokens() -> dict[str, Any]:
     return handle_wompi_call(fetch_acceptance_tokens)
 
 
-@app.post("/payments", response_model=PaymentResponse, status_code=201)
+@app.post("/payments", response_model=PaymentCheckoutResponse, status_code=201)
 def create_payment(request: CreatePaymentRequest) -> dict[str, Any]:
     id_pago = str(uuid.uuid4())
     reference = f"PAY-{id_pago}"
@@ -98,24 +100,16 @@ def create_payment(request: CreatePaymentRequest) -> dict[str, Any]:
         "monto": request.monto,
         "moneda": currency,
         "wompi_transaction_id": None,
-        "payment_source_id": None,
-        "payment_method_type": "CHECKOUT",
-        "customer_email": None,
-        "status_message": "Pendiente de confirmación por checkout",
-        "card_brand": None,
-        "card_last_four": None,
         "checkout": checkout,
         "created_at": now,
         "updated_at": now,
         "event_published": False,
     }
 
-    payments_by_id[id_pago] = payment
-    payment_id_by_reference[reference] = id_pago
+    save_payment(payment)
 
     if os.getenv("PAYMENT_AUTO_APPROVE", "false").lower() == "true":
         payment["estado"] = "APPROVED"
-        payment["status_message"] = "Auto-aprobado (PAYMENT_AUTO_APPROVE=true)"
         payment["updated_at"] = utc_now()
         maybe_publish_final_event(payment)
 
@@ -173,20 +167,12 @@ def create_card_payment(request: CreateCardPaymentRequest, http_request: Request
         "monto": request.monto,
         "moneda": currency,
         "wompi_transaction_id": transaction.get("id"),
-        "payment_source_id": payment_source_id,
-        "payment_method_type": transaction.get("payment_method_type", "CARD"),
-        "customer_email": request.customer_email,
-        "status_message": transaction.get("status_message"),
-        "card_brand": transaction.get("payment_method", {}).get("brand"),
-        "card_last_four": transaction.get("payment_method", {}).get("last_four"),
-        "checkout": None,
         "created_at": now,
         "updated_at": now,
         "event_published": False,
     }
 
-    payments_by_id[id_pago] = payment
-    payment_id_by_reference[reference] = id_pago
+    save_payment(payment)
 
     if transaction_state in {"APPROVED", "REJECTED"}:
         maybe_publish_final_event(payment)
@@ -196,7 +182,11 @@ def create_card_payment(request: CreateCardPaymentRequest, http_request: Request
 
 @app.get("/payments", response_model=list[PaymentResponse])
 def list_payments() -> list[dict[str, Any]]:
-    return list(payments_by_id.values())
+    db = SessionLocal()
+    try:
+        return [payment_model_to_dict(payment) for payment in db.query(PaymentModel).all()]
+    finally:
+        db.close()
 
 
 @app.get("/payments/by-reserva/{id_reserva}", response_model=PaymentResponse)
@@ -209,7 +199,8 @@ def get_payment_by_reserva(id_reserva: str) -> dict[str, Any]:
 
 @app.get("/payments/{id_pago}", response_model=PaymentResponse)
 def get_payment(id_pago: str) -> dict[str, Any]:
-    payment = payments_by_id.get(id_pago)
+    payment_model = get_payment_model_by_id(id_pago)
+    payment = payment_model_to_dict(payment_model) if payment_model else None
     if not payment:
         raise HTTPException(status_code=404, detail="Pago no encontrado")
     return payment
@@ -241,11 +232,11 @@ async def receive_webhook(
     if not reference:
         raise HTTPException(status_code=400, detail="Webhook sin referencia de pago")
 
-    payment_id = payment_id_by_reference.get(reference)
-    if not payment_id:
+    payment_model = get_payment_model_by_reference(reference)
+    if not payment_model:
         raise HTTPException(status_code=404, detail="Pago no encontrado para la referencia")
 
-    payment = payments_by_id[payment_id]
+    payment = payment_model_to_dict(payment_model)
     new_status = map_wompi_status(wompi_status)
     old_status = payment["estado"]
 
@@ -255,9 +246,8 @@ async def receive_webhook(
 
     payment["estado"] = new_status
     payment["wompi_transaction_id"] = transaction.get("id")
-    payment["payment_method_type"] = transaction.get("payment_method_type", payment.get("payment_method_type"))
-    payment["status_message"] = transaction.get("status_message", payment.get("status_message"))
     payment["updated_at"] = utc_now()
+    save_payment(payment)
 
     if new_status in {"APPROVED", "REJECTED"}:
         maybe_publish_final_event(payment)
@@ -277,6 +267,78 @@ def maybe_publish_final_event(payment: dict[str, Any]) -> None:
         payment["event_published"] = publish_payment_event(payment, "PagoExitosoEvt", "evt.pago.exitoso")
     elif payment["estado"] == "REJECTED":
         payment["event_published"] = publish_payment_event(payment, "PagoRechazadoEvt", "evt.pago.rechazado")
+    else:
+        return
+
+    save_payment(payment)
+
+
+def save_payment(payment: dict[str, Any]) -> None:
+    db = SessionLocal()
+    try:
+        model = PaymentModel(
+            id=payment["id_pago"],
+            reservation_id=payment["id_reserva"],
+            reference=payment["referencia"],
+            amount=payment["monto"],
+            currency=payment["moneda"],
+            state=payment["estado"],
+            wompi_transaction_id=payment.get("wompi_transaction_id"),
+            created_at=payment.get("created_at"),
+            updated_at=payment.get("updated_at"),
+            event_published=bool(payment.get("event_published")),
+        )
+        db.merge(model)
+        db.commit()
+    finally:
+        db.close()
+
+    payments_by_id[payment["id_pago"]] = payment
+    payment_id_by_reference[payment["referencia"]] = payment["id_pago"]
+
+
+def get_payment_model_by_id(payment_id: str) -> PaymentModel | None:
+    db = SessionLocal()
+    try:
+        return db.query(PaymentModel).filter(PaymentModel.id == payment_id).first()
+    finally:
+        db.close()
+
+
+def get_payment_model_by_reserva(reservation_id: str) -> PaymentModel | None:
+    db = SessionLocal()
+    try:
+        return (
+            db.query(PaymentModel)
+            .filter(PaymentModel.reservation_id == reservation_id)
+            .order_by(PaymentModel.created_at.desc().nullslast(), PaymentModel.id.desc())
+            .first()
+        )
+    finally:
+        db.close()
+
+
+def get_payment_model_by_reference(reference: str) -> PaymentModel | None:
+    db = SessionLocal()
+    try:
+        return db.query(PaymentModel).filter(PaymentModel.reference == reference).first()
+    finally:
+        db.close()
+
+
+def payment_model_to_dict(payment: PaymentModel) -> dict[str, Any]:
+    return {
+        "id_pago": payment.id,
+        "id_reserva": payment.reservation_id,
+        "referencia": payment.reference or f"PAY-{payment.id}",
+        "estado": payment.state,
+        "monto": payment.amount,
+        "moneda": payment.currency,
+        "wompi_transaction_id": payment.wompi_transaction_id,
+        "created_at": payment.created_at,
+        "updated_at": payment.updated_at,
+        "event_published": bool(payment.event_published),
+    }
 
 
 def publish_payment_event(payment: dict[str, Any], event_type: str, routing_key: str) -> bool:

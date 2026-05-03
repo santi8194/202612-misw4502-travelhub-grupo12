@@ -1,8 +1,8 @@
 export const environment = {
   production: false,
-  searchApiUrl: 'http://localhost:5001/search/api',
-  bookingApiUrl: 'http://192.168.0.178:5001/api/reserva',
-  catalogApiUrl: 'http://192.168.0.178:8000/catalog',
-  paymentApiUrl: 'http://192.168.0.178:8002',
+  searchApiUrl: 'http://127.0.0.1:8080/search/api',
+  bookingApiUrl: 'http://127.0.0.1:8080/booking/api/reserva',
+  catalogApiUrl: 'http://127.0.0.1:8080/catalog',
+  paymentApiUrl: 'http://127.0.0.1:8080/payment',
 };
 

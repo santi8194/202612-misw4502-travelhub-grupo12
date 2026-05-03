@@ -12,6 +12,7 @@ const BOOKING_URL = environment.bookingApiUrl;
 describe('BookingService', () => {
   let service: BookingService;
   let httpTesting: HttpTestingController;
+  const bookingApiUrl = environment.bookingApiUrl;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -59,17 +60,53 @@ describe('BookingService', () => {
   it('should send a POST request to formalize a reservation', () => {
     service.formalizeBookingById('reserva-123').subscribe((response) => {
       expect(response).toEqual({
-        mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos',
+        mensaje: 'Reserva formalizada. Iniciando SAGA de confirmacion con Hoteles y Pagos',
       });
     });
 
     const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/formalizar`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({});
-    req.flush({ mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos' });
+    req.flush({ mensaje: 'Reserva formalizada. Iniciando SAGA de confirmacion con Hoteles y Pagos' });
   });
 
-  
+  it('should send payment intention when formalizing a reservation', () => {
+    service.formalizeBookingById('reserva-123', {
+      intencion_pago: {
+        monto: 120000,
+        moneda: 'COP',
+      },
+    }).subscribe((response) => {
+      expect(response.pago?.checkout?.reference).toBe('PAY-1');
+    });
+
+    const req = httpTesting.expectOne(`${bookingApiUrl}/reserva-123/formalizar`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      intencion_pago: {
+        monto: 120000,
+        moneda: 'COP',
+      },
+    });
+    req.flush({
+      mensaje: 'Reserva formalizada. Iniciando SAGA de confirmacion con Hoteles y Pagos',
+      pago: {
+        id_pago: 'pay-1',
+        id_reserva: 'reserva-123',
+        referencia: 'PAY-1',
+        estado: 'PENDING',
+        monto: 120000,
+        moneda: 'COP',
+        checkout: {
+          public_key: 'pub_test',
+          currency: 'COP',
+          amount_in_cents: 12000000,
+          reference: 'PAY-1',
+          signature_integrity: 'sig',
+        },
+      },
+    });
+  });
 
   it('should describe availability errors clearly', () => {
     const error = new HttpErrorResponse({
@@ -85,11 +122,11 @@ describe('BookingService', () => {
   it('should keep a specific backend message when it is already useful', () => {
     const error = new HttpErrorResponse({
       status: 400,
-      error: { mensaje: 'La tarifa configurada para la reserva ya no está vigente.' },
+      error: { mensaje: 'La tarifa configurada para la reserva ya no esta vigente.' },
     });
 
     expect(service.getReservationErrorMessage(error)).toBe(
-      'La tarifa configurada para la reserva ya no está vigente.'
+      'La tarifa configurada para la reserva ya no esta vigente.'
     );
   });
 

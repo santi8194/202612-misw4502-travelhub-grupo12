@@ -35,6 +35,25 @@ export interface ReservaDetalleApi {
     fecha_actualizacion: string | null;
 }
 
+export interface ReservaTimelineItemApi {
+    id_log: string;
+    tipo_mensaje: string;
+    accion: string;
+    payload: Record<string, unknown> | null;
+    fecha_registro: string | null;
+}
+
+export interface ReservaTimelineApi {
+    id_reserva: string;
+    id_instancia_saga: string;
+    id_flujo: string;
+    version_ejecucion: number;
+    estado_global: string;
+    paso_actual: number;
+    total_eventos: number;
+    timeline: ReservaTimelineItemApi[];
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -52,6 +71,12 @@ export class ReservasService {
     getReservaPorId(idReserva: string): Observable<ReservaDetalleApi> {
         return this.http.get<ReservaDetalleApi>(
             `${this.base}/reserva/${encodeURIComponent(idReserva)}`
+        );
+    }
+
+    getTimelinePorReserva(idReserva: string): Observable<ReservaTimelineApi> {
+        return this.http.get<ReservaTimelineApi>(
+            `${this.base}/reserva/${encodeURIComponent(idReserva)}/timeline`
         );
     }
 }

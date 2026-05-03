@@ -54,6 +54,21 @@ function mockFormalizeBooking(reservationId = BOOKING_ID) {
   cy.intercept('POST', `**/api/reserva/${reservationId}/formalizar`, {
     body: {
       mensaje: 'Tu reserva está siendo procesada por la saga.',
+      pago: {
+        id_pago: 'mock-pago-123',
+        id_reserva: reservationId,
+        referencia: 'mock-ref',
+        estado: 'PENDIENTE',
+        monto: 495,
+        moneda: 'COP',
+        checkout: {
+          public_key: 'pub_test_123',
+          currency: 'COP',
+          amount_in_cents: 49500,
+          reference: 'mock-ref',
+          signature_integrity: 'mock-sig'
+        }
+      }
     },
   }).as(`formalizeBooking-${reservationId}`);
 }
@@ -107,7 +122,7 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     cy.window().its('localStorage').invoke('getItem', sessionKey(BOOKING_SIGNATURE)).should('not.be.null');
     cy.get('@createHold.all').should('have.length', 0);
     cy.wrap(alertStub).should('not.have.been.called');
-    cy.location('pathname').should('eq', `/booking/${BOOKING_ID}/processing-reservation`);
+    cy.location('pathname').should('eq', `/booking/${BOOKING_ID}/payment`);
   });
 
   it('Escenario C: expira el hold y bloquea la continuación del pago', () => {
@@ -182,7 +197,7 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     cy.wait('@formalizeBooking-reserva-e2e-001');
     cy.get('@createHoldError.all').should('have.length', 0);
     cy.wrap(alertStub).should('not.have.been.called');
-    cy.location('pathname').should('eq', `/booking/${BOOKING_ID}/processing-reservation`);
+    cy.location('pathname').should('eq', `/booking/${BOOKING_ID}/payment`);
   });
 
   it('Escenario F: redirige a la reserva activa si ya existe otra con la misma información', () => {

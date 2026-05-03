@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../core/services/auth.service';
 import {
     ReservaDetalleApi,
     ReservaTimelineApi,
@@ -60,10 +61,10 @@ export class DetalleReservaComponent implements OnChanges {
     reserva: DetalleReserva = {
         id: 'BK-2847',
         codigo: 'BK-2847',
-        nombreCompleto: 'John Anderson',
-        correo: 'john.anderson@email.com',
-        telefono: '+1 (555) 123-4567',
-        direccion: '123 Main Street, New York, NY 10001',
+        nombreCompleto: '',
+        correo: '',
+        telefono: '',
+        direccion: '',
         tipoHabitacion: 'Deluxe Queen',
         numeroHabitacion: '#204',
         piso: 'Piso 2',
@@ -92,7 +93,10 @@ export class DetalleReservaComponent implements OnChanges {
     ];
     lineasDeTiempo: EventoLinea[] = [...this.lineasDeTiempoFallback];
 
-    constructor(private reservasService: ReservasService) {}
+    constructor(
+        private reservasService: ReservasService,
+        private authService: AuthService,
+    ) {}
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['habitacionNombre'] && this.habitacionNombre) {
@@ -121,9 +125,20 @@ export class DetalleReservaComponent implements OnChanges {
     }
 
     private cargarDetalleReserva(idReserva: string): void {
+        this.reserva = {
+            ...this.reserva,
+            nombreCompleto: '',
+            correo: '',
+            telefono: '',
+            direccion: '',
+        };
+
         this.reservasService.getReservaPorId(idReserva).subscribe({
             next: (detalle) => {
                 this.reserva = this.mapDetalleReserva(detalle);
+                if (detalle.id_usuario) {
+                    this.cargarHuespedReserva(detalle.id_usuario);
+                }
             },
             error: () => {
                 this.reserva = {
@@ -131,6 +146,27 @@ export class DetalleReservaComponent implements OnChanges {
                     id: idReserva,
                     codigo: idReserva,
                     tipoHabitacion: this.habitacionNombre ?? this.reserva.tipoHabitacion,
+                };
+            }
+        });
+    }
+
+    private cargarHuespedReserva(idUsuario: string): void {
+        this.authService.getUserById(idUsuario).subscribe({
+            next: (usuario) => {
+                this.reserva = {
+                    ...this.reserva,
+                    nombreCompleto: usuario.full_name?.trim() || '',
+                    correo: usuario.email || '',
+                };
+            },
+            error: () => {
+                this.reserva = {
+                    ...this.reserva,
+                    nombreCompleto: '',
+                    correo: '',
+                    telefono: '',
+                    direccion: '',
                 };
             }
         });

@@ -62,25 +62,20 @@
     }
   },
   "payments": {
-    "res-001": [
-      {
-        "id": "pay-001",
-        "reservation_id": "res-001",
-        "state": "APPROVED",
-        "amount": 580,
-        "currency": "USD"
-      }
-    ],
-    "res-002": [
-      {
-        "id": "pay-002",
-        "reservation_id": "res-002",
-        "state": "APPROVED",
-        "amount": 1200,
-        "currency": "USD"
-      }
-    ],
-    "res-003": []
+    "res-001": {
+      "id_pago": "pay-001",
+      "id_reserva": "res-001",
+      "estado": "APPROVED",
+      "monto": 580,
+      "moneda": "USD"
+    },
+    "res-002": {
+      "id_pago": "pay-002",
+      "id_reserva": "res-002",
+      "estado": "APPROVED",
+      "monto": 1200,
+      "moneda": "USD"
+    }
   },
   "priceFallback": {
     "total": 1500.00,

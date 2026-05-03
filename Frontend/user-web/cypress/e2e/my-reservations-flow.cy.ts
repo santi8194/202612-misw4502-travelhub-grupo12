@@ -1,7 +1,7 @@
 describe('My Reservations Flow', () => {
-  const BOOKING_URL = 'http://localhost:5001/booking/api/reserva';
-  const CATALOG_URL = 'http://localhost:5001/catalog';
-  const PAYMENT_URL = 'http://localhost:5001/payment';
+  const BOOKING_URL = Cypress.env('bookingApiUrl') || 'http://192.168.0.178:5001/api/reserva';
+  const CATALOG_URL = Cypress.env('catalogApiUrl') || 'http://192.168.0.178:8000/catalog';
+  const PAYMENT_URL = Cypress.env('paymentApiUrl') || 'http://192.168.0.178:8003';
 
   beforeEach(() => {
     cy.fixture('my-reservations-mock.json').then((mockData) => {
@@ -27,7 +27,7 @@ describe('My Reservations Flow', () => {
         if (id && mockData.payments[id]) {
           req.reply(mockData.payments[id]);
         } else {
-          req.reply([]);
+          req.reply(404, { detail: 'Pago no encontrado para la reserva' });
         }
       }).as('getPayments');
 

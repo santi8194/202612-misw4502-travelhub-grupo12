@@ -31,11 +31,11 @@ const MOCK_CATEGORY: CategoryApiResponse = {
 };
 
 const MOCK_PAYMENT: PaymentInfo = {
-  id: 'pay-001',
-  reservation_id: 'res-001',
-  state: 'APPROVED',
-  amount: 580,
-  currency: 'USD',
+  id_pago: 'pay-001',
+  id_reserva: 'res-001',
+  estado: 'APPROVED',
+  monto: 580,
+  moneda: 'USD',
 };
 
 describe('MyReservationsPage', () => {
@@ -65,7 +65,7 @@ describe('MyReservationsPage', () => {
     httpTesting.expectOne('assets/data/user-locale.json').flush(MOCK_LOCALE);
     httpTesting.expectOne(`${BOOKING_URL}/usuario/${MOCK_LOCALE.id_usuario}`).flush([MOCK_BOOKING]);
     httpTesting.expectOne(`${CATALOG_URL}/categories/${MOCK_BOOKING.id_categoria}`).flush(MOCK_CATEGORY);
-    httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING.id_reserva}`).flush([MOCK_PAYMENT]);
+    httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING.id_reserva}`).flush(MOCK_PAYMENT);
 
     fixture.detectChanges();
   });

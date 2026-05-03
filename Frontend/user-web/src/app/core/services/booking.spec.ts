@@ -5,6 +5,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { BookingService } from './booking';
 import { HoldRequest } from '../../models/hold.interface';
+import { environment } from '../../../environments/environment';
+
+const BOOKING_URL = environment.bookingApiUrl;
 
 describe('BookingService', () => {
   let service: BookingService;
@@ -43,7 +46,7 @@ describe('BookingService', () => {
       });
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva');
+    const req = httpTesting.expectOne(`${BOOKING_URL}`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body.id_categoria).toBe('1');
     expect(req.request.body.fecha_check_in).toBe('2026-10-10');
@@ -60,7 +63,7 @@ describe('BookingService', () => {
       });
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva/reserva-123/formalizar');
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/formalizar`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({});
     req.flush({ mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos' });
@@ -112,7 +115,7 @@ describe('BookingService', () => {
       },
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva');
+    const req = httpTesting.expectOne(`${BOOKING_URL}`);
     req.flush({ mensaje: 'No existe inventario para la categoria en la fecha 2026-04-12' });
   });
 });

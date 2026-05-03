@@ -35,11 +35,11 @@ export type PaymentEstado =
   | 'REFUNDED';
 
 export interface PaymentInfo {
-  id: string;
-  reservation_id: string;
-  state: PaymentEstado;
-  amount: number;
-  currency: string;
+  id_pago: string;
+  id_reserva: string;
+  estado: PaymentEstado;
+  monto: number;
+  moneda: string;
 }
 
 // ─── Catalog: GET /categories/{id_categoria} ──────────────────────────────────

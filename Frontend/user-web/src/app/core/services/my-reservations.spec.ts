@@ -61,19 +61,19 @@ describe('MyReservationsService', () => {
   };
 
   const MOCK_APPROVED_PAYMENT: PaymentInfo = {
-    id: 'pay-001',
-    reservation_id: 'res-001',
-    state: 'APPROVED',
-    amount: 580,
-    currency: 'USD',
+    id_pago: 'pay-001',
+    id_reserva: 'res-001',
+    estado: 'APPROVED',
+    monto: 580,
+    moneda: 'USD',
   };
 
   const MOCK_REJECTED_PAYMENT: PaymentInfo = {
-    id: 'pay-002',
-    reservation_id: 'res-002',
-    state: 'REJECTED',
-    amount: 0,
-    currency: 'USD',
+    id_pago: 'pay-002',
+    id_reserva: 'res-002',
+    estado: 'REJECTED',
+    monto: 0,
+    moneda: 'USD',
   };
 
   const MOCK_PRICE: CalculateRoomPriceResponse = {
@@ -118,18 +118,22 @@ describe('MyReservationsService', () => {
   function flushEnrichApproved(booking: BookingReservation, category: CategoryApiResponse = MOCK_CATEGORY): void {
     httpTesting.expectOne(`${CATALOG_URL}/categories/${booking.id_categoria}`).flush(category);
     httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${booking.id_reserva}`)
-      .flush([MOCK_APPROVED_PAYMENT]);
+      .flush(MOCK_APPROVED_PAYMENT);
   }
 
   function flushEnrichNoApproved(
     booking: BookingReservation,
-    payments: PaymentInfo[],
+    payment: PaymentInfo | null,
     category: CategoryApiResponse,
     price: CalculateRoomPriceResponse = MOCK_PRICE
   ): void {
     httpTesting.expectOne(`${CATALOG_URL}/categories/${booking.id_categoria}`).flush(category);
-    httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${booking.id_reserva}`)
-      .flush(payments);
+    const payReq = httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${booking.id_reserva}`);
+    if (payment) {
+      payReq.flush(payment);
+    } else {
+      payReq.flush(null, { status: 404, statusText: 'Not Found' });
+    }
     httpTesting
       .expectOne(req => req.method === 'POST' && req.url === `${CATALOG_URL}/calculate-room-price`)
       .flush(price);
@@ -162,7 +166,7 @@ describe('MyReservationsService', () => {
     expect(catReq.request.method).toBe('GET');
     catReq.flush(MOCK_CATEGORY);
     httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING.id_reserva}`)
-      .flush([MOCK_APPROVED_PAYMENT]);
+      .flush(MOCK_APPROVED_PAYMENT);
   });
 
   it('should fetch payments for each reservation', () => {
@@ -172,7 +176,7 @@ describe('MyReservationsService', () => {
     httpTesting.expectOne(`${CATALOG_URL}/categories/${MOCK_BOOKING.id_categoria}`).flush(MOCK_CATEGORY);
     const payReq = httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING.id_reserva}`);
     expect(payReq.request.method).toBe('GET');
-    payReq.flush([MOCK_APPROVED_PAYMENT]);
+    payReq.flush(MOCK_APPROVED_PAYMENT);
   });
 
   it('should use payment.amount and payment.currency when APPROVED payment exists', () => {
@@ -182,8 +186,8 @@ describe('MyReservationsService', () => {
     flushEnrichApproved(MOCK_BOOKING);
 
     const vm = service.reservations()[0];
-    expect(vm.monto_total).toBe(MOCK_APPROVED_PAYMENT.amount);
-    expect(vm.moneda).toBe(MOCK_APPROVED_PAYMENT.currency);
+    expect(vm.monto_total).toBe(MOCK_APPROVED_PAYMENT.monto);
+    expect(vm.moneda).toBe(MOCK_APPROVED_PAYMENT.moneda);
   });
 
   it('should call POST calculate-room-price when no APPROVED payment exists', () => {
@@ -191,7 +195,8 @@ describe('MyReservationsService', () => {
     flushLocale();
     flushBookings([MOCK_BOOKING_HOLD]);
     httpTesting.expectOne(`${CATALOG_URL}/categories/${MOCK_BOOKING_HOLD.id_categoria}`).flush(MOCK_CATEGORY_2);
-    httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING_HOLD.id_reserva}`).flush([]);
+    httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING_HOLD.id_reserva}`)
+      .flush(null, { status: 404, statusText: 'Not Found' });
     const priceReq = httpTesting.expectOne(
       req => req.method === 'POST' && req.url === `${CATALOG_URL}/calculate-room-price`
     );
@@ -208,7 +213,7 @@ describe('MyReservationsService', () => {
     const service = createService();
     flushLocale();
     flushBookings([MOCK_BOOKING_HOLD]);
-    flushEnrichNoApproved(MOCK_BOOKING_HOLD, [], MOCK_CATEGORY_2);
+    flushEnrichNoApproved(MOCK_BOOKING_HOLD, null, MOCK_CATEGORY_2);
 
     const vm = service.reservations()[0];
     expect(vm.monto_total).toBe(MOCK_PRICE.total);
@@ -234,7 +239,7 @@ describe('MyReservationsService', () => {
     const service = createService();
     flushLocale();
     flushBookings([MOCK_BOOKING_HOLD]);
-    flushEnrichNoApproved(MOCK_BOOKING_HOLD, [MOCK_REJECTED_PAYMENT], MOCK_CATEGORY_2);
+    flushEnrichNoApproved(MOCK_BOOKING_HOLD, MOCK_REJECTED_PAYMENT, MOCK_CATEGORY_2);
 
     const vm = service.reservations()[0];
     expect(vm.estado).toBe('PENDIENTE_PAGO');
@@ -257,27 +262,13 @@ describe('MyReservationsService', () => {
     expect(vm.codigo_confirmacion).toBe('TH-001');
   });
 
-  it('should select APPROVED payment when multiple payments with different states exist', () => {
-    const pendingPayment: PaymentInfo = { ...MOCK_APPROVED_PAYMENT, id: 'pay-old', state: 'PENDING' };
-    const service = createService();
-    flushLocale();
-    flushBookings([MOCK_BOOKING]);
-    httpTesting.expectOne(`${CATALOG_URL}/categories/${MOCK_BOOKING.id_categoria}`).flush(MOCK_CATEGORY);
-    httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING.id_reserva}`)
-      .flush([pendingPayment, MOCK_APPROVED_PAYMENT]);
-
-    const vm = service.reservations()[0];
-    expect(vm.monto_total).toBe(MOCK_APPROVED_PAYMENT.amount);
-    expect(vm.moneda).toBe(MOCK_APPROVED_PAYMENT.currency);
-    expect(vm.estado).toBe('CONFIRMADA');
-  });
 
   it('should compute counters correctly from loaded data', () => {
     const service = createService();
     flushLocale();
     flushBookings([MOCK_BOOKING, MOCK_BOOKING_HOLD]);
     flushEnrichApproved(MOCK_BOOKING);
-    flushEnrichNoApproved(MOCK_BOOKING_HOLD, [], MOCK_CATEGORY_2);
+    flushEnrichNoApproved(MOCK_BOOKING_HOLD, null, MOCK_CATEGORY_2);
 
     const counters = service.counters();
     expect(counters.total).toBe(2);
@@ -291,7 +282,7 @@ describe('MyReservationsService', () => {
     flushLocale();
     flushBookings([MOCK_BOOKING, MOCK_BOOKING_HOLD]);
     flushEnrichApproved(MOCK_BOOKING);
-    flushEnrichNoApproved(MOCK_BOOKING_HOLD, [], MOCK_CATEGORY_2);
+    flushEnrichNoApproved(MOCK_BOOKING_HOLD, null, MOCK_CATEGORY_2);
 
     service.setFilter('CONFIRMADA');
     const filtered = service.filteredReservations();
@@ -304,7 +295,7 @@ describe('MyReservationsService', () => {
     flushLocale();
     flushBookings([MOCK_BOOKING, MOCK_BOOKING_HOLD]);
     flushEnrichApproved(MOCK_BOOKING);
-    flushEnrichNoApproved(MOCK_BOOKING_HOLD, [], MOCK_CATEGORY_2);
+    flushEnrichNoApproved(MOCK_BOOKING_HOLD, null, MOCK_CATEGORY_2);
 
     service.setFilter('PENDIENTE');
     const filtered = service.filteredReservations();
@@ -317,7 +308,7 @@ describe('MyReservationsService', () => {
     flushLocale();
     flushBookings([MOCK_BOOKING, MOCK_BOOKING_HOLD]);
     flushEnrichApproved(MOCK_BOOKING);
-    flushEnrichNoApproved(MOCK_BOOKING_HOLD, [], MOCK_CATEGORY_2);
+    flushEnrichNoApproved(MOCK_BOOKING_HOLD, null, MOCK_CATEGORY_2);
 
     service.setFilter('TODAS');
     expect(service.filteredReservations().length).toBe(2);

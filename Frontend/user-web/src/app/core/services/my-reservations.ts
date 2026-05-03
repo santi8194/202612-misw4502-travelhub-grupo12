@@ -92,24 +92,27 @@ export class MyReservationsService {
       category: this.http.get<CategoryApiResponse>(
         `${this.catalogApiUrl}/categories/${booking.id_categoria}`
       ).pipe(catchError(() => of(null))),
-      payments: this.http.get<PaymentInfo[]>(
+      payments: this.http.get<PaymentInfo>(
         `${this.paymentApiUrl}/payments/by-reserva/${booking.id_reserva}`
-      ).pipe(catchError(() => of([]))),
+      ).pipe(
+        map(p => [p]),
+        catchError(() => of([]))
+      ),
     }).pipe(
       switchMap(({ category, payments }) => {
-        const approvedPayment = payments.find(p => p.state === 'APPROVED') ?? null;
+        const approvedPayment = payments.find(p => p.estado === 'APPROVED') ?? null;
 
         if (approvedPayment) {
           return of(
             this.buildViewModel(
               booking, category,
-              approvedPayment.amount, approvedPayment.currency,
+              approvedPayment.monto, approvedPayment.moneda,
               'APPROVED'
             )
           );
         }
 
-        const firstPaymentState: PaymentEstado | null = payments[0]?.state ?? null;
+        const firstPaymentState: PaymentEstado | null = payments[0]?.estado ?? null;
 
         return this.http.post<CalculateRoomPriceResponse>(
           `${this.catalogApiUrl}/calculate-room-price`,

@@ -20,9 +20,18 @@ describe('BookingService', () => {
     });
     service = TestBed.inject(BookingService);
     httpTesting = TestBed.inject(HttpTestingController);
+
+    localStorage.setItem('th_access_token', 'acc-token-xyz');
+    localStorage.setItem('th_refresh_token', 'ref-token-xyz');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'juan@ejemplo.com');
+    localStorage.setItem('th_user_id', 'test-user-uuid-001');
   });
 
-  afterEach(() => httpTesting.verify());
+  afterEach(() => {
+    httpTesting.verify();
+    localStorage.clear();
+  });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
@@ -49,7 +58,7 @@ describe('BookingService', () => {
     expect(req.request.body.fecha_check_in).toBe('2026-10-10');
     expect(req.request.body.fecha_check_out).toBe('2026-10-15');
     expect(req.request.body.ocupacion).toEqual({ adultos: 2, ninos: 0, infantes: 0 });
-    expect(req.request.body.id_usuario).toEqual(jasmine.any(String));
+    expect(req.request.body.id_usuario).toBe('test-user-uuid-001');
     req.flush({ id_reserva: 'reserva-123' });
   });
 

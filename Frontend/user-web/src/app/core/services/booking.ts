@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, tap, throwError } from 'rxjs';
 import { HoldRequest, HoldResponse } from '../../models/hold.interface';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth';
 
 interface CreateBookingRequest {
   id_usuario: string;
@@ -32,6 +33,7 @@ interface FormalizeBookingResponse {
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly apiUrl = environment.bookingApiUrl;
   private readonly catalogUrl = environment.catalogApiUrl;
 
@@ -75,8 +77,13 @@ export class BookingService {
   }
 
   createHold(request: HoldRequest): Observable<HoldResponse> {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      return throwError(() => new Error('Tu sesión no está activa. Inicia sesión para continuar con la reserva.'));
+    }
+
     const mappedRequest: CreateBookingRequest = {
-      id_usuario: crypto.randomUUID(),
+      id_usuario: userId,
       id_categoria: String(request.categoryId),
       fecha_check_in: request.checkIn,
       fecha_check_out: request.checkOut,

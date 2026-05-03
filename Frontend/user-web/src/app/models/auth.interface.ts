@@ -20,4 +20,9 @@ export interface AuthTokenResponse {
   access_token: string;
   refresh_token: string;
   token_type: string;
+  id_usuario?: string;
+  user_id?: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
 }

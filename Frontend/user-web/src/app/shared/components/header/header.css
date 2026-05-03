@@ -79,6 +79,7 @@
 	border: 1px solid #e5e7eb;
 	cursor: pointer;
 	background: #fff;
+	appearance: none;
 }
 
 .user-menu:hover {
@@ -92,7 +93,6 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	cursor: pointer;
 }
 
 .menu-btn svg {
@@ -147,6 +147,38 @@
 
 .dropdown-item:hover {
 	background: #f9fafb;
+}
+
+.dropdown-item--button {
+	width: 100%;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.profile-summary {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 2px 4px 8px;
+	border-bottom: 1px solid #e5e7eb;
+	margin-bottom: 2px;
+}
+
+.profile-name {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 700;
+	color: #111827;
+	line-height: 1.3;
+}
+
+.profile-email {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 500;
+	color: #4b5563;
+	line-height: 1.3;
+	word-break: break-word;
 }
 
 app-search-bar {

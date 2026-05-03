@@ -28,25 +28,40 @@
 			</button>
 
 			<div class="profile-wrapper">
-				<div class="user-menu" (click)="toggleProfileMenu()">
-					<button class="menu-btn" type="button" aria-label="Abrir menú de perfil">
+				<button
+					class="user-menu"
+					type="button"
+					aria-label="Abrir menú de perfil"
+					[attr.aria-expanded]="profileMenuOpen()"
+					(click)="toggleProfileMenu($event)">
+					<span class="menu-btn" aria-hidden="true">
 						<svg viewBox="0 0 24 24">
 							<path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
 						</svg>
-					</button>
+					</span>
 
-					<div class="avatar">
+					<span class="avatar" aria-hidden="true">
 						<svg viewBox="0 0 24 24" aria-hidden="true">
 							<circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
 							<path d="M5 20c1.7-3.2 4-4.8 7-4.8S17.3 16.8 19 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
 						</svg>
-					</div>
-				</div>
+					</span>
+				</button>
 
 				@if (profileMenuOpen()) {
 					<div class="profile-dropdown" role="menu" aria-label="Menú de autenticación">
-						<a class="dropdown-item" routerLink="/auth/registro" (click)="closeProfileMenu()">Registrarse</a>
-						<a class="dropdown-item" routerLink="/auth/login" (click)="closeProfileMenu()">Iniciar Sesión</a>
+						@if (isAuthenticated()) {
+							<div class="profile-summary" role="presentation">
+								<p class="profile-name">{{ userSession()?.userName }}</p>
+								<p class="profile-email">{{ userSession()?.email }}</p>
+							</div>
+							<button class="dropdown-item dropdown-item--button" type="button" (click)="logout()">
+								Cerrar sesión
+							</button>
+						} @else {
+							<a class="dropdown-item" routerLink="/auth/registro" (click)="closeProfileMenu()">Registrarse</a>
+							<a class="dropdown-item" routerLink="/auth/login" (click)="closeProfileMenu()">Iniciar Sesión</a>
+						}
 					</div>
 				}
 			</div>

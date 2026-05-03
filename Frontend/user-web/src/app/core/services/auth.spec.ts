@@ -12,6 +12,7 @@ const mockTokens: AuthTokenResponse = {
   access_token: 'acc-token-xyz',
   refresh_token: 'ref-token-xyz',
   token_type: 'Bearer',
+  user_id: 'test-user-uuid-001',
 };
 
 describe('AuthService', () => {
@@ -67,7 +68,7 @@ describe('AuthService', () => {
 
       service.confirmRegistration(payload).subscribe();
 
-      const req = httpTesting.expectOne(`${BASE}/confirm`);
+      const req = httpTesting.expectOne(`${BASE}/register/confirm`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(payload);
       req.flush({ message: 'Confirmed' });
@@ -93,13 +94,15 @@ describe('AuthService', () => {
 
   // ─── saveSession ────────────────────────────────
   describe('saveSession()', () => {
-    it('should store all token fields and email in localStorage', () => {
+    it('should store tokens, email and user profile fields in localStorage', () => {
       service.saveSession(mockTokens, 'juan@ejemplo.com');
 
       expect(localStorage.getItem('th_access_token')).toBe('acc-token-xyz');
       expect(localStorage.getItem('th_refresh_token')).toBe('ref-token-xyz');
       expect(localStorage.getItem('th_token_type')).toBe('Bearer');
       expect(localStorage.getItem('th_user_email')).toBe('juan@ejemplo.com');
+      expect(localStorage.getItem('th_user_id')).toBe('test-user-uuid-001');
+      expect(localStorage.getItem('th_user_name')).toBe('juan');
     });
   });
 
@@ -113,6 +116,19 @@ describe('AuthService', () => {
       expect(localStorage.getItem('th_refresh_token')).toBeNull();
       expect(localStorage.getItem('th_token_type')).toBeNull();
       expect(localStorage.getItem('th_user_email')).toBeNull();
+      expect(localStorage.getItem('th_user_id')).toBeNull();
+      expect(localStorage.getItem('th_user_name')).toBeNull();
+    });
+  });
+
+  describe('getCurrentUserId()', () => {
+    it('should return user id from active session', () => {
+      service.saveSession(mockTokens, 'juan@ejemplo.com');
+      expect(service.getCurrentUserId()).toBe('test-user-uuid-001');
+    });
+
+    it('should return null when no active session exists', () => {
+      expect(service.getCurrentUserId()).toBeNull();
     });
   });
 

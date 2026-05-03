@@ -13,6 +13,7 @@ class UserBase(BaseModel):
     Declara las propiedades esenciales de un usuario que se usa transversalmente en el servicio.
     """
     email: EmailStr
+    full_name: Optional[str] = None
     rol: str
     partner_id: Optional[UUID4] = None
 

@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva, ExpirarReserva
 from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ObtenerReservasPorUsuarioHandler, ExpirarReservaHandler
 from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
+from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
 from config.uow import UnidadTrabajoHibrida
 import json
@@ -185,6 +186,69 @@ def obtener_reservas_por_usuario(id_usuario):
 
         return jsonify(resultado), 200
 
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@reserva_api.route('/reserva/propiedad/<id_propiedad>', methods=['GET'])
+def obtener_reservas_por_propiedad(id_propiedad):
+    try:
+        # Validar UUID de entrada para evitar llamadas innecesarias.
+        uuid.UUID(id_propiedad)
+
+        catalog_client = CatalogServiceClient()
+        categorias_response = catalog_client.get_categories_by_property_id(id_propiedad) or {}
+        categorias = categorias_response.get("categorias") or []
+
+        ids_categoria = [str(cat.get("id_categoria")) for cat in categorias if cat.get("id_categoria")]
+        if not ids_categoria:
+            return jsonify([]), 200
+
+        categoria_a_nombre = {
+            str(cat.get("id_categoria")): cat.get("nombre_comercial")
+            for cat in categorias
+            if cat.get("id_categoria")
+        }
+
+        uow = UnidadTrabajoHibrida()
+        repositorio = RepositorioReservas()
+        with uow:
+            reservas = repositorio.obtener_por_categorias(ids_categoria)
+
+        resultado = []
+
+        for reserva in reservas:
+            id_categoria = str(reserva.id_categoria) if reserva.id_categoria else None
+            if not id_categoria:
+                continue
+
+            huespedes = 0
+            if reserva.ocupacion:
+                huespedes = (
+                    (reserva.ocupacion.adultos or 0)
+                    + (reserva.ocupacion.ninos or 0)
+                    + (reserva.ocupacion.infantes or 0)
+                )
+
+            resultado.append({
+                "id_reserva": str(reserva.id),
+                "id_usuario": str(reserva.usuario.id) if reserva.usuario and reserva.usuario.id else None,
+                "id_propiedad": id_propiedad,
+                "id_categoria": id_categoria,
+                "habitacion": categoria_a_nombre.get(id_categoria),
+                "estado": reserva.estado.value if reserva.estado else None,
+                "fecha_check_in": reserva.fecha_check_in.isoformat() if reserva.fecha_check_in else None,
+                "fecha_check_out": reserva.fecha_check_out.isoformat() if reserva.fecha_check_out else None,
+                "huespedes": huespedes,
+                "pago": "PENDIENTE",
+                "total": None,
+                "fecha_creacion": reserva.fecha_creacion.isoformat() if reserva.fecha_creacion else None,
+                "fecha_actualizacion": reserva.fecha_actualizacion.isoformat() if reserva.fecha_actualizacion else None,
+            })
+
+        return jsonify(resultado), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:

@@ -5,10 +5,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { BookingService } from './booking';
 import { HoldRequest } from '../../models/hold.interface';
+import { environment } from '../../../environments/environment';
 
 describe('BookingService', () => {
   let service: BookingService;
   let httpTesting: HttpTestingController;
+  const bookingApiUrl = environment.bookingApiUrl;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -43,7 +45,7 @@ describe('BookingService', () => {
       });
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva');
+    const req = httpTesting.expectOne(bookingApiUrl);
     expect(req.request.method).toBe('POST');
     expect(req.request.body.id_categoria).toBe('1');
     expect(req.request.body.fecha_check_in).toBe('2026-10-10');
@@ -60,7 +62,7 @@ describe('BookingService', () => {
       });
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva/reserva-123/formalizar');
+    const req = httpTesting.expectOne(`${bookingApiUrl}/reserva-123/formalizar`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({});
     req.flush({ mensaje: 'Reserva formalizada. Iniciando SAGA de confirmacion con Hoteles y Pagos' });
@@ -76,7 +78,7 @@ describe('BookingService', () => {
       expect(response.pago?.checkout?.reference).toBe('PAY-1');
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva/reserva-123/formalizar');
+    const req = httpTesting.expectOne(`${bookingApiUrl}/reserva-123/formalizar`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
       intencion_pago: {
@@ -148,7 +150,7 @@ describe('BookingService', () => {
       },
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva');
+    const req = httpTesting.expectOne(bookingApiUrl);
     req.flush({ mensaje: 'No existe inventario para la categoria en la fecha 2026-04-12' });
   });
 });

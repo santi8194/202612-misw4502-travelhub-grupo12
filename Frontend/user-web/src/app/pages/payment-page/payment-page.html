@@ -12,34 +12,11 @@
         @if (error()) {
           <p class="payment-error" data-testid="payment-error">{{ error() }}</p>
         }
-        @if (widgetWarning()) {
-          <p class="payment-warning" data-testid="payment-warning">{{ widgetWarning() }}</p>
-        }
         <div class="payment-amount" data-testid="payment-amount">{{ amountLabel() }}</div>
-        <button
-          type="button"
-          class="wompi-button"
-          [disabled]="!isWidgetReady() || isOpeningWidget()"
-          (click)="openWidget()"
-          data-testid="wompi-open-button">
-          {{ isWidgetReady() ? (isOpeningWidget() ? 'Abriendo Wompi...' : 'Pagar con Wompi') : 'Cargando Wompi...' }}
-        </button>
-        @if (checkoutForm(); as form) {
-          <form action="https://checkout.wompi.co/p/" method="GET" class="web-checkout-form">
-            <input type="hidden" name="public-key" [value]="form['public-key']" />
-            <input type="hidden" name="currency" [value]="form['currency']" />
-            <input type="hidden" name="amount-in-cents" [value]="form['amount-in-cents']" />
-            <input type="hidden" name="reference" [value]="form['reference']" />
-            <input type="hidden" name="signature:integrity" [value]="form['signature:integrity']" />
-            <input type="hidden" name="redirect-url" [value]="form['redirect-url']" />
-            <button
-              type="submit"
-              class="payment-secondary-action"
-              data-testid="wompi-web-checkout-button">
-              Abrir checkout web
-            </button>
-          </form>
+        @if (!isWidgetReady() && !error()) {
+          <p class="payment-widget-status" data-testid="wompi-widget-status">Cargando Wompi...</p>
         }
+        <form #wompiWidgetForm class="wompi-widget-form" data-testid="wompi-widget-form"></form>
       } @else {
         <h1 class="payment-title">No fue posible iniciar el pago</h1>
         <p class="payment-message" data-testid="payment-error">{{ error() }}</p>

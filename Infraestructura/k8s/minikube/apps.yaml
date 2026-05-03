@@ -1,6 +1,84 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: rabbitmq-broker
+  namespace: travelhub
+  labels:
+    app: rabbitmq-broker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-broker
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-broker
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: rabbitmq-broker
+          image: rabbitmq:3.13-management-alpine
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: guest
+            - name: RABBITMQ_DEFAULT_PASS
+              value: guest
+          startupProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-broker
+  namespace: travelhub
+spec:
+  type: ClusterIP
+  selector:
+    app: rabbitmq-broker
+  ports:
+    - name: amqp
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+    - name: management
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: authservice
   namespace: travelhub
   labels:
@@ -136,6 +214,18 @@ spec:
                   key: DB_PASSWORD
             - name: CATALOG_SERVICE_URL
               value: http://catalog/catalog
+            - name: PAYMENT_SERVICE_URL
+              value: http://payment-service
+            - name: PAYMENT_MODE
+              value: wompi
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
           startupProbe:
             httpGet:
               path: /health
@@ -357,20 +447,28 @@ spec:
           image: travelhub/notification:minikube
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8000
           env:
             - name: ENABLE_RABBIT
-              value: "false"
+              value: "true"
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8000
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8000
             initialDelaySeconds: 10
             periodSeconds: 10
 ---
@@ -385,7 +483,7 @@ spec:
     app: notification
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -407,20 +505,31 @@ spec:
           image: travelhub/payment:minikube
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8002
+          envFrom:
+            - secretRef:
+                name: payment-app-runtime-secrets
           env:
             - name: ENABLE_RABBIT
-              value: "false"
+              value: "true"
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8002
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8002
             initialDelaySeconds: 10
             periodSeconds: 10
 ---
@@ -435,7 +544,7 @@ spec:
     app: payment
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8002
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -457,20 +566,28 @@ spec:
           image: travelhub/pmsintegration:minikube
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8001
           env:
             - name: ENABLE_RABBIT
-              value: "false"
+              value: "true"
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8001
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8001
             initialDelaySeconds: 10
             periodSeconds: 10
 ---
@@ -485,7 +602,7 @@ spec:
     app: pmsintegration
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8001
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -507,20 +624,28 @@ spec:
           image: travelhub/partnermanagement:minikube
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8000
           env:
             - name: ENABLE_RABBIT
-              value: "false"
+              value: "true"
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8000
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8000
             initialDelaySeconds: 10
             periodSeconds: 10
 ---
@@ -535,7 +660,78 @@ spec:
     app: partnermanagement
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-saga-worker
+  namespace: travelhub
+  labels:
+    app: booking-saga-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-saga-worker
+  template:
+    metadata:
+      labels:
+        app: booking-saga-worker
+    spec:
+      containers:
+        - name: booking-saga-worker
+          image: travelhub/booking:minikube
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - /src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
+          env:
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
+            - name: PYTHONPATH
+              value: /src/Booking
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: BOOKING_DB_MODE
+              value: postgres
+            - name: BOOKING_INSTANCE_PATH
+              value: /src/Booking/instance
+            - name: PAYMENT_MODE
+              value: wompi
+            - name: PAYMENT_SERVICE_URL
+              value: http://payment-service
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: booking-db-secret
+                  key: DB_PASSWORD
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

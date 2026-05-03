@@ -54,12 +54,6 @@
   color: #991b1b;
 }
 
-.payment-warning {
-  border: 1px solid #fde68a;
-  background: #fffbeb;
-  color: #92400e;
-}
-
 .payment-amount {
   margin-top: 24px;
   color: #111827;
@@ -68,7 +62,8 @@
 }
 
 .payment-action,
-.wompi-button {
+.wompi-widget-form button,
+.wompi-widget-form [role="button"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -85,28 +80,12 @@
   cursor: pointer;
 }
 
-.wompi-button:disabled {
+.wompi-widget-form button:disabled {
   background: #94a3b8;
   cursor: not-allowed;
 }
 
-.web-checkout-form {
-  margin: 0;
-}
-
-.payment-secondary-action {
-  display: block;
-  margin: 14px auto 0;
-  border: 0;
-  background: transparent;
-  color: #1e3a8a;
-  font: inherit;
-  font-weight: 700;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.payment-secondary-action:disabled {
-  color: #94a3b8;
-  cursor: not-allowed;
+.payment-widget-status,
+.wompi-widget-form {
+  margin-top: 22px;
 }

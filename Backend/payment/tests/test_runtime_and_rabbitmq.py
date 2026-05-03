@@ -5,6 +5,7 @@ from modules.payments.infrastructure.services import event_bus as event_bus_modu
 
 def test_startup_starts_consumer_thread(monkeypatch):
     state = {}
+    monkeypatch.delenv("ENABLE_RABBIT", raising=False)
 
     class FakeThread:
         def __init__(self, target):
@@ -22,6 +23,24 @@ def test_startup_starts_consumer_thread(monkeypatch):
     assert state["target"] is main_module.start_consumer
     assert state["started"] is True
     assert state["daemon"] is True
+
+
+def test_startup_skips_consumer_when_rabbit_is_disabled(monkeypatch):
+    state = {}
+    monkeypatch.setenv("ENABLE_RABBIT", "false")
+
+    class FakeThread:
+        def __init__(self, target):
+            state["target"] = target
+
+        def start(self):
+            state["started"] = True
+
+    monkeypatch.setattr(main_module.threading, "Thread", FakeThread)
+
+    main_module.start_rabbitmq_consumer()
+
+    assert state == {}
 
 
 def test_event_bus_publishes_and_closes_connection(monkeypatch):

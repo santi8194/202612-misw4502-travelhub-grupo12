@@ -27,19 +27,28 @@
 				<span>USD</span>
 			</button>
 
-			<div class="user-menu">
-				<button class="menu-btn">
-					<svg viewBox="0 0 24 24">
-						<path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-					</svg>
-				</button>
+			<div class="profile-wrapper">
+				<div class="user-menu" (click)="toggleProfileMenu()">
+					<button class="menu-btn" type="button" aria-label="Abrir menú de perfil">
+						<svg viewBox="0 0 24 24">
+							<path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+						</svg>
+					</button>
 
-				<div class="avatar">
-					<svg viewBox="0 0 24 24" aria-hidden="true">
-					<circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
-					<path d="M5 20c1.7-3.2 4-4.8 7-4.8S17.3 16.8 19 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-				</svg>
+					<div class="avatar">
+						<svg viewBox="0 0 24 24" aria-hidden="true">
+							<circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+							<path d="M5 20c1.7-3.2 4-4.8 7-4.8S17.3 16.8 19 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+						</svg>
+					</div>
 				</div>
+
+				@if (profileMenuOpen()) {
+					<div class="profile-dropdown" role="menu" aria-label="Menú de autenticación">
+						<a class="dropdown-item" routerLink="/auth/registro" (click)="closeProfileMenu()">Registrarse</a>
+						<a class="dropdown-item" routerLink="/auth/login" (click)="closeProfileMenu()">Iniciar Sesión</a>
+					</div>
+				}
 			</div>
 		</div>
 	</div>

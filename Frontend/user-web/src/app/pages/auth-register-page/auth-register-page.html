@@ -1,0 +1,163 @@
+<div class="auth-page">
+    <app-header mode="compact"></app-header>
+
+    <section class="auth-shell">
+        <div class="auth-wrapper">
+            <div class="brand">
+                <h1>TravelHub</h1>
+                <p>Comienza tu viaje con TravelHub</p>
+            </div>
+
+            <article class="auth-card">
+                <h2 class="card-title">Crear Cuenta</h2>
+
+                <p class="subtitle">
+                    Completa tus datos para crear tu cuenta
+                </p>
+
+                <form class="auth-form" (ngSubmit)="onSubmit()">
+                    <div class="row two-cols">
+                        <label>
+                            Nombre
+
+                            <div class="input-wrapper">
+                                <input type="text" [value]="form().firstName"
+                                    (input)="updateField('firstName', $any($event.target).value)" placeholder="Juan" />
+                            </div>
+
+                            @if (errors().firstName) {
+                            <small>Ingresa tu nombre.</small>
+                            }
+                        </label>
+
+                        <label>
+                            Apellido
+
+                            <div class="input-wrapper">
+                                <input type="text" [value]="form().lastName"
+                                    (input)="updateField('lastName', $any($event.target).value)" placeholder="Pérez" />
+                            </div>
+
+                            @if (errors().lastName) {
+                            <small>Ingresa tu apellido.</small>
+                            }
+                        </label>
+                    </div>
+
+                    <label>
+                        Correo Electrónico
+
+                        <div class="input-wrapper">
+                            <input type="email" [value]="form().email"
+                                (input)="updateField('email', $any($event.target).value)"
+                                placeholder="tu@ejemplo.com" />
+                        </div>
+
+                        @if (errors().email) {
+                        <small>Ingresa un correo válido.</small>
+                        }
+                    </label>
+
+                    <label>
+                        Número de Teléfono
+                        <span class="optional">(Opcional)</span>
+
+                        <div class="input-wrapper">
+                            <input type="tel" [value]="form().phone"
+                                (input)="updateField('phone', $any($event.target).value)"
+                                placeholder="+57 300 111 2233" />
+                        </div>
+
+                        @if (errors().phone) {
+                        <small>Usa formato internacional.</small>
+                        }
+                    </label>
+
+                    <label>
+                        Contraseña
+
+                        <div class="input-wrapper password-input">
+                            <input [type]="showPassword() ? 'text' : 'password'" [value]="form().password"
+                                (input)="updateField('password', $any($event.target).value)"
+                                placeholder="Crea una contraseña segura" />
+
+                            <button type="button" class="password-toggle" (click)="togglePassword()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M2.062 12.348a1 1 0 0 1 0-.696
+                                            10.75 10.75 0 0 1 19.876 0
+                                            1 1 0 0 1 0 .696
+                                            10.75 10.75 0 0 1-19.876 0" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        @if (errors().password) {
+                        <small>
+                            Debe incluir mayúscula, minúscula, número y símbolo.
+                        </small>
+                        }
+                    </label>
+
+                    <label>
+                        Confirmar Contraseña
+
+                        <div class="input-wrapper password-input">
+                            <input [type]="showConfirmPassword() ? 'text' : 'password'" [value]="form().confirmPassword"
+                                (input)="updateField('confirmPassword', $any($event.target).value)"
+                                placeholder="Vuelve a ingresar tu contraseña" />
+
+                            <button type="button" class="password-toggle" (click)="toggleConfirmPassword()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M2.062 12.348a1 1 0 0 1 0-.696
+                                            10.75 10.75 0 0 1 19.876 0
+                                            1 1 0 0 1 0 .696
+                                            10.75 10.75 0 0 1-19.876 0" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        @if (errors().confirmPassword) {
+                        <small>Confirma tu contraseña.</small>
+                        }
+
+                        @if (errors().passwordMismatch) {
+                        <small>Las contraseñas no coinciden.</small>
+                        }
+                    </label>
+
+                    <p class="terms">
+                        Acepto los
+                        <a href="#">Términos de Servicio</a>
+                        y la
+                        <a href="#">Política de Privacidad</a>
+                    </p>
+
+                    <button class="primary" type="submit" [disabled]="loading()">
+                        {{ loading() ? 'Creando cuenta...' : 'Crear Cuenta →' }}
+                    </button>
+
+                    <div class="divider">
+                        <span>O regístrate con</span>
+                    </div>
+
+                    <button type="button" class="google-btn">
+                        Registrarse con Google
+                    </button>
+                </form>
+
+                <p class="login-link">
+                    ¿Ya tienes una cuenta?
+                    <a routerLink="/auth/login">Inicia sesión →</a>
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <app-footer></app-footer>
+</div>

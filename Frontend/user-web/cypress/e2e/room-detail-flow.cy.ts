@@ -4,6 +4,14 @@ const BOOKING_URL = '**/api/reserva';
 
 export { };
 
+function seedAuthSession(window: Window) {
+  window.localStorage.setItem('th_access_token', 'fake-access-token');
+  window.localStorage.setItem('th_refresh_token', 'fake-refresh-token');
+  window.localStorage.setItem('th_token_type', 'Bearer');
+  window.localStorage.setItem('th_user_email', 'e2e@travelhub.com');
+  window.localStorage.setItem('th_user_id', 'user-e2e-001');
+}
+
 describe('Detalle de Habitación (HU-Web-RoomDetail)', () => {
   /**
    * Objetivo: Validar que la página carga y muestra correctamente todos los elementos de la habitación a partir de los datos del backend.
@@ -63,7 +71,12 @@ describe('Detalle de Habitación (HU-Web-RoomDetail)', () => {
     const checkInStr = tomorrow.toISOString().split('T')[0];
     const checkOutStr = checkout.toISOString().split('T')[0];
 
-    cy.visit(`/category/${CATEGORY_ID}?fecha_inicio=${checkInStr}&fecha_fin=${checkOutStr}&huespedes=2`);
+    cy.visit(`/category/${CATEGORY_ID}?fecha_inicio=${checkInStr}&fecha_fin=${checkOutStr}&huespedes=2`, {
+      onBeforeLoad(window) {
+        window.localStorage.clear();
+        seedAuthSession(window);
+      },
+    });
 
     cy.wait('@getRoomDetail');
     cy.wait('@calculatePrice');
@@ -125,7 +138,12 @@ describe('Detalle de Habitación (HU-Web-RoomDetail)', () => {
     const checkInStr = tomorrow.toISOString().split('T')[0];
     const checkOutStr = checkout.toISOString().split('T')[0];
 
-    cy.visit(`/category/${CATEGORY_ID}?fecha_inicio=${checkInStr}&fecha_fin=${checkOutStr}&huespedes=2`);
+    cy.visit(`/category/${CATEGORY_ID}?fecha_inicio=${checkInStr}&fecha_fin=${checkOutStr}&huespedes=2`, {
+      onBeforeLoad(window) {
+        window.localStorage.clear();
+        seedAuthSession(window);
+      },
+    });
     cy.wait('@getRoomDetail');
 
     // Hacer clic en "Reservar"
@@ -158,7 +176,12 @@ describe('Detalle de Habitación (HU-Web-RoomDetail)', () => {
     const checkInStr = tomorrow.toISOString().split('T')[0];
     const checkOutStr = checkout.toISOString().split('T')[0];
 
-    cy.visit(`/category/${CATEGORY_ID}?fecha_inicio=${checkInStr}&fecha_fin=${checkOutStr}&huespedes=2`);
+    cy.visit(`/category/${CATEGORY_ID}?fecha_inicio=${checkInStr}&fecha_fin=${checkOutStr}&huespedes=2`, {
+      onBeforeLoad(window) {
+        window.localStorage.clear();
+        seedAuthSession(window);
+      },
+    });
     cy.wait('@getRoomDetail');
 
     cy.get('[data-testid="room-reservar-btn"]').click();

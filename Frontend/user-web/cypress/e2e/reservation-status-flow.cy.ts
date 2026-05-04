@@ -4,6 +4,14 @@ const PROPERTY_ID = 'propiedad-e2e-001';
 
 export {};
 
+function seedAuthSession(window: Window) {
+  window.localStorage.setItem('th_access_token', 'fake-access-token');
+  window.localStorage.setItem('th_refresh_token', 'fake-refresh-token');
+  window.localStorage.setItem('th_token_type', 'Bearer');
+  window.localStorage.setItem('th_user_email', 'e2e@travelhub.com');
+  window.localStorage.setItem('th_user_id', 'user-e2e-001');
+}
+
 function mockConfirmReservationSummary(bookingOverrides: Record<string, unknown> = {}) {
   cy.intercept('GET', `**/api/reserva/${RESERVATION_ID}`, {
     body: {
@@ -36,7 +44,12 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
   it('Confirm reservation: muestra estado confirmado y resumen de la reserva', () => {
     mockConfirmReservationSummary({ estado: 'CONFIRMADA' });
 
-    cy.visit(`/booking/${RESERVATION_ID}/confirm-reservation?status=confirmed&reason=Reserva%20formalizada`);
+    cy.visit(`/booking/${RESERVATION_ID}/confirm-reservation?status=confirmed&reason=Reserva%20formalizada`, {
+      onBeforeLoad(window) {
+        window.localStorage.clear();
+        seedAuthSession(window);
+      },
+    });
 
     cy.wait('@getBookingForSummary');
     cy.wait('@getCatalogForSummary');
@@ -62,7 +75,12 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
   it('Confirm reservation: muestra estado rechazado por cancelación y oculta resumen', () => {
     mockConfirmReservationSummary({ estado: 'CANCELADA' });
 
-    cy.visit(`/booking/${RESERVATION_ID}/confirm-reservation?status=rejected&reason=La%20reserva%20fue%20cancelada%20por%20inventario`);
+    cy.visit(`/booking/${RESERVATION_ID}/confirm-reservation?status=rejected&reason=La%20reserva%20fue%20cancelada%20por%20inventario`, {
+      onBeforeLoad(window) {
+        window.localStorage.clear();
+        seedAuthSession(window);
+      },
+    });
 
     cy.wait('@getBookingForSummary');
     cy.wait('@getCatalogForSummary');
@@ -88,7 +106,12 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
       body: { estado: 'PENDIENTE' },
     }).as('getPendingBooking');
 
-    cy.visit(`/existing-session-redirect?reservationId=${RESERVATION_ID}`);
+    cy.visit(`/existing-session-redirect?reservationId=${RESERVATION_ID}`, {
+      onBeforeLoad(window) {
+        window.localStorage.clear();
+        seedAuthSession(window);
+      },
+    });
 
     cy.wait('@getPendingBooking');
 
@@ -114,7 +137,12 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
       body: { estado: 'CONFIRMADA' },
     }).as('getConfirmedBooking');
 
-    cy.visit(`/booking/${RESERVATION_ID}/processing-reservation?reason=Iniciando%20SAGA%20de%20confirmacion`);
+    cy.visit(`/booking/${RESERVATION_ID}/processing-reservation?reason=Iniciando%20SAGA%20de%20confirmacion`, {
+      onBeforeLoad(window) {
+        window.localStorage.clear();
+        seedAuthSession(window);
+      },
+    });
 
     cy.wait('@getConfirmedBooking');
 
@@ -131,7 +159,12 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
       },
     }).as('getCancelledBooking');
 
-    cy.visit(`/booking/${RESERVATION_ID}/processing-reservation`);
+    cy.visit(`/booking/${RESERVATION_ID}/processing-reservation`, {
+      onBeforeLoad(window) {
+        window.localStorage.clear();
+        seedAuthSession(window);
+      },
+    });
 
     cy.wait('@getCancelledBooking');
 

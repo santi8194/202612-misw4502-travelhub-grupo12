@@ -100,9 +100,8 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
       cy.get('input[placeholder="Pérez"]').type('Pérez');
       cy.get('input[type="email"]').type('juan@ejemplo.com');
 
-      const passwordInputs = cy.get('input[type="password"]');
-      passwordInputs.eq(0).type('Clave1234!');
-      passwordInputs.eq(1).type('OtraClave1234!');
+      cy.get('input[type="password"]').eq(0).type('Clave1234!');
+      cy.get('input[type="password"]').eq(1).type('OtraClave1234!');
 
       cy.get('button[type="submit"]').click();
       cy.get('small').should('contain.text', 'no coinciden');
@@ -184,7 +183,7 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
     });
 
     it('Escenario E: Confirmación exitosa redirige a login', () => {
-      cy.intercept('POST', '**/confirm', {
+      cy.intercept('POST', '**/register/confirm', {
         statusCode: 200,
         body: { message: 'Confirmed' },
       }).as('confirmRequest');
@@ -198,7 +197,7 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
     });
 
     it('Escenario F: Confirmación fallida muestra notificación de error', () => {
-      cy.intercept('POST', '**/confirm', {
+      cy.intercept('POST', '**/register/confirm', {
         statusCode: 400,
         body: { detail: 'Invalid code' },
       }).as('confirmFail');

@@ -299,7 +299,7 @@ class Propiedad:
 	def obtener_categoria(self, id_categoria: UUID) -> CategoriaHabitacion | None:
 		"""Obtiene una categoría por su UUID."""
 		for categoria in self.categorias_habitacion:
-			if categoria.id_categoria == id_categoria:
+			if str(categoria.id_categoria) == str(id_categoria):
 				return categoria
 		return None
 

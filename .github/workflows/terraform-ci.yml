@@ -48,31 +48,37 @@ jobs:
             tfvars_file: ../../environments/dev/container_registry/dev.tfvars
             extra_tfvars_file: ""
             backend_config: ""
+            skip_plan: false
           - name: eks
             working_directory: Infraestructura/terraform/stacks/eks
             tfvars_file: ../../environments/dev/eks/dev.tfvars
             extra_tfvars_file: ""
             backend_config: ""
+            skip_plan: false
           - name: ingress
             working_directory: Infraestructura/terraform/stacks/ingress
             tfvars_file: ../../environments/dev/ingress/dev.tfvars
             extra_tfvars_file: ""
             backend_config: ""
+            skip_plan: true
           - name: ec2
             working_directory: Infraestructura/terraform/stacks/ec2
             tfvars_file: ../../environments/dev/ec2/dev.tfvars
             extra_tfvars_file: ""
             backend_config: ../../environments/dev/ec2/backend.tfvars
+            skip_plan: false
           - name: database
             working_directory: Infraestructura/terraform/stacks/database
             tfvars_file: ../../environments/dev/database/terraform.tfvars
             extra_tfvars_file: database.secrets.tfvars
             backend_config: ../../environments/dev/database/backend.tfvars
+            skip_plan: false
           - name: frontends
             working_directory: Infraestructura/terraform/stacks/frontends
             tfvars_file: ../../environments/dev/frontends/dev.tfvars
             extra_tfvars_file: ""
             backend_config: ""
+            skip_plan: false
 
     defaults:
       run:
@@ -115,7 +121,13 @@ jobs:
             exit 1
           fi
 
+      - name: Skip Terraform plan for live infrastructure dependencies
+        if: ${{ matrix.stack.skip_plan }}
+        run: |
+          echo "::notice::Skipping terraform plan for '${{ matrix.stack.name }}' in PR CI because this stack depends on live infrastructure or remote state. Terraform validate already ran."
+
       - name: Terraform plan
+        if: ${{ !matrix.stack.skip_plan }}
         run: |
           if [ -n "${{ matrix.stack.extra_tfvars_file }}" ]; then
             terraform plan -input=false -lock=false -no-color \

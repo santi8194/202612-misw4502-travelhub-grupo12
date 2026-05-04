@@ -8,12 +8,14 @@ from modulos.reserva.aplicacion.comandos import (
 	CancelarReservaLocalCmd,
 	ConfirmarReservaLocalCmd,
 	CrearReservaHold,
+	ExpirarReserva,
 	FormalizarReserva,
 )
 from modulos.reserva.aplicacion.handlers import (
 	CancelarReservaLocalHandler,
 	ConfirmarReservaLocalHandler,
 	CrearReservaHoldHandler,
+	ExpirarReservaHandler,
 	FormalizarReservaHandler,
 	ObtenerReservasPorUsuarioHandler,
 )
@@ -44,6 +46,7 @@ def _reserva_en_hold() -> Reserva:
 
 def test_crear_reserva_hold_handler_ok_persiste_y_commit():
 	repositorio = MagicMock()
+	repositorio.obtener_activa_por_usuario_categoria_fechas.return_value = None
 	uow = _uow_mock()
 	catalog_client = MagicMock()
 	catalog_client.reserve_inventory.return_value = []
@@ -68,8 +71,33 @@ def test_crear_reserva_hold_handler_ok_persiste_y_commit():
 	uow.commit.assert_called_once()
 
 
+def test_crear_reserva_hold_handler_reutiliza_reserva_activa_existente():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	catalog_client = MagicMock()
+	reserva_existente = _reserva_en_hold()
+	repositorio.obtener_activa_por_usuario_categoria_fechas.return_value = reserva_existente
+	handler = CrearReservaHoldHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
+
+	comando = CrearReservaHold(
+		id_usuario=uuid.uuid4(),
+		id_categoria=uuid.uuid4(),
+		fecha_check_in="2026-04-01",
+		fecha_check_out="2026-04-03",
+		ocupacion={"adultos": 2, "ninos": 1, "infantes": 0},
+	)
+
+	id_reserva = handler.handle(comando)
+
+	assert id_reserva == reserva_existente.id
+	catalog_client.reserve_inventory.assert_not_called()
+	repositorio.agregar.assert_not_called()
+	uow.commit.assert_not_called()
+
+
 def test_crear_reserva_hold_handler_con_estado_explicito():
 	repositorio = MagicMock()
+	repositorio.obtener_activa_por_usuario_categoria_fechas.return_value = None
 	uow = _uow_mock()
 	catalog_client = MagicMock()
 	catalog_client.reserve_inventory.return_value = []
@@ -91,6 +119,7 @@ def test_crear_reserva_hold_handler_con_estado_explicito():
 
 def test_crear_reserva_hold_handler_si_categoria_no_existe_lanza_error():
 	repositorio = MagicMock()
+	repositorio.obtener_activa_por_usuario_categoria_fechas.return_value = None
 	uow = _uow_mock()
 	catalog_client = MagicMock()
 	catalog_client.reserve_inventory.side_effect = ValueError("La categoria no existe en catalog")
@@ -112,6 +141,7 @@ def test_crear_reserva_hold_handler_si_categoria_no_existe_lanza_error():
 
 def test_crear_reserva_hold_handler_si_no_hay_disponibilidad_lanza_error():
 	repositorio = MagicMock()
+	repositorio.obtener_activa_por_usuario_categoria_fechas.return_value = None
 	uow = _uow_mock()
 	catalog_client = MagicMock()
 	catalog_client.reserve_inventory.side_effect = ValueError("No hay disponibilidad para la categoria en la fecha 2026-04-01")
@@ -132,6 +162,7 @@ def test_crear_reserva_hold_handler_si_no_hay_disponibilidad_lanza_error():
 
 def test_crear_reserva_hold_handler_revierte_inventario_si_falla_persistencia():
 	repositorio = MagicMock()
+	repositorio.obtener_activa_por_usuario_categoria_fechas.return_value = None
 	repositorio.agregar.side_effect = RuntimeError("fallo persistencia")
 	uow = _uow_mock()
 	catalog_client = MagicMock()
@@ -213,13 +244,19 @@ def test_confirmar_handler_no_encontrada_lanza_error():
 def test_cancelar_handler_ok_emite_evento_falla_local():
 	repositorio = MagicMock()
 	uow = _uow_mock()
+	catalog_client = MagicMock()
 	reserva = _reserva_en_hold()
 	repositorio.obtener_por_id.return_value = reserva
-	handler = CancelarReservaLocalHandler(repositorio=repositorio, uow=uow)
+	handler = CancelarReservaLocalHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
 
 	evento = handler.handle(CancelarReservaLocalCmd(id_reserva=uuid.UUID(reserva.id)))
 
 	assert isinstance(evento, FallaActualizacionLocalEvt)
+	catalog_client.release_inventory.assert_called_once_with(
+		str(reserva.id_categoria),
+		reserva.fecha_check_in,
+		reserva.fecha_check_out,
+	)
 	repositorio.actualizar.assert_called_once_with(reserva)
 	uow.commit.assert_called_once()
 
@@ -227,11 +264,65 @@ def test_cancelar_handler_ok_emite_evento_falla_local():
 def test_cancelar_handler_no_encontrada_lanza_error():
 	repositorio = MagicMock()
 	uow = _uow_mock()
+	catalog_client = MagicMock()
 	repositorio.obtener_por_id.return_value = None
-	handler = CancelarReservaLocalHandler(repositorio=repositorio, uow=uow)
+	handler = CancelarReservaLocalHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
 
 	with pytest.raises(ValueError, match="No se encontró la reserva"):
 		handler.handle(CancelarReservaLocalCmd(id_reserva=uuid.uuid4()))
+
+	catalog_client.release_inventory.assert_not_called()
+
+
+def test_cancelar_handler_no_libera_inventario_si_ya_estaba_cancelada():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	catalog_client = MagicMock()
+	reserva = _reserva_en_hold()
+	reserva.estado = EstadoReserva.CANCELADA
+	repositorio.obtener_por_id.return_value = reserva
+	handler = CancelarReservaLocalHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
+
+	handler.handle(CancelarReservaLocalCmd(id_reserva=uuid.UUID(reserva.id)))
+
+	catalog_client.release_inventory.assert_not_called()
+
+
+def test_expirar_handler_libera_inventario_y_actualiza():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	catalog_client = MagicMock()
+	reserva = _reserva_en_hold()
+	repositorio.obtener_por_id.return_value = reserva
+	handler = ExpirarReservaHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
+
+	ok = handler.handle(ExpirarReserva(id_reserva=uuid.UUID(reserva.id)))
+
+	assert ok is True
+	catalog_client.release_inventory.assert_called_once_with(
+		str(reserva.id_categoria),
+		reserva.fecha_check_in,
+		reserva.fecha_check_out,
+	)
+	repositorio.actualizar.assert_called_once_with(reserva)
+	uow.commit.assert_called_once()
+
+
+def test_expirar_handler_no_libera_inventario_si_no_esta_en_hold():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	catalog_client = MagicMock()
+	reserva = _reserva_en_hold()
+	reserva.estado = EstadoReserva.EXPIRADA
+	repositorio.obtener_por_id.return_value = reserva
+	handler = ExpirarReservaHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
+
+	with pytest.raises(ValueError, match="HOLD"):
+		handler.handle(ExpirarReserva(id_reserva=uuid.UUID(reserva.id)))
+
+	catalog_client.release_inventory.assert_not_called()
+	repositorio.actualizar.assert_not_called()
+	uow.commit.assert_not_called()
 
 
 def test_obtener_reservas_por_usuario_handler_devuelve_lista():

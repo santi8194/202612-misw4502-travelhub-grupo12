@@ -370,12 +370,14 @@ def test_obtener_categorias_de_propiedad_delegates_query(monkeypatch):
 
 def test_actualizar_inventario_delegates_command(monkeypatch):
 	client = _build_client()
+	recorded = {}
 
 	class FakeUpdateInventory:
 		def __init__(self, repository, event_bus):
 			pass
 
 		def execute(self, **kwargs):
+			recorded.update(kwargs)
 			return {
 				"id_propiedad": str(kwargs["id_propiedad"]),
 				"id_categoria": str(kwargs["id_categoria"]),
@@ -388,8 +390,6 @@ def test_actualizar_inventario_delegates_command(monkeypatch):
 	response = client.put(
 		f"/properties/{PROPERTY_UUID}/categories/{CATEGORY_UUID}/inventory",
 		json={
-			"id_propiedad": str(PROPERTY_UUID),
-			"id_categoria": str(CATEGORY_UUID),
 			"id_inventario": "inv-1",
 			"fecha": "2026-05-10",
 			"cupos_totales": 10,
@@ -399,6 +399,27 @@ def test_actualizar_inventario_delegates_command(monkeypatch):
 
 	assert response.status_code == 200
 	assert response.json()["event_generated"] == "InventarioActualizado"
+	assert recorded["id_propiedad"] == PROPERTY_UUID
+	assert recorded["id_categoria"] == CATEGORY_UUID
+
+
+def test_actualizar_inventario_rejects_path_body_mismatch(monkeypatch):
+	client = _build_client()
+	monkeypatch.setattr(router_module, "UpdateInventory", Mock())
+
+	response = client.put(
+		f"/properties/{PROPERTY_UUID}/categories/{CATEGORY_UUID}/inventory",
+		json={
+			"id_propiedad": str(CATEGORY_UUID),
+			"id_inventario": "inv-1",
+			"fecha": "2026-05-10",
+			"cupos_totales": 10,
+			"cupos_disponibles": 7,
+		},
+	)
+
+	assert response.status_code == 400
+	assert response.json()["error"] == "Path/body property mismatch"
 
 
 def test_obtener_propiedad_success_payload(monkeypatch):

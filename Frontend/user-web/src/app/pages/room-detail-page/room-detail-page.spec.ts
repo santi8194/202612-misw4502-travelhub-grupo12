@@ -5,6 +5,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 import { RoomDetailPage } from './room-detail-page';
+import { NotificationService } from '../../core/services/notification';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
 import { RoomPriceResponse } from '../../models/room-price.interface';
 
@@ -94,6 +95,7 @@ describe('RoomDetailPage', () => {
   let component: RoomDetailPage;
   let fixture: ComponentFixture<RoomDetailPage>;
   let httpTesting: HttpTestingController;
+  let notificationService: NotificationService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -103,6 +105,7 @@ describe('RoomDetailPage', () => {
         provideRouter([
           { path: 'category/:category_id', component: RoomDetailPage },
           { path: 'booking/:id_reserva', component: RoomDetailPage }, // stub for redirect
+          { path: 'auth/login', component: RoomDetailPage },
         ]),
         {
           provide: ActivatedRoute,
@@ -126,10 +129,21 @@ describe('RoomDetailPage', () => {
     fixture = TestBed.createComponent(RoomDetailPage);
     component = fixture.componentInstance;
     httpTesting = TestBed.inject(HttpTestingController);
+    notificationService = TestBed.inject(NotificationService);
+
+    localStorage.setItem('th_access_token', 'acc-token-xyz');
+    localStorage.setItem('th_refresh_token', 'ref-token-xyz');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'juan@ejemplo.com');
+    localStorage.setItem('th_user_id', 'test-user-uuid');
+
     fixture.detectChanges();
   });
 
-  afterEach(() => httpTesting.verify());
+  afterEach(() => {
+    httpTesting.verify();
+    localStorage.clear();
+  });
 
   // ── Helpers ──
   function flushUserLocale(): void {
@@ -333,8 +347,6 @@ describe('RoomDetailPage', () => {
     component.checkOutInput.set('2026-06-03');
     component.guestsInput.set(2);
 
-    spyOn(component as any, 'resolveUserId').and.returnValue('test-user-uuid');
-
     component.reservar();
     fixture.detectChanges();
 
@@ -343,6 +355,7 @@ describe('RoomDetailPage', () => {
     expect(bookingReq.request.body.fecha_check_in).toBe('2026-06-01');
     expect(bookingReq.request.body.fecha_check_out).toBe('2026-06-03');
     expect(bookingReq.request.body.ocupacion.adultos).toBe(2);
+    expect(bookingReq.request.body.id_usuario).toBe('test-user-uuid');
 
     bookingReq.flush({ id_reserva: 'reserva-test-001' });
   });
@@ -357,7 +370,6 @@ describe('RoomDetailPage', () => {
     component.checkInInput.set('2026-06-01');
     component.checkOutInput.set('2026-06-03');
     component.guestsInput.set(1);
-    spyOn(component as any, 'resolveUserId').and.returnValue('test-user-uuid');
 
     component.reservar();
     fixture.detectChanges();
@@ -367,5 +379,29 @@ describe('RoomDetailPage', () => {
     fixture.detectChanges();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/booking', 'reserva-test-001']);
+  });
+
+  it('should require login before creating a reservation', () => {
+    flushUserLocale();
+    httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url)).flush(mockRoomDetail);
+    fixture.detectChanges();
+
+    const navigateSpy = spyOn(TestBed.inject(Router), 'navigate');
+    const notificationSpy = spyOn(notificationService, 'showError');
+
+    localStorage.clear();
+    component.checkInInput.set('2026-06-01');
+    component.checkOutInput.set('2026-06-03');
+    component.guestsInput.set(2);
+
+    component.reservar();
+    fixture.detectChanges();
+
+    httpTesting.expectNone(r => BOOKING_URL_PATTERN.test(r.url));
+    expect(component.error()).toBe('Debes iniciar sesión antes de crear la reserva.');
+    expect(notificationSpy).toHaveBeenCalledWith('Debes iniciar sesión antes de crear la reserva.');
+    expect(navigateSpy).toHaveBeenCalledWith(['/auth/login'], {
+      queryParams: { redirect: '/' },
+    });
   });
 });

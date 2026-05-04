@@ -26,44 +26,46 @@
 				</svg>
 				<span>USD</span>
 			</button>
-
-			<div class="user-menu" data-testid="user-menu">
+			<div class="profile-wrapper">
 				<button
-					class="menu-btn"
-					(click)="toggleMenu()"
+					class="user-menu"
+					type="button"
+					aria-label="Abrir menú de perfil"
+					[attr.aria-expanded]="profileMenuOpen()"
 					aria-haspopup="true"
-					[attr.aria-expanded]="isMenuOpen()"
-					data-testid="user-menu-btn"
-				>
-					<svg viewBox="0 0 24 24">
-						<path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-					</svg>
+					(click)="toggleProfileMenu($event)">
+					<span class="menu-btn" aria-hidden="true">
+						<svg viewBox="0 0 24 24">
+							<path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+						</svg>
+					</span>
+
+					<span class="avatar" aria-hidden="true">
+						<svg viewBox="0 0 24 24" aria-hidden="true">
+							<circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+							<path d="M5 20c1.7-3.2 4-4.8 7-4.8S17.3 16.8 19 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+						</svg>
+					</span>
 				</button>
 
-				<div class="avatar">
-					<svg viewBox="0 0 24 24" aria-hidden="true">
-					<circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
-					<path d="M5 20c1.7-3.2 4-4.8 7-4.8S17.3 16.8 19 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-				</svg>
-				</div>
-
-				@if (isMenuOpen()) {
-					<div class="user-dropdown" data-testid="user-dropdown" role="menu">
-						<button
-							class="dropdown-item"
-							role="menuitem"
-							(click)="navigateTo('/mis-reservas')"
-							data-testid="menu-mis-reservas"
-						>
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-								<rect x="3" y="4" width="18" height="18" rx="2"/>
-								<path d="M16 2v4M8 2v4M3 10h18"/>
-							</svg>
-							Mis Reservas
-						</button>
+				@if (profileMenuOpen()) {
+					<div class="profile-dropdown" role="menu" aria-label="Menú de autenticación">
+						@if (isAuthenticated()) {
+							<div class="profile-summary" role="presentation">
+								<p class="profile-name">{{ userSession()?.userName }}</p>
+								<p class="profile-email">{{ userSession()?.email }}</p>
+							</div>
+							<button class="dropdown-item dropdown-item--button" type="button" (click)="goToMyReservations()">
+								Mis Reservas
+							</button>
+							<button class="dropdown-item dropdown-item--button" type="button" (click)="logout()">
+								Cerrar sesión
+							</button>
+						} @else {
+							<a class="dropdown-item" routerLink="/auth/registro" (click)="closeProfileMenu()">Registrarse</a>
+							<a class="dropdown-item" routerLink="/auth/login" (click)="closeProfileMenu()">Iniciar Sesión</a>
+						}
 					</div>
-
-					<div class="dropdown-backdrop" (click)="closeMenu()"></div>
 				}
 			</div>
 		</div>

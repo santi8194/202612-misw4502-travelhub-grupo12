@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { PaymentPage } from './payment-page';
@@ -21,6 +22,7 @@ describe('PaymentPage', () => {
       imports: [PaymentPage],
       providers: [
         provideZonelessChangeDetection(),
+        provideHttpClient(),
         provideRouter([]),
         { provide: ActivatedRoute, useValue: routeStub },
       ],

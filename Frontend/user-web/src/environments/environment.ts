@@ -4,5 +4,6 @@ export const environment = {
   bookingApiUrl: 'http://127.0.0.1:8080/booking/api/reserva',
   catalogApiUrl: 'http://127.0.0.1:8080/catalog',
   paymentApiUrl: 'http://127.0.0.1:8080/payment',
+  authApiUrl: 'http://127.0.0.1:8080/auth',
 };
 

@@ -1,31 +1,60 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, inject, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import { SearchBarComponent } from '../search-bar/search-bar';
 import { CompactSearchBarComponent } from '../compact-search-bar/compact-search-bar';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [SearchBarComponent, CompactSearchBarComponent],
+  imports: [SearchBarComponent, CompactSearchBarComponent, RouterLink],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })
 export class HeaderComponent {
-  mode = input<'default' | 'compact'>('default');
-
-  protected readonly isMenuOpen = signal(false);
+  private readonly hostElement = inject(ElementRef<HTMLElement>);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  protected toggleMenu(): void {
-    this.isMenuOpen.update(v => !v);
+  mode = input<'default' | 'compact'>('default');
+  profileMenuOpen = signal(false);
+  readonly userSession = computed(() => this.authService.session());
+  readonly isAuthenticated = computed(() => !!this.userSession());
+
+  constructor() {
+    this.syncUserSession();
   }
 
-  protected closeMenu(): void {
-    this.isMenuOpen.set(false);
+  toggleProfileMenu(event?: Event): void {
+    event?.stopPropagation();
+    this.syncUserSession();
+    this.profileMenuOpen.update(open => !open);
   }
 
-  protected navigateTo(path: string): void {
-    this.closeMenu();
-    this.router.navigate([path]);
+  closeProfileMenu(): void {
+    this.profileMenuOpen.set(false);
+  }
+
+  logout(): void {
+    this.authService.clearSession();
+    this.closeProfileMenu();
+  }
+
+  goToMyReservations(): void {
+    this.closeProfileMenu();
+    this.router.navigate(['/mis-reservas']);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as Node | null;
+    if (target && !this.hostElement.nativeElement.contains(target)) {
+      this.closeProfileMenu();
+    }
+  }
+
+  private syncUserSession(): void {
+    this.authService.getCurrentSession();
   }
 }

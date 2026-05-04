@@ -23,6 +23,14 @@ function sessionKey(signature: string) {
   return `booking-session:${signature}`;
 }
 
+function seedAuthSession(window: Window) {
+  window.localStorage.setItem('th_access_token', 'fake-access-token');
+  window.localStorage.setItem('th_refresh_token', 'fake-refresh-token');
+  window.localStorage.setItem('th_token_type', 'Bearer');
+  window.localStorage.setItem('th_user_email', 'e2e@travelhub.com');
+  window.localStorage.setItem('th_user_id', 'user-e2e-001');
+}
+
 function mockBookingCartRequests(reservationId = BOOKING_ID) {
   cy.intercept('GET', `**/api/reserva/${reservationId}`, { fixture: 'booking-cart-booking.json' }).as(`getBooking-${reservationId}`);
   cy.intercept('GET', `**/catalog/properties/by-category/${CATEGORY_ID}`, { fixture: 'booking-cart-catalog.json' }).as('getCatalog');
@@ -37,6 +45,7 @@ function visitBookingCart(reservationId = BOOKING_ID) {
   cy.visit(`/booking/${reservationId}`, {
     onBeforeLoad(window) {
       window.localStorage.clear();
+      seedAuthSession(window);
     },
   });
 
@@ -138,6 +147,7 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     cy.visit(`/booking/${BOOKING_ID}`, {
       onBeforeLoad(window) {
         window.localStorage.clear();
+        seedAuthSession(window);
       },
     });
 
@@ -207,6 +217,7 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     cy.visit(`/booking/${BOOKING_ID}`, {
       onBeforeLoad(window) {
         window.localStorage.clear();
+        seedAuthSession(window);
         window.localStorage.setItem(sessionKey(BOOKING_SIGNATURE), JSON.stringify({
           reservationId: OTHER_BOOKING_ID,
           signature: BOOKING_SIGNATURE,

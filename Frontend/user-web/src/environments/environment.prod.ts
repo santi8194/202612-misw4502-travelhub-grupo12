@@ -4,5 +4,6 @@ export const environment = {
   bookingApiUrl: 'https://d1d660udfb1fc0.cloudfront.net/booking/api/reserva',
   catalogApiUrl: 'https://d1d660udfb1fc0.cloudfront.net/catalog',
   paymentApiUrl: 'https://d1d660udfb1fc0.cloudfront.net/payment',
+  authApiUrl: 'https://d1d660udfb1fc0.cloudfront.net/auth',
 };
  

@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, tap, throwError } from 'rxjs';
 import { HoldRequest, HoldResponse } from '../../models/hold.interface';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth';
 
 interface CreateBookingRequest {
   id_usuario: string;
@@ -27,11 +28,38 @@ interface FormalizeBookingResponse {
   mensaje?: string;
   detail?: string;
   error?: string;
+  pago?: PaymentIntentResponse;
+}
+
+export interface PaymentCheckoutData {
+  public_key: string;
+  currency: string;
+  amount_in_cents: number;
+  reference: string;
+  signature_integrity: string;
+}
+
+export interface PaymentIntentResponse {
+  id_pago: string;
+  id_reserva: string;
+  referencia: string;
+  estado: string;
+  monto: number;
+  moneda: string;
+  checkout?: PaymentCheckoutData | null;
+}
+
+interface FormalizeBookingRequest {
+  intencion_pago?: {
+    monto: number;
+    moneda: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly apiUrl = environment.bookingApiUrl;
   private readonly catalogUrl = environment.catalogApiUrl;
 
@@ -75,8 +103,13 @@ export class BookingService {
   }
 
   createHold(request: HoldRequest): Observable<HoldResponse> {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      return throwError(() => new Error('Tu sesión no está activa. Inicia sesión para continuar con la reserva.'));
+    }
+
     const mappedRequest: CreateBookingRequest = {
-      id_usuario: crypto.randomUUID(),
+      id_usuario: userId,
       id_categoria: String(request.categoryId),
       fecha_check_in: request.checkIn,
       fecha_check_out: request.checkOut,
@@ -130,10 +163,13 @@ export class BookingService {
     );
   }
 
-  formalizeBookingById(idReserva: string): Observable<FormalizeBookingResponse> {
+  formalizeBookingById(
+    idReserva: string,
+    request: FormalizeBookingRequest = {}
+  ): Observable<FormalizeBookingResponse> {
     const url = `${this.apiUrl}/${idReserva}/formalizar`;
-    console.info('[BookingService] POST', url);
-    return this.http.post<FormalizeBookingResponse>(url, {}).pipe(
+    console.info('[BookingService] POST', url, request);
+    return this.http.post<FormalizeBookingResponse>(url, request).pipe(
       tap((response) => console.info('[BookingService] formalizeBookingById success', response)),
       catchError((error) => {
         console.error('[BookingService] formalizeBookingById error', { idReserva, error });

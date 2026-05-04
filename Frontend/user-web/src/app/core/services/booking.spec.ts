@@ -5,10 +5,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { BookingService } from './booking';
 import { HoldRequest } from '../../models/hold.interface';
+import { environment } from '../../../environments/environment';
+
+const BOOKING_URL = environment.bookingApiUrl;
 
 describe('BookingService', () => {
   let service: BookingService;
   let httpTesting: HttpTestingController;
+  const bookingApiUrl = environment.bookingApiUrl;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -20,9 +24,18 @@ describe('BookingService', () => {
     });
     service = TestBed.inject(BookingService);
     httpTesting = TestBed.inject(HttpTestingController);
+
+    localStorage.setItem('th_access_token', 'acc-token-xyz');
+    localStorage.setItem('th_refresh_token', 'ref-token-xyz');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'juan@ejemplo.com');
+    localStorage.setItem('th_user_id', 'test-user-uuid-001');
   });
 
-  afterEach(() => httpTesting.verify());
+  afterEach(() => {
+    httpTesting.verify();
+    localStorage.clear();
+  });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
@@ -43,30 +56,66 @@ describe('BookingService', () => {
       });
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva');
+    const req = httpTesting.expectOne(`${BOOKING_URL}`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body.id_categoria).toBe('1');
     expect(req.request.body.fecha_check_in).toBe('2026-10-10');
     expect(req.request.body.fecha_check_out).toBe('2026-10-15');
     expect(req.request.body.ocupacion).toEqual({ adultos: 2, ninos: 0, infantes: 0 });
-    expect(req.request.body.id_usuario).toEqual(jasmine.any(String));
+    expect(req.request.body.id_usuario).toBe('test-user-uuid-001');
     req.flush({ id_reserva: 'reserva-123' });
   });
 
   it('should send a POST request to formalize a reservation', () => {
     service.formalizeBookingById('reserva-123').subscribe((response) => {
       expect(response).toEqual({
-        mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos',
+        mensaje: 'Reserva formalizada. Iniciando SAGA de confirmacion con Hoteles y Pagos',
       });
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva/reserva-123/formalizar');
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/formalizar`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({});
-    req.flush({ mensaje: 'Reserva formalizada. Iniciando SAGA de confirmación con Hoteles y Pagos' });
+    req.flush({ mensaje: 'Reserva formalizada. Iniciando SAGA de confirmacion con Hoteles y Pagos' });
   });
 
-  
+  it('should send payment intention when formalizing a reservation', () => {
+    service.formalizeBookingById('reserva-123', {
+      intencion_pago: {
+        monto: 120000,
+        moneda: 'COP',
+      },
+    }).subscribe((response) => {
+      expect(response.pago?.checkout?.reference).toBe('PAY-1');
+    });
+
+    const req = httpTesting.expectOne(`${bookingApiUrl}/reserva-123/formalizar`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      intencion_pago: {
+        monto: 120000,
+        moneda: 'COP',
+      },
+    });
+    req.flush({
+      mensaje: 'Reserva formalizada. Iniciando SAGA de confirmacion con Hoteles y Pagos',
+      pago: {
+        id_pago: 'pay-1',
+        id_reserva: 'reserva-123',
+        referencia: 'PAY-1',
+        estado: 'PENDING',
+        monto: 120000,
+        moneda: 'COP',
+        checkout: {
+          public_key: 'pub_test',
+          currency: 'COP',
+          amount_in_cents: 12000000,
+          reference: 'PAY-1',
+          signature_integrity: 'sig',
+        },
+      },
+    });
+  });
 
   it('should describe availability errors clearly', () => {
     const error = new HttpErrorResponse({
@@ -82,11 +131,11 @@ describe('BookingService', () => {
   it('should keep a specific backend message when it is already useful', () => {
     const error = new HttpErrorResponse({
       status: 400,
-      error: { mensaje: 'La tarifa configurada para la reserva ya no está vigente.' },
+      error: { mensaje: 'La tarifa configurada para la reserva ya no esta vigente.' },
     });
 
     expect(service.getReservationErrorMessage(error)).toBe(
-      'La tarifa configurada para la reserva ya no está vigente.'
+      'La tarifa configurada para la reserva ya no esta vigente.'
     );
   });
 
@@ -112,7 +161,7 @@ describe('BookingService', () => {
       },
     });
 
-    const req = httpTesting.expectOne('http://localhost:5001/booking/api/reserva');
+    const req = httpTesting.expectOne(`${BOOKING_URL}`);
     req.flush({ mensaje: 'No existe inventario para la categoria en la fecha 2026-04-12' });
   });
 });

@@ -12,6 +12,10 @@ Este flujo prueba el backend local de `payment` contra Wompi Sandbox usando tarj
   - `WOMPI_PRIVATE_KEY=prv_test_...`
   - `WOMPI_INTEGRITY_SECRET=test_integrity_...`
   - `WOMPI_EVENTS_SECRET=test_events_...`
+  - `WOMPI_BASE_URL=https://sandbox.wompi.co/v1`
+  - `WOMPI_PAYOUTS_BASE_URL=https://api.sandbox.payouts.wompi.co/v1`
+
+`WOMPI_BASE_URL` se usa para checkout, tokens, fuentes de pago y transacciones. `WOMPI_PAYOUTS_BASE_URL` se reserva para dispersiones/payouts.
 
 ### Arranque local
 
@@ -99,7 +103,7 @@ sequenceDiagram
     WompiAPI-->>PaymentAPI: payment_source_id
     PaymentAPI->>WompiAPI: POST /v1/transactions
     WompiAPI-->>PaymentAPI: wompi_transaction_id + estado inicial
-    PaymentAPI-->>Frontend: id_pago, payment_source_id, wompi_transaction_id
+    PaymentAPI-->>Frontend: id_pago, wompi_transaction_id
 
     Frontend->>PaymentAPI: GET /payments/transactions/{transaction_id}
     PaymentAPI->>WompiAPI: GET /v1/transactions/{transaction_id}
@@ -110,5 +114,5 @@ sequenceDiagram
 Wompi es quien genera el `card_token`; el servicio `payment` no tokeniza localmente ni persiste datos sensibles de tarjeta.  
 El frontend envía al backend los datos de tarjeta para tokenización y luego solicita el pago usando `card_token`, `acceptance_token` y `accept_personal_auth`.  
 Wompi devuelve primero el `card_token`, luego el `payment_source_id`, y finalmente el `wompi_transaction_id` y el estado de la transacción.  
-El servicio `payment` persiste `payment_source_id`, `wompi_transaction_id` y metadatos del pago, pero no persiste `card_token`.  
+El servicio `payment` persiste la referencia de pasarela, el `wompi_transaction_id` y el estado del pago; no persiste `card_token`, `payment_source_id` ni metadatos de tarjeta.  
 Este diagrama cubre únicamente el flujo de tarjeta tokenizada. No incluye widget checkout, webhook real ni actualización asíncrona por `transaction.updated`.

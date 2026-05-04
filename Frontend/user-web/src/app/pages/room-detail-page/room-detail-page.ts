@@ -5,7 +5,9 @@ import { catchError, finalize, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { BookingService } from '../../core/services/booking';
 import { CatalogService } from '../../core/services/catalog';
+import { AuthService } from '../../core/services/auth';
 import { BookingStore } from '../../core/store/booking-store';
+import { NotificationService } from '../../core/services/notification';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
@@ -24,7 +26,9 @@ export class RoomDetailPage {
   private readonly http = inject(HttpClient);
   private readonly catalogService = inject(CatalogService);
   private readonly bookingService = inject(BookingService);
+  private readonly authService = inject(AuthService);
   private readonly store = inject(BookingStore);
+  private readonly notificationService = inject(NotificationService);
 
   // ── Estado ──
   readonly loading = signal(true);
@@ -67,8 +71,17 @@ export class RoomDetailPage {
   readonly subtotal = computed(() => this.roomPrice()?.subtotal ?? 0);
   readonly total = computed(() => this.roomPrice()?.total ?? 0);
 
-  readonly impuestos = computed(() => this.roomPrice()?.impuestos ?? 0);
-  readonly cargoServicio = computed(() => this.roomPrice()?.cargo_servicio ?? 0);
+  readonly impuestos = computed(() => {
+    const roomPrice = this.roomPrice();
+    if (!roomPrice) return 0;
+    if (typeof roomPrice.impuestos_y_cargos === 'number') return roomPrice.impuestos_y_cargos;
+    return roomPrice.impuestos ?? 0;
+  });
+  readonly cargoServicio = computed(() => {
+    const roomPrice = this.roomPrice();
+    if (!roomPrice || typeof roomPrice.impuestos_y_cargos === 'number') return 0;
+    return roomPrice.cargo_servicio ?? 0;
+  });
   readonly impuestoNombre = computed(() => this.roomPrice()?.impuesto_nombre ?? 'IVA');
 
   readonly currencySymbol = computed(() => {
@@ -220,8 +233,22 @@ export class RoomDetailPage {
     this.creatingBooking.set(true);
     this.error.set(null);
 
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      this.creatingBooking.set(false);
+      const message = 'Debes iniciar sesión antes de crear la reserva.';
+      this.error.set(message);
+      this.notificationService.showError(message);
+      this.router.navigate(['/auth/login'], {
+        queryParams: {
+          redirect: this.router.url,
+        },
+      });
+      return;
+    }
+
     const request = {
-      id_usuario: this.resolveUserId(),
+      id_usuario: userId,
       id_categoria: categoryId,
       fecha_check_in: checkIn,
       fecha_check_out: checkOut,
@@ -255,17 +282,5 @@ export class RoomDetailPage {
 
   private buildSessionSignature(categoryId: string, checkIn: string, checkOut: string, guests: number): string {
     return [categoryId, checkIn, checkOut, guests].join('|');
-  }
-
-  private resolveUserId(): string {
-    const key = 'user_id';
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      return stored;
-    }
-    const generated = crypto.randomUUID();
-    localStorage.setItem(key, generated);
-    console.warn('[RoomDetailPage] user_id not found in localStorage. Generated temporary UUID.', generated);
-    return generated;
   }
 }

@@ -1,0 +1,96 @@
+<div class="my-reservations-page" data-testid="my-reservations-page">
+
+  <app-header mode="compact" />
+
+  <main class="page-main">
+
+    <!-- Page heading -->
+    <section class="page-heading" data-testid="page-heading">
+      <h1 class="page-title" data-testid="page-title">Mis Reservaciones</h1>
+      <p class="page-subtitle" data-testid="page-subtitle">
+        Gestiona y realiza el seguimiento de todas tus reservas
+      </p>
+    </section>
+
+    <!-- Summary counter bar -->
+    <section class="counter-bar" aria-label="Resumen de reservas" data-testid="counter-bar">
+
+      <button
+        class="counter-card counter-card--active"
+        [class.counter-card--active]="service.activeFilter() === 'TODAS'"
+        (click)="setFilter('TODAS')"
+        type="button"
+        data-testid="filter-todas"
+      >
+        <span class="counter-card__number" data-testid="count-total">
+          {{ service.counters().total }}
+        </span>
+        <span class="counter-card__label">Reservas totales</span>
+      </button>
+
+      <button
+        class="counter-card"
+        [class.counter-card--active]="service.activeFilter() === 'CONFIRMADA'"
+        (click)="setFilter('CONFIRMADA')"
+        type="button"
+        data-testid="filter-confirmadas"
+      >
+        <span class="counter-card__number counter-card__number--green" data-testid="count-confirmadas">
+          {{ service.counters().confirmadas }}
+        </span>
+        <span class="counter-card__label">Confirmadas</span>
+      </button>
+
+      <button
+        class="counter-card"
+        [class.counter-card--active]="service.activeFilter() === 'PENDIENTE'"
+        (click)="setFilter('PENDIENTE')"
+        type="button"
+        data-testid="filter-pendientes"
+      >
+        <span class="counter-card__number counter-card__number--orange" data-testid="count-pendientes">
+          {{ service.counters().pendientes }}
+        </span>
+        <span class="counter-card__label">Pendientes</span>
+      </button>
+
+      <button
+        class="counter-card"
+        [class.counter-card--active]="service.activeFilter() === 'CANCELADA'"
+        (click)="setFilter('CANCELADA')"
+        type="button"
+        data-testid="filter-canceladas"
+      >
+        <span class="counter-card__number counter-card__number--gray" data-testid="count-canceladas">
+          {{ service.counters().canceladas }}
+        </span>
+        <span class="counter-card__label">Canceladas</span>
+      </button>
+
+    </section>
+
+    <!-- Reservations list -->
+    <section class="reservations-list" data-testid="reservations-list">
+
+      @if (service.filteredReservations().length === 0) {
+        <div class="empty-state" data-testid="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <path d="M16 2v4M8 2v4M3 10h18"/>
+            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+          </svg>
+          <p>No tienes reservas en esta categoría.</p>
+        </div>
+      }
+
+      @for (reservation of service.filteredReservations(); track reservation.id_reserva) {
+        <app-reservation-card [reservation]="reservation" />
+      }
+
+    </section>
+
+  </main>
+
+  <app-footer />
+
+</div>

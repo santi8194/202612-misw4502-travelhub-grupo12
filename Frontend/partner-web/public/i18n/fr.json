@@ -46,7 +46,7 @@
     "UNLOCK_TIME": "Temps de déverrouillage"
   },
   "WELCOME": {
-    "GREETING": "Bienvenue, {{email}} !",
+    "GREETING": "Bienvenue, {{full_name}} ({{email}}) !",
     "MANAGING_HOTEL": "Vous gérez l'hôtel",
     "NO_HOTEL": "Vous n'avez pas encore d'hôtel assigné."
   },

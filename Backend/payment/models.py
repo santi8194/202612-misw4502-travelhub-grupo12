@@ -80,10 +80,7 @@ class PaymentResponse(BaseModel):
     monto: float
     moneda: str
     wompi_transaction_id: str | None = None
-    payment_source_id: int | None = None
-    payment_method_type: str | None = None
-    customer_email: str | None = None
-    status_message: str | None = None
-    card_brand: str | None = None
-    card_last_four: str | None = None
-    checkout: CheckoutData | None = None
+
+
+class PaymentCheckoutResponse(PaymentResponse):
+    checkout: CheckoutData

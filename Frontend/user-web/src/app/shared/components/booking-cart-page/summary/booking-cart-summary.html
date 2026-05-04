@@ -44,12 +44,12 @@
 
     <div class="summary-prices">
       <div class="row">
-        <span>{{ formatCop(data.pricePerNight) }} x {{ data.nights }} noches</span>
-        <span>{{ formatCop(data.subtotal) }}</span>
+        <span>{{ formatPrice(data.pricePerNight) }} x {{ data.nights }} noches</span>
+        <span>{{ formatPrice(data.subtotal) }}</span>
       </div>
       <div class="row">
-        <span>Tarifa de servicio</span>
-        <span>{{ formatCop(data.serviceFee) }}</span>
+        <span>{{ data.taxesAndFeesLabel }}</span>
+        <span>{{ formatPrice(data.taxesAndFees) }}</span>
       </div>
     </div>
 
@@ -57,7 +57,7 @@
 
     <div class="summary-total" data-testid="booking-total">
       <span>Total</span>
-      <span>{{ formatCop(data.total) }}</span>
+      <span>{{ formatPrice(data.total) }}</span>
     </div>
   }
 

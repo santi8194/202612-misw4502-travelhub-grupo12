@@ -19,6 +19,25 @@
   --tw-ring-color: var(--error-50, #e7000b);
 }
 
+.notification-success {
+  /* Fondo menos transparente para mejorar contraste del texto */
+  background-color: var(--success-5, #ecfdf3);
+  border: 1px solid var(--success-50, #0f9f5b);
+  color: var(--success-50, #0f9f5b);
+}
+
+.notification-success svg {
+  stroke: var(--success-50, #0f9f5b);
+}
+
+.notification-success button {
+  color: var(--success-50, #0f9f5b);
+}
+
+.notification-success button:focus {
+  --tw-ring-color: var(--success-50, #0f9f5b);
+}
+
 /* Base styling */
 .notification-toast {
   animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;

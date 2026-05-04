@@ -5,7 +5,7 @@ Rol dentro del microservicio: Provee el engine de SQLAlchemy, la sesion y utilid
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import create_engine
@@ -44,7 +44,7 @@ def _seed_sqlite_defaults() -> None:
     """Carga usuarios y roles base cuando authservice corre con SQLite local."""
     from infrastructure.models import Role, User
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     admin_password_hash = "$2b$12$m9P0Rr8qbPoz7Xl6vlBH5uxXUzEkT5csbECvp4QmJby3VZI4wBB7e"
     seed_roles = [
         Role(

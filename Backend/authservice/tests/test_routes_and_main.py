@@ -85,6 +85,53 @@ def test_me_endpoint(monkeypatch, sample_user):
     app.dependency_overrides = {}
 
 
+def test_get_user_by_id_endpoint(monkeypatch, sample_user):
+    def _fake_current_user():
+        return UserResponse(
+            id_usuario=sample_user.id_usuario,
+            email=sample_user.email,
+            full_name=sample_user.full_name,
+            rol=sample_user.rol,
+            partner_id=None,
+        )
+
+    app.dependency_overrides = {}
+    from api.dependencies.auth import get_current_user
+
+    app.dependency_overrides[get_current_user] = _fake_current_user
+    monkeypatch.setattr("api.routes.auth.UserService.get_user_by_id", lambda _user_id: sample_user)
+
+    response = client.get(f"/auth/users/{sample_user.id_usuario}")
+
+    assert response.status_code == 200
+    assert response.json()["id_usuario"] == str(sample_user.id_usuario)
+    assert response.json()["email"] == sample_user.email
+    app.dependency_overrides = {}
+
+
+def test_get_user_by_id_endpoint_returns_404(monkeypatch, sample_user):
+    def _fake_current_user():
+        return UserResponse(
+            id_usuario=sample_user.id_usuario,
+            email=sample_user.email,
+            full_name=sample_user.full_name,
+            rol=sample_user.rol,
+            partner_id=None,
+        )
+
+    app.dependency_overrides = {}
+    from api.dependencies.auth import get_current_user
+
+    app.dependency_overrides[get_current_user] = _fake_current_user
+    monkeypatch.setattr("api.routes.auth.UserService.get_user_by_id", lambda _user_id: None)
+
+    response = client.get(f"/auth/users/{uuid4()}")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Usuario no encontrado"
+    app.dependency_overrides = {}
+
+
 def test_refresh_endpoint(monkeypatch):
     cognito_result = {
         "AccessToken": "new-access-token",

@@ -33,6 +33,18 @@ class CrearReservaHoldHandler(Handler):
         if fecha_check_out <= fecha_check_in:
             raise ValueError("La fecha de check-out debe ser posterior a la fecha de check-in")
 
+        with self.uow:
+            reserva_activa = self.repositorio.obtener_activa_por_usuario_categoria_fechas(
+                id_usuario=str(comando.id_usuario),
+                id_categoria=str(comando.id_categoria),
+                fecha_check_in=fecha_check_in,
+                fecha_check_out=fecha_check_out,
+            )
+
+        if reserva_activa:
+            logger.info(f"Reserva activa existente encontrada para usuario/categoria/fechas: {reserva_activa.id}")
+            return reserva_activa.id
+
         original_inventory_items = self.catalog_client.reserve_inventory(
             str(comando.id_categoria),
             fecha_check_in,
@@ -113,9 +125,10 @@ class ObtenerReservaPorIdHandler(Handler):
 
 
 class ExpirarReservaHandler(Handler):
-    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
+    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida, catalog_client: CatalogServiceClient | None = None):
         self.repositorio = repositorio
         self.uow = uow
+        self.catalog_client = catalog_client or CatalogServiceClient()
 
     def handle(self, comando: ExpirarReserva) -> bool:
         with self.uow:
@@ -124,6 +137,13 @@ class ExpirarReservaHandler(Handler):
                 raise ValueError(f"No se encontró la reserva con ID: {comando.id_reserva}")
 
             reserva.expirar_reserva()
+
+            if reserva.id_categoria and reserva.fecha_check_in and reserva.fecha_check_out:
+                self.catalog_client.release_inventory(
+                    str(reserva.id_categoria),
+                    reserva.fecha_check_in,
+                    reserva.fecha_check_out,
+                )
 
             self.uow.agregar_eventos(reserva.eventos)
             self.repositorio.actualizar(reserva)
@@ -158,15 +178,29 @@ class ConfirmarReservaLocalHandler(Handler):
         return evento_local
 
 class CancelarReservaLocalHandler(Handler):
-    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
+    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida, catalog_client: CatalogServiceClient | None = None):
         self.repositorio = repositorio
         self.uow = uow
+        self.catalog_client = catalog_client or CatalogServiceClient()
     
     def handle(self, comando: CancelarReservaLocalCmd) -> FallaActualizacionLocalEvt:
         with self.uow:
             reserva: Reserva = self.repositorio.obtener_por_id(str(comando.id_reserva))
             if not reserva:
                 raise ValueError(f"No se encontró la reserva con ID: {comando.id_reserva}")
+
+            should_release_inventory = (
+                reserva.estado not in (EstadoReserva.CANCELADA, EstadoReserva.EXPIRADA)
+                and reserva.id_categoria
+                and reserva.fecha_check_in
+                and reserva.fecha_check_out
+            )
+            if should_release_inventory:
+                self.catalog_client.release_inventory(
+                    str(reserva.id_categoria),
+                    reserva.fecha_check_in,
+                    reserva.fecha_check_out,
+                )
             
             reserva.cancelar_reserva()
             

@@ -59,9 +59,9 @@ class RegisterCategoryRequest(BaseModel):
 
 
 class UpdateInventoryRequest(BaseModel):
-	id_propiedad: UUID
+	id_propiedad: UUID | None = None
 	# UUID de la categoría
-	id_categoria: UUID
+	id_categoria: UUID | None = None
 	id_inventario: str
 	fecha: date
 	cupos_totales: int
@@ -169,12 +169,29 @@ def obtener_categorias_de_propiedad(id_propiedad: UUID):
 
 
 @router.put("/properties/{id_propiedad}/categories/{id_categoria}/inventory")
-def actualizar_inventario(request: UpdateInventoryRequest):
+def actualizar_inventario(id_propiedad: UUID, id_categoria: UUID, request: UpdateInventoryRequest):
 	"""Actualiza el inventario de una categoría de habitación."""
+	if request.id_propiedad and request.id_propiedad != id_propiedad:
+		return JSONResponse(
+			status_code=400,
+			content={
+				"error": "Path/body property mismatch",
+				"id_propiedad": str(id_propiedad),
+			},
+		)
+	if request.id_categoria and request.id_categoria != id_categoria:
+		return JSONResponse(
+			status_code=400,
+			content={
+				"error": "Path/body category mismatch",
+				"id_categoria": str(id_categoria),
+			},
+		)
+
 	command = UpdateInventory(repository, event_bus)
 	return command.execute(
-		id_propiedad=request.id_propiedad,
-		id_categoria=request.id_categoria,
+		id_propiedad=id_propiedad,
+		id_categoria=id_categoria,
 		id_inventario=request.id_inventario,
 		fecha=request.fecha,
 		cupos_totales=request.cupos_totales,

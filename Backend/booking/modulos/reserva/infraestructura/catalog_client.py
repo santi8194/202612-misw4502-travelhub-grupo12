@@ -4,6 +4,11 @@ import os
 from urllib import error, parse, request
 
 
+def _normalize_inventory_date(value: str) -> str:
+    # Catalog can return YYYY-MM-DD or an ISO datetime; keep only the date key.
+    return value[:10]
+
+
 class CatalogServiceClient:
     def __init__(self, base_url: str | None = None, timeout: int = 5):
         self.base_url = (base_url or os.getenv("CATALOG_SERVICE_URL") or self._default_base_url()).rstrip("/")
@@ -61,7 +66,16 @@ class CatalogServiceClient:
         }
         return self._request_json("PUT", f"/properties/{id_propiedad}/categories/{parse.quote(id_categoria)}/inventory", payload)
 
-    def reserve_inventory(self, id_categoria: str, fecha_check_in: datetime.date, fecha_check_out: datetime.date) -> list[dict]:
+    def _build_inventory_updates(
+        self,
+        id_categoria: str,
+        fecha_check_in: datetime.date,
+        fecha_check_out: datetime.date,
+        *,
+        delta: int,
+        require_availability: bool,
+        cap_at_total: bool,
+    ) -> tuple[str, list[dict]]:
         property_info = self.get_property_by_category_id(id_categoria)
         if property_info.get("error"):
             raise ValueError("La categoria no existe en catalog")
@@ -71,33 +85,54 @@ class CatalogServiceClient:
             raise ValueError("La categoria no existe en catalog")
 
         inventory_by_date = {
-            item["fecha"]: item
+            _normalize_inventory_date(item["fecha"]): item
             for item in category_info.get("inventario", [])
         }
 
         updated_items: list[dict] = []
         current_date = fecha_check_in
-        while current_date < fecha_check_out:
+        while current_date <= fecha_check_out:
             current_key = current_date.isoformat()
             inventory_item = inventory_by_date.get(current_key)
             if not inventory_item:
                 raise ValueError(f"No existe inventario para la categoria en la fecha {current_key}")
-            if inventory_item["cupos_disponibles"] <= 0:
+
+            current_available = inventory_item["cupos_disponibles"]
+            if require_availability and current_available <= 0:
                 raise ValueError(f"No hay disponibilidad para la categoria en la fecha {current_key}")
 
-            updated_items.append(
-                {
-                    **inventory_item,
-                    "cupos_disponibles": inventory_item["cupos_disponibles"] - 1,
-                    "id_propiedad": property_info["id_propiedad"],
-                }
-            )
+            next_available = current_available + delta
+            if cap_at_total:
+                next_available = min(next_available, inventory_item["cupos_totales"])
+
+            if next_available != current_available:
+                updated_items.append(
+                    {
+                        **inventory_item,
+                        "fecha": current_key,
+                        "cupos_disponibles": next_available,
+                        "id_propiedad": property_info["id_propiedad"],
+                    }
+                )
+
             current_date += datetime.timedelta(days=1)
+
+        return property_info["id_propiedad"], updated_items
+
+    def reserve_inventory(self, id_categoria: str, fecha_check_in: datetime.date, fecha_check_out: datetime.date) -> list[dict]:
+        id_propiedad, updated_items = self._build_inventory_updates(
+            id_categoria,
+            fecha_check_in,
+            fecha_check_out,
+            delta=-1,
+            require_availability=True,
+            cap_at_total=False,
+        )
 
         applied_updates: list[dict] = []
         try:
             for item in updated_items:
-                self.update_inventory(item["id_propiedad"], id_categoria, item)
+                self.update_inventory(id_propiedad, id_categoria, item)
                 applied_updates.append(item)
         except Exception:
             self.restore_inventory(id_categoria, applied_updates)
@@ -117,3 +152,26 @@ class CatalogServiceClient:
                 self.update_inventory(item["id_propiedad"], id_categoria, item)
             except Exception:
                 continue
+
+    def release_inventory(self, id_categoria: str, fecha_check_in: datetime.date, fecha_check_out: datetime.date) -> None:
+        id_propiedad, updated_items = self._build_inventory_updates(
+            id_categoria,
+            fecha_check_in,
+            fecha_check_out,
+            delta=1,
+            require_availability=False,
+            cap_at_total=True,
+        )
+
+        errors: list[tuple[str, Exception]] = []
+        for item in updated_items:
+            try:
+                self.update_inventory(id_propiedad, id_categoria, item)
+            except Exception as exc:
+                errors.append((item["fecha"], exc))
+
+        if errors:
+            failed_dates = ", ".join(fecha for fecha, _ in errors)
+            raise ValueError(
+                f"No fue posible liberar inventario para todas las fechas: {failed_dates}"
+            )

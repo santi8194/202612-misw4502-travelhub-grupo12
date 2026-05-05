@@ -3,8 +3,9 @@ Propósito del archivo: Integración con la base de datos de usuarios.
 Rol dentro del microservicio: Sirve de intermediario para obtener los registros y contraseñas (hasheadas) de un usuario desde PostgreSQL.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
+from uuid import UUID
 from data.user import UserInDB
 from infrastructure.database import SessionLocal
 from infrastructure.models import Role, User
@@ -93,6 +94,35 @@ class UserService:
             db.close()
 
     @staticmethod
+    def get_user_by_id(user_id: UUID) -> Optional[UserInDB]:
+        """
+        Consulta un usuario utilizando su identificador único desde la base de datos.
+
+        Parámetros:
+        - user_id (UUID): identificador del usuario a buscar.
+
+        Retorna:
+        - Optional[UserInDB]: Esquema con datos completos del usuario, o None si no existe.
+        """
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                logger.warning(f"Usuario no encontrado por id: {user_id}")
+                return None
+
+            rol = "USER"
+            if user.roles:
+                rol = user.roles[0].name
+
+            return UserService._map_user_to_schema(user, rol)
+        except Exception as e:
+            logger.error(f"Error al consultar usuario por id {user_id}: {str(e)}")
+            return None
+        finally:
+            db.close()
+
+    @staticmethod
     def create_or_update_registered_user(
         *,
         email: str,
@@ -131,7 +161,7 @@ class UserService:
                 user.is_active = "true" if active else "false"
                 if not user.password_hash:
                     user.password_hash = "COGNITO_MANAGED"
-                user.updated_at = datetime.utcnow()
+                user.updated_at = datetime.now(UTC)
 
             role_user = db.query(Role).filter(Role.name == "USER").first()
             if role_user and role_user not in user.roles:
@@ -159,7 +189,7 @@ class UserService:
                 return False
 
             user.is_active = "true"
-            user.updated_at = datetime.utcnow()
+            user.updated_at = datetime.now(UTC)
             db.commit()
             return True
         except Exception as e:

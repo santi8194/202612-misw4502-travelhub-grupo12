@@ -88,6 +88,51 @@ def test_get_user_by_email_handles_exception(monkeypatch):
     assert fake_session.closed is True
 
 
+def test_get_user_by_id_with_role(monkeypatch):
+    user_id = uuid4()
+    partner_id = uuid4()
+    fake_user = SimpleNamespace(
+        id=user_id,
+        email="guest@travelhub.com",
+        password_hash="hashed",
+        full_name="Guest User",
+        roles=[SimpleNamespace(name="USER")],
+        partner_id=partner_id,
+    )
+    fake_session = FakeSession(result=fake_user)
+    monkeypatch.setattr("modules.user_service.SessionLocal", lambda: fake_session)
+
+    user = UserService.get_user_by_id(user_id)
+
+    assert user is not None
+    assert user.id_usuario == user_id
+    assert user.email == "guest@travelhub.com"
+    assert user.full_name == "Guest User"
+    assert user.partner_id == partner_id
+    assert user.rol == "USER"
+    assert fake_session.closed is True
+
+
+def test_get_user_by_id_not_found(monkeypatch):
+    fake_session = FakeSession(result=None)
+    monkeypatch.setattr("modules.user_service.SessionLocal", lambda: fake_session)
+
+    user = UserService.get_user_by_id(uuid4())
+
+    assert user is None
+    assert fake_session.closed is True
+
+
+def test_get_user_by_id_handles_exception(monkeypatch):
+    fake_session = FakeSession(error=RuntimeError("db error"))
+    monkeypatch.setattr("modules.user_service.SessionLocal", lambda: fake_session)
+
+    user = UserService.get_user_by_id(uuid4())
+
+    assert user is None
+    assert fake_session.closed is True
+
+
 # ---------------------------------------------------------------------------
 # MutableFakeSession: supports add/commit/rollback for write operations
 # ---------------------------------------------------------------------------

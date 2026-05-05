@@ -4,6 +4,7 @@ from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, Formali
 from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
 from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
 from config.uow import UnidadTrabajoHibrida
 import json
 import os
@@ -146,6 +147,53 @@ def obtener_reserva_por_id(id_reserva):
             } if reserva.ocupacion else None,
             "fecha_creacion": reserva.fecha_creacion.isoformat() if reserva.fecha_creacion else None,
             "fecha_actualizacion": reserva.fecha_actualizacion.isoformat() if reserva.fecha_actualizacion else None,
+        }), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@reserva_api.route('/reserva/<id_reserva>/timeline', methods=['GET'])
+def obtener_timeline_reserva(id_reserva):
+    try:
+        # Validamos el formato de UUID para responder 400 consistente con las otras rutas.
+        uuid.UUID(id_reserva)
+
+        repositorio_sagas = RepositorioSagas()
+        saga = repositorio_sagas.buscar_por_reserva(id_reserva)
+
+        if not saga:
+            return jsonify({"error": f"No se encontró timeline para la reserva con ID: {id_reserva}"}), 404
+
+        historial_ordenado = sorted(
+            saga.historial or [],
+            key=lambda log: log.fecha_registro
+        )
+
+        timeline = []
+        for log in historial_ordenado:
+            tipo_mensaje = log.tipo_mensaje.value if hasattr(log.tipo_mensaje, 'value') else str(log.tipo_mensaje)
+            timeline.append({
+                "id_log": str(log.id),
+                "tipo_mensaje": tipo_mensaje,
+                "accion": log.accion,
+                "payload": log.payload_snapshot,
+                "fecha_registro": log.fecha_registro.isoformat() if log.fecha_registro else None,
+            })
+
+        estado_global = saga.estado_global.value if hasattr(saga.estado_global, 'value') else str(saga.estado_global)
+
+        return jsonify({
+            "id_reserva": str(saga.id_reserva),
+            "id_instancia_saga": str(saga.id),
+            "id_flujo": saga.id_flujo,
+            "version_ejecucion": saga.version_ejecucion,
+            "estado_global": estado_global,
+            "paso_actual": saga.paso_actual,
+            "total_eventos": len(timeline),
+            "timeline": timeline,
         }), 200
 
     except ValueError as e:

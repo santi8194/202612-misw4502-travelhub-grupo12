@@ -1,6 +1,7 @@
 name: Infra CD PROD
 
 on:
+  workflow_dispatch:
   workflow_call:
 
 permissions:
@@ -269,6 +270,45 @@ jobs:
 
       - name: Terraform init
         run: terraform init -reconfigure
+
+      - name: Validate EKS remote state outputs
+        run: |
+          set -euo pipefail
+
+          TFVARS_FILE="../../environments/dev/ingress/dev.tfvars"
+          EKS_STATE_BUCKET=$(awk -F '=' '/^[[:space:]]*eks_state_bucket[[:space:]]*=/{gsub(/[ "]/, "", $2); print $2}' "${TFVARS_FILE}")
+          EKS_STATE_KEY=$(awk -F '=' '/^[[:space:]]*eks_state_key[[:space:]]*=/{gsub(/[ "]/, "", $2); print $2}' "${TFVARS_FILE}")
+
+          if [ -z "${EKS_STATE_BUCKET:-}" ] || [ -z "${EKS_STATE_KEY:-}" ]; then
+            echo "::error file=${TFVARS_FILE}::Missing eks_state_bucket or eks_state_key required by ingress."
+            exit 1
+          fi
+
+          if ! aws s3 cp "s3://${EKS_STATE_BUCKET}/${EKS_STATE_KEY}" eks-remote-state.json >/dev/null; then
+            echo "::error::Unable to read EKS remote state from s3://${EKS_STATE_BUCKET}/${EKS_STATE_KEY}. Deploy the EKS stack before ingress or fix the ingress EKS state configuration."
+            exit 1
+          fi
+
+          REQUIRED_OUTPUTS=(
+            eks_cluster_id
+            eks_cluster_endpoint
+            eks_cluster_certificate_authority_data
+            eks_subnet_ids
+          )
+
+          MISSING_OUTPUTS=()
+          for output_name in "${REQUIRED_OUTPUTS[@]}"; do
+            if ! jq -e --arg output_name "${output_name}" '.outputs[$output_name] != null' eks-remote-state.json >/dev/null; then
+              MISSING_OUTPUTS+=("${output_name}")
+            fi
+          done
+
+          if [ "${#MISSING_OUTPUTS[@]}" -gt 0 ]; then
+            echo "::error::EKS remote state s3://${EKS_STATE_BUCKET}/${EKS_STATE_KEY} is missing required output(s): ${MISSING_OUTPUTS[*]}. Deploy or re-apply the EKS stack before ingress."
+            echo "Available EKS remote state outputs:"
+            jq -r '.outputs | keys[]?' eks-remote-state.json
+            exit 1
+          fi
 
       - name: Terraform plan
         run: terraform plan -input=false -no-color -var-file="../../environments/dev/ingress/dev.tfvars" -out=tfplan

@@ -1,6 +1,7 @@
 name: Backend CD PROD
 
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       event_name:
@@ -48,9 +49,9 @@ jobs:
         id: discover
         shell: bash
         env:
-          EVENT_NAME: ${{ inputs.event_name }}
-          BASE_SHA: ${{ inputs.base_sha }}
-          HEAD_SHA: ${{ inputs.head_sha }}
+          EVENT_NAME: ${{ inputs.event_name || github.event_name }}
+          BASE_SHA: ${{ inputs.base_sha || github.event.before || '' }}
+          HEAD_SHA: ${{ inputs.head_sha || github.sha }}
           GITHUB_REF: ${{ github.ref }}
         run: |
           set -euo pipefail

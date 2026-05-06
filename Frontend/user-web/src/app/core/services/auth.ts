@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import {
   AuthTokenResponse,
   ConfirmRegistrationRequest,
@@ -8,6 +8,14 @@ import {
   RegisterRequest,
 } from '../../models/auth.interface';
 import { environment } from '../../../environments/environment';
+
+export interface UserProfile {
+  id_usuario?: string;
+  full_name?: string;
+  email?: string;
+  rol?: string;
+  partner_id?: string;
+}
 
 interface AuthSession {
   accessToken: string;
@@ -106,6 +114,10 @@ export class AuthService {
 
   getCurrentUserId(): string | null {
     return this.getCurrentSession()?.userId ?? null;
+  }
+
+  getUserProfile(userId: string): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.authBaseUrl}/users/${userId}`);
   }
 
   private refreshSessionState(): void {

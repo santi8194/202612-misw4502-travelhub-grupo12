@@ -24,6 +24,7 @@ export class AuthRegisterPage {
 
   readonly showPassword = signal(false);
   readonly showConfirmPassword = signal(false);
+  readonly showPasswordRequirements = signal(false);
 
   form = signal({
     firstName: '',
@@ -44,6 +45,27 @@ export class AuthRegisterPage {
     passwordMismatch: false,
   });
 
+  errorMessages = signal({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  private touched = signal({
+    firstName: false,
+    lastName: false,
+    email: false,
+    phone: false,
+    password: false,
+    confirmPassword: false,
+  });
+
+  private readonly namePattern = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑ\s'-]{1,50}$/;
+  private readonly passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
   togglePassword(): void {
     this.showPassword.update(value => !value);
   }
@@ -52,60 +74,106 @@ export class AuthRegisterPage {
     this.showConfirmPassword.update(value => !value);
   }
 
+  togglePasswordRequirements(): void {
+    this.showPasswordRequirements.update(value => !value);
+  }
+
+  onGoogleSignUp(): void {
+    alert('El registro con Google no está disponible en este momento. Por favor, usa el formulario de registro.');
+  }
+
   updateField(
-    field:
-      | 'firstName'
-      | 'lastName'
-      | 'email'
-      | 'phone'
-      | 'password'
-      | 'confirmPassword',
+    field: 'firstName' | 'lastName' | 'email' | 'phone' | 'password' | 'confirmPassword',
     value: string
   ): void {
-    this.form.update(current => ({
-      ...current,
-      [field]: value,
-    }));
+    this.form.update(current => ({ ...current, [field]: value }));
+    if (this.touched()[field]) {
+      this.validateSingleField(field, value);
+    }
+  }
 
-    this.errors.update(current => ({
-      ...current,
-      [field]: false,
-      passwordMismatch: false,
+  markTouched(field: 'firstName' | 'lastName' | 'email' | 'phone' | 'password' | 'confirmPassword'): void {
+    this.touched.update(t => ({ ...t, [field]: true }));
+    this.validateSingleField(field, this.form()[field]);
+  }
+
+  private validateSingleField(
+    field: 'firstName' | 'lastName' | 'email' | 'phone' | 'password' | 'confirmPassword',
+    value: string
+  ): void {
+    let hasError = false;
+    let message = '';
+
+    switch (field) {
+      case 'firstName':
+        if (!value.trim()) { hasError = true; message = 'El nombre es obligatorio.'; }
+        else if (!this.namePattern.test(value.trim())) { hasError = true; message = 'Solo letras, espacios y guiones (máx. 50 caracteres).'; }
+        break;
+      case 'lastName':
+        if (!value.trim()) { hasError = true; message = 'El apellido es obligatorio.'; }
+        else if (!this.namePattern.test(value.trim())) { hasError = true; message = 'Solo letras, espacios y guiones (máx. 50 caracteres).'; }
+        break;
+      case 'email':
+        if (!value.trim()) { hasError = true; message = 'El correo es obligatorio.'; }
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) { hasError = true; message = 'Ingresa un correo válido (ej: tu@ejemplo.com).'; }
+        break;
+      case 'phone':
+        if (value.trim() && !/^[\+]?[0-9\s\-()]{10,}$/.test(value.replace(/\s/g, ''))) {
+          hasError = true; message = 'Formato inválido. Usa mínimo 10 dígitos (ej: +57 300 111 2233).';
+        }
+        break;
+      case 'password':
+        if (!value) { hasError = true; message = 'La contraseña es obligatoria.'; }
+        else if (!this.passwordPattern.test(value)) {
+          hasError = true; message = 'Debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.';
+        }
+        break;
+      case 'confirmPassword': {
+        const currentPassword = this.form().password;
+        if (!value) { hasError = true; message = 'Confirma tu contraseña.'; }
+        else if (value !== currentPassword) { hasError = true; message = 'Las contraseñas no coinciden.'; }
+        break;
+      }
+    }
+
+    this.errors.update(e => ({
+      ...e,
+      [field]: hasError,
+      passwordMismatch: field === 'confirmPassword' ? (hasError && value !== this.form().password) : e.passwordMismatch,
     }));
+    this.errorMessages.update(m => ({ ...m, [field]: message }));
   }
 
   private validateForm(): boolean {
     const f = this.form();
+    this.touched.set({ firstName: true, lastName: true, email: true, phone: true, password: true, confirmPassword: true });
 
-    const passwordPattern =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
-
-    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      f.email.trim()
-    );
-
-    const phoneValid =
-      !f.phone.trim() ||
-      /^\+[1-9]\d{7,14}$/.test(
-        f.phone.replace(/\s/g, '')
-      );
-
-    const passwordValid = passwordPattern.test(f.password);
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim());
+    const phoneValid = !f.phone.trim() || /^[\+]?[0-9\s\-()]{10,}$/.test(f.phone.replace(/\s/g, ''));
+    const passwordValid = this.passwordPattern.test(f.password);
+    const firstNameValid = !!f.firstName.trim() && this.namePattern.test(f.firstName.trim());
+    const lastNameValid = !!f.lastName.trim() && this.namePattern.test(f.lastName.trim());
+    const confirmPasswordValid = !!f.confirmPassword && f.confirmPassword === f.password;
 
     const nextErrors = {
-      firstName: !f.firstName.trim(),
-      lastName: !f.lastName.trim(),
+      firstName: !firstNameValid,
+      lastName: !lastNameValid,
       email: !emailValid,
       phone: !phoneValid,
       password: !passwordValid,
-      confirmPassword: !f.confirmPassword,
-      passwordMismatch:
-        !!f.password &&
-        !!f.confirmPassword &&
-        f.password !== f.confirmPassword,
+      confirmPassword: !confirmPasswordValid,
+      passwordMismatch: !!f.password && !!f.confirmPassword && f.password !== f.confirmPassword,
     };
 
     this.errors.set(nextErrors);
+    this.errorMessages.set({
+      firstName: !f.firstName.trim() ? 'El nombre es obligatorio.' : !this.namePattern.test(f.firstName.trim()) ? 'Solo letras, espacios y guiones (máx. 50 caracteres).' : '',
+      lastName: !f.lastName.trim() ? 'El apellido es obligatorio.' : !this.namePattern.test(f.lastName.trim()) ? 'Solo letras, espacios y guiones (máx. 50 caracteres).' : '',
+      email: !f.email.trim() ? 'El correo es obligatorio.' : !emailValid ? 'Ingresa un correo válido (ej: tu@ejemplo.com).' : '',
+      phone: !phoneValid ? 'Formato inválido. Usa mínimo 10 dígitos (ej: +57 300 111 2233).' : '',
+      password: !f.password ? 'La contraseña es obligatoria.' : !passwordValid ? 'Debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.' : '',
+      confirmPassword: !f.confirmPassword ? 'Confirma tu contraseña.' : f.confirmPassword !== f.password ? 'Las contraseñas no coinciden.' : '',
+    });
 
     return !Object.values(nextErrors).some(Boolean);
   }

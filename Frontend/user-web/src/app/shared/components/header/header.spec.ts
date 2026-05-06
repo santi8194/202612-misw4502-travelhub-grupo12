@@ -2,13 +2,18 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { HeaderComponent } from './header';
+import { AuthService } from '../../../core/services/auth';
+import { NotificationService } from '../../../core/services/notification';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
   let router: Router;
+  let authService: AuthService;
+  let notificationService: NotificationService;
 
   beforeEach(async () => {
     localStorage.clear();
@@ -22,6 +27,8 @@ describe('HeaderComponent', () => {
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
     router = TestBed.inject(Router);
+    authService = TestBed.inject(AuthService);
+    notificationService = TestBed.inject(NotificationService);
     fixture.detectChanges();
   });
 
@@ -39,23 +46,54 @@ describe('HeaderComponent', () => {
     expect(dropdown.textContent).toContain('Iniciar Sesión');
   });
 
-  it('should show the authenticated user information when a session exists', () => {
+  it('should load and display the full name from user profile when profile menu is opened', (done) => {
     localStorage.setItem('th_access_token', 'acc-token-xyz');
     localStorage.setItem('th_refresh_token', 'ref-token-xyz');
     localStorage.setItem('th_token_type', 'Bearer');
     localStorage.setItem('th_user_email', 'ana@travelhub.com');
     localStorage.setItem('th_user_id', 'user-123');
-    localStorage.setItem('th_user_name', 'Ana Perez');
+    localStorage.setItem('th_user_name', 'a.perez');
+
+    const mockUserProfile = {
+      id_usuario: 'user-123',
+      full_name: 'Ana Perez',
+      email: 'ana@travelhub.com',
+    };
+
+    spyOn(authService, 'getUserProfile').and.returnValue(of(mockUserProfile));
 
     fixture.detectChanges();
     component.toggleProfileMenu();
     fixture.detectChanges();
 
-    const dropdown = fixture.nativeElement.querySelector('.profile-dropdown');
-    expect(dropdown.textContent).toContain('Ana Perez');
-    expect(dropdown.textContent).toContain('ana@travelhub.com');
-    expect(dropdown.textContent).toContain('Mis Reservas');
-    expect(dropdown.textContent).toContain('Cerrar sesión');
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      
+      const dropdown = fixture.nativeElement.querySelector('.profile-dropdown');
+      expect(dropdown.textContent).toContain('Ana Perez');
+      expect(dropdown.textContent).toContain('Mis Reservas');
+      expect(dropdown.textContent).toContain('Cerrar sesión');
+      expect(authService.getUserProfile).toHaveBeenCalledWith('user-123');
+      done();
+    });
+  });
+
+  it('should display fallback username when user profile endpoint fails', () => {
+    localStorage.setItem('th_access_token', 'acc-token-xyz');
+    localStorage.setItem('th_refresh_token', 'ref-token-xyz');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'ana@travelhub.com');
+    localStorage.setItem('th_user_id', 'user-123');
+    localStorage.setItem('th_user_name', 'a.perez');
+
+    spyOn(authService, 'getUserProfile').and.returnValue(of({}));
+
+    fixture.detectChanges();
+    component.toggleProfileMenu();
+    fixture.detectChanges();
+
+    const displayName = component.getProfileDisplayName();
+    expect(displayName).toBe('a.perez');
   });
 
   it('should navigate to mis reservas when authenticated user clicks the menu action', async () => {
@@ -64,8 +102,14 @@ describe('HeaderComponent', () => {
     localStorage.setItem('th_token_type', 'Bearer');
     localStorage.setItem('th_user_email', 'ana@travelhub.com');
     localStorage.setItem('th_user_id', 'user-123');
-    localStorage.setItem('th_user_name', 'Ana Perez');
+    localStorage.setItem('th_user_name', 'a.perez');
 
+    const mockUserProfile = {
+      id_usuario: 'user-123',
+      full_name: 'Ana Perez'
+    };
+
+    spyOn(authService, 'getUserProfile').and.returnValue(of(mockUserProfile));
     const navigateSpy = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
 
     component.toggleProfileMenu();
@@ -81,4 +125,47 @@ describe('HeaderComponent', () => {
 
     expect(navigateSpy).toHaveBeenCalledWith(['/mis-reservas']);
   });
-});
+
+  it('should show success notification when user logs out', () => {
+    localStorage.setItem('th_access_token', 'acc-token-xyz');
+    localStorage.setItem('th_refresh_token', 'ref-token-xyz');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'ana@travelhub.com');
+    localStorage.setItem('th_user_id', 'user-123');
+    localStorage.setItem('th_user_name', 'a.perez');
+
+    // Set booking session in sessionStorage
+    sessionStorage.setItem('booking-session:test-signature', JSON.stringify({
+      expiresAt: Date.now() + 900000
+    }));
+    sessionStorage.setItem('hold:reservation-123', JSON.stringify({
+      holdId: 'optimistic-hold'
+    }));
+
+    const notificationSpy = spyOn(notificationService, 'showSuccess');
+    const mockUserProfile = {
+      id_usuario: 'user-123',
+      username: 'a.perez'
+    };
+
+    spyOn(authService, 'getUserProfile').and.returnValue(of(mockUserProfile));
+
+    fixture.detectChanges();
+    component.toggleProfileMenu();
+    fixture.detectChanges();
+
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.dropdown-item--button')) as HTMLButtonElement[];
+    const logoutButton = buttons.find(button => button.textContent?.includes('Cerrar sesión'));
+
+    expect(logoutButton).toBeTruthy();
+
+    logoutButton?.click();
+    fixture.detectChanges();
+
+    expect(notificationSpy).toHaveBeenCalledWith('Tu sesión ha sido cerrada exitosamente.');
+    expect(component.userProfile()).toBeNull();
+    
+    // Verify session storage was cleared
+    expect(sessionStorage.getItem('booking-session:test-signature')).toBeNull();
+    expect(sessionStorage.getItem('hold:reservation-123')).toBeNull();
+  });

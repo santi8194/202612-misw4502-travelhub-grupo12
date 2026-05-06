@@ -10,6 +10,16 @@ describe('My Reservations Flow', () => {
       // Intercept Booking
       cy.intercept('GET', `**/usuario/${mockData.locale.id_usuario}`, mockData.bookings).as('getBookings');
 
+      // Intercept User Profile
+      cy.intercept('GET', `**/users/${mockData.locale.id_usuario}`, {
+        id_usuario: mockData.locale.id_usuario,
+        nombre_completo: 'Test User',
+        first_name: 'Test',
+        last_name: 'User',
+        email: 'test@example.com',
+        username: 'test.user'
+      }).as('getUserProfile');
+
       // Intercept Catalog Categories
       cy.intercept('GET', `**/categories/*`, (req) => {
         const id = req.url.split('/').pop();

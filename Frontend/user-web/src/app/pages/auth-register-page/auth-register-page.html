@@ -20,26 +20,30 @@
                         <label>
                             Nombre
 
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" [class.input-wrapper--error]="errors().firstName">
                                 <input type="text" [value]="form().firstName"
-                                    (input)="updateField('firstName', $any($event.target).value)" placeholder="Juan" />
+                                    (input)="updateField('firstName', $any($event.target).value)"
+                                    (blur)="markTouched('firstName')"
+                                    placeholder="Juan" />
                             </div>
 
                             @if (errors().firstName) {
-                            <small>Ingresa tu nombre.</small>
+                            <small class="field-error">{{ errorMessages().firstName }}</small>
                             }
                         </label>
 
                         <label>
                             Apellido
 
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" [class.input-wrapper--error]="errors().lastName">
                                 <input type="text" [value]="form().lastName"
-                                    (input)="updateField('lastName', $any($event.target).value)" placeholder="Pérez" />
+                                    (input)="updateField('lastName', $any($event.target).value)"
+                                    (blur)="markTouched('lastName')"
+                                    placeholder="Pérez" />
                             </div>
 
                             @if (errors().lastName) {
-                            <small>Ingresa tu apellido.</small>
+                            <small class="field-error">{{ errorMessages().lastName }}</small>
                             }
                         </label>
                     </div>
@@ -47,14 +51,15 @@
                     <label>
                         Correo Electrónico
 
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" [class.input-wrapper--error]="errors().email">
                             <input type="email" [value]="form().email"
                                 (input)="updateField('email', $any($event.target).value)"
+                                (blur)="markTouched('email')"
                                 placeholder="tu@ejemplo.com" />
                         </div>
 
                         @if (errors().email) {
-                        <small>Ingresa un correo válido.</small>
+                        <small class="field-error">{{ errorMessages().email }}</small>
                         }
                     </label>
 
@@ -62,23 +67,25 @@
                         Número de Teléfono
                         <span class="optional">(Opcional)</span>
 
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" [class.input-wrapper--error]="errors().phone">
                             <input type="tel" [value]="form().phone"
                                 (input)="updateField('phone', $any($event.target).value)"
+                                (blur)="markTouched('phone')"
                                 placeholder="+57 300 111 2233" />
                         </div>
 
                         @if (errors().phone) {
-                        <small>Usa formato internacional.</small>
+                        <small class="field-error">{{ errorMessages().phone }}</small>
                         }
                     </label>
 
                     <label>
                         Contraseña
 
-                        <div class="input-wrapper password-input">
+                        <div class="input-wrapper password-input" [class.input-wrapper--error]="errors().password">
                             <input [type]="showPassword() ? 'text' : 'password'" [value]="form().password"
                                 (input)="updateField('password', $any($event.target).value)"
+                                (blur)="markTouched('password')"
                                 placeholder="Crea una contraseña segura" />
 
                             <button type="button" class="password-toggle" (click)="togglePassword()">
@@ -95,18 +102,21 @@
                         </div>
 
                         @if (errors().password) {
-                        <small>
-                            Debe incluir mayúscula, minúscula, número y símbolo.
-                        </small>
+                        <small class="field-error">{{ errorMessages().password }}</small>
+                        }
+
+                        @if (form().password && !errors().password) {
+                        <small style="color: green;">✓ Contraseña válida</small>
                         }
                     </label>
 
                     <label>
                         Confirmar Contraseña
 
-                        <div class="input-wrapper password-input">
+                        <div class="input-wrapper password-input" [class.input-wrapper--error]="errors().confirmPassword">
                             <input [type]="showConfirmPassword() ? 'text' : 'password'" [value]="form().confirmPassword"
                                 (input)="updateField('confirmPassword', $any($event.target).value)"
+                                (blur)="markTouched('confirmPassword')"
                                 placeholder="Vuelve a ingresar tu contraseña" />
 
                             <button type="button" class="password-toggle" (click)="toggleConfirmPassword()">
@@ -123,11 +133,7 @@
                         </div>
 
                         @if (errors().confirmPassword) {
-                        <small>Confirma tu contraseña.</small>
-                        }
-
-                        @if (errors().passwordMismatch) {
-                        <small>Las contraseñas no coinciden.</small>
+                        <small class="field-error">{{ errorMessages().confirmPassword }}</small>
                         }
                     </label>
 
@@ -146,7 +152,7 @@
                         <span>O regístrate con</span>
                     </div>
 
-                    <button type="button" class="google-btn">
+                    <button type="button" class="google-btn" (click)="onGoogleSignUp()">
                         Registrarse con Google
                     </button>
                 </form>

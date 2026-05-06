@@ -9,6 +9,14 @@ import pytest
 from app.config import Settings
 
 
+@pytest.fixture
+def clean_db_env(monkeypatch):
+    """Limpia las variables de entorno de base de datos para tests aislados."""
+    db_vars = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD", "DB_PORT"]
+    for var in db_vars:
+        monkeypatch.delenv(var, raising=False)
+
+
 class TestUsePostgresDatabase:
     """Verifica la propiedad use_postgres_database."""
 
@@ -22,7 +30,7 @@ class TestUsePostgresDatabase:
         )
         assert settings.use_postgres_database is True
 
-    def test_retorna_false_cuando_falta_algun_campo(self):
+    def test_retorna_false_cuando_falta_algun_campo(self, clean_db_env):
         """Debe retornar False si falta cualquiera de los campos requeridos."""
         settings = Settings(
             db_host="localhost",
@@ -31,7 +39,7 @@ class TestUsePostgresDatabase:
         )
         assert settings.use_postgres_database is False
 
-    def test_retorna_false_cuando_todos_los_campos_faltan(self):
+    def test_retorna_false_cuando_todos_los_campos_faltan(self, clean_db_env):
         """Debe retornar False cuando no se define ningún campo de Postgres."""
         settings = Settings()
         assert settings.use_postgres_database is False
@@ -71,7 +79,7 @@ class TestDatabaseUrl:
         assert "admin:secret123" in url
         assert "db.example.com:5432/search_db" in url
 
-    def test_url_sqlite_cuando_no_hay_postgres(self):
+    def test_url_sqlite_cuando_no_hay_postgres(self, clean_db_env):
         """Sin configuración Postgres, debe retornar una URL sqlite:///."""
         settings = Settings(sqlite_path="data/search.db")
         url = settings.database_url

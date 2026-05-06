@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from sqlalchemy import create_engine
@@ -68,8 +68,8 @@ def test_model_repr():
         id=uuid4(),
         user_id=uuid4(),
         refresh_token_hash="abc123",
-        last_activity_at=datetime.utcnow(),
-        expires_at=datetime.utcnow() + timedelta(days=1),
+        last_activity_at=datetime.now(UTC),
+        expires_at=datetime.now(UTC) + timedelta(days=1),
     )
 
     assert "ADMIN_HOTEL" in repr(role)

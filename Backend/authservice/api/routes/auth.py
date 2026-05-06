@@ -5,6 +5,7 @@ La autenticación y gestión de tokens es delegada a AWS Cognito.
 """
 
 from typing import Any
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from data.auth import (
@@ -109,6 +110,30 @@ def read_users_me(current_user: UserResponse = Depends(get_current_user)) -> Any
     Endpoint: Obtiene el contexto general y la meta-data del usuario logueado en tiempo real.
     """
     return current_user
+
+
+@router.get("/users/{id_usuario}", response_model=UserResponse)
+def read_user_by_id(
+    id_usuario: UUID,
+    _current_user: UserResponse = Depends(get_current_user),
+) -> Any:
+    """
+    Endpoint: Obtiene los datos de un usuario por id para integraciones internas autenticadas.
+    """
+    user = UserService.get_user_by_id(id_usuario)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado",
+        )
+
+    return UserResponse(
+        id_usuario=user.id_usuario,
+        email=user.email,
+        full_name=user.full_name,
+        rol=user.rol,
+        partner_id=user.partner_id,
+    )
 
 
 @router.post("/refresh", response_model=Token)

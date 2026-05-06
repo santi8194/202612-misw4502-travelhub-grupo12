@@ -85,8 +85,8 @@ def ensure_local_sqlite_database() -> None:
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS hospedajes (
-                id_propiedad TEXT PRIMARY KEY,
-                id_categoria TEXT NOT NULL,
+                id_propiedad TEXT NOT NULL,
+                id_categoria TEXT PRIMARY KEY,
                 propiedad_nombre TEXT NOT NULL,
                 categoria_nombre TEXT NOT NULL,
                 imagen_principal_url TEXT NOT NULL,

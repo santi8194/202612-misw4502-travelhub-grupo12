@@ -1,5 +1,6 @@
 import json
 import random
+import time
 from config.rabbitmq import create_connection
 from modules.partner.infrastructure.publishers.aprobacion_publisher import (
     publish_reserva_aprobada,
@@ -10,6 +11,7 @@ from modules.partner.infrastructure.publishers.aprobacion_publisher import (
 COMMANDS_EXCHANGE = "travelhub.commands.exchange" # Regla 1: Exchange separado para comandos (direct)
 QUEUE_NAME = "partnermanagement.commands.queue" # Regla 3: Cola con nombre específico del servicio '<servicio>.commands.queue'
 ROUTING_KEY = "cmd.partnermanagement.solicitar-aprobacion" # Regla 2: Llave de ruteo como 'cmd.servicio.accion'
+RETRY_DELAY_SECONDS = 5
 
 def callback(ch, method, properties, body):
     """
@@ -43,15 +45,9 @@ def callback(ch, method, properties, body):
     except Exception as e:
         print("Error procesando comando:", e)
 
-def start_consumer():
-    """
-    Función para inicializar el consumidor e iniciar la escucha activa de mensajes.
-    """
+def _configure_consumer_channel(channel):
     print("PartnerManagement Consumer Service started")
     print(f"Waiting for {ROUTING_KEY} on {COMMANDS_EXCHANGE}...")
-
-    connection = create_connection()
-    channel = connection.channel()
 
     # Regla 1: Declarar el exchange de comandos para asegurarnos de que ya exista y sea 'direct'
     channel.exchange_declare(
@@ -80,4 +76,33 @@ def start_consumer():
     )
 
     print("Listening on queue: " + QUEUE_NAME)
-    channel.start_consuming()
+
+
+def start_consumer():
+    """
+    Función para inicializar el consumidor e iniciar la escucha activa de mensajes.
+    """
+    while True:
+        connection = None
+        channel = None
+        try:
+            connection = create_connection(max_attempts=None, retry_delay=RETRY_DELAY_SECONDS)
+            channel = connection.channel()
+            _configure_consumer_channel(channel)
+            channel.start_consuming()
+            print("[PARTNER-MANAGEMENT] Consumer stopped unexpectedly, reconnecting...")
+        except Exception as exc:
+            print(f"[PARTNER-MANAGEMENT] Consumer error: {exc}. Retrying in {RETRY_DELAY_SECONDS} seconds...")
+            time.sleep(RETRY_DELAY_SECONDS)
+        finally:
+            try:
+                if channel and channel.is_open:
+                    channel.close()
+            except Exception:
+                pass
+
+            try:
+                if connection and connection.is_open:
+                    connection.close()
+            except Exception:
+                pass

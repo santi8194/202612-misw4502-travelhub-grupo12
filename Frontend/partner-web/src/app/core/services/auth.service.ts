@@ -19,6 +19,14 @@ export interface UserProfile {
     roles: string[];
 }
 
+export interface AuthUserResponse {
+    id_usuario: string;
+    email: string;
+    full_name: string | null;
+    rol: string;
+    partner_id: string | null;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -91,6 +99,10 @@ export class AuthService {
 
     getCurrentUser(): Observable<UserProfile> {
         return this.http.get<UserProfile>(`${this.apiUrl}/me`);
+    }
+
+    getUserById(userId: string): Observable<AuthUserResponse> {
+        return this.http.get<AuthUserResponse>(`${this.apiUrl}/users/${encodeURIComponent(userId)}`);
     }
 
     private hasToken(): boolean {

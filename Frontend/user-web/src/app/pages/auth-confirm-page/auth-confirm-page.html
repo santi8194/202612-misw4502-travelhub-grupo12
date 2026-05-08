@@ -1,0 +1,70 @@
+<div class="auth-page">
+  <app-header mode="compact"></app-header>
+
+  <section class="auth-shell">
+    <div class="auth-wrapper">
+      <div class="brand">
+        <h1>TravelHub</h1>
+        <p>Activa tu cuenta para comenzar</p>
+      </div>
+
+      <article class="auth-card">
+        <p class="eyebrow">Verificar correo</p>
+        <h2 class="card-title">Ingresa el código de confirmación</h2>
+
+        <p class="subtitle">
+          Te enviamos un código de 6 dígitos al correo que registraste. Escríbelo para activar tu cuenta.
+        </p>
+
+        <form class="auth-form" (ngSubmit)="onSubmit()">
+          <label>
+            Correo
+
+            <div class="input-wrapper">
+              <input
+                type="email"
+                [value]="form().email"
+                (input)="updateField('email', $any($event.target).value)"
+                placeholder="nombre@correo.com"
+              />
+            </div>
+
+            @if (errors().email) {
+              <small>Ingresa un correo válido.</small>
+            }
+          </label>
+
+          <label>
+            Código de confirmación
+
+            <div class="input-wrapper">
+              <input
+                class="code-input"
+                type="text"
+                maxlength="6"
+                [value]="form().code"
+                (input)="updateField('code', $any($event.target).value)"
+                placeholder="123456"
+              />
+            </div>
+
+            @if (errors().code) {
+              <small>El código debe tener exactamente 6 dígitos.</small>
+            }
+          </label>
+
+          <button class="primary" type="submit" [disabled]="loading()">
+            {{ loading() ? 'Confirmando...' : 'Confirmar correo →' }}
+          </button>
+        </form>
+
+        <p class="hint">
+          ¿No tienes cuenta aún?
+          <a routerLink="/auth/registro">Regístrate</a>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <app-footer></app-footer>
+</div>

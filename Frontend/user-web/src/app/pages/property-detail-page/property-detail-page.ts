@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
+import { AuthService } from '../../core/services/auth';
 import { BookingService } from '../../core/services/booking';
 import { BookingStore } from '../../core/store/booking-store';
 import { FooterComponent } from '../../shared/components/footer/footer';
@@ -70,6 +71,7 @@ interface CategoryCardData {
 export class PropertyDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
   private readonly bookingService = inject(BookingService);
   private readonly store = inject(BookingStore);
 
@@ -309,8 +311,15 @@ export class PropertyDetailPage {
     this.creatingBooking.set(true);
     this.error.set(null);
 
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      this.creatingBooking.set(false);
+      this.error.set('Tu sesión no está activa. Inicia sesión para crear una reserva.');
+      return;
+    }
+
     const request = {
-      id_usuario: this.resolveUserId(),
+      id_usuario: userId,
       id_categoria: categoryId,
       fecha_check_in: checkIn,
       fecha_check_out: checkOut,
@@ -344,18 +353,5 @@ export class PropertyDetailPage {
 
   private buildSessionSignature(categoryId: string, checkIn: string, checkOut: string, guests: number): string {
     return [categoryId, checkIn, checkOut, guests].join('|');
-  }
-
-  private resolveUserId(): string {
-    const key = 'user_id';
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      return stored;
-    }
-
-    const generated = crypto.randomUUID();
-    localStorage.setItem(key, generated);
-    console.warn('[PropertyDetailPage] user_id not found in localStorage. Generated temporary UUID user_id.', generated);
-    return generated;
   }
 }

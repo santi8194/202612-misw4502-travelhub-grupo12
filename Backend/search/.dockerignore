@@ -9,6 +9,7 @@ __pycache__/
 
 # Tests y cobertura
 .pytest_cache/
+pytest-cache-files-*/
 tests/
 .coverage
 htmlcov/

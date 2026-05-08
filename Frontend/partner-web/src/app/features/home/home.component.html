@@ -78,7 +78,7 @@
     </aside>
 
     <main class="dashboard-main">
-        <header class="dashboard-header">
+        <header class="dashboard-header" *ngIf="activeSection !== 'detalle-reserva'">
             <div>
                 <h2>{{ currentSectionTitleKey | translate }}</h2>
                 <p>{{ currentSectionSubtitleKey | translate }}</p>
@@ -164,7 +164,7 @@
             <div class="welcome-card" *ngIf="!loading && !error && user as currentUser" data-testid="welcome-card">
                 <div class="welcome-icon">🏨</div>
                 <div class="welcome-content">
-                    <h2 class="welcome-title" data-testid="welcome-title">{{ 'WELCOME.GREETING' | translate:{ email: currentUser.email } }}</h2>
+                    <h2 class="welcome-title" data-testid="welcome-title">{{ 'WELCOME.GREETING' | translate:{ full_name: (currentUser.full_name || currentUser.email), email: currentUser.email } }}</h2>
                     <p class="welcome-subtitle" *ngIf="currentUser.partner_id; else noPartner">
                         {{ 'WELCOME.MANAGING_HOTEL' | translate }}
                         <span class="partner-badge">{{ currentUser.partner_id }}</span>
@@ -208,6 +208,14 @@
             </div>
         </section>
 
+        <section class="section-content" *ngIf="activeSection === 'reservas'">
+            <app-reservas [idPropiedad]="user?.partner_id ?? null" (verDetalleReserva)="abrirDetalleReserva($event)"></app-reservas>
+        </section>
+
+        <section class="section-content" *ngIf="activeSection === 'detalle-reserva'">
+            <ng-container *ngComponentOutlet="detalleReservaComponent; inputs: { reservaId: reservaSeleccionadaId, habitacionNombre: habitacionSeleccionada, onVolver: volverDetalleHandler }"></ng-container>
+        </section>
+
         <ng-template #sectionPlaceholder>
             <section class="placeholder-section">
                 <h3>{{ activeSection | titlecase }}</h3>
@@ -215,7 +223,7 @@
             </section>
         </ng-template>
 
-        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected()">
+        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected() && activeSection !== 'reservas' && activeSection !== 'detalle-reserva'">
             <ng-container *ngTemplateOutlet="sectionPlaceholder"></ng-container>
         </ng-container>
     </main>

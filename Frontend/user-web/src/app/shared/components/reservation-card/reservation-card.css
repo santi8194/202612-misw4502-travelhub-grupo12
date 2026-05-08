@@ -1,0 +1,303 @@
+.reservation-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 10px 15px rgba(0,0,0,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease;
+}
+
+.reservation-card:hover {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08), 0 20px 28px rgba(0,0,0,0.1);
+}
+
+/* ── Cover image ─────────────────────────────────────────────────────────── */
+.card-image {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.card-image__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.reservation-card:hover .card-image__img {
+  transform: scale(1.02);
+}
+
+.card-image__placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.card-image__placeholder svg {
+  width: 48px;
+  height: 48px;
+}
+
+/* ── Card body ───────────────────────────────────────────────────────────── */
+.card-body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Header row ──────────────────────────────────────────────────────────── */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.card-header__left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-name {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-meta {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.card-meta strong {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* ── Price ───────────────────────────────────────────────────────────────── */
+.card-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.card-price__amount {
+  font-family: Inter, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-price__label {
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ── Status badge ────────────────────────────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge--confirmada {
+  background: #f0fdf4;
+  border: 1px solid #f0fdf4;
+  color: #00c950;
+}
+
+.badge--pendiente-pago {
+  background: #fefce8;
+  border: 1px solid #fff085;
+  color: #ff6900;
+}
+
+.badge--pendiente-hotel {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #f59e0b;
+}
+
+.badge--cancelada {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  color: #364153;
+}
+
+/* ── Details row ─────────────────────────────────────────────────────────── */
+.card-details {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 32px;
+}
+
+.detail-item div {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-icon {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.detail-value {
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+/* ── Actions row ─────────────────────────────────────────────────────────── */
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+/* Push the ⋮ button to the end */
+.card-actions .btn--icon {
+  margin-left: auto;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  opacity: 0.88;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.btn--primary {
+  background: #1e3a8a;
+  color: #fff;
+}
+
+.btn--success {
+  background: #00c950;
+  color: #fff;
+}
+
+.btn--danger {
+  background: #e7000b;
+  color: #fff;
+}
+
+.btn--icon {
+  background: transparent;
+  color: #64748b;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.btn--icon:hover {
+  background: #f1f5f9;
+  opacity: 1;
+}
+
+.btn--icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .card-body {
+    padding: 16px;
+  }
+
+  .card-header {
+    flex-direction: column;
+  }
+
+  .card-price {
+    align-items: flex-start;
+  }
+
+  .card-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detail-item {
+    padding-right: 0;
+  }
+}

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pms-integration
+  labels:
+    app: pms-integration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pms-integration
+  template:
+    metadata:
+      labels:
+        app: pms-integration
+    spec:
+      containers:
+        - name: pms-integration
+          image: ${ECR_REGISTRY_DEV}/pms-integration:${GITHUB_SHA}
+          ports:
+            - containerPort: 8001
+          env:
+            - name: PMS_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: pms-integration-db-secret
+                  key: DB_HOST
+            - name: PMS_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: pms-integration-db-secret
+                  key: DB_PORT
+            - name: PMS_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: pms-integration-db-secret
+                  key: DB_NAME
+            - name: PMS_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: pms-integration-db-secret
+                  key: DB_USER
+            - name: PMS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pms-integration-db-secret
+                  key: DB_PASSWORD
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 10

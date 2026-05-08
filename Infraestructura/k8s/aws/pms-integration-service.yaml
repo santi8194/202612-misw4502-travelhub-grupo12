@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pms-integration
+spec:
+  type: ClusterIP
+  selector:
+    app: pms-integration
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8001

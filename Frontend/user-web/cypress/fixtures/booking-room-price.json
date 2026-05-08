@@ -1,0 +1,11 @@
+{
+  "precio_por_noche": 150,
+  "noches": 3,
+  "subtotal": 450,
+  "impuestos_y_cargos": 45,
+  "total": 495,
+  "moneda": "COP",
+  "simbolo_moneda": "$",
+  "tipo_tarifa": "BASE",
+  "impuesto_nombre": "IVA"
+}

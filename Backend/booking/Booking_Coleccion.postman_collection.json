@@ -232,6 +232,34 @@
 				"description": "Consulta una reserva por su id_reserva. Devuelve 404 si no existe."
 			},
 			"response": []
+		},
+		{
+			"name": "5. Obtener Reservas por Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/reserva/usuario/:id_usuario",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"reserva",
+						"usuario",
+						":id_usuario"
+					],
+					"variable": [
+						{
+							"key": "id_usuario",
+							"value": "REEMPLAZA_CON_EL_ID_DEL_USUARIO_AQUI",
+							"description": "UUID del usuario para consultar sus reservas"
+						}
+					]
+				},
+				"description": "Consulta todas las reservas asociadas a un id_usuario. Devuelve una lista vacía si no tiene reservas, ordenada por fecha de creación descendente."
+			},
+			"response": []
 		}
 	],
 	"event": [

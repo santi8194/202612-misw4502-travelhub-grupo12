@@ -46,7 +46,7 @@
     "UNLOCK_TIME": "Tempo de desbloqueio"
   },
   "WELCOME": {
-    "GREETING": "Bem-vindo, {{email}}!",
+    "GREETING": "Bem-vindo, {{full_name}} ({{email}})!",
     "MANAGING_HOTEL": "Você está gerenciando o hotel",
     "NO_HOTEL": "Você ainda não tem um hotel atribuído."
   },

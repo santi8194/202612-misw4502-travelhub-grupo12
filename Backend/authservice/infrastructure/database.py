@@ -5,7 +5,7 @@ Rol dentro del microservicio: Provee el engine de SQLAlchemy, la sesion y utilid
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import create_engine
@@ -25,6 +25,7 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+ADMIN_HOTEL1_USERNAME = "e468d448-9051-7099-89d5-5740f302b523"
 
 
 def get_db():
@@ -43,7 +44,7 @@ def _seed_sqlite_defaults() -> None:
     """Carga usuarios y roles base cuando authservice corre con SQLite local."""
     from infrastructure.models import Role, User
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     admin_password_hash = "$2b$12$m9P0Rr8qbPoz7Xl6vlBH5uxXUzEkT5csbECvp4QmJby3VZI4wBB7e"
     seed_roles = [
         Role(
@@ -72,6 +73,7 @@ def _seed_sqlite_defaults() -> None:
         User(
             id=UUID("a90e8400-e29b-41d4-a716-446655440000"),
             email="admin@hotel1.com",
+            username=ADMIN_HOTEL1_USERNAME,
             full_name="Admin Hotel 1",
             password_hash=admin_password_hash,
             partner_id=UUID("cc0e8400-e29b-41d4-a716-446655440001"),
@@ -109,6 +111,10 @@ def _seed_sqlite_defaults() -> None:
                 user = seed_user
                 db.add(user)
                 existing_users[user.email] = user
+
+            if user.email == "admin@hotel1.com" and user.username != ADMIN_HOTEL1_USERNAME:
+                user.username = ADMIN_HOTEL1_USERNAME
+
             if admin_role not in user.roles:
                 user.roles.append(admin_role)
 

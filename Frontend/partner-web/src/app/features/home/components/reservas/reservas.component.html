@@ -1,0 +1,121 @@
+<section class="reservas-container">
+
+    <!-- Barra de búsqueda y filtros -->
+    <div class="reservas-toolbar">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+                type="text"
+                class="search-input"
+                placeholder="Buscar por nombre del huésped o ID de reserva..."
+                [(ngModel)]="busqueda"
+                (ngModelChange)="onBusqueda()"
+            />
+        </div>
+        <button type="button" class="filter-btn" title="Filtrar">
+            <span>⊟</span>
+        </button>
+        <input
+            type="date"
+            class="date-filter"
+            [(ngModel)]="filtroFecha"
+            (ngModelChange)="onBusqueda()"
+        />
+    </div>
+
+    <!-- Tabla -->
+    <div class="reservas-table-wrapper">
+        <table class="reservas-table">
+            <thead>
+                <tr>
+                    <th>ACCIONES</th>
+                    <th>ID RESERVA</th>
+                    <th>PROPIETARIO</th>
+                    <th>HABITACIÓN</th>
+                    <th>CHECK-IN</th>
+                    <th>CHECK-OUT</th>
+                    <th>HUÉSPEDES</th>
+                    <th>ESTADO</th>
+                    <th>PAGO</th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="loading">
+                    <td colspan="10" class="empty-row">Cargando reservas...</td>
+                </tr>
+
+                <tr *ngIf="!loading && loadError">
+                    <td colspan="10" class="empty-row">No fue posible cargar las reservas.</td>
+                </tr>
+
+                <tr *ngFor="let reserva of reservasPagina">
+                    <td>
+                        <button type="button" class="btn-ver-detalle" (click)="verDetalle(reserva)">
+                            👁 Ver Detalle
+                        </button>
+                    </td>
+                    <td class="cell-id">{{ reserva.id }}</td>
+                    <td>{{ reserva.propietario }}</td>
+                    <td>{{ reserva.habitacion }}</td>
+                    <td>{{ reserva.checkIn | date:'d/M/yyyy' }}</td>
+                    <td>{{ reserva.checkOut | date:'d/M/yyyy' }}</td>
+                    <td class="cell-huespedes">{{ reserva.huespedes }}</td>
+                    <td>
+                        <span class="badge" [ngClass]="estadoClass(reserva.estado)">
+                            {{ reserva.estado }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge" [ngClass]="pagoClass(reserva.pago)">
+                            {{ reserva.pago }}
+                        </span>
+                    </td>
+                    <td class="cell-total">${{ reserva.total }}</td>
+                </tr>
+
+                <tr *ngIf="!loading && !loadError && reservasPagina.length === 0">
+                    <td colspan="10" class="empty-row">No se encontraron reservas.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pie de tabla: conteo + paginación -->
+    <div class="reservas-footer">
+        <span class="reservas-count">
+            Mostrando {{ reservasPagina.length }} de {{ reservasFiltradas.length }} reservas
+        </span>
+
+        <div class="pagination">
+            <button
+                type="button"
+                class="page-btn"
+                [disabled]="paginaActual === 1"
+                (click)="irAPagina(paginaActual - 1)"
+            >
+                Anterior
+            </button>
+
+            <button
+                type="button"
+                class="page-btn"
+                *ngFor="let p of paginas"
+                [class.active]="p === paginaActual"
+                (click)="irAPagina(p)"
+            >
+                {{ p }}
+            </button>
+
+            <button
+                type="button"
+                class="page-btn"
+                [disabled]="paginaActual === totalPaginas"
+                (click)="irAPagina(paginaActual + 1)"
+            >
+                Siguiente
+            </button>
+        </div>
+    </div>
+
+</section>

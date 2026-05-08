@@ -37,8 +37,9 @@ vpc_id = "vpc-0793a4fe4ecc90aec"
 subnet_ids = ["subnet-072a1bac7455c1476", "subnet-0612f6b53a6445dd4"]
 
 # Added to avoid hidden defaults.
-# Small instance type for a cost-optimized dev environment.
-node_instance_types = ["t3.small"]
+# Medium instance type for a cost-optimized dev environment with enough
+# memory and pod density headroom for backend rollouts.
+node_instance_types = ["t3.medium"]
 
 # Added to avoid hidden defaults.
 # Single-node dev footprint to minimize cost.

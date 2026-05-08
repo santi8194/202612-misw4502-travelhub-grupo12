@@ -542,6 +542,12 @@
     grid-column: 1 / -1;
 }
 
+.section-content {
+    width: 100%;
+    padding: 30px;
+    box-sizing: border-box;
+}
+
 @media (max-width: 720px) {
     .dashboard-shell {
         grid-template-columns: 1fr;

@@ -2,7 +2,7 @@ import pika
 import time
 from config.settings import settings
 
-def create_connection():
+def create_connection(max_attempts=10, retry_delay=5):
     credentials = pika.PlainCredentials(
         settings.RABBITMQ_USER,
         settings.RABBITMQ_PASS
@@ -14,12 +14,14 @@ def create_connection():
         credentials=credentials
     )
 
-    for attempt in range(10):
+    attempt = 0
+    while max_attempts is None or attempt < max_attempts:
         try:
-            print(f"Connecting to RabbitMQ (attempt {attempt+1})...")
+            attempt += 1
+            print(f"Connecting to RabbitMQ (attempt {attempt})...")
             return pika.BlockingConnection(parameters)
         except pika.exceptions.AMQPConnectionError:
-            print("RabbitMQ not ready, retrying in 5 seconds...")
-            time.sleep(5)
+            print(f"RabbitMQ not ready, retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
 
     raise Exception("Could not connect to RabbitMQ after retries")

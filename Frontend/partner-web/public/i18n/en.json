@@ -46,7 +46,7 @@
     "UNLOCK_TIME": "Unlock time"
   },
   "WELCOME": {
-    "GREETING": "Welcome, {{email}}!",
+    "GREETING": "Welcome, {{full_name}} ({{email}})!",
     "MANAGING_HOTEL": "You are managing the hotel",
     "NO_HOTEL": "You don't have an assigned hotel yet."
   },

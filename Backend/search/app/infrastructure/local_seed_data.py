@@ -122,7 +122,7 @@ def build_seed_documents() -> list[dict]:
         documents.append(
             {
                 "id_propiedad": str(uuid5(NAMESPACE_DNS, f"propiedad:{prop['nombre']}")),
-                "id_categoria": str(uuid5(NAMESPACE_DNS, f"categoria:{prop['categoria']}")),
+                "id_categoria": str(uuid5(NAMESPACE_DNS, f"categoria:{prop['nombre']}:{prop['categoria']}")),
                 "propiedad_nombre": prop["nombre"],
                 "categoria_nombre": prop["categoria"],
                 "imagen_principal_url": prop["imagen"],

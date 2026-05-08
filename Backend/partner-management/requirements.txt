@@ -3,6 +3,8 @@ uvicorn
 pydantic
 pika
 pytest
+pytest-cov
+httpx
 python-dotenv
 sqlalchemy
 alembic

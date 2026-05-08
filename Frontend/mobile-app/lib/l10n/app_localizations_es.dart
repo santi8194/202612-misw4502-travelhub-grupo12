@@ -246,4 +246,37 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get statusLabel => 'ESTADO';
+
+  @override
+  String get myReservationsTitle => 'Mis Reservas';
+
+  @override
+  String get myReservationsSubtitle => 'Gestiona tus reservas en un solo lugar';
+
+  @override
+  String get upcomingReservationsSection => 'PRÓXIMAS RESERVAS';
+
+  @override
+  String get pastReservationsSection => 'RESERVAS PASADAS';
+
+  @override
+  String get checkInLabel => 'CHECK-IN';
+
+  @override
+  String get confirmationLabel => 'CONFIRMACIÓN';
+
+  @override
+  String get viewDetails => 'Ver detalles';
+
+  @override
+  String get finishedStatus => 'Finalizado';
+
+  @override
+  String get noUpcomingReservations => 'Aún no tienes próximas reservas';
+
+  @override
+  String get noPastReservations => 'Aún no tienes reservas pasadas';
+
+  @override
+  String get offlineWarning => 'Datos desactualizados (sin conexión)';
 }

@@ -529,6 +529,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'STATUS'**
   String get statusLabel;
+
+  /// No description provided for @myReservationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Reservations'**
+  String get myReservationsTitle;
+
+  /// No description provided for @myReservationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your reservations in one place'**
+  String get myReservationsSubtitle;
+
+  /// No description provided for @upcomingReservationsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'UPCOMING RESERVATIONS'**
+  String get upcomingReservationsSection;
+
+  /// No description provided for @pastReservationsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'PAST RESERVATIONS'**
+  String get pastReservationsSection;
+
+  /// No description provided for @checkInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECK-IN'**
+  String get checkInLabel;
+
+  /// No description provided for @confirmationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRMATION'**
+  String get confirmationLabel;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get viewDetails;
+
+  /// No description provided for @finishedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get finishedStatus;
+
+  /// No description provided for @noUpcomingReservations.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any upcoming reservations yet'**
+  String get noUpcomingReservations;
+
+  /// No description provided for @noPastReservations.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any past reservations yet'**
+  String get noPastReservations;
+
+  /// No description provided for @offlineWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdated data (offline)'**
+  String get offlineWarning;
 }
 
 class _AppLocalizationsDelegate

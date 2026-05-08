@@ -98,7 +98,18 @@
   "downloadPdf": "Download PDF Receipt",
   "cancelReservation": "Cancel Reservation",
   "confirmationCodeLabel": "CONFIRMATION CODE",
-  "statusLabel": "STATUS"
+  "statusLabel": "STATUS",
+  "myReservationsTitle": "My Reservations",
+  "myReservationsSubtitle": "Manage your reservations in one place",
+  "upcomingReservationsSection": "UPCOMING RESERVATIONS",
+  "pastReservationsSection": "PAST RESERVATIONS",
+  "checkInLabel": "CHECK-IN",
+  "confirmationLabel": "CONFIRMATION",
+  "viewDetails": "View details",
+  "finishedStatus": "Finished",
+  "noUpcomingReservations": "You don't have any upcoming reservations yet",
+  "noPastReservations": "You don't have any past reservations yet",
+  "offlineWarning": "Outdated data (offline)"
 }
 
 

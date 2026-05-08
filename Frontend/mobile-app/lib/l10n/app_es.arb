@@ -98,7 +98,18 @@
   "downloadPdf": "Descargar Comprobante PDF",
   "cancelReservation": "Cancelar Reserva",
   "confirmationCodeLabel": "CÓDIGO DE CONFIRMACIÓN",
-  "statusLabel": "ESTADO"
+  "statusLabel": "ESTADO",
+  "myReservationsTitle": "Mis Reservas",
+  "myReservationsSubtitle": "Gestiona tus reservas en un solo lugar",
+  "upcomingReservationsSection": "PRÓXIMAS RESERVAS",
+  "pastReservationsSection": "RESERVAS PASADAS",
+  "checkInLabel": "CHECK-IN",
+  "confirmationLabel": "CONFIRMACIÓN",
+  "viewDetails": "Ver detalles",
+  "finishedStatus": "Finalizado",
+  "noUpcomingReservations": "Aún no tienes próximas reservas",
+  "noPastReservations": "Aún no tienes reservas pasadas",
+  "offlineWarning": "Datos desactualizados (sin conexión)"
 }
 
 

@@ -34,27 +34,7 @@ class ReservationDetailViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // For now, if we don't have a real backend implementation that returns
-      // the full object, we use dummy data as requested.
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      // Dummy data based on the mockup
-      _reservation = Reservation(
-        id: reservationId,
-        room:
-            _reservation?.room ??
-            Reservation.fromJson({}).room, // Fallback room
-        dateRange: DateTimeRange(
-          start: DateTime(2026, 3, 15),
-          end: DateTime(2026, 3, 20),
-        ),
-        guestCount: 2,
-        confirmationCode: 'TH-982341',
-        hotelName: 'Casa Medina Four Seasons',
-        hotelAddress: 'Carrera 7 # 69a-22, Bogotá, Colombia',
-        hotelPhone: '+5712345678',
-        status: 'Reserva Activa',
-      );
+      _reservation = await _bookingService.getReservationDetail(reservationId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

@@ -207,7 +207,7 @@ class ReservationDetailView extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    res.status,
+                                    _getStatusLabel(res.status),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -276,6 +276,21 @@ class ReservationDetailView extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status) {
+      case 'PENDIENTE_PAGO':
+        return 'Pendiente Pago';
+      case 'PENDIENTE_CONFIRMACION_HOTEL':
+        return 'Pendiente Confirmación';
+      case 'CONFIRMADA':
+        return 'Confirmada';
+      case 'CANCELADA':
+        return 'Cancelada';
+      default:
+        return status;
+    }
   }
 
   Widget _buildDateInfo(String label, String date, String timeInfo) {

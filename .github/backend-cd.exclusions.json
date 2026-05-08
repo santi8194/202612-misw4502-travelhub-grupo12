@@ -1,7 +1,3 @@
 {
-  "exclude": [
-    "notification",
-    "partner-management",
-    "pms-integration"
-  ]
+  "exclude": []
 }

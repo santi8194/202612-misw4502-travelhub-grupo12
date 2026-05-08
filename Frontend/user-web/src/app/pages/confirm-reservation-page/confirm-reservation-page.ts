@@ -5,7 +5,9 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 import { BookingCartSummaryComponent } from '../../shared/components/booking-cart-page/summary/booking-cart-summary';
 import { BookingCartStepperComponent } from '../../shared/components/booking-cart-page/stepper/booking-cart-stepper';
 import { BookingService } from '../../core/services/booking';
+import { CatalogService } from '../../core/services/catalog';
 import { BookingSummaryData } from '../../models/booking-summary.interface';
+import { RoomPriceResponse } from '../../models/room-price.interface';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
 
 interface BookingData {
@@ -66,9 +68,11 @@ interface PropertyData {
   styleUrl: './confirm-reservation-page.css',
 })
 export class ConfirmReservationPage {
+  private static readonly DEFAULT_USER_COUNTRY = 'Colombia';
 
   private route = inject(ActivatedRoute);
   private bookingService = inject(BookingService);
+  private catalogService = inject(CatalogService);
 
   summary = signal<BookingSummaryData | null>(null);
   isLoadingSummary = signal(true);
@@ -122,8 +126,11 @@ export class ConfirmReservationPage {
         const categoryId = booking?.id_categoria;
 
         if (!categoryId) {
-          return of({ booking, catalog: null, category: null, property: null });
+          return of({ booking, catalog: null, category: null, property: null, roomPrice: null });
         }
+
+        const checkIn = this.extractCheckIn(booking);
+        const checkOut = this.extractCheckOut(booking);
 
         return forkJoin({
           catalog: this.bookingService.getCatalogByCategoryId(categoryId).pipe(
@@ -131,17 +138,27 @@ export class ConfirmReservationPage {
           ),
           category: this.bookingService.getCategoryById(categoryId).pipe(
             catchError(() => of(null))
-          )
+          ),
+          roomPrice: checkIn && checkOut
+            ? this.catalogService.calculateRoomPrice({
+              id_categoria: categoryId,
+              fecha_inicio: checkIn,
+              fecha_fin: checkOut,
+              pais_usuario: ConfirmReservationPage.DEFAULT_USER_COUNTRY,
+            }).pipe(
+              catchError(() => of(null))
+            )
+            : of(null)
         }).pipe(
-          switchMap(({ catalog, category }) => {
+          switchMap(({ catalog, category, roomPrice }) => {
             const propertyId = category?.id_propiedad ?? catalog?.id_propiedad;
             if (!propertyId) {
-              return of({ booking, catalog, category, property: null });
+              return of({ booking, catalog, category, property: null, roomPrice });
             }
 
             return this.bookingService.getPropertyById(propertyId).pipe(
-              switchMap((property: PropertyData) => of({ booking, catalog, category, property })),
-              catchError(() => of({ booking, catalog, category, property: null }))
+              switchMap((property: PropertyData) => of({ booking, catalog, category, property, roomPrice })),
+              catchError(() => of({ booking, catalog, category, property: null, roomPrice }))
             );
           })
         );
@@ -155,18 +172,14 @@ export class ConfirmReservationPage {
         return;
       }
 
-      const { booking, catalog, category, property } = result;
+      const { booking, catalog, category, property, roomPrice } = result;
       this.bookingStatus.set(booking?.estado ?? '');
       const checkIn = this.extractCheckIn(booking);
       const checkOut = this.extractCheckOut(booking);
       const guests = this.extractGuests(booking);
       const nights = this.calcNights(checkIn, checkOut);
 
-      const categoryAmount = category?.precio_base?.monto ?? category?.monto_precio_base;
-      const pricePerNight = Number.parseFloat(String(categoryAmount ?? catalog?.precio_base ?? '0'));
-      const safePricePerNight = Number.isFinite(pricePerNight) ? pricePerNight : 0;
-      const subtotal = safePricePerNight * nights;
-      const serviceFee = Math.round(subtotal * 0.1);
+      const pricing = this.resolveSummaryPricing(roomPrice, category, catalog, nights);
       const categoryName = category?.nombre_comercial;
       const propertyName = property?.nombre ?? catalog?.propiedad_nombre ?? catalog?.nombre ?? 'N/A';
       const city = property?.ubicacion?.ciudad ?? catalog?.ciudad ?? 'N/A';
@@ -181,11 +194,14 @@ export class ConfirmReservationPage {
         checkIn,
         checkOut,
         guests,
-        nights,
-        pricePerNight: safePricePerNight,
-        subtotal,
-        serviceFee,
-        total: subtotal + serviceFee,
+        nights: pricing.nights,
+        pricePerNight: pricing.pricePerNight,
+        subtotal: pricing.subtotal,
+        taxesAndFees: pricing.taxesAndFees,
+        total: pricing.total,
+        currency: pricing.currency,
+        currencySymbol: pricing.currencySymbol,
+        taxesAndFeesLabel: pricing.taxesAndFeesLabel,
       });
       this.isLoadingSummary.set(false);
     });
@@ -199,6 +215,52 @@ export class ConfirmReservationPage {
     const diff = new Date(to).getTime() - new Date(from).getTime();
     const nights = Math.round(diff / (1000 * 60 * 60 * 24));
     return nights > 0 ? nights : 0;
+  }
+
+  private resolveSummaryPricing(
+    roomPrice: RoomPriceResponse | null,
+    category: CategoryData | null,
+    catalog: CatalogData | null,
+    nights: number,
+  ) {
+    if (roomPrice) {
+      const taxesAndFees = this.extractTaxesAndFees(roomPrice);
+      return {
+        nights: roomPrice.noches > 0 ? roomPrice.noches : nights,
+        pricePerNight: roomPrice.precio_por_noche ?? 0,
+        subtotal: roomPrice.subtotal ?? 0,
+        taxesAndFees,
+        total: roomPrice.total ?? (roomPrice.subtotal ?? 0) + taxesAndFees,
+        currency: roomPrice.moneda ?? 'COP',
+        currencySymbol: roomPrice.simbolo_moneda ?? '$',
+        taxesAndFeesLabel: roomPrice.impuesto_nombre ? `${roomPrice.impuesto_nombre} y cargos` : 'Impuestos y cargos',
+      };
+    }
+
+    const categoryAmount = category?.precio_base?.monto ?? category?.monto_precio_base;
+    const pricePerNight = Number.parseFloat(String(categoryAmount ?? catalog?.precio_base ?? '0'));
+    const safePricePerNight = Number.isFinite(pricePerNight) ? pricePerNight : 0;
+    const subtotal = safePricePerNight * nights;
+    const taxesAndFees = Math.round(subtotal * 0.1);
+
+    return {
+      nights,
+      pricePerNight: safePricePerNight,
+      subtotal,
+      taxesAndFees,
+      total: subtotal + taxesAndFees,
+      currency: 'COP',
+      currencySymbol: '$',
+      taxesAndFeesLabel: 'Impuestos y cargos',
+    };
+  }
+
+  private extractTaxesAndFees(roomPrice: RoomPriceResponse): number {
+    if (typeof roomPrice.impuestos_y_cargos === 'number') {
+      return roomPrice.impuestos_y_cargos;
+    }
+
+    return (roomPrice.impuestos ?? 0) + (roomPrice.cargo_servicio ?? 0);
   }
 
   private extractCheckIn(booking: BookingData): string {

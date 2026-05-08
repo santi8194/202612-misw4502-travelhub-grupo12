@@ -3,45 +3,68 @@ import sys
 import os
 
 
-# Agregamos la ruta base para que Python encuentre el paquete 'Booking'
-# Subimos un nivel desde simular_saga.py (src/Booking/) y apuntamos a src/
+# Agregamos la ruta base para que Python encuentre el paquete 'booking'
+# Subimos un nivel desde simular_saga.py (src/booking/) y apuntamos a src/
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from Booking.api import create_app
-from Booking.config.db import db
-from Booking.modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva
-from Booking.modulos.reserva.infraestructura.repositorios import RepositorioReservas
-from Booking.config.uow import UnidadTrabajoHibrida
+from api import create_app
+from config.db import db
+from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva
+from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+from config.uow import UnidadTrabajoHibrida
 
-from Booking.modulos.saga_reservas.aplicacion.orquestador import OrquestadorSagaReservas
-from Booking.modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
-from Booking.modulos.reserva.dominio.eventos import ReservaPendiente
-from Booking.modulos.saga_reservas.dominio.eventos import PagoExitosoEvt, ConfirmacionPmsExitosaEvt, RechazarReservaCmd
-from Booking.modulos.saga_reservas.aplicacion.handlers import (
+from modulos.saga_reservas.aplicacion.orquestador import OrquestadorSagaReservas
+from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
+from modulos.reserva.dominio.eventos import ReservaPendiente
+from modulos.saga_reservas.dominio.eventos import PagoExitosoEvt, ConfirmacionPmsExitosaEvt, RechazarReservaCmd
+from modulos.saga_reservas.aplicacion.handlers import (
     IniciarSagaHandler, RespuestaSagaHandler, CompensarSagaHandler
 )
 
-from Booking.modulos.saga_reservas.infraestructura.dto import (
+from modulos.saga_reservas.infraestructura.dto import (
     SagaDefinitionDTO, SagaStepsDefinitionDTO
 )
 
 # Monkey-patch para que el Despachador de RabbitMQ no intente conectarse (y falle) en esta prueba local sin BD/Broker real
-from Booking.seedwork.infraestructura.dispatchers import DespachadorRabbitMQ
+from seedwork.infraestructura.dispatchers import DespachadorRabbitMQ
 class MockDespachador:
     def publicar_evento(self, evento, routing_key): print(f" 🐇 [MOCK RABBITMQ PUBLISH] Evento: {routing_key}")
     def publicar_comando(self, comando, routing_key): print(f" 🐇 [MOCK RABBITMQ PUBLISH] Comando: {routing_key}")
     def cerrar(self): pass
 
 DespachadorRabbitMQ.__new__ = lambda cls, *args, **kwargs: MockDespachador()
-# Fin de Mock
+
+# Monkey-patch de CatalogServiceClient para evitar llamadas HTTP reales en la simulación
+from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
+class MockCatalogClient:
+    def reserve_inventory(self, id_categoria, fecha_check_in, fecha_check_out):
+        print(f" 📦 [MOCK CATALOG] Reservando inventario para categoría {id_categoria}...")
+        return []
+    def restore_inventory(self, id_categoria, original_items):
+        pass
+
+CatalogServiceClient.__new__ = lambda cls, *args, **kwargs: MockCatalogClient()
+
+# Monkey-patch de IniciarSagaHandler para corregir la inyección de atributos faltantes (monto, fecha_reserva) sin tocar handlers.py
+from modulos.saga_reservas.aplicacion.handlers import IniciarSagaHandler
+def _mocked_iniciar_saga_handle(self, evento):
+    self.orquestador.iniciar_saga(
+        id_reserva=evento.id_reserva,
+        id_usuario=evento.id_usuario,
+        id_categoria=evento.id_categoria,
+        monto=evento.monto,
+        fecha_reserva=evento.fecha_reserva
+    )
+IniciarSagaHandler.handle = _mocked_iniciar_saga_handle
+# Fin de Mocks
 
 def run_simulation(app, init_db=True, happy_path=True):
     with app.app_context():
         if init_db:
-            # La definición de la Saga y las tablas ya se crearon en Booking/api/__init__.py
+            # La definición de la Saga y las tablas ya se crearon en booking/api/__init__.py
             # al hacer app = create_app(). Simplemente notificamos aquí.
-            print("[Simulación] Usando definición de Saga desde la inicialización de la API (Booking/api/__init__.py).\n")
+            print("[Simulación] Usando definición de Saga desde la inicialización de la API (booking/api/__init__.py).\n")
         
         print("\n=======================================================")
         print(f"🚀 INICIANDO SIMULACIÓN DE LA SAGA ({'CAMINO FELIZ' if happy_path else 'FALLO Y COMPENSACIÓN'})")
@@ -59,7 +82,10 @@ def run_simulation(app, init_db=True, happy_path=True):
         print("--- 1. USUARIO CREA RESERVA EN ESTADO HOLD (15 Minutos) [Vía HTTP POST /api/reserva] ---")
         payload_crear = {
             "id_usuario": str(id_user),
-            "id_habitacion": str(id_room),
+            "id_categoria": str(id_room),
+            "fecha_check_in": "2026-12-01",
+            "fecha_check_out": "2026-12-05",
+            "ocupacion": {"adultos": 2, "ninos": 0, "infantes": 0},
             "monto": monto
         }
         response_crear = client.post('/api/reserva', json=payload_crear)
@@ -93,7 +119,7 @@ def run_simulation(app, init_db=True, happy_path=True):
         # La API formaliza pero no podemos enlazar RabbitMQ en esta simple prueba sincrónica 
         # sin levantar Workers, así que inyectamos el pulso inicial que normalmente 
         # llegaría por la cola de mensajes al Orquestador.
-        handler_inicio_saga.handle(ReservaPendiente(id_reserva=id_reserva, id_usuario=id_user, monto=monto))
+        handler_inicio_saga.handle(ReservaPendiente(id_reserva=id_reserva, id_usuario=id_user, id_categoria=id_room, monto=monto, fecha_reserva='2026-12-01'))
 
         print("\n--- 4. SIMULANDO RESPUESTA DEL MICROSERVICIO DE PAGOS ---")
         if happy_path:
@@ -105,7 +131,7 @@ def run_simulation(app, init_db=True, happy_path=True):
             handler_respuesta.handle(ConfirmacionPmsExitosaEvt(id_reserva=id_reserva, codigo_pms="HTL-999"))
             
             print("\n--- 6. SIMULANDO APROBACIÓN MANUAL ---")
-            from Booking.modulos.saga_reservas.dominio.eventos import ReservaAprobadaManualEvt
+            from modulos.saga_reservas.dominio.eventos import ReservaAprobadaManualEvt
             
             # Nota: Necesitamos un handler genérico en orquestador o crearlo rátpido
             # Para esta demostración de orquestador, podemos hacer orquestador.manejar_aprobacion(id_reserva)
@@ -115,7 +141,7 @@ def run_simulation(app, init_db=True, happy_path=True):
             orquestador.manejar_evento_respuesta(id_reserva, "ReservaAprobadaManualEvt", {"status": "aprobado"})
             
             print("\n--- 7. SIMULANDO ENVÍO DE VOUCHER POR COREOGRAFÍA ---")
-            from Booking.modulos.saga_reservas.dominio.eventos import VoucherEnviadoEvt
+            from modulos.saga_reservas.dominio.eventos import VoucherEnviadoEvt
             handler_respuesta.handle(VoucherEnviadoEvt(id_reserva=id_reserva, email="cliente@dummy.com"))
             
             print("\n🎉 SIMULACIÓN EXITOSA COMPLETADA 🎉\n")
@@ -133,13 +159,13 @@ def run_simulation(app, init_db=True, happy_path=True):
             
             # Paso 3: El Backoffice Rechazó
             print("\n--- 6. SIMULANDO APROBACION MANUAL [RECHAZADA] ---")
-            from Booking.modulos.saga_reservas.dominio.eventos import ReservaRechazadaManualEvt
+            from modulos.saga_reservas.dominio.eventos import ReservaRechazadaManualEvt
             handler_respuesta.handle(ReservaRechazadaManualEvt(id_reserva=id_reserva, motivo="El cliente está reportado"))
             
             print("\n🛑 SIMULACIÓN DE COMPENSACIÓN COMPLETADA 🛑\n")
 
         # VALIDACIÓN FINAL DE ESTADO EN BD
-        from Booking.modulos.reserva.infraestructura.repositorios import RepositorioReservas
+        from modulos.reserva.infraestructura.repositorios import RepositorioReservas
         repo = RepositorioReservas()
         
         # OBTENEMOS COMO STRING YA QUE SQLALCHEMY ESPERA STR EN LUGAR DE UUID DIRECTO EN ALGUNOS DIALECTOS
@@ -178,7 +204,7 @@ if __name__ == "__main__":
     print("📊 [REPORTE GLOBAL DE LA BASE DE DATOS] Sagas Almacenadas")
     print("="*80)
     with app_global.app_context():
-        from Booking.modulos.saga_reservas.infraestructura.dto import SagaInstanceDTO
+        from modulos.saga_reservas.infraestructura.dto import SagaInstanceDTO
         todas_sagas = db.session.query(SagaInstanceDTO).all()
         for s in todas_sagas:
             print(f" -> Saga {s.id_reserva[:8]}... | Estado Global: {s.estado_global}")

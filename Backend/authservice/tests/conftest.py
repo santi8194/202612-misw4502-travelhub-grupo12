@@ -10,6 +10,7 @@ def sample_user() -> UserInDB:
     return UserInDB(
         id_usuario=uuid4(),
         email="admin@travelhub.com",
+        full_name="Admin Travelhub",
         rol="ADMIN_HOTEL",
         partner_id=None,
     )

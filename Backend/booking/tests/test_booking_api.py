@@ -1,5 +1,7 @@
 import uuid
+import datetime
 from unittest.mock import MagicMock
+from types import SimpleNamespace
 
 import pytest
 import modulos.reserva.infraestructura.api as reserva_api_mod
@@ -343,6 +345,142 @@ def test_get_reserva_by_id_not_found_returns_404(client):
 
 def test_get_reserva_by_id_invalid_uuid_returns_400(client):
     response = client.get('/api/reserva/uuid-invalido')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert 'badly formed hexadecimal UUID' in response.json['error']
+
+
+# --- Tests: GET /api/reserva/usuario/<id_usuario> ---
+
+def _payload_reserva(id_usuario: str) -> dict:
+    return {
+        'id_usuario': id_usuario,
+        'id_categoria': str(uuid.uuid4()),
+        'fecha_check_in': '2026-04-01',
+        'fecha_check_out': '2026-04-05',
+        'ocupacion': {'adultos': 2, 'ninos': 0, 'infantes': 0}
+    }
+
+
+def test_get_reservas_por_usuario_returns_200_con_lista(client):
+    id_usuario = str(uuid.uuid4())
+
+    client.post('/api/reserva', json=_payload_reserva(id_usuario))
+    client.post('/api/reserva', json=_payload_reserva(id_usuario))
+
+    response = client.get(f'/api/reserva/usuario/{id_usuario}')
+
+    assert response.status_code == 200
+    assert response.is_json
+    body = response.json
+    assert len(body) == 2
+    assert all(r['id_usuario'] == id_usuario for r in body)
+
+
+def test_get_reservas_por_usuario_orden_descendente(client):
+    id_usuario = str(uuid.uuid4())
+
+    r1 = client.post('/api/reserva', json=_payload_reserva(id_usuario))
+    r2 = client.post('/api/reserva', json=_payload_reserva(id_usuario))
+    id_reserva_reciente = r2.json['id_reserva']
+
+    response = client.get(f'/api/reserva/usuario/{id_usuario}')
+
+    assert response.status_code == 200
+    body = response.json
+    assert len(body) == 2
+    # La reserva más reciente debe aparecer primero
+    assert body[0]['id_reserva'] == id_reserva_reciente
+
+
+def test_get_reservas_por_usuario_sin_reservas_returns_200_lista_vacia(client):
+    id_usuario = str(uuid.uuid4())
+
+    response = client.get(f'/api/reserva/usuario/{id_usuario}')
+
+    assert response.status_code == 200
+    assert response.is_json
+    assert response.json == []
+
+
+def test_get_reservas_por_usuario_invalid_uuid_returns_400(client):
+    response = client.get('/api/reserva/usuario/uuid-invalido')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert 'badly formed hexadecimal UUID' in response.json['error']
+
+
+# --- Tests: GET /api/reserva/<id_reserva>/timeline ---
+
+def test_get_timeline_reserva_returns_200(client, monkeypatch):
+    id_reserva = str(uuid.uuid4())
+    saga_id = uuid.uuid4()
+
+    log_recibido = SimpleNamespace(
+        id=uuid.uuid4(),
+        tipo_mensaje=SimpleNamespace(value='EVENTO_RECIBIDO'),
+        accion='ReservaCreadaIntegracionEvt',
+        payload_snapshot={'id_reserva': id_reserva},
+        fecha_registro=datetime.datetime(2026, 4, 1, 10, 0, 0)
+    )
+    log_comando = SimpleNamespace(
+        id=uuid.uuid4(),
+        tipo_mensaje=SimpleNamespace(value='COMANDO_EMITIDO'),
+        accion='ProcesarPagoCmd',
+        payload_snapshot={'id_reserva': id_reserva, 'monto': 120000},
+        fecha_registro=datetime.datetime(2026, 4, 1, 10, 1, 0)
+    )
+
+    saga_fake = SimpleNamespace(
+        id=saga_id,
+        id_reserva=uuid.UUID(id_reserva),
+        id_flujo='RESERVA_ESTANDAR',
+        version_ejecucion=1,
+        estado_global=SimpleNamespace(value='EN_PROCESO'),
+        paso_actual=1,
+        historial=[log_comando, log_recibido],
+    )
+
+    class DummyRepoSagas:
+        def buscar_por_reserva(self, reserva_id):
+            assert reserva_id == id_reserva
+            return saga_fake
+
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioSagas', DummyRepoSagas)
+
+    response = client.get(f'/api/reserva/{id_reserva}/timeline')
+
+    assert response.status_code == 200
+    assert response.is_json
+    body = response.json
+    assert body['id_reserva'] == id_reserva
+    assert body['id_instancia_saga'] == str(saga_id)
+    assert body['estado_global'] == 'EN_PROCESO'
+    assert body['total_eventos'] == 2
+    assert body['timeline'][0]['accion'] == 'ReservaCreadaIntegracionEvt'
+    assert body['timeline'][1]['accion'] == 'ProcesarPagoCmd'
+
+
+def test_get_timeline_reserva_not_found_returns_404(client, monkeypatch):
+    id_reserva = str(uuid.uuid4())
+
+    class DummyRepoSagas:
+        def buscar_por_reserva(self, _reserva_id):
+            return None
+
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioSagas', DummyRepoSagas)
+
+    response = client.get(f'/api/reserva/{id_reserva}/timeline')
+
+    assert response.status_code == 404
+    assert response.is_json
+    assert 'No se encontró timeline para la reserva' in response.json['error']
+
+
+def test_get_timeline_reserva_invalid_uuid_returns_400(client):
+    response = client.get('/api/reserva/uuid-invalido/timeline')
 
     assert response.status_code == 400
     assert response.is_json

@@ -5,12 +5,14 @@ import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { Subject, takeUntil } from 'rxjs';
 import { PreciosPorHabitacionComponent } from './components/precios-por-habitacion/precios-por-habitacion.component';
 import { AjustesTemporadaComponent } from './components/ajustes-temporada/ajustes-temporada.component';
+import { ReservasComponent, Reserva } from './components/reservas/reservas.component';
+import { DetalleReservaComponent } from '../detalle-reserva/detalle-reserva.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent],
+    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent, ReservasComponent],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })
@@ -19,6 +21,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     loading = true;
     error = false;
     activeSection = 'dashboard';
+    reservaSeleccionadaId: string | null = null;
+    habitacionSeleccionada: string | null = null;
     readonly todayLabel = new Date();
     showSessionInfo = true;
     showLockoutInfo = true;
@@ -91,6 +95,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
     ];
     readonly preciosPorHabitacionComponent = PreciosPorHabitacionComponent;
+    readonly detalleReservaComponent = DetalleReservaComponent;
+    readonly volverDetalleHandler = () => this.volverDeDetalle();
     @ViewChild(PreciosPorHabitacionComponent) preciosComponent?: PreciosPorHabitacionComponent;
     pricingHasErrors = false;
     private destroy$ = new Subject<void>();
@@ -133,6 +139,20 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     setActiveSection(section: string): void {
         this.activeSection = section;
+        this.reservaSeleccionadaId = null;
+        this.habitacionSeleccionada = null;
+    }
+
+    abrirDetalleReserva(reserva: Reserva): void {
+        this.reservaSeleccionadaId = reserva.id;
+        this.habitacionSeleccionada = reserva.habitacion;
+        this.activeSection = 'detalle-reserva';
+    }
+
+    volverDeDetalle(): void {
+        this.activeSection = 'reservas';
+        this.reservaSeleccionadaId = null;
+        this.habitacionSeleccionada = null;
     }
 
     isDashboardSelected(): boolean {

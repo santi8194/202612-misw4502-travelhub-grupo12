@@ -37,13 +37,13 @@ Para depuración rápida sin reconstruir imágenes:
    ```bash
    export PYTHONPATH=$(pwd)/src
    export RABBITMQ_HOST=localhost
-   uvicorn Booking.asgi:app --reload --port 5001
+   uvicorn booking.asgi:app --reload --port 5001
    ```
 3. Saga Worker (Terminal 2):
    ```bash
    export PYTHONPATH=$(pwd)/src
    export RABBITMQ_HOST=localhost
-   python src/Booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
+   python src/booking/modulos/saga_reservas/infraestructura/consumidor_evt_saga.py
    ```
 
 ---

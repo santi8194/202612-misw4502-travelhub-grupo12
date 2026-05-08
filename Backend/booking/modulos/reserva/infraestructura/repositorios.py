@@ -49,3 +49,50 @@ class RepositorioReservas(Repositorio):
     def obtener_todos(self) -> list[Reserva]:
         dtos = db.session.query(ReservaDTO).all()
         return [self._mapeador.dto_a_entidad(dto) for dto in dtos]
+
+    def obtener_por_usuario(self, id_usuario: str) -> list[Reserva]:
+        dtos = (db.session.query(ReservaDTO)
+                .filter_by(usuario=id_usuario)
+                .order_by(ReservaDTO.fecha_creacion.desc())
+                .all())
+        return [self._mapeador.dto_a_entidad(dto) for dto in dtos]
+
+    def obtener_por_categorias(self, ids_categoria: list[str]) -> list[Reserva]:
+        if not ids_categoria:
+            return []
+
+        dtos = (
+            db.session.query(ReservaDTO)
+            .filter(ReservaDTO.id_categoria.in_(ids_categoria))
+            .order_by(ReservaDTO.fecha_creacion.desc())
+            .all()
+        )
+        return [self._mapeador.dto_a_entidad(dto) for dto in dtos]
+
+    def obtener_activa_por_usuario_categoria_fechas(
+        self,
+        id_usuario: str,
+        id_categoria: str,
+        fecha_check_in: datetime.date,
+        fecha_check_out: datetime.date,
+    ) -> Reserva | None:
+        if not id_usuario or not id_categoria or not fecha_check_in or not fecha_check_out:
+            return None
+
+        reserva_dto = (
+            db.session.query(ReservaDTO)
+            .filter_by(
+                usuario=id_usuario,
+                id_categoria=id_categoria,
+                fecha_check_in=fecha_check_in.isoformat(),
+                fecha_check_out=fecha_check_out.isoformat(),
+            )
+            .filter(ReservaDTO.estado.in_([EstadoReserva.HOLD.value, EstadoReserva.PENDIENTE.value]))
+            .order_by(ReservaDTO.fecha_creacion.desc())
+            .first()
+        )
+
+        if not reserva_dto:
+            return None
+
+        return self._mapeador.dto_a_entidad(reserva_dto)

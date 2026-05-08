@@ -37,22 +37,7 @@ class Propiedad(Entidad):
     ubicacion: Direccion = None
     porcentaje_impuesto: float = 0.0
 
-@dataclass
-class Media(Entidad):
-    url_full: str = None
-    tipo: str = None
-    orden: int = 0
 
-@dataclass
-class Amenidad(Entidad):
-    nombre: str = None
-    icono: str = None
-
-@dataclass
-class Inventario(Entidad):
-    fecha: datetime.date = None
-    cupos_totales: int = 0
-    cupos_disponibles: int = 0
 
 @dataclass
 class CategoriaHabitacion(Entidad):
@@ -69,27 +54,7 @@ class Usuario(Entidad):
     nombre: str = None
     email: str = None
 
-@dataclass
-class Pago(Entidad):
-    id_reserva: uuid.UUID = None
-    estado_pago: str = None
-    fecha_pago: datetime.datetime = None
-    metodo: str = None
-    monto: Dinero = None
 
-@dataclass
-class Notificacion(Entidad):
-    tipo: str = None
-    mensaje: str = None
-    enviada: bool = False
-    fecha_envio: datetime.datetime = None
-
-@dataclass
-class Resena(Entidad):
-    id_usuario: uuid.UUID = None
-    calificacion: int = 0
-    comentario: str = None
-    fecha_creacion: datetime.datetime = field(default_factory=datetime.datetime.now)
 
 @dataclass
 class Reserva(AgregacionRaiz):
@@ -101,17 +66,13 @@ class Reserva(AgregacionRaiz):
     fecha_check_out: datetime.date = field(default=None)
     ocupacion: Pax = field(default=None)
     usuario: Usuario = field(default=None)
-    pagos: list[Pago] = field(default_factory=list)
-    notificaciones: list[Notificacion] = field(default_factory=list)
-    resenas: list[Resena] = field(default_factory=list)
+
     fecha_creacion: datetime.datetime = field(default_factory=datetime.datetime.now)
     fecha_actualizacion: datetime.datetime = field(default_factory=datetime.datetime.now)
 
     def __post_init__(self):
         super().__post_init__()
-        self.pagos = self.pagos or []
-        self.notificaciones = self.notificaciones or []
-        self.resenas = self.resenas or []
+
 
     @property
     def id_reserva(self) -> uuid.UUID:
@@ -131,14 +92,6 @@ class Reserva(AgregacionRaiz):
     def asignar_usuario(self, usuario: Usuario):
         self.usuario = usuario
 
-    def agregar_pago(self, pago: Pago):
-        self.pagos.append(pago)
-
-    def agregar_notificacion(self, notificacion: Notificacion):
-        self.notificaciones.append(notificacion)
-
-    def agregar_resena(self, resena: Resena):
-        self.resenas.append(resena)
 
     def actualizar_estado(self, nuevo_estado: EstadoReserva):
         self.estado = nuevo_estado

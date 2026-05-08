@@ -4,6 +4,8 @@ Rol dentro del microservicio: Centraliza la descarga y caché de las claves púb
 y la verificación criptográfica de los tokens de acceso (RS256).
 """
 
+from __future__ import annotations
+
 import json
 from urllib.request import urlopen
 

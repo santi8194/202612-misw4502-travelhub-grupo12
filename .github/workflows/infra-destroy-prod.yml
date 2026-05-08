@@ -1,0 +1,286 @@
+name: Infra Destroy PROD
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type exactly: destroy grupo12-travelhub-eks ingress-nginx"
+        required: true
+        type: string
+      aws_region:
+        description: "AWS region"
+        required: true
+        default: "us-east-1"
+        type: string
+      cluster_name:
+        description: "EKS cluster name. Guardrail only allows grupo12-travelhub-eks."
+        required: true
+        default: "grupo12-travelhub-eks"
+        type: string
+      ingress_namespace:
+        description: "Ingress controller namespace. Guardrail only allows ingress-nginx."
+        required: true
+        default: "ingress-nginx"
+        type: string
+      app_namespace:
+        description: "Application namespace whose Ingress objects should be removed first."
+        required: true
+        default: "prod"
+        type: string
+      cleanup_blockers:
+        description: "Clean up AWS blockers tagged/named for the allowed cluster and ingress controller, then retry EKS destroy."
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: infraestructura-destroy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TERRAFORM_VERSION: "1.10.0"
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  AWS_REGION: ${{ inputs.aws_region }}
+  CLUSTER_NAME: ${{ inputs.cluster_name }}
+  INGRESS_NAMESPACE: ${{ inputs.ingress_namespace }}
+  APP_NAMESPACE: ${{ inputs.app_namespace }}
+  CLEANUP_BLOCKERS: ${{ inputs.cleanup_blockers }}
+
+jobs:
+  destroy-eks-ingress:
+    name: Destroy ingress and EKS
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Validate destructive confirmation and guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ inputs.confirmation }}" != "destroy grupo12-travelhub-eks ingress-nginx" ]; then
+            echo "::error::Confirmation mismatch. Type exactly: destroy grupo12-travelhub-eks ingress-nginx"
+            exit 1
+          fi
+
+          if [ "${AWS_REGION}" != "us-east-1" ]; then
+            echo "::error::Guardrail blocked destroy outside us-east-1. Received AWS_REGION='${AWS_REGION}'."
+            exit 1
+          fi
+
+          if [ "${CLUSTER_NAME}" != "grupo12-travelhub-eks" ]; then
+            echo "::error::Guardrail only allows cluster_name='grupo12-travelhub-eks'. Received '${CLUSTER_NAME}'."
+            exit 1
+          fi
+
+          if [ "${INGRESS_NAMESPACE}" != "ingress-nginx" ]; then
+            echo "::error::Guardrail only allows ingress_namespace='ingress-nginx'. Received '${INGRESS_NAMESPACE}'."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Detect EKS cluster and configure kubectl
+        id: eks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if aws eks describe-cluster --name "${CLUSTER_NAME}" --region "${AWS_REGION}" >/dev/null 2>&1; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+            aws eks update-kubeconfig --name "${CLUSTER_NAME}" --region "${AWS_REGION}"
+          else
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+            echo "EKS cluster '${CLUSTER_NAME}' does not exist or is no longer reachable; skipping kubectl cleanup."
+          fi
+
+      - name: Remove application Ingress objects
+        if: steps.eks.outputs.exists == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          kubectl delete ingress --all \
+            --namespace "${APP_NAMESPACE}" \
+            --ignore-not-found=true \
+            --wait=true
+
+      - name: Destroy Terraform ingress stack
+        id: destroy_ingress_first
+        continue-on-error: true
+        if: steps.eks.outputs.exists == 'true'
+        shell: bash
+        working-directory: Infraestructura/terraform/stacks/ingress
+        run: |
+          set -euo pipefail
+          terraform init -reconfigure
+          terraform destroy -input=false -auto-approve -var-file="../../environments/dev/ingress/dev.tfvars"
+
+      - name: Remove ingress namespace fallback
+        if: steps.eks.outputs.exists == 'true' && steps.destroy_ingress_first.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          kubectl delete namespace "${INGRESS_NAMESPACE}" \
+            --ignore-not-found=true \
+            --wait=false
+
+      - name: Cleanup ingress AWS load balancer blockers
+        if: inputs.cleanup_blockers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          deleted_lb=false
+
+          echo "Looking for Classic ELBs tagged for ${INGRESS_NAMESPACE}/${INGRESS_NAMESPACE}-controller..."
+          mapfile -t classic_lbs < <(aws elb describe-load-balancers \
+            --region "${AWS_REGION}" \
+            --query "LoadBalancerDescriptions[].LoadBalancerName" \
+            --output text | tr '\t' '\n' | sed '/^$/d')
+
+          for lb_name in "${classic_lbs[@]}"; do
+            service_tag_count=$(aws elb describe-tags \
+              --region "${AWS_REGION}" \
+              --load-balancer-names "${lb_name}" \
+              --query "TagDescriptions[0].Tags[?Key=='kubernetes.io/service-name' && Value=='${INGRESS_NAMESPACE}/${INGRESS_NAMESPACE}-controller'] | length(@)" \
+              --output text 2>/dev/null || echo "0")
+
+            cluster_tag_count=$(aws elb describe-tags \
+              --region "${AWS_REGION}" \
+              --load-balancer-names "${lb_name}" \
+              --query "TagDescriptions[0].Tags[?Key=='kubernetes.io/cluster/${CLUSTER_NAME}'] | length(@)" \
+              --output text 2>/dev/null || echo "0")
+
+            if [ "${service_tag_count}" != "0" ] || [ "${cluster_tag_count}" != "0" ]; then
+              echo "Deleting guarded Classic ELB: ${lb_name}"
+              aws elb delete-load-balancer --region "${AWS_REGION}" --load-balancer-name "${lb_name}"
+              deleted_lb=true
+            fi
+          done
+
+          echo "Looking for ELBv2 load balancers tagged for ${INGRESS_NAMESPACE}/${INGRESS_NAMESPACE}-controller..."
+          mapfile -t elbv2_arns < <(aws elbv2 describe-load-balancers \
+            --region "${AWS_REGION}" \
+            --query "LoadBalancers[].LoadBalancerArn" \
+            --output text | tr '\t' '\n' | sed '/^$/d')
+
+          for lb_arn in "${elbv2_arns[@]}"; do
+            service_tag_count=$(aws elbv2 describe-tags \
+              --region "${AWS_REGION}" \
+              --resource-arns "${lb_arn}" \
+              --query "TagDescriptions[0].Tags[?Key=='kubernetes.io/service-name' && Value=='${INGRESS_NAMESPACE}/${INGRESS_NAMESPACE}-controller'] | length(@)" \
+              --output text 2>/dev/null || echo "0")
+
+            cluster_tag_count=$(aws elbv2 describe-tags \
+              --region "${AWS_REGION}" \
+              --resource-arns "${lb_arn}" \
+              --query "TagDescriptions[0].Tags[?Key=='kubernetes.io/cluster/${CLUSTER_NAME}'] | length(@)" \
+              --output text 2>/dev/null || echo "0")
+
+            if [ "${service_tag_count}" != "0" ] || [ "${cluster_tag_count}" != "0" ]; then
+              echo "Deleting guarded ELBv2 load balancer: ${lb_arn}"
+              aws elbv2 delete-load-balancer --region "${AWS_REGION}" --load-balancer-arn "${lb_arn}"
+              deleted_lb=true
+            fi
+          done
+
+          if [ "${deleted_lb}" = "true" ]; then
+            echo "Waiting for guarded load balancer deletion to release dependent security groups and network interfaces..."
+            sleep 45
+          fi
+
+      - name: Retry Terraform ingress destroy
+        if: steps.eks.outputs.exists == 'true' && steps.destroy_ingress_first.outcome == 'failure'
+        shell: bash
+        working-directory: Infraestructura/terraform/stacks/ingress
+        run: |
+          set -euo pipefail
+          terraform destroy -input=false -auto-approve -var-file="../../environments/dev/ingress/dev.tfvars"
+
+      - name: Destroy Terraform EKS stack
+        id: destroy_eks_first
+        continue-on-error: true
+        shell: bash
+        working-directory: Infraestructura/terraform/stacks/eks
+        run: |
+          set -euo pipefail
+          terraform init -reconfigure
+          terraform destroy -input=false -auto-approve -var-file="../../environments/dev/eks/dev.tfvars"
+
+      - name: Cleanup guarded EKS blockers after failed destroy
+        if: steps.destroy_eks_first.outcome == 'failure' && inputs.cleanup_blockers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "First EKS destroy attempt failed. Cleaning only available blockers named/tagged for '${CLUSTER_NAME}' or '${INGRESS_NAMESPACE}'."
+
+          mapfile -t eni_ids < <(aws ec2 describe-network-interfaces \
+            --region "${AWS_REGION}" \
+            --output json \
+            | jq -r \
+              --arg cluster "${CLUSTER_NAME}" \
+              --arg ingress "${INGRESS_NAMESPACE}" \
+              '.NetworkInterfaces[]
+                | select(.Status == "available")
+                | select(
+                    ((.Description // "") | contains($cluster)) or
+                    ((.Description // "") | contains($ingress)) or
+                    any(.TagSet[]?; .Key == "Name" and ((.Value | contains($cluster)) or (.Value | contains($ingress))))
+                  )
+                | .NetworkInterfaceId')
+
+          for eni_id in "${eni_ids[@]}"; do
+            echo "Deleting guarded available ENI: ${eni_id}"
+            aws ec2 delete-network-interface --region "${AWS_REGION}" --network-interface-id "${eni_id}" || true
+          done
+
+          mapfile -t sg_ids < <(aws ec2 describe-security-groups \
+            --region "${AWS_REGION}" \
+            --output json \
+            | jq -r \
+              --arg cluster "${CLUSTER_NAME}" \
+              --arg ingress "${INGRESS_NAMESPACE}" \
+              '.SecurityGroups[]
+                | select(.GroupName != "default")
+                | select(
+                    (.GroupName | contains($cluster)) or
+                    (.GroupName | contains($ingress)) or
+                    any(.Tags[]?; .Key == "Name" and ((.Value | contains($cluster)) or (.Value | contains($ingress))))
+                  )
+                | .GroupId')
+
+          for sg_id in "${sg_ids[@]}"; do
+            echo "Deleting guarded security group if no dependencies remain: ${sg_id}"
+            aws ec2 delete-security-group --region "${AWS_REGION}" --group-id "${sg_id}" || true
+          done
+
+      - name: Retry Terraform EKS destroy
+        if: steps.destroy_eks_first.outcome == 'failure'
+        shell: bash
+        working-directory: Infraestructura/terraform/stacks/eks
+        run: |
+          set -euo pipefail
+          terraform destroy -input=false -auto-approve -var-file="../../environments/dev/eks/dev.tfvars"

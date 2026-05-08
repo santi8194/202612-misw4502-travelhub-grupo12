@@ -3,6 +3,14 @@ const CATEGORY_ID = 'categoria-e2e-001';
 
 export { };
 
+function seedAuthSession(window: Window) {
+  window.localStorage.setItem('th_access_token', 'fake-access-token');
+  window.localStorage.setItem('th_refresh_token', 'fake-refresh-token');
+  window.localStorage.setItem('th_token_type', 'Bearer');
+  window.localStorage.setItem('th_user_email', 'e2e@travelhub.com');
+  window.localStorage.setItem('th_user_id', 'user-e2e-001');
+}
+
 function visitPropertyDetail() {
   cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}`, { fixture: 'booking-cart-property.json' }).as('getProperty');
   cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}/categories`, { fixture: 'booking-cart-property-categories.json' }).as('getCategories');
@@ -10,6 +18,7 @@ function visitPropertyDetail() {
   cy.visit(`/property/${PROPERTY_ID}?fecha_inicio=2026-05-10&fecha_fin=2026-05-13&huespedes=2&id_categoria=${CATEGORY_ID}`, {
     onBeforeLoad(window) {
       window.localStorage.clear();
+      seedAuthSession(window);
     },
   });
 

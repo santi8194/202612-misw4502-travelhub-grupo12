@@ -15,7 +15,7 @@ owner = "grupo12"
 
 # Required by Terraform.
 # The backend CD pipeline supports exactly these repositories in dev.
-repository_names = ["authservice", "search", "booking", "catalog", "payment"]
+repository_names = ["authservice", "search", "booking", "catalog", "payment", "pms-integration", "partner-management", "notification"]
 
 # Added to avoid hidden defaults.
 # The stack has a default of 5, but dev should set retention explicitly to control storage cost.

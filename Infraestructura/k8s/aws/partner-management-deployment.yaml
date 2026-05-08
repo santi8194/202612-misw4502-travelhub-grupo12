@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: partner-management
+  labels:
+    app: partner-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: partner-management
+  template:
+    metadata:
+      labels:
+        app: partner-management
+    spec:
+      containers:
+        - name: partner-management
+          image: ${ECR_REGISTRY_DEV}/partner-management:${GITHUB_SHA}
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PARTNER_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_HOST
+            - name: PARTNER_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_PORT
+            - name: PARTNER_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_NAME
+            - name: PARTNER_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_USER
+            - name: PARTNER_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: partner-management-db-secret
+                  key: DB_PASSWORD
+            - name: RABBITMQ_HOST
+              value: rabbitmq-broker
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASS
+              value: guest
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10

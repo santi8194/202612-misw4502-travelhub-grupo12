@@ -2,16 +2,19 @@ from uuid import UUID
 from decimal import Decimal
 from datetime import date
 
+from sqlalchemy import String, cast
 from sqlalchemy.orm import Session, joinedload, selectinload
-from .database import SessionLocal
+from .database import IS_SQLITE, SessionLocal
 from .models import (
 	PropiedadModel,
 	CategoriaHabitacionModel,
+	AmenidadModel,
 	MediaModel,
 	InventarioModel,
 	ResenaModel,
 	TemporadaModel,
 	ConfiguracionImpuestosPaisModel,
+	categoria_amenidad,
 )
 from modules.catalog.domain.entities import (
 	Propiedad,
@@ -31,6 +34,124 @@ from modules.catalog.domain.entities import (
 
 class PropertyRepository:
 	"""Repositorio para persistencia del agregado Propiedad."""
+
+	@staticmethod
+	def _apply_property_values(propiedad_model: PropiedadModel, propiedad: Propiedad) -> None:
+		propiedad_model.nombre = propiedad.nombre
+		propiedad_model.estrellas = propiedad.estrellas
+		propiedad_model.ciudad = propiedad.ubicacion.ciudad
+		propiedad_model.estado_provincia = propiedad.ubicacion.estado_provincia
+		propiedad_model.pais = propiedad.ubicacion.pais
+		propiedad_model.latitud = propiedad.ubicacion.coordenadas.lat
+		propiedad_model.longitud = propiedad.ubicacion.coordenadas.lng
+		propiedad_model.porcentaje_impuesto = propiedad.porcentaje_impuesto
+
+	@staticmethod
+	def _apply_category_values(categoria_model: CategoriaHabitacionModel, categoria: CategoriaHabitacion, id_propiedad: UUID) -> None:
+		categoria_model.id_propiedad = id_propiedad
+		categoria_model.codigo_mapeo_pms = categoria.codigo_mapeo_pms
+		categoria_model.nombre_comercial = categoria.nombre_comercial
+		categoria_model.descripcion = categoria.descripcion
+		categoria_model.precio_base_monto = categoria.precio_base.monto
+		categoria_model.precio_base_moneda = categoria.precio_base.moneda
+		categoria_model.precio_base_cargo_servicio = categoria.precio_base.cargo_servicio
+		categoria_model.capacidad_pax = categoria.capacidad_pax
+		categoria_model.dias_anticipacion = categoria.politica_cancelacion.dias_anticipacion
+		categoria_model.porcentaje_penalidad = categoria.politica_cancelacion.porcentaje_penalidad
+		categoria_model.tarifa_fin_de_semana_monto = categoria.tarifa_fin_de_semana.monto if categoria.tarifa_fin_de_semana else None
+		categoria_model.tarifa_fin_de_semana_moneda = categoria.tarifa_fin_de_semana.moneda if categoria.tarifa_fin_de_semana else None
+		categoria_model.tarifa_fin_de_semana_cargo_servicio = categoria.tarifa_fin_de_semana.cargo_servicio if categoria.tarifa_fin_de_semana else None
+		categoria_model.tarifa_temporada_alta_monto = categoria.tarifa_temporada_alta.monto if categoria.tarifa_temporada_alta else None
+		categoria_model.tarifa_temporada_alta_moneda = categoria.tarifa_temporada_alta.moneda if categoria.tarifa_temporada_alta else None
+		categoria_model.tarifa_temporada_alta_cargo_servicio = categoria.tarifa_temporada_alta.cargo_servicio if categoria.tarifa_temporada_alta else None
+
+	def _sync_category_children(self, db: Session, categoria_model: CategoriaHabitacionModel, categoria: CategoriaHabitacion) -> None:
+		existing_media_by_id = {
+			media_model.id_media: media_model
+			for media_model in db.query(MediaModel)
+			.filter(self._id_filter(MediaModel.id_categoria, categoria.id_categoria))
+			.all()
+		}
+		desired_media_models: list[MediaModel] = []
+		desired_media_ids: set[str] = set()
+		for media in categoria.media:
+			desired_media_ids.add(media.id_media)
+			media_model = existing_media_by_id.get(media.id_media)
+			if media_model is None:
+				media_model = MediaModel(id_media=media.id_media, id_categoria=categoria.id_categoria)
+			media_model.url_full = media.url_full
+			media_model.tipo = media.tipo.value
+			media_model.orden = media.orden
+			desired_media_models.append(media_model)
+		for media_id, media_model in existing_media_by_id.items():
+			if media_id not in desired_media_ids:
+				db.delete(media_model)
+		categoria_model.media = desired_media_models
+
+		existing_inventory_by_id = {
+			inventario_model.id_inventario: inventario_model
+			for inventario_model in db.query(InventarioModel)
+			.filter(self._id_filter(InventarioModel.id_categoria, categoria.id_categoria))
+			.all()
+		}
+		desired_inventory_models: list[InventarioModel] = []
+		desired_inventory_ids: set[str] = set()
+		for inventario in categoria.inventario:
+			desired_inventory_ids.add(inventario.id_inventario)
+			inventario_model = existing_inventory_by_id.get(inventario.id_inventario)
+			if inventario_model is None:
+				inventario_model = InventarioModel(
+					id_inventario=inventario.id_inventario,
+					id_categoria=categoria.id_categoria,
+				)
+			inventario_model.fecha = inventario.fecha.isoformat()
+			inventario_model.cupos_totales = inventario.cupos_totales
+			inventario_model.cupos_disponibles = inventario.cupos_disponibles
+			desired_inventory_models.append(inventario_model)
+		for inventario_id, inventario_model in existing_inventory_by_id.items():
+			if inventario_id not in desired_inventory_ids:
+				db.delete(inventario_model)
+		categoria_model.inventario = desired_inventory_models
+
+		if categoria.amenidades:
+			amenidad_ids = [amenidad.id_amenidad for amenidad in categoria.amenidades]
+			categoria_model.amenidades = (
+				db.query(AmenidadModel)
+				.filter(AmenidadModel.id_amenidad.in_(amenidad_ids))
+				.all()
+			)
+
+	@staticmethod
+	def _id_filter(column, identifier: UUID | str):
+		"""Construye filtro compatible con UUID en SQLite y PostgreSQL."""
+		if IS_SQLITE:
+			return cast(column, String) == str(identifier)
+		return column == identifier
+
+	def _populate_category_relations_sqlite(self, db: Session, categoria_model: CategoriaHabitacionModel) -> None:
+		"""Carga relaciones de categoria manualmente en SQLite.
+
+		Con PgUUID(as_uuid=True), algunas relaciones terminan vacías porque
+		SQLite persiste los UUID como texto con guiones.
+		"""
+		categoria_model.media = (
+			db.query(MediaModel)
+			.filter(self._id_filter(MediaModel.id_categoria, categoria_model.id_categoria))
+			.order_by(MediaModel.orden)
+			.all()
+		)
+		categoria_model.inventario = (
+			db.query(InventarioModel)
+			.filter(self._id_filter(InventarioModel.id_categoria, categoria_model.id_categoria))
+			.order_by(InventarioModel.fecha, InventarioModel.id_inventario)
+			.all()
+		)
+		categoria_model.amenidades = (
+			db.query(AmenidadModel)
+			.join(categoria_amenidad, AmenidadModel.id_amenidad == categoria_amenidad.c.id_amenidad)
+			.filter(self._id_filter(categoria_amenidad.c.id_categoria, categoria_model.id_categoria))
+			.all()
+		)
 
 	@staticmethod
 	def _parse_tipo_media(raw_tipo: str) -> TipoMedia:
@@ -61,67 +182,35 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
-			# Convertir entidad de dominio a modelo de persistencia
-			# id_propiedad se pasa directamente como UUID nativo (sin convertir a str)
-			propiedad_model = PropiedadModel(
-				id_propiedad=propiedad.id_propiedad,
-				nombre=propiedad.nombre,
-				estrellas=propiedad.estrellas,
-				ciudad=propiedad.ubicacion.ciudad,
-				estado_provincia=propiedad.ubicacion.estado_provincia,
-				pais=propiedad.ubicacion.pais,
-				latitud=propiedad.ubicacion.coordenadas.lat,
-				longitud=propiedad.ubicacion.coordenadas.lng,
-				porcentaje_impuesto=propiedad.porcentaje_impuesto,
+			existing_property = (
+				db.query(PropiedadModel)
+				.filter(self._id_filter(PropiedadModel.id_propiedad, propiedad.id_propiedad))
+				.first()
 			)
 
-			# Guardar categorías de habitación
+			if existing_property is None:
+				propiedad_model = PropiedadModel(id_propiedad=propiedad.id_propiedad)
+				db.add(propiedad_model)
+			else:
+				propiedad_model = existing_property
+
+			self._apply_property_values(propiedad_model, propiedad)
+
 			for categoria in propiedad.categorias_habitacion:
-				# id_categoria e id_propiedad se pasan directamente como UUID nativo
-				categoria_model = CategoriaHabitacionModel(
-					id_categoria=categoria.id_categoria,
-					id_propiedad=propiedad.id_propiedad,
-					codigo_mapeo_pms=categoria.codigo_mapeo_pms,
-					nombre_comercial=categoria.nombre_comercial,
-					descripcion=categoria.descripcion,
-					precio_base_monto=categoria.precio_base.monto,
-					precio_base_moneda=categoria.precio_base.moneda,
-					precio_base_cargo_servicio=categoria.precio_base.cargo_servicio,
-					capacidad_pax=categoria.capacidad_pax,
-					dias_anticipacion=categoria.politica_cancelacion.dias_anticipacion,
-					porcentaje_penalidad=categoria.politica_cancelacion.porcentaje_penalidad,
-					tarifa_fin_de_semana_monto=categoria.tarifa_fin_de_semana.monto if categoria.tarifa_fin_de_semana else None,
-					tarifa_fin_de_semana_moneda=categoria.tarifa_fin_de_semana.moneda if categoria.tarifa_fin_de_semana else None,
-					tarifa_fin_de_semana_cargo_servicio=categoria.tarifa_fin_de_semana.cargo_servicio if categoria.tarifa_fin_de_semana else None,
-					tarifa_temporada_alta_monto=categoria.tarifa_temporada_alta.monto if categoria.tarifa_temporada_alta else None,
-					tarifa_temporada_alta_moneda=categoria.tarifa_temporada_alta.moneda if categoria.tarifa_temporada_alta else None,
-					tarifa_temporada_alta_cargo_servicio=categoria.tarifa_temporada_alta.cargo_servicio if categoria.tarifa_temporada_alta else None,
+				existing_category = (
+					db.query(CategoriaHabitacionModel)
+					.filter(self._id_filter(CategoriaHabitacionModel.id_categoria, categoria.id_categoria))
+					.first()
 				)
+				if existing_category is None:
+					categoria_model = CategoriaHabitacionModel(id_categoria=categoria.id_categoria)
+					db.add(categoria_model)
+				else:
+					categoria_model = existing_category
 
-				for media in categoria.media:
-					media_model = MediaModel(
-						id_media=media.id_media,
-						id_categoria=categoria.id_categoria,
-						url_full=media.url_full,
-						tipo=media.tipo.value,
-						orden=media.orden,
-					)
-					categoria_model.media.append(media_model)
+				self._apply_category_values(categoria_model, categoria, propiedad.id_propiedad)
+				self._sync_category_children(db, categoria_model, categoria)
 
-				# Guardar inventario
-				for inventario in categoria.inventario:
-					inventario_model = InventarioModel(
-						id_inventario=inventario.id_inventario,
-						id_categoria=categoria.id_categoria,
-						fecha=inventario.fecha.isoformat(),
-						cupos_totales=inventario.cupos_totales,
-						cupos_disponibles=inventario.cupos_disponibles,
-					)
-					categoria_model.inventario.append(inventario_model)
-
-				propiedad_model.categorias_habitacion.append(categoria_model)
-
-			db.merge(propiedad_model)
 			db.commit()
 		except Exception:
 			db.rollback()
@@ -142,16 +231,34 @@ class PropertyRepository:
 		db: Session = SessionLocal()
 
 		try:
-			# Cargar amenidades con selectinload para evitar N+1 en la relación M2M
-			propiedad_model = (
-				db.query(PropiedadModel)
-				.options(
-					selectinload(PropiedadModel.categorias_habitacion)
-					.selectinload(CategoriaHabitacionModel.amenidades)
+			# En SQLite, selectinload sobre UUID(PgUUID) puede no resolver correctamente
+			# cuando los IDs están persistidos como texto con guiones.
+			if IS_SQLITE:
+				propiedad_model = (
+					db.query(PropiedadModel)
+					.filter(self._id_filter(PropiedadModel.id_propiedad, id_propiedad))
+					.first()
 				)
-				.filter(PropiedadModel.id_propiedad == id_propiedad)
-				.first()
-			)
+				if propiedad_model:
+					categorias = (
+						db.query(CategoriaHabitacionModel)
+						.filter(self._id_filter(CategoriaHabitacionModel.id_propiedad, id_propiedad))
+						.all()
+					)
+					for categoria in categorias:
+						self._populate_category_relations_sqlite(db, categoria)
+					propiedad_model.categorias_habitacion = categorias
+			else:
+				# Cargar amenidades con selectinload para evitar N+1 en la relación M2M
+				propiedad_model = (
+					db.query(PropiedadModel)
+					.options(
+						selectinload(PropiedadModel.categorias_habitacion)
+						.selectinload(CategoriaHabitacionModel.amenidades)
+					)
+					.filter(self._id_filter(PropiedadModel.id_propiedad, id_propiedad))
+					.first()
+				)
 
 			if not propiedad_model:
 				return None
@@ -205,7 +312,7 @@ class PropertyRepository:
 					.selectinload(PropiedadModel.categorias_habitacion)
 					.selectinload(CategoriaHabitacionModel.amenidades),
 				)
-				.filter(CategoriaHabitacionModel.id_categoria == id_categoria)
+				.filter(self._id_filter(CategoriaHabitacionModel.id_categoria, id_categoria))
 				.first()
 			)
 
@@ -215,6 +322,10 @@ class PropertyRepository:
 			propiedad_model = categoria_model.propiedad
 			if not propiedad_model:
 				return None
+
+			if IS_SQLITE:
+				for categoria in propiedad_model.categorias_habitacion:
+					self._populate_category_relations_sqlite(db, categoria)
 
 			return self._model_to_entity(propiedad_model)
 		finally:
@@ -237,12 +348,15 @@ class PropertyRepository:
 			categoria_model = (
 				db.query(CategoriaHabitacionModel)
 				.options(selectinload(CategoriaHabitacionModel.amenidades))
-				.filter(CategoriaHabitacionModel.id_categoria == id_categoria)
+				.filter(self._id_filter(CategoriaHabitacionModel.id_categoria, id_categoria))
 				.first()
 			)
 
 			if not categoria_model:
 				return None
+
+			if IS_SQLITE:
+				self._populate_category_relations_sqlite(db, categoria_model)
 
 			return self._category_model_to_entity(categoria_model)
 		finally:
@@ -306,7 +420,7 @@ class PropertyRepository:
 		try:
 			# Filtrar por UUID nativo directamente sin convertir a str
 			propiedad = db.query(PropiedadModel).filter(
-				PropiedadModel.id_propiedad == id_propiedad
+				self._id_filter(PropiedadModel.id_propiedad, id_propiedad)
 			).first()
 
 			if not propiedad:
@@ -346,12 +460,15 @@ class PropertyRepository:
 					# Cargar amenidades (relación M2M via tabla asociativa)
 					selectinload(CategoriaHabitacionModel.amenidades),
 				)
-				.filter(CategoriaHabitacionModel.id_categoria == id_categoria)
+				.filter(self._id_filter(CategoriaHabitacionModel.id_categoria, id_categoria))
 				.first()
 			)
 
 			if not categoria_model:
 				return None
+
+			if IS_SQLITE:
+				self._populate_category_relations_sqlite(db, categoria_model)
 
 			# Mapear propiedad con reseñas (mapper especializado)
 			propiedad = self._model_to_entity_con_resenas(categoria_model.propiedad)
@@ -526,7 +643,7 @@ class PropertyRepository:
 		try:
 			rows = (
 				db.query(TemporadaModel)
-				.filter(TemporadaModel.id_propiedad == id_propiedad)
+				.filter(self._id_filter(TemporadaModel.id_propiedad, id_propiedad))
 				.order_by(TemporadaModel.fecha_inicio)
 				.all()
 			)
@@ -575,8 +692,8 @@ class PropertyRepository:
 			row = (
 				db.query(TemporadaModel)
 				.filter(
-					TemporadaModel.id_temporada == id_temporada,
-					TemporadaModel.id_propiedad == id_propiedad,
+					self._id_filter(TemporadaModel.id_temporada, id_temporada),
+					self._id_filter(TemporadaModel.id_propiedad, id_propiedad),
 				)
 				.first()
 			)

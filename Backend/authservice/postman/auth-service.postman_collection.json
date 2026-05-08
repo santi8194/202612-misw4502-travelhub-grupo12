@@ -10,14 +10,14 @@
 			"name": "Auth",
 			"item": [
 				{
-					"name": "1. Login (JSON)",
+					"name": "0. Register Traveler",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"if (pm.response.code === 200) {",
-									"    pm.collectionVariables.set(\"access_token\", pm.response.json().access_token);",
+									"if (pm.response.code === 201) {",
+									"    pm.collectionVariables.set(\"email\", pm.collectionVariables.get(\"register_email\"));",
 									"}"
 								],
 								"type": "text/javascript"
@@ -34,7 +34,77 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@hotel.com\",\n  \"password\": \"123456\"\n}"
+							"raw": "{\n  \"first_name\": \"{{register_first_name}}\",\n  \"last_name\": \"{{register_last_name}}\",\n  \"email\": \"{{register_email}}\",\n  \"phone_number\": \"{{register_phone_number}}\",\n  \"password\": \"{{register_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "0.1 Confirm Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{register_email}}\",\n  \"code\": \"{{verification_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register/confirm",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register",
+								"confirm"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1. Login (JSON)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set(\"access_token\", pm.response.json().access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", pm.response.json().refresh_token);",
+									"    pm.collectionVariables.set(\"email\", pm.collectionVariables.get(\"register_email\") || \"admin@hotel.com\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{login_password}}\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/login",
@@ -59,12 +129,12 @@
 							"urlencoded": [
 								{
 									"key": "username",
-									"value": "admin@hotel.com",
+									"value": "{{email}}",
 									"type": "text"
 								},
 								{
 									"key": "password",
-									"value": "123456",
+									"value": "{{login_password}}",
 									"type": "text"
 								}
 							]
@@ -112,10 +182,14 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}"
+								"key": "Content-Type",
+								"value": "application/json"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\",\n  \"email\": \"{{email}}\"\n}"
+						},
 						"url": {
 							"raw": "{{base_url}}/auth/refresh",
 							"host": [
@@ -141,6 +215,51 @@
 		{
 			"key": "access_token",
 			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "email",
+			"value": "admin@hotel.com",
+			"type": "string"
+		},
+		{
+			"key": "login_password",
+			"value": "123456",
+			"type": "string"
+		},
+		{
+			"key": "register_first_name",
+			"value": "Maria",
+			"type": "string"
+		},
+		{
+			"key": "register_last_name",
+			"value": "Diaz",
+			"type": "string"
+		},
+		{
+			"key": "register_email",
+			"value": "maria+travelhub@example.com",
+			"type": "string"
+		},
+		{
+			"key": "register_phone_number",
+			"value": "+573001234567",
+			"type": "string"
+		},
+		{
+			"key": "register_password",
+			"value": "Str0ng!Pass",
+			"type": "string"
+		},
+		{
+			"key": "verification_code",
+			"value": "123456",
 			"type": "string"
 		}
 	]

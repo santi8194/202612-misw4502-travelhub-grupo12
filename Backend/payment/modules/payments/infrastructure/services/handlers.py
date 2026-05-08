@@ -1,6 +1,8 @@
+import uuid
+
 from modules.payments.application.commands.process_payment import ProcessPayment
 from modules.payments.application.commands.refund_payment import RefundPayment
-from modules.payments.domain.events import PaymentRefunded
+from modules.payments.domain.events import PaymentRefunded, SuccessfulPayment
 from modules.payments.infrastructure.repository import PaymentRepository
 from modules.payments.infrastructure.services.event_bus import EventBus
 import os
@@ -9,12 +11,39 @@ import os
 def payment_mode() -> str:
     return os.getenv("PAYMENT_MODE", "wompi").strip().lower()
 
+
+def auto_approve_enabled() -> bool:
+    return os.getenv("PAYMENT_AUTO_APPROVE", "false").lower() == "true"
+
+
+def _publish_auto_approved_payment_event(reservation_id):
+    if not reservation_id:
+        print("[PAYMENTS] auto_approve: missing id_reserva, skipping")
+        return
+
+    payment_id = str(uuid.uuid4())
+    print(f"[PAYMENTS] Auto-approving payment {payment_id} for reservation {reservation_id}")
+
+    event_bus = EventBus()
+    event = SuccessfulPayment(payment_id, reservation_id)
+    event_bus.publish_event(event.routing_key, event.type, event.to_dict())
+
+    print(f"[PAYMENTS] PagoExitosoEvt published for reservation {reservation_id}")
+
 def handle_process_payment(data):
 
     reservation_id = data["id_reserva"]
     amount = data["monto"]
 
     print(f"[PAYMENTS] Command received: ProcessPayment for reservation {reservation_id}")
+
+    if auto_approve_enabled():
+        _publish_auto_approved_payment_event(reservation_id)
+        return {
+            "message": "Auto-approved payment",
+            "state": "APPROVED",
+            "reservation_id": reservation_id,
+        }
 
     if payment_mode() == "wompi":
         print("[PAYMENTS] PAYMENT_MODE=wompi: waiting for Wompi webhook, command ignored")
@@ -66,3 +95,22 @@ def handle_refund_payment(data):
     result = use_case.execute(reservation_id)
 
     print("[PAYMENTS] Result:", result)
+
+
+def handle_auto_approve_payment(data):
+    """
+    Handles evt.reserva.creada when PAYMENT_AUTO_APPROVE=true.
+    Publishes PagoExitosoEvt directly so the saga can advance without a Wompi webhook.
+    """
+    if not auto_approve_enabled():
+        return
+
+    # Extract reservation data — payload is either nested under 'data' or flat
+    payload = data.get("data", data)
+    reservation_id = payload.get("id_reserva")
+
+    if not reservation_id:
+        print("[PAYMENTS] handle_auto_approve_payment: missing id_reserva, skipping")
+        return
+
+    _publish_auto_approved_payment_event(reservation_id)

@@ -229,7 +229,7 @@ def _build_document(prop: dict) -> dict:
     return {
         # IDs deterministas para mantener consistencia entre seeds y microservicios.
         "id_propiedad": str(uuid5(NAMESPACE_DNS, f"propiedad:{prop['nombre']}")),
-        "id_categoria": str(uuid5(NAMESPACE_DNS, f"categoria:{prop['categoria']}")),
+        "id_categoria": str(uuid5(NAMESPACE_DNS, f"categoria:{prop['nombre']}:{prop['categoria']}")),
         "propiedad_nombre": prop["nombre"],
         "categoria_nombre": prop["categoria"],
         "imagen_principal_url": prop["imagen"],

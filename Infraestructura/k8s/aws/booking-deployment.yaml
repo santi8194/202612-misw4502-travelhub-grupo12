@@ -20,6 +20,22 @@ spec:
           ports:
             - containerPort: 8000
           env:
+          - name: BOOKING_DB_MODE
+            value: postgres
+          - name: CATALOG_SERVICE_URL
+            value: http://catalog/catalog
+          - name: PAYMENT_SERVICE_URL
+            value: http://payment
+          - name: PAYMENT_MODE
+            value: wompi
+          - name: RABBITMQ_HOST
+            value: rabbitmq-broker
+          - name: RABBITMQ_PORT
+            value: "5672"
+          - name: RABBITMQ_USER
+            value: guest
+          - name: RABBITMQ_PASS
+            value: guest
           - name: DB_HOST
             valueFrom:
               secretKeyRef:

@@ -1,4 +1,5 @@
 import json
+import time
 from config.rabbitmq import create_connection
 
 from modules.pms.infrastructure.services.handlers import handle_confirm_reservation, handle_cancel_reservation
@@ -7,6 +8,7 @@ COMMANDS_EXCHANGE = "travelhub.commands.exchange"
 QUEUE_NAME = "pms.commands.queue"
 ROUTING_KEY_CONFIRM = "cmd.pms.confirmar-reserva"
 ROUTING_KEY_CANCEL = "cmd.pms.cancelar-reserva"
+RETRY_DELAY_SECONDS = 5
 
 
 def callback(ch, method, properties, body):
@@ -35,10 +37,7 @@ def callback(ch, method, properties, body):
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
-def start_consumer():
-
-    connection = create_connection()
-    channel = connection.channel()
+def _configure_consumer_channel(channel):
 
     channel.exchange_declare(
         exchange=COMMANDS_EXCHANGE,
@@ -70,4 +69,29 @@ def start_consumer():
 
     print("Listening on queue:", QUEUE_NAME)
 
-    channel.start_consuming()
+
+def start_consumer():
+    while True:
+        connection = None
+        channel = None
+        try:
+            connection = create_connection(max_attempts=None, retry_delay=RETRY_DELAY_SECONDS)
+            channel = connection.channel()
+            _configure_consumer_channel(channel)
+            channel.start_consuming()
+            print("[PMS] Consumer stopped unexpectedly, reconnecting...")
+        except Exception as exc:
+            print(f"[PMS] Consumer error: {exc}. Retrying in {RETRY_DELAY_SECONDS} seconds...")
+            time.sleep(RETRY_DELAY_SECONDS)
+        finally:
+            try:
+                if channel and channel.is_open:
+                    channel.close()
+            except Exception:
+                pass
+
+            try:
+                if connection and connection.is_open:
+                    connection.close()
+            except Exception:
+                pass

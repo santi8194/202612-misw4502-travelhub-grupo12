@@ -50,6 +50,11 @@ spec:
                 secretKeyRef:
                   name: payment-app-secret
                   key: PAYMENT_MODE
+            - name: PAYMENT_AUTO_APPROVE
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: PAYMENT_AUTO_APPROVE
             - name: WOMPI_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
@@ -75,6 +80,12 @@ spec:
                 secretKeyRef:
                   name: payment-app-secret
                   key: WOMPI_BASE_URL
+            - name: WOMPI_PAYOUTS_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: payment-app-secret
+                  key: WOMPI_PAYOUTS_BASE_URL
+                  optional: true
             - name: RABBITMQ_HOST
               valueFrom:
                 secretKeyRef:

@@ -3,12 +3,22 @@ import hashlib
 from fastapi.testclient import TestClient
 
 import app as payment_app
+from modules.payments.infrastructure.database import Base, SessionLocal, engine
+from modules.payments.infrastructure.models import PaymentModel
+from wompi_client import get_base_url, get_payouts_base_url
 
 
 client = TestClient(payment_app.app)
 
 
 def setup_function():
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        db.query(PaymentModel).delete()
+        db.commit()
+    finally:
+        db.close()
     payment_app.payments_by_id.clear()
     payment_app.payment_id_by_reference.clear()
 
@@ -64,6 +74,14 @@ def test_create_payment_returns_widget_checkout_data(monkeypatch):
     assert checkout["reference"] == body["referencia"]
     assert checkout["amount_in_cents"] == 1200000
     assert checkout["signature_integrity"]
+
+
+def test_wompi_checkout_and_payouts_urls_are_configured_separately(monkeypatch):
+    monkeypatch.setenv("WOMPI_BASE_URL", "https://sandbox.wompi.co/v1/")
+    monkeypatch.setenv("WOMPI_PAYOUTS_BASE_URL", "https://api.sandbox.payouts.wompi.co/v1/")
+
+    assert get_base_url() == "https://sandbox.wompi.co/v1"
+    assert get_payouts_base_url() == "https://api.sandbox.payouts.wompi.co/v1"
 
 
 def test_tokenize_card_returns_tokenized_card_data(monkeypatch):
@@ -139,10 +157,10 @@ def test_create_card_payment_creates_payment_source_and_transaction(monkeypatch)
     assert response.status_code == 201
     assert body["estado"] == "PENDING"
     assert body["wompi_transaction_id"] == "trx-card-1"
-    assert body["payment_source_id"] == 3891
-    assert body["payment_method_type"] == "CARD"
-    assert body["card_last_four"] == "4242"
-    assert body["checkout"] is None
+    assert "payment_source_id" not in body
+    assert "payment_method_type" not in body
+    assert "card_last_four" not in body
+    assert "checkout" not in body
 
 
 def test_create_card_payment_can_use_existing_payment_source(monkeypatch):
@@ -188,7 +206,7 @@ def test_create_card_payment_can_use_existing_payment_source(monkeypatch):
 
     assert response.status_code == 201
     assert response.json()["estado"] == "APPROVED"
-    assert response.json()["payment_source_id"] == 777
+    assert "payment_source_id" not in response.json()
     assert create_payment_source_called is False
 
 
@@ -352,6 +370,50 @@ def test_duplicate_webhook_does_not_publish_twice(monkeypatch):
     assert first_response.status_code == 200
     assert second_response.status_code == 200
     assert published_events == [("PagoExitosoEvt", "evt.pago.exitoso")]
+
+
+def test_create_payment_auto_approves_and_publishes_event_when_flag_enabled(monkeypatch):
+    monkeypatch.setenv("PAYMENT_AUTO_APPROVE", "true")
+    monkeypatch.setenv("WOMPI_PUBLIC_KEY", "pub_test_123")
+    monkeypatch.setenv("WOMPI_INTEGRITY_SECRET", "integrity_secret")
+    published_events = []
+    monkeypatch.setattr(
+        payment_app,
+        "publish_payment_event",
+        lambda payment, event_type, routing_key: published_events.append((event_type, routing_key)) or True,
+    )
+
+    response = client.post(
+        "/payments",
+        json={"id_reserva": "reserva-auto", "monto": 5000, "moneda": "COP"},
+    )
+
+    body = response.json()
+    assert response.status_code == 201
+    assert body["estado"] == "APPROVED"
+    assert published_events == [("PagoExitosoEvt", "evt.pago.exitoso")]
+
+
+def test_create_payment_does_not_auto_approve_when_flag_disabled(monkeypatch):
+    monkeypatch.setenv("PAYMENT_AUTO_APPROVE", "false")
+    monkeypatch.setenv("WOMPI_PUBLIC_KEY", "pub_test_123")
+    monkeypatch.setenv("WOMPI_INTEGRITY_SECRET", "integrity_secret")
+    published_events = []
+    monkeypatch.setattr(
+        payment_app,
+        "publish_payment_event",
+        lambda payment, event_type, routing_key: published_events.append((event_type, routing_key)) or True,
+    )
+
+    response = client.post(
+        "/payments",
+        json={"id_reserva": "reserva-no-auto", "monto": 5000, "moneda": "COP"},
+    )
+
+    body = response.json()
+    assert response.status_code == 201
+    assert body["estado"] == "PENDING"
+    assert published_events == []
 
 
 def create_pending_payment():

@@ -136,55 +136,95 @@ def procesar_mensaje(ch, method, properties, body):
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
-def iniciar_consumidor():
-    logger.info("[SAGA WORKER] Iniciando consumidor de RabbitMQ...")
-    
-    # Intentar conexión con retries de forma resiliente
+def _crear_parametros_rabbitmq():
     rabbitmq_host = os.getenv('RABBITMQ_HOST', 'localhost')
     rabbitmq_port = int(os.getenv('RABBITMQ_PORT', 5672))
-    
-    connection = None
-    retries = 5
-    while retries > 0:
-         try:
-             connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host, port=rabbitmq_port))
-             break
-         except pika.exceptions.AMQPConnectionError:
-             logger.warning(f"[SAGA WORKER] RabbitMQ no disponible ({rabbitmq_host}:{rabbitmq_port}), reintentando...")
-             retries -= 1
-             time.sleep(3)
+    rabbitmq_user = os.getenv('RABBITMQ_USER', 'guest')
+    rabbitmq_pass = os.getenv('RABBITMQ_PASS', 'guest')
 
-    if not connection:
-         logger.critical("[SAGA WORKER] Fatal: No se pudo conectar a RabbitMQ.")
-         sys.exit(1)
+    return pika.ConnectionParameters(
+        host=rabbitmq_host,
+        port=rabbitmq_port,
+        credentials=pika.PlainCredentials(rabbitmq_user, rabbitmq_pass),
+        heartbeat=int(os.getenv('RABBITMQ_HEARTBEAT', '30')),
+        blocked_connection_timeout=int(os.getenv('RABBITMQ_BLOCKED_TIMEOUT', '30')),
+    )
 
-    channel = connection.channel()
 
-    # Rule 1 & 4 (Consumers): Consumer declara exchange si quiere garantizar que existe (opcional)
-    # pero obligatoriamente crea su propia COLA y hace sus propios BINDINGS
-    
+def _configurar_canal(channel):
     exchange_name = 'travelhub.events.exchange'
     queue_name = 'saga_reservas.events.queue'
-    # Escuchar todos los eventos para la saga
     routing_key = 'evt.#'
-    
-    # Declaramos el exchange como topic
+
     channel.exchange_declare(exchange=exchange_name, exchange_type='topic', durable=True)
-    
-    # Declaramos la cola propia del worker
     channel.queue_declare(queue=queue_name, durable=True)
-    
-    # Bindeamos la cola al exchange con los Topics que nos interesan
     channel.queue_bind(exchange=exchange_name, queue=queue_name, routing_key=routing_key)
-    
-    # Quality of Service
     channel.basic_qos(prefetch_count=1)
-    
-    # Suscribirse
     channel.basic_consume(queue=queue_name, on_message_callback=procesar_mensaje)
 
-    logger.info(f" [*] SAGA WORKER esperando eventos ('{routing_key}') en la cola '{queue_name}'. Para salir presione CTRL+C")
-    channel.start_consuming()
+    logger.info(
+        " [*] SAGA WORKER esperando eventos ('%s') en la cola '%s'. Para salir presione CTRL+C",
+        routing_key,
+        queue_name,
+    )
+
+
+def iniciar_consumidor():
+    logger.info("[SAGA WORKER] Iniciando consumidor de RabbitMQ...")
+
+    connection_params = _crear_parametros_rabbitmq()
+    retry_delay = int(os.getenv('RABBITMQ_RETRY_DELAY_SECONDS', '5'))
+
+    while True:
+        connection = None
+        channel = None
+        try:
+            connection = pika.BlockingConnection(connection_params)
+            logger.info(
+                "[SAGA WORKER] Conexion establecida con RabbitMQ en %s:%s",
+                connection_params.host,
+                connection_params.port,
+            )
+
+            channel = connection.channel()
+            _configurar_canal(channel)
+            channel.start_consuming()
+            logger.warning("[SAGA WORKER] El consumidor finalizo inesperadamente, reiniciando...")
+        except KeyboardInterrupt:
+            logger.info('Worker detenido manualmente.')
+            break
+        except (
+            pika.exceptions.AMQPConnectionError,
+            pika.exceptions.ConnectionClosedByBroker,
+            pika.exceptions.StreamLostError,
+            OSError,
+        ) as exc:
+            logger.warning(
+                "[SAGA WORKER] RabbitMQ no disponible o conexion perdida (%s:%s): %s. Reintentando en %s s...",
+                connection_params.host,
+                connection_params.port,
+                exc,
+                retry_delay,
+            )
+        except Exception:
+            logger.exception(
+                "[SAGA WORKER] Error inesperado en el consumidor. Reintentando en %s s...",
+                retry_delay,
+            )
+        finally:
+            try:
+                if channel and channel.is_open:
+                    channel.close()
+            except Exception:
+                logger.debug("[SAGA WORKER] No fue posible cerrar el canal RabbitMQ limpiamente.")
+
+            try:
+                if connection and connection.is_open:
+                    connection.close()
+            except Exception:
+                logger.debug("[SAGA WORKER] No fue posible cerrar la conexion RabbitMQ limpiamente.")
+
+        time.sleep(retry_delay)
 
 if __name__ == '__main__':
     try:

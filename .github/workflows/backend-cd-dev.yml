@@ -404,6 +404,7 @@ jobs:
               f"WOMPI_INTEGRITY_SECRET={get_optional('PAYMENT_APP', 'WOMPI_INTEGRITY_SECRET')}",
               f"WOMPI_EVENTS_SECRET={get_optional('PAYMENT_APP', 'WOMPI_EVENTS_SECRET')}",
               f"WOMPI_BASE_URL={get_optional('PAYMENT_APP', 'WOMPI_BASE_URL')}",
+              f"WOMPI_PAYOUTS_BASE_URL={get_optional('PAYMENT_APP', 'WOMPI_PAYOUTS_BASE_URL') or 'https://api.sandbox.payouts.wompi.co/v1'}",
               f"PAYMENT_RABBITMQ_HOST={get_required('PAYMENT_APP', 'RABBITMQ_HOST')}",
               f"PAYMENT_RABBITMQ_PORT={get_required('PAYMENT_APP', 'RABBITMQ_PORT')}",
               f"PAYMENT_RABBITMQ_USER={get_required('PAYMENT_APP', 'RABBITMQ_USER')}",

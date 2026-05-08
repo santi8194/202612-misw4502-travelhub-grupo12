@@ -9,8 +9,9 @@ export interface RoomPriceResponse {
   precio_por_noche: number;
   noches: number;
   subtotal: number;
-  impuestos: number;
-  cargo_servicio: number;
+  impuestos?: number;
+  cargo_servicio?: number;
+  impuestos_y_cargos?: number;
   total: number;
   moneda: string;
   simbolo_moneda: string;

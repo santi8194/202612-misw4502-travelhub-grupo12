@@ -2,7 +2,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
-import { AuthService, LoginResponse, UserProfile } from './auth.service';
+import { AuthService, AuthUserResponse, LoginResponse, UserProfile } from './auth.service';
 import { environment } from '../../../environments/environment';
 
 describe('AuthService', () => {
@@ -25,6 +25,14 @@ describe('AuthService', () => {
     is_active: true,
     partner_id: 'partner-001',
     roles: ['ADMIN_HOTEL'],
+  };
+
+  const mockGuestUser: AuthUserResponse = {
+    id_usuario: 'u-guest-1',
+    email: 'huesped@travelhub.com',
+    full_name: 'Huesped Real',
+    rol: 'USER',
+    partner_id: null,
   };
 
   beforeEach(() => {
@@ -143,6 +151,18 @@ describe('AuthService', () => {
     const req = httpMock.expectOne(`${apiUrl}/me`);
     expect(req.request.method).toBe('GET');
     req.flush(mockUser);
+  });
+
+  it('getUserById() should GET /users/{id}', () => {
+    service.getUserById('u-guest-1').subscribe((user) => {
+      expect(user.id_usuario).toBe('u-guest-1');
+      expect(user.full_name).toBe('Huesped Real');
+      expect(user.email).toBe('huesped@travelhub.com');
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/users/u-guest-1`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockGuestUser);
   });
 
   // ─── getSessionExpiry() / sessionExpiry$ ───

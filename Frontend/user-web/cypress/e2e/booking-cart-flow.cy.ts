@@ -23,11 +23,20 @@ function sessionKey(signature: string) {
   return `booking-session:${signature}`;
 }
 
+function seedAuthSession(window: Window) {
+  window.localStorage.setItem('th_access_token', 'fake-access-token');
+  window.localStorage.setItem('th_refresh_token', 'fake-refresh-token');
+  window.localStorage.setItem('th_token_type', 'Bearer');
+  window.localStorage.setItem('th_user_email', 'e2e@travelhub.com');
+  window.localStorage.setItem('th_user_id', 'user-e2e-001');
+}
+
 function mockBookingCartRequests(reservationId = BOOKING_ID) {
   cy.intercept('GET', `**/api/reserva/${reservationId}`, { fixture: 'booking-cart-booking.json' }).as(`getBooking-${reservationId}`);
   cy.intercept('GET', `**/catalog/properties/by-category/${CATEGORY_ID}`, { fixture: 'booking-cart-catalog.json' }).as('getCatalog');
   cy.intercept('GET', `**/catalog/categories/${CATEGORY_ID}`, { fixture: 'booking-cart-category.json' }).as('getCategory');
   cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}`, { fixture: 'booking-cart-property.json' }).as('getProperty');
+  cy.intercept('POST', '**/catalog/calculate-room-price', { fixture: 'booking-room-price.json' }).as('calculateRoomPrice');
 }
 
 function visitBookingCart(reservationId = BOOKING_ID) {
@@ -36,10 +45,41 @@ function visitBookingCart(reservationId = BOOKING_ID) {
   cy.visit(`/booking/${reservationId}`, {
     onBeforeLoad(window) {
       window.localStorage.clear();
+      seedAuthSession(window);
     },
   });
 
-  cy.wait([`@getBooking-${reservationId}`, '@getCatalog', '@getCategory', '@getProperty']);
+  cy.wait([`@getBooking-${reservationId}`, '@getCatalog', '@getCategory', '@getProperty', '@calculateRoomPrice']);
+}
+
+function fillGuestForm() {
+  cy.get('[data-testid="input-name"]').type(guestForm.name);
+  cy.get('[data-testid="input-lastname"]').type(guestForm.lastName);
+  cy.get('[data-testid="input-email"]').type(guestForm.email);
+  cy.get('[data-testid="input-phone"]').type(guestForm.phone);
+}
+
+function mockFormalizeBooking(reservationId = BOOKING_ID) {
+  cy.intercept('POST', `**/api/reserva/${reservationId}/formalizar`, {
+    body: {
+      mensaje: 'Tu reserva está siendo procesada por la saga.',
+      pago: {
+        id_pago: 'mock-pago-123',
+        id_reserva: reservationId,
+        referencia: 'mock-ref',
+        estado: 'PENDIENTE',
+        monto: 495,
+        moneda: 'COP',
+        checkout: {
+          public_key: 'pub_test_123',
+          currency: 'COP',
+          amount_in_cents: 49500,
+          reference: 'mock-ref',
+          signature_integrity: 'mock-sig'
+        }
+      }
+    },
+  }).as(`formalizeBooking-${reservationId}`);
 }
 
 describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
@@ -58,7 +98,7 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
       .and('contain.text', '2')
       .and('contain.text', '3');
 
-    cy.get('[data-testid="booking-total"]').should('contain.text', '$495');
+    cy.get('[data-testid="booking-total"]').should('contain.text', '495');
 
     cy.get('[data-testid="input-name"]').type(guestForm.name);
     cy.get('[data-testid="input-lastname"]').type(guestForm.lastName);
@@ -76,18 +116,22 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
 
   it('Escenario B: reutiliza la reserva actual y no crea una nueva al continuar', () => {
     visitBookingCart();
+    mockFormalizeBooking();
 
     cy.intercept('POST', '**/api/reserva', { statusCode: 500, body: { mensaje: 'No debería invocarse desde booking cart' } }).as('createHold');
 
     const alertStub = cy.stub();
     cy.on('window:alert', alertStub);
 
+    fillGuestForm();
+
     cy.get('[data-testid="continue-payment-btn"]').click();
 
-    cy.get('[data-testid="hold-timer"]').should('be.visible');
+    cy.wait('@formalizeBooking-reserva-e2e-001');
     cy.window().its('localStorage').invoke('getItem', sessionKey(BOOKING_SIGNATURE)).should('not.be.null');
     cy.get('@createHold.all').should('have.length', 0);
     cy.wrap(alertStub).should('not.have.been.called');
+    cy.location('pathname').should('eq', `/booking/${BOOKING_ID}/payment`);
   });
 
   it('Escenario C: expira el hold y bloquea la continuación del pago', () => {
@@ -103,10 +147,11 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     cy.visit(`/booking/${BOOKING_ID}`, {
       onBeforeLoad(window) {
         window.localStorage.clear();
+        seedAuthSession(window);
       },
     });
 
-    cy.wait([`@getBooking-${BOOKING_ID}`, '@getCatalog', '@getCategory', '@getProperty']);
+    cy.wait([`@getBooking-${BOOKING_ID}`, '@getCatalog', '@getCategory', '@getProperty', '@calculateRoomPrice']);
     cy.get('[data-testid="hold-timer"]').should('be.visible');
 
     cy.tick(15 * 60 * 1000);
@@ -117,26 +162,28 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     cy.wrap(alertStub).should('not.have.been.called');
   });
 
-  it('Escenario D: vuelve al detalle de la propiedad con los parámetros de la reserva', () => {
+  it('Escenario D: vuelve al detalle de la categoría con los parámetros de la reserva', () => {
     visitBookingCart();
 
-    cy.intercept('GET', `**/catalog/properties/${PROPERTY_ID}/categories`, { fixture: 'booking-cart-property-categories.json' }).as('getPropertyCategories');
+    cy.window().then((window) => {
+      Object.defineProperty(window.history, 'length', {
+        configurable: true,
+        value: 1,
+      });
+    });
 
     cy.get('[data-testid="back-link"]').click();
 
-    cy.wait('@getProperty');
-    cy.wait('@getPropertyCategories');
-
-    cy.location('pathname').should('eq', `/property/${PROPERTY_ID}`);
+    cy.location('pathname').should('eq', `/category/${CATEGORY_ID}`);
     cy.location('search')
-      .should('include', `id_categoria=${CATEGORY_ID}`)
-      .and('include', 'fecha_inicio=2026-05-10')
+      .should('include', 'fecha_inicio=2026-05-10')
       .and('include', 'fecha_fin=2026-05-13')
       .and('include', 'huespedes=2');
   });
 
   it('Escenario E: reutiliza la sesión activa de la misma reserva sin duplicar solicitudes', () => {
     visitBookingCart();
+    mockFormalizeBooking();
 
     const expiresAt = Date.now() + 10 * 60 * 1000;
     cy.window().then((window) => {
@@ -153,11 +200,14 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     const alertStub = cy.stub();
     cy.on('window:alert', alertStub);
 
+    fillGuestForm();
+
     cy.get('[data-testid="continue-payment-btn"]').click();
 
+    cy.wait('@formalizeBooking-reserva-e2e-001');
     cy.get('@createHoldError.all').should('have.length', 0);
     cy.wrap(alertStub).should('not.have.been.called');
-    cy.get('[data-testid="hold-timer"]').should('be.visible');
+    cy.location('pathname').should('eq', `/booking/${BOOKING_ID}/payment`);
   });
 
   it('Escenario F: redirige a la reserva activa si ya existe otra con la misma información', () => {
@@ -167,6 +217,7 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     cy.visit(`/booking/${BOOKING_ID}`, {
       onBeforeLoad(window) {
         window.localStorage.clear();
+        seedAuthSession(window);
         window.localStorage.setItem(sessionKey(BOOKING_SIGNATURE), JSON.stringify({
           reservationId: OTHER_BOOKING_ID,
           signature: BOOKING_SIGNATURE,
@@ -175,7 +226,7 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
       },
     });
 
-    cy.wait([`@getBooking-${BOOKING_ID}`, '@getCatalog', '@getCategory', '@getProperty']);
+    cy.wait([`@getBooking-${BOOKING_ID}`, '@getCatalog', '@getCategory', '@getProperty', '@calculateRoomPrice']);
     cy.location('pathname').should('eq', `/booking/${OTHER_BOOKING_ID}`);
   });
 
@@ -188,7 +239,7 @@ describe('Carrito de Reserva (HU-Web-BookingCart)', () => {
     });
 
     cy.reload();
-    cy.wait([`@getBooking-${BOOKING_ID}`, '@getCatalog', '@getCategory', '@getProperty']);
+    cy.wait([`@getBooking-${BOOKING_ID}`, '@getCatalog', '@getCategory', '@getProperty', '@calculateRoomPrice']);
 
     cy.window().then((window) => {
       expect(window.localStorage.getItem(holdKey(BOOKING_ID))).to.not.equal(window.localStorage.getItem(holdKey(OTHER_BOOKING_ID)));

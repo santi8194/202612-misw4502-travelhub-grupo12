@@ -17,12 +17,13 @@ describe('MyReservationsService', () => {
   const BOOKING_URL = environment.bookingApiUrl;
   const CATALOG_URL = environment.catalogApiUrl;
   const PAYMENT_URL = environment.paymentApiUrl;
+  const CURRENT_USER_ID = 'current-user-001';
 
   const MOCK_LOCALE = { pais: 'Colombia', id_usuario: 'cc912e74-927e-4166-802b-3ba6a3615ebf' };
 
   const MOCK_BOOKING: BookingReservation = {
     id_reserva: 'res-001',
-    id_usuario: MOCK_LOCALE.id_usuario,
+    id_usuario: CURRENT_USER_ID,
     id_categoria: 'cat-001',
     estado: 'CONFIRMADA',
     fecha_check_in: '2026-03-07',
@@ -36,7 +37,7 @@ describe('MyReservationsService', () => {
 
   const MOCK_BOOKING_HOLD: BookingReservation = {
     id_reserva: 'res-002',
-    id_usuario: MOCK_LOCALE.id_usuario,
+    id_usuario: CURRENT_USER_ID,
     id_categoria: 'cat-002',
     estado: 'HOLD',
     fecha_check_in: '2026-04-09',
@@ -87,6 +88,12 @@ describe('MyReservationsService', () => {
   };
 
   beforeEach(() => {
+    localStorage.setItem('th_access_token', 'access-token');
+    localStorage.setItem('th_refresh_token', 'refresh-token');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'traveler@example.com');
+    localStorage.setItem('th_user_id', CURRENT_USER_ID);
+
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
@@ -99,6 +106,7 @@ describe('MyReservationsService', () => {
 
   afterEach(() => {
     httpTesting.verify();
+    localStorage.clear();
   });
 
   function createService(): MyReservationsService {
@@ -111,7 +119,7 @@ describe('MyReservationsService', () => {
 
   function flushBookings(bookings: BookingReservation[]): void {
     httpTesting
-      .expectOne(`${BOOKING_URL}/usuario/${MOCK_LOCALE.id_usuario}`)
+      .expectOne(`${BOOKING_URL}/usuario/${CURRENT_USER_ID}`)
       .flush(bookings);
   }
 
@@ -147,15 +155,24 @@ describe('MyReservationsService', () => {
     flushEnrichApproved(MOCK_BOOKING);
   });
 
-  it('should fetch reservations from booking API using id_usuario from locale', () => {
+  it('should fetch reservations from booking API using current authenticated user id', () => {
     createService();
     flushLocale();
     const bookingReq = httpTesting.expectOne(
-      `${BOOKING_URL}/usuario/${MOCK_LOCALE.id_usuario}`
+      `${BOOKING_URL}/usuario/${CURRENT_USER_ID}`
     );
     expect(bookingReq.request.method).toBe('GET');
     bookingReq.flush([MOCK_BOOKING]);
     flushEnrichApproved(MOCK_BOOKING);
+  });
+
+  it('should not fetch reservations when there is no authenticated user id', () => {
+    localStorage.clear();
+    const service = createService();
+    flushLocale();
+
+    httpTesting.expectNone(req => req.url.includes('/usuario/'));
+    expect(service.reservations()).toEqual([]);
   });
 
   it('should fetch category info for each reservation', () => {
@@ -318,7 +335,7 @@ describe('MyReservationsService', () => {
     const service = createService();
     flushLocale();
     httpTesting
-      .expectOne(`${BOOKING_URL}/usuario/${MOCK_LOCALE.id_usuario}`)
+      .expectOne(`${BOOKING_URL}/usuario/${CURRENT_USER_ID}`)
       .flush(null, { status: 500, statusText: 'Internal Server Error' });
 
     expect(service.reservations()).toEqual([]);

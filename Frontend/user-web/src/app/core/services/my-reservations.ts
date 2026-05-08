@@ -16,6 +16,7 @@ import {
   UserLocale,
 } from '../../models/reservation.interface';
 import { resolveReservationStatus, getStatusLabel } from './reservation-status.resolver';
+import { AuthService } from './auth';
 
 @Injectable({ providedIn: 'root' })
 export class MyReservationsService {
@@ -23,6 +24,7 @@ export class MyReservationsService {
   private readonly bookingApiUrl = environment.bookingApiUrl;
   private readonly catalogApiUrl = environment.catalogApiUrl;
   private readonly paymentApiUrl = environment.paymentApiUrl;
+  private readonly authService = inject(AuthService);
 
   readonly reservations = toSignal(this.loadReservations$(), { initialValue: [] });
 
@@ -65,9 +67,14 @@ export class MyReservationsService {
 
   private loadReservations$(): Observable<ReservationViewModel[]> {
     return this.http.get<UserLocale>('assets/data/user-locale.json').pipe(
-      switchMap(locale =>
-        this.http.get<BookingReservation[]>(
-          `${this.bookingApiUrl}/usuario/${locale.id_usuario}`
+      switchMap(locale => {
+        const userId = this.authService.getCurrentUserId();
+        if (!userId) {
+          return of([]);
+        }
+
+        return this.http.get<BookingReservation[]>(
+          `${this.bookingApiUrl}/usuario/${userId}`
         ).pipe(
           switchMap(bookings =>
             bookings.length === 0
@@ -78,8 +85,8 @@ export class MyReservationsService {
                   )
                 )
           )
-        )
-      ),
+        );
+      }),
       catchError(() => of([]))
     );
   }

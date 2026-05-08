@@ -8,11 +8,12 @@ import { MyReservationsService } from '../../core/services/my-reservations';
 import { environment } from '../../../environments/environment';
 import { BookingReservation, CategoryApiResponse, PaymentInfo } from '../../models/reservation.interface';
 
+const CURRENT_USER_ID = 'current-user-001';
 const MOCK_LOCALE = { pais: 'Colombia', id_usuario: 'cc912e74-927e-4166-802b-3ba6a3615ebf' };
 
 const MOCK_BOOKING: BookingReservation = {
   id_reserva: 'res-001',
-  id_usuario: MOCK_LOCALE.id_usuario,
+  id_usuario: CURRENT_USER_ID,
   id_categoria: 'cat-001',
   estado: 'CONFIRMADA',
   fecha_check_in: '2026-03-07',
@@ -48,6 +49,12 @@ describe('MyReservationsPage', () => {
   const PAYMENT_URL = environment.paymentApiUrl;
 
   beforeEach(async () => {
+    localStorage.setItem('th_access_token', 'access-token');
+    localStorage.setItem('th_refresh_token', 'refresh-token');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'traveler@example.com');
+    localStorage.setItem('th_user_id', CURRENT_USER_ID);
+
     await TestBed.configureTestingModule({
       imports: [MyReservationsPage],
       providers: [
@@ -63,7 +70,7 @@ describe('MyReservationsPage', () => {
     service = TestBed.inject(MyReservationsService);
 
     httpTesting.expectOne('assets/data/user-locale.json').flush(MOCK_LOCALE);
-    httpTesting.expectOne(`${BOOKING_URL}/usuario/${MOCK_LOCALE.id_usuario}`).flush([MOCK_BOOKING]);
+    httpTesting.expectOne(`${BOOKING_URL}/usuario/${CURRENT_USER_ID}`).flush([MOCK_BOOKING]);
     httpTesting.expectOne(`${CATALOG_URL}/categories/${MOCK_BOOKING.id_categoria}`).flush(MOCK_CATEGORY);
     httpTesting.expectOne(`${PAYMENT_URL}/payments/by-reserva/${MOCK_BOOKING.id_reserva}`).flush(MOCK_PAYMENT);
 
@@ -72,6 +79,7 @@ describe('MyReservationsPage', () => {
 
   afterEach(() => {
     httpTesting.verify();
+    localStorage.clear();
   });
 
   it('should create the component', () => {

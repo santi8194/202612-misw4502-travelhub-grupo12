@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva, ExpirarReserva
-from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ObtenerReservasPorUsuarioHandler, ExpirarReservaHandler
+from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva, ExpirarReserva, CancelarReservaLocalCmd
+from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ObtenerReservasPorUsuarioHandler, ExpirarReservaHandler, CancelarReservaLocalHandler
 from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
 from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
@@ -315,6 +315,30 @@ def expirar_reserva(id_reserva):
         handler.handle(comando)
 
         return jsonify({"mensaje": "Reserva marcada como EXPIRADA"}), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@reserva_api.route('/reserva/<id_reserva>/cancelar', methods=['POST'])
+def cancelar_reserva(id_reserva):
+    try:
+        comando = CancelarReservaLocalCmd(id_reserva=uuid.UUID(id_reserva))
+
+        uow = UnidadTrabajoHibrida()
+        repositorio = RepositorioReservas()
+        catalog_client = CatalogServiceClient()
+        handler = CancelarReservaLocalHandler(
+            repositorio=repositorio,
+            uow=uow,
+            catalog_client=catalog_client,
+        )
+
+        handler.handle(comando)
+
+        return jsonify({"mensaje": "Reserva marcada como CANCELADA"}), 200
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

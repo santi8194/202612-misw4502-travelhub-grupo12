@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from config.config import settings
 from config.security import validate_cognito_token
-from data.user import UserResponse
+from schemas.user import UserResponse
 from modules.user_service import UserService
 
 # Middleware de seguridad que le indica a la interfaz tipo Swagger de dónde tomar y usar tokens

@@ -39,12 +39,13 @@ from modules.catalog.infrastructure.models import (
 from modules.catalog.infrastructure.database import Base
 
 
-# Configuración de base de datos
-DB_USER = "catalog_app"
-DB_PASSWORD = "catalog_dev"
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "catalog_db"
+# Configuración de base de datos (lee variables de entorno o usa defaults locales)
+import os
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME", "catalog_db")
 
 DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 

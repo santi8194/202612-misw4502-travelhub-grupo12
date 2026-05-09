@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy import inspect
 
 
-revision = "003_impuestos_pais"
+revision = "003_add_configuracion_impuestos_pais"
 down_revision = ("002_add_tarifas_diferenciadas", "002_catalog_uuid_reconcile")
 branch_labels = None
 depends_on = None

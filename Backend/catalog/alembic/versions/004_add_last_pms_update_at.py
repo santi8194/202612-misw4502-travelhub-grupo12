@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = '004'
-down_revision = '003_add_configuracion_impuestos_pais'
+down_revision = '003b_add_temporadas'
 branch_labels = None
 depends_on = None
 

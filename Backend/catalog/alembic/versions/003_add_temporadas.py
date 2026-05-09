@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 
-revision = "003_add_temporadas"
-down_revision = "002_add_tarifas_diferenciadas"
+revision = "003b_add_temporadas"
+down_revision = "003_add_configuracion_impuestos_pais"
 branch_labels = None
 depends_on = None
 

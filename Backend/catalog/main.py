@@ -80,11 +80,10 @@ if IS_SQLITE and "pytest" not in sys.modules:
 
 _ensure_legacy_schema_compatibility()
 
-# Evita efectos colaterales durante colección de pruebas en CI/pytest.
-# En SQLite local, el entrypoint ya ejecuta `local_seed` determinístico y
-# compatible con Search; evitar `run_seed` para no mezclar IDs aleatorios.
-if "pytest" not in sys.modules and not IS_SQLITE:
-    run_seed()
+# Seed automático desactivado: usar scripts/seed_full_catalog.py --purge
+# para poblar la BD manualmente con 100 propiedades.
+# if "pytest" not in sys.modules and not IS_SQLITE:
+#     run_seed()
 
 ENABLE_EVENTS = os.getenv("ENABLE_EVENTS", "false").lower() == "true"
 

@@ -122,6 +122,7 @@ class InventarioModel(Base):
 	fecha = Column(String, nullable=False)
 	cupos_totales = Column(Integer, nullable=False)
 	cupos_disponibles = Column(Integer, nullable=False)
+	last_pms_update_at = Column(DateTime(timezone=True), nullable=True)
 
 	categoria = relationship("CategoriaHabitacionModel", back_populates="inventario")
 

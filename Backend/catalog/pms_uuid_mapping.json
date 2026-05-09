@@ -1,0 +1,114 @@
+{
+  "description": "Mapeo de códigos PMS del Mock a UUIDs reales de TravelHub Catalog",
+  "generated_with": "uuid5(NAMESPACE_DNS, key)",
+  "mappings": {
+    "CAT-HOTEL-01": {
+      "hotel_code": "CAT-HOTEL-01",
+      "hotel_name": "Cabaña Real Medellín 171",
+      "property_uuid": "2a144a77-ca26-5597-83a3-2db5e3167424",
+      "rooms": {
+        "STND": {
+          "room_type_code": "STND",
+          "category_type": "Cabaña",
+          "category_uuid": "3e9285f6-505c-5dd9-8ddd-7e6097d544a1"
+        }
+      }
+    },
+    "CAT-HOSTAL-02": {
+      "hotel_code": "CAT-HOSTAL-02",
+      "hotel_name": "Apartamento Premium Medellín 172",
+      "property_uuid": "a8c9ba94-847f-5a44-b903-2afec567bafe",
+      "rooms": {
+        "COMP": {
+          "room_type_code": "COMP",
+          "category_type": "Apartamento",
+          "category_uuid": "7faed056-db6f-567d-bcd1-63e2c940e716"
+        }
+      }
+    },
+    "CAT-CABANA-03": {
+      "hotel_code": "CAT-CABANA-03",
+      "hotel_name": "Resort Premium Bogotá 173",
+      "property_uuid": "9d9ac9f9-cc1b-5ee3-b691-263edb72c81f",
+      "rooms": {
+        "PRIV": {
+          "room_type_code": "PRIV",
+          "category_type": "Resort",
+          "category_uuid": "f01026bd-ba8b-515a-9534-d192015c049c"
+        }
+      }
+    },
+    "CAT-HOTEL-04": {
+      "hotel_code": "CAT-HOTEL-04",
+      "hotel_name": "Hotel Eco Medellín 174",
+      "property_uuid": "2770da19-761c-5696-b74c-688ebddaaa6b",
+      "rooms": {
+        "ECO": {
+          "room_type_code": "ECO",
+          "category_type": "Hotel",
+          "category_uuid": "5c484040-8365-5c93-86d6-e941bb031699"
+        }
+      }
+    },
+    "CAT-RESORT-05": {
+      "hotel_code": "CAT-RESORT-05",
+      "hotel_name": "Resort Imperial Cartagena 175",
+      "property_uuid": "e1dc46f0-c218-5ab1-b52a-6ef9c9d55f1e",
+      "rooms": {
+        "IMPR": {
+          "room_type_code": "IMPR",
+          "category_type": "Resort",
+          "category_uuid": "e59ffaa2-1f14-581e-8397-9e6fa4ed79d3"
+        }
+      }
+    },
+    "CAT-HOTEL-06": {
+      "hotel_code": "CAT-HOTEL-06",
+      "hotel_name": "Hotel Premium Bogotá 176",
+      "property_uuid": "50176b4e-4e1a-5c42-ac9e-f462967b50dc",
+      "rooms": {
+        "PREM": {
+          "room_type_code": "PREM",
+          "category_type": "Hotel",
+          "category_uuid": "19226147-c82a-535d-a5e4-02f7abaa6c87"
+        }
+      }
+    },
+    "CAT-FINCA-07": {
+      "hotel_code": "CAT-FINCA-07",
+      "hotel_name": "Finca Express Cartagena 177",
+      "property_uuid": "23f04f02-66a5-56cc-a2b4-009e25a7e8f0",
+      "rooms": {
+        "EXPR": {
+          "room_type_code": "EXPR",
+          "category_type": "Finca",
+          "category_uuid": "bedbc1ad-cfa4-5e62-a493-f94e1c5949da"
+        }
+      }
+    },
+    "MEX-RESORT-01": {
+      "hotel_code": "MEX-RESORT-01",
+      "hotel_name": "Resort Boutique Cancún 178",
+      "property_uuid": "17343571-34cf-54d7-be55-0a414e07d8c4",
+      "rooms": {
+        "BTQE": {
+          "room_type_code": "BTQE",
+          "category_type": "Resort",
+          "category_uuid": "2f0c3e8c-b8bd-5557-8820-531b5e97e07f"
+        }
+      }
+    },
+    "MEX-HOTEL-02": {
+      "hotel_code": "MEX-HOTEL-02",
+      "hotel_name": "Hotel Premium Ciudad de México 179",
+      "property_uuid": "3665cc56-7d1f-5964-84e2-9e168bfab525",
+      "rooms": {
+        "CDMX": {
+          "room_type_code": "CDMX",
+          "category_type": "Hotel",
+          "category_uuid": "08aa6d73-6b68-586c-a4af-cf85ad8e85fa"
+        }
+      }
+    }
+  }
+}

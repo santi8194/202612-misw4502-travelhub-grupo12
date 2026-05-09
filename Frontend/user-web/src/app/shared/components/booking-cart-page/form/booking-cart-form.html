@@ -9,10 +9,11 @@
         class="field-input" 
         [ngModel]="form.name" 
         (ngModelChange)="onFieldChange('name', $event)" 
-        [class.field-input--error]="errors().name"
+        (blur)="onFieldBlur('name', form.name)"
+        [class.field-input--error]="shouldShowError('name')"
         data-testid="input-name" 
         placeholder="Juan" />
-      @if (errors().name) {
+      @if (shouldShowError('name')) {
         <small class="field-error">Ingresa un nombre válido (solo letras y espacios).</small>
       }
     </div>
@@ -24,10 +25,11 @@
         class="field-input" 
         [ngModel]="form.lastName" 
         (ngModelChange)="onFieldChange('lastName', $event)" 
-        [class.field-input--error]="errors().lastName"
+        (blur)="onFieldBlur('lastName', form.lastName)"
+        [class.field-input--error]="shouldShowError('lastName')"
         data-testid="input-lastname" 
         placeholder="Pérez" />
-      @if (errors().lastName) {
+      @if (shouldShowError('lastName')) {
         <small class="field-error">Ingresa un apellido válido (solo letras y espacios).</small>
       }
     </div>
@@ -37,13 +39,15 @@
     <label class="field-label" for="email">Email</label>
     <input 
       id="email" 
+      type="email"
       class="field-input" 
       [ngModel]="form.email" 
       (ngModelChange)="onFieldChange('email', $event)" 
-      [class.field-input--error]="errors().email"
+      (blur)="onFieldBlur('email', form.email)"
+      [class.field-input--error]="shouldShowError('email')"
       data-testid="input-email" 
       placeholder="tu@ejemplo.com" />
-    @if (errors().email) {
+    @if (shouldShowError('email')) {
       <small class="field-error">Ingresa un correo válido (ej: tu@ejemplo.com).</small>
     }
   </div>
@@ -52,14 +56,16 @@
     <label class="field-label" for="phone">Celular</label>
     <input 
       id="phone" 
+      type="tel"
       class="field-input" 
       [ngModel]="form.phone" 
       (ngModelChange)="onFieldChange('phone', $event)" 
-      [class.field-input--error]="errors().phone"
+      (blur)="onFieldBlur('phone', form.phone)"
+      [class.field-input--error]="shouldShowError('phone')"
       data-testid="input-phone" 
-      placeholder="+57 300 111 2233" />
-    @if (errors().phone) {
-      <small class="field-error">Ingresa un celular válido (mínimo 10 dígitos).</small>
+      placeholder="+573001112233" />
+    @if (shouldShowError('phone')) {
+      <small class="field-error">Debe incluir el código de país (ej: +573001112233).</small>
     }
   </div>
 
@@ -76,7 +82,7 @@
   <button
     (click)="onContinuePayment()"
     class="pay-btn"
-    [disabled]="disableContinue || !formValid()"
+    [disabled]="disableContinue || !isFormValid()"
     data-testid="continue-payment-btn">
     {{ isSubmitting ? 'Confirmando reserva...' : 'Continuar con el pago' }}
   </button>

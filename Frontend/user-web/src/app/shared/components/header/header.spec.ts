@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 import { HeaderComponent } from './header';
 import { AuthService } from '../../../core/services/auth';
 import { NotificationService } from '../../../core/services/notification';
+import { BookingService } from '../../../core/services/booking';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -14,6 +15,7 @@ describe('HeaderComponent', () => {
   let router: Router;
   let authService: AuthService;
   let notificationService: NotificationService;
+  let bookingService: BookingService;
 
   beforeEach(async () => {
     localStorage.clear();
@@ -29,6 +31,7 @@ describe('HeaderComponent', () => {
     router = TestBed.inject(Router);
     authService = TestBed.inject(AuthService);
     notificationService = TestBed.inject(NotificationService);
+    bookingService = TestBed.inject(BookingService);
     fixture.detectChanges();
   });
 
@@ -143,6 +146,7 @@ describe('HeaderComponent', () => {
     }));
 
     const notificationSpy = spyOn(notificationService, 'showSuccess');
+    const navigateSpy = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
     const mockUserProfile = {
       id_usuario: 'user-123',
       username: 'a.perez'
@@ -163,9 +167,29 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
 
     expect(notificationSpy).toHaveBeenCalledWith('Tu sesión ha sido cerrada exitosamente.');
+    expect(navigateSpy).toHaveBeenCalledWith(['/']);
     expect(component.userProfile()).toBeNull();
     
     // Verify session storage was cleared
     expect(sessionStorage.getItem('booking-session:test-signature')).toBeNull();
     expect(sessionStorage.getItem('hold:reservation-123')).toBeNull();
   });
+
+  it('should cancel active reservation before redirecting to home on logout', () => {
+    localStorage.setItem('th_access_token', 'acc-token-xyz');
+    localStorage.setItem('th_refresh_token', 'ref-token-xyz');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'ana@travelhub.com');
+    localStorage.setItem('th_user_id', 'user-123');
+    localStorage.setItem('th_user_name', 'a.perez');
+
+    const cancelSpy = spyOn(bookingService, 'cancelBookingById').and.returnValue(of({}));
+    const navigateSpy = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
+    spyOnProperty(router, 'url', 'get').and.returnValue('/booking/reserva-123');
+
+    component.logout();
+
+    expect(cancelSpy).toHaveBeenCalledWith('reserva-123');
+    expect(navigateSpy).toHaveBeenCalledWith(['/']);
+  });
+});

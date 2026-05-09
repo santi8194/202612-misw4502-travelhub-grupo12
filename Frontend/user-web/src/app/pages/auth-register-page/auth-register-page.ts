@@ -66,6 +66,26 @@ export class AuthRegisterPage {
   private readonly namePattern = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑ\s'-]{1,50}$/;
   private readonly passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
+  hasMinPasswordLength(): boolean {
+    return this.form().password.length >= 8;
+  }
+
+  hasPasswordLowercase(): boolean {
+    return /[a-z]/.test(this.form().password);
+  }
+
+  hasPasswordUppercase(): boolean {
+    return /[A-Z]/.test(this.form().password);
+  }
+
+  hasPasswordNumber(): boolean {
+    return /\d/.test(this.form().password);
+  }
+
+  hasPasswordSpecialChar(): boolean {
+    return /[^A-Za-z0-9]/.test(this.form().password);
+  }
+
   togglePassword(): void {
     this.showPassword.update(value => !value);
   }
@@ -118,8 +138,9 @@ export class AuthRegisterPage {
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) { hasError = true; message = 'Ingresa un correo válido (ej: tu@ejemplo.com).'; }
         break;
       case 'phone':
-        if (value.trim() && !/^[\+]?[0-9\s\-()]{10,}$/.test(value.replace(/\s/g, ''))) {
-          hasError = true; message = 'Formato inválido. Usa mínimo 10 dígitos (ej: +57 300 111 2233).';
+        if (!value.trim()) { hasError = true; message = 'El teléfono es obligatorio.'; }
+        else if (!/^\+[1-9]\d{6,14}$/.test(value.replace(/[\s\-()]/g, ''))) {
+          hasError = true; message = 'Debe incluir el código de país (ej: +573001112233).';
         }
         break;
       case 'password':
@@ -149,7 +170,7 @@ export class AuthRegisterPage {
     this.touched.set({ firstName: true, lastName: true, email: true, phone: true, password: true, confirmPassword: true });
 
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim());
-    const phoneValid = !f.phone.trim() || /^[\+]?[0-9\s\-()]{10,}$/.test(f.phone.replace(/\s/g, ''));
+    const phoneValid = !!f.phone.trim() && /^\+[1-9]\d{6,14}$/.test(f.phone.replace(/[\s\-()]/g, ''));
     const passwordValid = this.passwordPattern.test(f.password);
     const firstNameValid = !!f.firstName.trim() && this.namePattern.test(f.firstName.trim());
     const lastNameValid = !!f.lastName.trim() && this.namePattern.test(f.lastName.trim());
@@ -170,7 +191,7 @@ export class AuthRegisterPage {
       firstName: !f.firstName.trim() ? 'El nombre es obligatorio.' : !this.namePattern.test(f.firstName.trim()) ? 'Solo letras, espacios y guiones (máx. 50 caracteres).' : '',
       lastName: !f.lastName.trim() ? 'El apellido es obligatorio.' : !this.namePattern.test(f.lastName.trim()) ? 'Solo letras, espacios y guiones (máx. 50 caracteres).' : '',
       email: !f.email.trim() ? 'El correo es obligatorio.' : !emailValid ? 'Ingresa un correo válido (ej: tu@ejemplo.com).' : '',
-      phone: !phoneValid ? 'Formato inválido. Usa mínimo 10 dígitos (ej: +57 300 111 2233).' : '',
+      phone: !f.phone.trim() ? 'El teléfono es obligatorio.' : !phoneValid ? 'Debe incluir el código de país (ej: +573001112233).' : '',
       password: !f.password ? 'La contraseña es obligatoria.' : !passwordValid ? 'Debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.' : '',
       confirmPassword: !f.confirmPassword ? 'Confirma tu contraseña.' : f.confirmPassword !== f.password ? 'Las contraseñas no coinciden.' : '',
     });

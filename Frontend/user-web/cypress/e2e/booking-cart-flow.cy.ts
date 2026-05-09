@@ -9,7 +9,7 @@ const guestForm = {
   name: 'Maria',
   lastName: 'Diaz',
   email: 'maria@example.com',
-  phone: '3001234567',
+  phone: '+573001234567',
   request: 'Necesito check-in temprano.',
 };
 

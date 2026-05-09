@@ -65,13 +65,12 @@
 
                     <label>
                         Número de Teléfono
-                        <span class="optional">(Opcional)</span>
 
                         <div class="input-wrapper" [class.input-wrapper--error]="errors().phone">
                             <input type="tel" [value]="form().phone"
                                 (input)="updateField('phone', $any($event.target).value)"
                                 (blur)="markTouched('phone')"
-                                placeholder="+57 300 111 2233" />
+                                placeholder="+573001112233" />
                         </div>
 
                         @if (errors().phone) {
@@ -101,12 +100,18 @@
                             </button>
                         </div>
 
-                        @if (errors().password) {
-                        <small class="field-error">{{ errorMessages().password }}</small>
+                        @if (form().password) {
+                        <ul class="password-requirements">
+                            <li [class.req-met]="hasMinPasswordLength()">Mínimo 8 caracteres</li>
+                            <li [class.req-met]="hasPasswordLowercase()">Una letra minúscula</li>
+                            <li [class.req-met]="hasPasswordUppercase()">Una letra mayúscula</li>
+                            <li [class.req-met]="hasPasswordNumber()">Un número</li>
+                            <li [class.req-met]="hasPasswordSpecialChar()">Un carácter especial (ej: !@#$)</li>
+                        </ul>
                         }
 
-                        @if (form().password && !errors().password) {
-                        <small style="color: green;">✓ Contraseña válida</small>
+                        @if (errors().password) {
+                        <small class="field-error">{{ errorMessages().password }}</small>
                         }
                     </label>
 

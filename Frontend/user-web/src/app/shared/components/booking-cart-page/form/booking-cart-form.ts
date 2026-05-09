@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal, computed } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { GuestForm } from '../../../../models/guest.interface';
@@ -25,22 +25,47 @@ export class BookingCartFormComponent {
     phone: false,
   });
 
+  touched = signal({
+    name: false,
+    lastName: false,
+    email: false,
+    phone: false,
+  });
+
   private readonly namePattern = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑ\s'-]{1,50}$/;
   private readonly emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  private readonly phonePattern = /^[\+]?[0-9\s\-()]{10,}$/;
+  private readonly phonePattern = /^\+57\d{10}$/;
 
-  readonly formValid = computed(() => {
-    const e = this.errors();
-    return !Object.values(e).some(Boolean) &&
-      this.form.name.trim() &&
-      this.form.lastName.trim() &&
-      this.form.email.trim() &&
-      this.form.phone.trim();
-  });
+  isFormValid(): boolean {
+    const name = this.form.name.trim();
+    const lastName = this.form.lastName.trim();
+    const email = this.form.email.trim();
+    const normalizedPhone = this.normalizePhone(this.form.phone);
+
+    return !!name
+      && !!lastName
+      && !!email
+      && !!normalizedPhone
+      && this.namePattern.test(name)
+      && this.namePattern.test(lastName)
+      && this.emailPattern.test(email)
+      && this.phonePattern.test(normalizedPhone);
+  }
 
   onFieldChange(field: keyof GuestForm, value: string): void {
     this.fieldChange.emit({ field, value });
     this.validateField(field, value);
+  }
+
+  onFieldBlur(field: keyof GuestForm, value: string): void {
+    this.touched.update(current => ({ ...current, [field]: true }));
+    this.validateField(field, value);
+  }
+
+  shouldShowError(field: 'name' | 'lastName' | 'email' | 'phone'): boolean {
+    const touched = this.touched();
+    const errors = this.errors();
+    return touched[field] && errors[field];
   }
 
   private validateField(field: keyof GuestForm, value: string): void {
@@ -58,7 +83,7 @@ export class BookingCartFormComponent {
         isValid = !value.trim() ? false : this.emailPattern.test(value.trim());
         break;
       case 'phone':
-        isValid = !value.trim() ? false : this.phonePattern.test(value.replace(/\s/g, ''));
+        isValid = !value.trim() ? false : this.phonePattern.test(this.normalizePhone(value));
         break;
     }
 
@@ -69,9 +94,30 @@ export class BookingCartFormComponent {
   }
 
   onContinuePayment(): void {
-    if (this.disableContinue || !this.formValid()) {
+    this.touched.set({
+      name: true,
+      lastName: true,
+      email: true,
+      phone: true,
+    });
+
+    this.validateField('name', this.form.name);
+    this.validateField('lastName', this.form.lastName);
+    this.validateField('email', this.form.email);
+    this.validateField('phone', this.form.phone);
+
+    if (this.disableContinue || !this.isFormValid()) {
       return;
     }
     this.continuePayment.emit();
+  }
+
+  private normalizePhone(phone: string): string {
+    const compact = phone.replace(/[\s\-()]/g, '');
+    if (!compact) {
+      return compact;
+    }
+
+    return compact;
   }
 }

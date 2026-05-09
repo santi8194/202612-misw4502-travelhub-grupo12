@@ -115,7 +115,7 @@ describe('Header Profile Display with User API', () => {
       cy.wait('@getUserProfile');
       cy.get('.profile-dropdown').should('be.visible');
 
-      cy.get('body').click(0, 0);
+      cy.get('html').click('bottomRight', { force: true });
       cy.get('.profile-dropdown').should('not.exist');
     });
 
@@ -142,7 +142,9 @@ describe('Header Profile Display with User API', () => {
         .click();
 
       // Should see success notification
-      cy.get('[role="status"]').should('contain.text', 'Tu sesión ha sido cerrada exitosamente');
+      cy.get('.notification-toast').should('contain.text', 'Tu sesión ha sido cerrada exitosamente');
+      cy.get('.notification-toast').click();
+      cy.get('.notification-toast').should('not.exist');
 
       // Verify booking sessions were cleared from sessionStorage
       cy.window().then((window) => {

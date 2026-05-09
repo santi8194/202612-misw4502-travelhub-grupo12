@@ -1,11 +1,13 @@
 import { Component, ElementRef, HostListener, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
+import { catchError, finalize, of } from 'rxjs';
 import { SearchBarComponent } from '../search-bar/search-bar';
 import { CompactSearchBarComponent } from '../compact-search-bar/compact-search-bar';
 import { AuthService, UserProfile } from '../../../core/services/auth';
 import { NotificationService } from '../../../core/services/notification';
 import { BookingStore } from '../../../core/store/booking-store';
+import { BookingService } from '../../../core/services/booking';
 
 @Component({
   selector: 'app-header',
@@ -20,6 +22,7 @@ export class HeaderComponent {
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
   private readonly bookingStore = inject(BookingStore);
+  private readonly bookingService = inject(BookingService);
 
   mode = input<'default' | 'compact'>('default');
   profileMenuOpen = signal(false);
@@ -49,24 +52,35 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    this.authService.clearSession();
-    this.userProfile.set(null);
-    
-    // Limpiar estado global de reservas
-    if (typeof sessionStorage !== 'undefined') {
-      // Limpiar todas las sesiones de reserva del sessionStorage
-      const keysToRemove = [];
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const key = sessionStorage.key(i);
-        if (key && (key.startsWith('booking-session:') || key.startsWith('hold:'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => sessionStorage.removeItem(key));
+    const reservationId = this.extractReservationId(this.router.url);
+
+    const finishLogout = () => {
+      this.authService.clearSession();
+      this.userProfile.set(null);
+      this.clearBookingStorage();
+      this.closeProfileMenu();
+      this.notificationService.showSuccess('Tu sesión ha sido cerrada exitosamente.');
+      this.router.navigate(['/']);
+    };
+
+    if (!reservationId) {
+      finishLogout();
+      return;
     }
-    
-    this.closeProfileMenu();
-    this.notificationService.showSuccess('Tu sesión ha sido cerrada exitosamente.');
+
+    this.bookingService
+      .cancelBookingById(reservationId)
+      .pipe(
+        catchError((error) => {
+          console.warn('[Header] No fue posible cancelar la reserva durante logout', {
+            reservationId,
+            error,
+          });
+          return of(null);
+        }),
+        finalize(finishLogout)
+      )
+      .subscribe();
   }
 
   goToMyReservations(): void {
@@ -132,5 +146,34 @@ export class HeaderComponent {
 
   private syncUserSession(): void {
     this.authService.getCurrentSession();
+  }
+
+  private extractReservationId(url: string): string | null {
+    const match = /^\/booking\/([^/?#]+)/.exec(url ?? '');
+    return match?.[1] ?? null;
+  }
+
+  private clearBookingStorage(): void {
+    if (typeof sessionStorage !== 'undefined') {
+      const sessionKeysToRemove: string[] = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && (key.startsWith('booking-session:') || key.startsWith('hold:'))) {
+          sessionKeysToRemove.push(key);
+        }
+      }
+      sessionKeysToRemove.forEach((key) => sessionStorage.removeItem(key));
+    }
+
+    if (typeof localStorage !== 'undefined') {
+      const localKeysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('booking-session:')) {
+          localKeysToRemove.push(key);
+        }
+      }
+      localKeysToRemove.forEach((key) => localStorage.removeItem(key));
+    }
   }
 }

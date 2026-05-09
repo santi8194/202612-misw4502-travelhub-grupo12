@@ -112,6 +112,7 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
       cy.get('input[placeholder="Juan"]').type('Juan');
       cy.get('input[placeholder="Pérez"]').type('Pérez');
       cy.get('input[type="email"]').type('juan@ejemplo.com');
+      cy.get('input[type="tel"]').type('+573001112233');
 
       cy.get('input[type="password"]').eq(0).type('Clave1234!');
       cy.get('input[type="password"]').eq(1).type('OtraClave1234!');
@@ -129,6 +130,7 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
       cy.get('input[placeholder="Juan"]').type('Juan');
       cy.get('input[placeholder="Pérez"]').type('Pérez');
       cy.get('input[type="email"]').type('juan@ejemplo.com');
+      cy.get('input[type="tel"]').type('+573001112233');
 
       cy.get('input[type="password"]').eq(0).type('Clave1234!');
       cy.get('input[type="password"]').eq(1).type('Clave1234!');
@@ -147,6 +149,7 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
       cy.get('input[placeholder="Juan"]').type('Juan');
       cy.get('input[placeholder="Pérez"]').type('Pérez');
       cy.get('input[type="email"]').type('existente@ejemplo.com');
+      cy.get('input[type="tel"]').type('+573001112233');
 
       cy.get('input[type="password"]').eq(0).type('Clave1234!');
       cy.get('input[type="password"]').eq(1).type('Clave1234!');

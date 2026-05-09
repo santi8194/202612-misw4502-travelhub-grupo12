@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 
 revision = "003b_add_temporadas"
-down_revision = "003_add_configuracion_impuestos_pais"
+down_revision = "003_config_impuestos"
 branch_labels = None
 depends_on = None
 

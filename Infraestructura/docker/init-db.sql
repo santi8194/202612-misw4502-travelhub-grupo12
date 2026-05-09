@@ -7,6 +7,10 @@ CREATE DATABASE payment_db;
 CREATE DATABASE auth_db;
 CREATE DATABASE partner_db;
 
+-- search requiere un schema dedicado dentro de search_db
+\connect search_db
+CREATE SCHEMA IF NOT EXISTS search;
+
 -- Opcional: Crear un usuario único para todos los micros para simplificar desarrollo local
 -- CREATE USER travelhub_user WITH PASSWORD 'travelhub_pass';
 -- GRANT ALL PRIVILEGES ON DATABASE catalog_db TO travelhub_user;

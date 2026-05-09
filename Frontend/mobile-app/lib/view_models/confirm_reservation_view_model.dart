@@ -73,8 +73,8 @@ class ConfirmReservationViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> confirmReservation() async {
-    if (_isConfirming) return false;
+  Future<String?> confirmReservation() async {
+    if (_isConfirming) return null;
 
     _isConfirming = true;
     notifyListeners();
@@ -84,7 +84,8 @@ class ConfirmReservationViewModel extends ChangeNotifier {
     _isConfirming = false;
     notifyListeners();
 
-    return true;
+    // Return a dummy reservation ID for now
+    return 'RES-123456';
   }
 
   String _countryCacheKey(String? country) {

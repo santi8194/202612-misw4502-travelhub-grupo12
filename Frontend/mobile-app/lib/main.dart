@@ -4,11 +4,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
-import 'services/connectivity_service.dart';
 import 'models/country_tax.dart';
+import 'services/booking_service.dart';
+import 'services/connectivity_service.dart';
 import 'services/tax_config_service.dart';
 import 'view_models/login_view_model.dart';
 import 'view_models/register_view_model.dart';
+import 'view_models/reservations_list_view_model.dart';
 import 'view_models/search_view_model.dart';
 import 'view_models/user_preferences_view_model.dart';
 import 'views/login_view.dart';
@@ -36,6 +38,22 @@ void main() async {
             // SearchViewModel already listens to connectivity changes internally.
             return previous ??
                 SearchViewModel(connectivityService: connectivity);
+          },
+        ),
+        ChangeNotifierProxyProvider<
+          ConnectivityService,
+          ReservationsListViewModel
+        >(
+          create: (context) => ReservationsListViewModel(
+            bookingService: BookingService(),
+            connectivityService: context.read<ConnectivityService>(),
+          ),
+          update: (context, connectivity, previous) {
+            return previous ??
+                ReservationsListViewModel(
+                  bookingService: BookingService(),
+                  connectivityService: connectivity,
+                );
           },
         ),
       ],

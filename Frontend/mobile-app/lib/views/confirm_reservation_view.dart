@@ -9,6 +9,7 @@ import '../services/catalog_service.dart';
 import '../view_models/confirm_reservation_view_model.dart';
 import '../view_models/user_preferences_view_model.dart';
 import '../widgets/app_bottom_nav_bar.dart';
+import 'reservation_detail_view.dart';
 
 class ConfirmReservationView extends StatelessWidget {
   final String location;
@@ -140,13 +141,21 @@ class ConfirmReservationView extends StatelessWidget {
                       onPressed: viewModel.isConfirming
                           ? null
                           : () async {
-                              final confirmed = await viewModel
+                              final reservationId = await viewModel
                                   .confirmReservation();
-                              if (confirmed && context.mounted) {
+                              if (reservationId != null && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
                                       l10n.reservationSuccessMessage,
+                                    ),
+                                  ),
+                                );
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ReservationDetailView(
+                                      reservationId: reservationId,
                                     ),
                                   ),
                                 );

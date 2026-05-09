@@ -226,4 +226,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalPriceLabel => 'TOTAL PRICE';
+
+  @override
+  String get reservationStatusActive => 'Active Reservation';
+
+  @override
+  String get callHotel => 'Call Hotel';
+
+  @override
+  String get howToGet => 'How to get there';
+
+  @override
+  String get downloadPdf => 'Download PDF Receipt';
+
+  @override
+  String get cancelReservation => 'Cancel Reservation';
+
+  @override
+  String get confirmationCodeLabel => 'CONFIRMATION CODE';
+
+  @override
+  String get statusLabel => 'STATUS';
+
+  @override
+  String get myReservationsTitle => 'My Reservations';
+
+  @override
+  String get myReservationsSubtitle => 'Manage your reservations in one place';
+
+  @override
+  String get upcomingReservationsSection => 'UPCOMING RESERVATIONS';
+
+  @override
+  String get pastReservationsSection => 'PAST RESERVATIONS';
+
+  @override
+  String get checkInLabel => 'CHECK-IN';
+
+  @override
+  String get confirmationLabel => 'CONFIRMATION';
+
+  @override
+  String get viewDetails => 'View details';
+
+  @override
+  String get finishedStatus => 'Finished';
+
+  @override
+  String get noUpcomingReservations =>
+      'You don\'t have any upcoming reservations yet';
+
+  @override
+  String get noPastReservations => 'You don\'t have any past reservations yet';
+
+  @override
+  String get offlineWarning => 'Outdated data (offline)';
 }

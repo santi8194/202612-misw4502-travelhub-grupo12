@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import 'busqueda_view.dart';
 import 'profile_view.dart';
+import 'reservations_list_view.dart';
 
 class MainNavigationView extends StatefulWidget {
   final int initialIndex;
@@ -28,7 +29,7 @@ class _MainNavigationViewState extends State<MainNavigationView> {
 
     final List<Widget> pages = [
       const BusquedaView(),
-      Center(child: Text(l10n.navBookings)),
+      const ReservationsListView(),
       const ProfileView(),
     ];
 

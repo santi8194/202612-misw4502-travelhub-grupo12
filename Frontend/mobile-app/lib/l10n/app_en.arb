@@ -91,7 +91,25 @@
   "roomGallery": "Room Gallery",
   "verifiedReviews": "VERIFIED REVIEWS",
   "reserveNow": "Book Now",
-  "totalPriceLabel": "TOTAL PRICE"
+  "totalPriceLabel": "TOTAL PRICE",
+  "reservationStatusActive": "Active Reservation",
+  "callHotel": "Call Hotel",
+  "howToGet": "How to get there",
+  "downloadPdf": "Download PDF Receipt",
+  "cancelReservation": "Cancel Reservation",
+  "confirmationCodeLabel": "CONFIRMATION CODE",
+  "statusLabel": "STATUS",
+  "myReservationsTitle": "My Reservations",
+  "myReservationsSubtitle": "Manage your reservations in one place",
+  "upcomingReservationsSection": "UPCOMING RESERVATIONS",
+  "pastReservationsSection": "PAST RESERVATIONS",
+  "checkInLabel": "CHECK-IN",
+  "confirmationLabel": "CONFIRMATION",
+  "viewDetails": "View details",
+  "finishedStatus": "Finished",
+  "noUpcomingReservations": "You don't have any upcoming reservations yet",
+  "noPastReservations": "You don't have any past reservations yet",
+  "offlineWarning": "Outdated data (offline)"
 }
 
 

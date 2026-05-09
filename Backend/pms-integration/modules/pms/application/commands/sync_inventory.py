@@ -35,6 +35,7 @@ class SyncInventory:
             id_propiedad=dto.id_propiedad,
             id_categoria=dto.id_categoria,
             fecha=dto.fecha,
+            cupos_totales=dto.cupos_totales,
             cupos_disponibles=dto.cupos_disponibles,
             event_timestamp=dto.event_timestamp
         )

@@ -53,12 +53,13 @@ class PMSInventoryUpdated:
     Este evento es consumido por Catalog para actualizar su inventario.
     """
     
-    def __init__(self, id_propiedad, id_categoria, fecha, cupos_disponibles, event_timestamp):
+    def __init__(self, id_propiedad, id_categoria, fecha, cupos_totales, cupos_disponibles, event_timestamp):
         self.routing_key = "pms.inventory.updated"
         self.type = "PMSInventoryUpdated"
         self.id_propiedad = str(id_propiedad)
         self.id_categoria = str(id_categoria)
         self.fecha = fecha.isoformat() if hasattr(fecha, 'isoformat') else fecha
+        self.cupos_totales = cupos_totales
         self.cupos_disponibles = cupos_disponibles
         self.event_timestamp = event_timestamp.isoformat() if hasattr(event_timestamp, 'isoformat') else event_timestamp
 
@@ -68,6 +69,7 @@ class PMSInventoryUpdated:
             "id_propiedad": self.id_propiedad,
             "id_categoria": self.id_categoria,
             "fecha": self.fecha,
+            "cupos_totales": self.cupos_totales,
             "cupos_disponibles": self.cupos_disponibles,
             "event_timestamp": self.event_timestamp
         }

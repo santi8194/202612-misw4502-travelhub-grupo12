@@ -131,6 +131,7 @@ def handle_pms_inventory_updated(data):
 	try:
 		id_categoria = UUID(data["id_categoria"])
 		fecha_str = data["fecha"]
+		cupos_totales = data["cupos_totales"]
 		cupos_disponibles = data["cupos_disponibles"]
 		event_timestamp_str = data["event_timestamp"]
 		
@@ -150,11 +151,12 @@ def handle_pms_inventory_updated(data):
 			if not inventario:
 				print(f"[CATALOG] Inventario no encontrado para {id_categoria} @ {fecha}. Creando nuevo registro.")
 				
+				# Se usa cupos_totales del evento PMS solo al crear registros nuevos
 				inventario = InventarioModel(
 					id_inventario=f"{id_categoria}-{fecha.isoformat()}",
 					id_categoria=id_categoria,
 					fecha=fecha.isoformat(),
-					cupos_totales=cupos_disponibles,
+					cupos_totales=cupos_totales,
 					cupos_disponibles=cupos_disponibles,
 					last_pms_update_at=event_timestamp
 				)

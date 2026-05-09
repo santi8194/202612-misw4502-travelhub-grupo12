@@ -53,6 +53,7 @@ class InventoryWebhookPayload(BaseModel):
     hotel_code: str
     room_type_code: str
     date: str
+    total_units: int
     available_units: int
     last_modified: str
 

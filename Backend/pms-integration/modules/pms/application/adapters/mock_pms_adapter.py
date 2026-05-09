@@ -88,6 +88,7 @@ class MockPMSAdapter(PMSAdapter):
             "hotel_code": "COL-HOTE-001",
             "room_type_code": "RM001",
             "date": "2026-05-10",
+            "total_units": 15,
             "available_units": 12,
             "last_modified": "2026-05-09T10:30:00Z"
         }
@@ -96,6 +97,7 @@ class MockPMSAdapter(PMSAdapter):
             hotel_code = raw_payload["hotel_code"]
             room_type_code = raw_payload["room_type_code"]
             fecha_str = raw_payload["date"]
+            cupos_totales = raw_payload["total_units"]
             cupos = raw_payload["available_units"]
             timestamp_str = raw_payload["last_modified"]
             
@@ -108,6 +110,7 @@ class MockPMSAdapter(PMSAdapter):
                 id_propiedad=property_uuid,
                 id_categoria=category_uuid,
                 fecha=fecha,
+                cupos_totales=cupos_totales,
                 cupos_disponibles=cupos,
                 event_timestamp=event_timestamp
             )

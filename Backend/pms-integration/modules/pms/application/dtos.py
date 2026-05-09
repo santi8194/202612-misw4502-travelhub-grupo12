@@ -19,5 +19,6 @@ class InventoryChangeDTO:
     id_propiedad: UUID
     id_categoria: UUID
     fecha: date
+    cupos_totales: int
     cupos_disponibles: int
     event_timestamp: datetime

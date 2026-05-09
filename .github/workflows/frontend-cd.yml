@@ -6,11 +6,11 @@ on:
       - develop
       - main
     tags:
-      - 'v*-web'
+      - "v*-web"
     paths:
-      - 'Frontend/partner-web/**'
-      - 'Frontend/user-web/**'
-      - '.github/workflows/frontend-cd.yml'
+      - "Frontend/partner-web/**"
+      - "Frontend/user-web/**"
+      - ".github/workflows/frontend-cd.yml"
   workflow_dispatch:
 
 concurrency:
@@ -22,7 +22,7 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  TERRAFORM_VERSION: '1.10.0'
+  TERRAFORM_VERSION: "1.10.0"
 
 jobs:
   discover-changes:
@@ -74,11 +74,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/v}
+            VERSION=${TAG_NAME%-web}
+          else
+            VERSION="dev-${{ github.sha }}"
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: Frontend/partner-web/package-lock.json
 
       - name: Configure AWS credentials
@@ -105,6 +116,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set version
+        run: |
+          sed -i "s/version: 'local'/version: '${{ steps.get_version.outputs.VERSION }}'/g" src/environments/environment.ts
+          sed -i "s/version: 'local'/version: '${{ steps.get_version.outputs.VERSION }}'/g" src/environments/environment.prod.ts
+
       - name: Build project
         run: npm run build
 
@@ -127,11 +143,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/v}
+            VERSION=${TAG_NAME%-web}
+          else
+            VERSION="dev-${{ github.sha }}"
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: Frontend/user-web/package-lock.json
 
       - name: Configure AWS credentials
@@ -158,6 +185,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set version
+        run: |
+          sed -i "s/version: 'local'/version: '${{ steps.get_version.outputs.VERSION }}'/g" src/environments/environment.ts
+          sed -i "s/version: 'local'/version: '${{ steps.get_version.outputs.VERSION }}'/g" src/environments/environment.prod.ts
+
       - name: Build project
         run: npm run build
 
@@ -179,12 +211,25 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/v}
+            VERSION=${TAG_NAME%-web}
+          else
+            VERSION="dev-${{ github.sha }}"
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build partner-web
         working-directory: Frontend/partner-web
         run: |
           npm ci
+          sed -i "s/version: 'local'/version: '${{ steps.get_version.outputs.VERSION }}'/g" src/environments/environment.ts
+          sed -i "s/version: 'local'/version: '${{ steps.get_version.outputs.VERSION }}'/g" src/environments/environment.prod.ts
           npm run build
           cd dist/partner-web/browser
           zip -r ${{ github.workspace }}/partner-web-build.zip .
@@ -193,6 +238,8 @@ jobs:
         working-directory: Frontend/user-web
         run: |
           npm ci
+          sed -i "s/version: 'local'/version: '${{ steps.get_version.outputs.VERSION }}'/g" src/environments/environment.ts
+          sed -i "s/version: 'local'/version: '${{ steps.get_version.outputs.VERSION }}'/g" src/environments/environment.prod.ts
           npm run build
           cd dist/user-web/browser
           zip -r ${{ github.workspace }}/user-web-build.zip .

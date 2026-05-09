@@ -42,5 +42,5 @@ coverage.xml
 example_saga_payments/
 booking.db
 
-planes/
-docs_dev/
+#planes/
+#docs_dev/

@@ -159,3 +159,15 @@ def refresh_token(request: RefreshTokenRequest) -> Any:
         "refresh_token": request.refresh_token,
         "token_type": "bearer",
     }
+
+
+@router.get("/internal/users/{id_usuario}")
+def get_user_by_id_internal(id_usuario: UUID) -> Any:
+    """Endpoint interno para consultas service-to-service sin token."""
+    user = UserService.get_user_by_id(id_usuario)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado",
+        )
+    return {"full_name": user.full_name, "email": user.email}

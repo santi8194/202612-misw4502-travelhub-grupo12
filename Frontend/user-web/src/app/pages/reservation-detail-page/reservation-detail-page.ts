@@ -204,7 +204,7 @@ export class ReservationDetailPage {
       checkInDate: booking.fecha_check_in,
       checkOutDate: booking.fecha_check_out,
       guests: this.getGuestCount(booking),
-      confirmationNumber: booking.codigo_confirmacion_ota || booking.codigo_localizador_pms || null,
+      confirmationNumber: this.buildTemporaryConfirmationCode(booking.id_reserva) || null,
       status,
       totalAmount: null,
       currency: catalog.categoria.precio_base.moneda,
@@ -292,6 +292,10 @@ export class ReservationDetailPage {
       canCancel: cancellation.canCancel,
       cancellationReason: cancellation.reason,
     });
+  }
+
+  private buildTemporaryConfirmationCode(reservationId: string): string {
+    return reservationId.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
   }
 
   protected formatDate(dateStr: string): string {

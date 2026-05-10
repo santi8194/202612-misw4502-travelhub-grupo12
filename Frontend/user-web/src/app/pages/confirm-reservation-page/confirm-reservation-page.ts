@@ -82,6 +82,10 @@ export class ConfirmReservationPage {
     () => this.route.snapshot.paramMap.get('id_reserva') ?? ''
   );
 
+  readonly confirmationCode = computed(
+    () => this.buildTemporaryConfirmationCode(this.reservationId())
+  );
+
   readonly status = computed(
     () => (this.route.snapshot.queryParamMap.get('status') ?? 'rejected').trim().toLowerCase()
   );
@@ -290,6 +294,10 @@ export class ConfirmReservationPage {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase();
+  }
+
+  private buildTemporaryConfirmationCode(reservationId: string): string {
+    return reservationId.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
   }
 
   showStatusNotAvailableAlert(): void {

@@ -184,7 +184,7 @@ describe('ReservationDetailPage', () => {
       checkInDate: '2026-03-07',
       checkOutDate: '2026-03-10',
       guests: 3,
-      confirmationNumber: 'TH-001',
+      confirmationNumber: 'RES001',
       status: 'CONFIRMADA',
       totalAmount: 580,
       currency: 'USD',
@@ -217,7 +217,9 @@ describe('ReservationDetailPage', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="reservation-detail-hotel"]').textContent).toContain('Suite Deluxe');
     expect(fixture.nativeElement.querySelector('[data-testid="reservation-detail-location"]').textContent).toContain('Bogota, Colombia');
     expect(fixture.nativeElement.querySelector('[data-testid="reservation-detail-guests"]').textContent).toContain('3');
-    expect(fixture.nativeElement.querySelector('[data-testid="reservation-detail-confirmation"]').textContent).toContain('TH-001');
+    const confirmation = fixture.nativeElement.querySelector('[data-testid="reservation-detail-confirmation"]').textContent;
+    expect(confirmation).toContain('RES001');
+    expect(confirmation).not.toContain('TH-001');
   });
 
   it('should navigate gallery images with controls and indicators', () => {

@@ -58,9 +58,12 @@ describe('ConfirmReservationPage', () => {
 
     const title = fixture.nativeElement.querySelector('[data-testid="confirm-reservation-title"]');
     const reason = fixture.nativeElement.querySelector('[data-testid="confirm-reservation-reason"]');
+    const confirmationCode = fixture.nativeElement.querySelector('.status-id strong');
 
     expect(title.textContent).toContain('Reserva Confirmada');
     expect(reason.textContent).toContain('Tu reserva ha sido confirmada. Se ha enviado un correo con los detalles.');
+    expect(confirmationCode.textContent).toContain('RESERV');
+    expect(confirmationCode.textContent).not.toContain('reserva-test-123');
     expect(component.isConfirmed()).toBeTrue();
   });
 

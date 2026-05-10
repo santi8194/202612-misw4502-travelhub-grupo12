@@ -43,6 +43,10 @@ export class ReservationCardComponent {
     return map[estado];
   }
 
+  protected getConfirmationCode(idReserva: string): string {
+    return idReserva.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
+  }
+
   protected showCompletarPago(estado: ReservationStatus): boolean {
     return estado === 'PENDIENTE_PAGO';
   }

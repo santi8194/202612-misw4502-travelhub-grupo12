@@ -52,8 +52,7 @@
 					<div class="profile-dropdown" role="menu" aria-label="Menú de autenticación">
 						@if (isAuthenticated()) {
 							<div class="profile-summary" role="presentation">
-								<p class="profile-name">{{ userSession()?.userName }}</p>
-								<p class="profile-email">{{ userSession()?.email }}</p>
+								<p class="profile-name">{{ getProfileDisplayName() }}</p>
 							</div>
 							<button class="dropdown-item dropdown-item--button" type="button" (click)="goToMyReservations()">
 								Mis Reservas

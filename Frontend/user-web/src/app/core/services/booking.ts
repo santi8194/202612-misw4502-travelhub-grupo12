@@ -163,6 +163,18 @@ export class BookingService {
     );
   }
 
+  cancelBookingById(idReserva: string): Observable<any> {
+    const url = `${this.apiUrl}/${idReserva}/cancelar`;
+    console.info('[BookingService] POST', url);
+    return this.http.post<any>(url, {}).pipe(
+      tap((response) => console.info('[BookingService] cancelBookingById success', response)),
+      catchError((error) => {
+        console.error('[BookingService] cancelBookingById error', { idReserva, error });
+        return throwError(() => error);
+      })
+    );
+  }
+
   formalizeBookingById(
     idReserva: string,
     request: FormalizeBookingRequest = {}

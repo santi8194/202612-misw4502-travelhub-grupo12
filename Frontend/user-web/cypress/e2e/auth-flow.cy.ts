@@ -34,8 +34,21 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
           access_token: 'fake-access',
           refresh_token: 'fake-refresh',
           token_type: 'Bearer',
+          id_usuario: 'user-test-001'
         },
       }).as('loginRequest');
+
+      cy.intercept('GET', '**/users/user-test-001', {
+        statusCode: 200,
+        body: {
+          id_usuario: 'user-test-001',
+          nombre_completo: 'Usuario Test',
+          first_name: 'Usuario',
+          last_name: 'Test',
+          email: 'usuario@ejemplo.com',
+          username: 'usuario.test'
+        }
+      }).as('getUserProfile');
 
       cy.get('input[type="email"]').type('usuario@ejemplo.com');
       cy.get('input[type="password"]').type('Clave1234!');
@@ -99,6 +112,7 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
       cy.get('input[placeholder="Juan"]').type('Juan');
       cy.get('input[placeholder="Pérez"]').type('Pérez');
       cy.get('input[type="email"]').type('juan@ejemplo.com');
+      cy.get('input[type="tel"]').type('+573001112233');
 
       cy.get('input[type="password"]').eq(0).type('Clave1234!');
       cy.get('input[type="password"]').eq(1).type('OtraClave1234!');
@@ -116,6 +130,7 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
       cy.get('input[placeholder="Juan"]').type('Juan');
       cy.get('input[placeholder="Pérez"]').type('Pérez');
       cy.get('input[type="email"]').type('juan@ejemplo.com');
+      cy.get('input[type="tel"]').type('+573001112233');
 
       cy.get('input[type="password"]').eq(0).type('Clave1234!');
       cy.get('input[type="password"]').eq(1).type('Clave1234!');
@@ -134,6 +149,7 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
       cy.get('input[placeholder="Juan"]').type('Juan');
       cy.get('input[placeholder="Pérez"]').type('Pérez');
       cy.get('input[type="email"]').type('existente@ejemplo.com');
+      cy.get('input[type="tel"]').type('+573001112233');
 
       cy.get('input[type="password"]').eq(0).type('Clave1234!');
       cy.get('input[type="password"]').eq(1).type('Clave1234!');

@@ -19,28 +19,30 @@
           <label>
             Correo Electrónico
 
-            <div class="input-wrapper">
+            <div class="input-wrapper" [class.input-wrapper--error]="errors().email">
               <input
                 type="email"
                 [value]="form().email"
                 (input)="updateField('email', $any($event.target).value)"
+                (blur)="markTouched('email')"
                 placeholder="tu@ejemplo.com"
               />
             </div>
 
             @if (errors().email) {
-              <small>Ingresa un correo válido.</small>
+              <small class="field-error">{{ errorMessages().email }}</small>
             }
           </label>
 
           <label>
             Contraseña
 
-            <div class="input-wrapper password-input">
+            <div class="input-wrapper password-input" [class.input-wrapper--error]="errors().password">
               <input
                 [type]="showPassword() ? 'text' : 'password'"
                 [value]="form().password"
                 (input)="updateField('password', $any($event.target).value)"
+                (blur)="markTouched('password')"
                 placeholder="Ingresa tu contraseña"
               />
 
@@ -72,17 +74,17 @@
             </div>
 
             @if (errors().password) {
-              <small>La contraseña es obligatoria.</small>
+              <small class="field-error">{{ errorMessages().password }}</small>
             }
           </label>
 
           <div class="options-row">
             <label class="remember">
-              <input type="checkbox" />
+              <input type="checkbox" (change)="onRememberMe()" />
               Recordarme
             </label>
 
-            <a class="forgot-password" routerLink="/auth/forgot-password">
+            <a class="forgot-password" (click)="onForgotPassword(); $event.preventDefault()">
               ¿Olvidaste tu contraseña?
             </a>
           </div>
@@ -95,7 +97,7 @@
             <span>O continuar con</span>
           </div>
 
-          <button type="button" class="google-btn">
+          <button type="button" class="google-btn" (click)="onGoogleSignIn()">
             Continuar con Google
           </button>
         </form>

@@ -4,34 +4,85 @@
   <div class="form-grid">
     <div class="field-wrap">
       <label class="field-label" for="name">Nombre(s)</label>
-      <input id="name" class="field-input" [ngModel]="form.name" (ngModelChange)="onFieldChange('name', $event)" data-testid="input-name" />
+      <input 
+        id="name" 
+        class="field-input" 
+        [ngModel]="form.name" 
+        (ngModelChange)="onFieldChange('name', $event)" 
+        (blur)="onFieldBlur('name', form.name)"
+        [class.field-input--error]="shouldShowError('name')"
+        data-testid="input-name" 
+        placeholder="Juan" />
+      @if (shouldShowError('name')) {
+        <small class="field-error">Ingresa un nombre válido (solo letras y espacios).</small>
+      }
     </div>
 
     <div class="field-wrap">
       <label class="field-label" for="lastName">Apellido</label>
-      <input id="lastName" class="field-input" [ngModel]="form.lastName" (ngModelChange)="onFieldChange('lastName', $event)" data-testid="input-lastname" />
+      <input 
+        id="lastName" 
+        class="field-input" 
+        [ngModel]="form.lastName" 
+        (ngModelChange)="onFieldChange('lastName', $event)" 
+        (blur)="onFieldBlur('lastName', form.lastName)"
+        [class.field-input--error]="shouldShowError('lastName')"
+        data-testid="input-lastname" 
+        placeholder="Pérez" />
+      @if (shouldShowError('lastName')) {
+        <small class="field-error">Ingresa un apellido válido (solo letras y espacios).</small>
+      }
     </div>
   </div>
 
   <div class="field-wrap field-full">
     <label class="field-label" for="email">Email</label>
-    <input id="email" class="field-input" [ngModel]="form.email" (ngModelChange)="onFieldChange('email', $event)" data-testid="input-email" />
+    <input 
+      id="email" 
+      type="email"
+      class="field-input" 
+      [ngModel]="form.email" 
+      (ngModelChange)="onFieldChange('email', $event)" 
+      (blur)="onFieldBlur('email', form.email)"
+      [class.field-input--error]="shouldShowError('email')"
+      data-testid="input-email" 
+      placeholder="tu@ejemplo.com" />
+    @if (shouldShowError('email')) {
+      <small class="field-error">Ingresa un correo válido (ej: tu@ejemplo.com).</small>
+    }
   </div>
 
   <div class="field-wrap field-full">
     <label class="field-label" for="phone">Celular</label>
-    <input id="phone" class="field-input" [ngModel]="form.phone" (ngModelChange)="onFieldChange('phone', $event)" data-testid="input-phone" />
+    <input 
+      id="phone" 
+      type="tel"
+      class="field-input" 
+      [ngModel]="form.phone" 
+      (ngModelChange)="onFieldChange('phone', $event)" 
+      (blur)="onFieldBlur('phone', form.phone)"
+      [class.field-input--error]="shouldShowError('phone')"
+      data-testid="input-phone" 
+      placeholder="+573001112233" />
+    @if (shouldShowError('phone')) {
+      <small class="field-error">Debe incluir el código de país (ej: +573001112233).</small>
+    }
   </div>
 
   <div class="field-wrap field-full">
     <label class="field-label" for="request">Solicitud detallada (Opcional)</label>
-    <textarea id="request" class="field-textarea" [ngModel]="form.detailedRequest" (ngModelChange)="onFieldChange('detailedRequest', $event)" data-testid="input-request"></textarea>
+    <textarea 
+      id="request" 
+      class="field-textarea" 
+      [ngModel]="form.detailedRequest" 
+      (ngModelChange)="onFieldChange('detailedRequest', $event)" 
+      data-testid="input-request"></textarea>
   </div>
 
   <button
     (click)="onContinuePayment()"
     class="pay-btn"
-    [disabled]="disableContinue"
+    [disabled]="disableContinue || !isFormValid()"
     data-testid="continue-payment-btn">
     {{ isSubmitting ? 'Confirmando reserva...' : 'Continuar con el pago' }}
   </button>

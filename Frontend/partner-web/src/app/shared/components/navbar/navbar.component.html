@@ -28,11 +28,8 @@
                 @if (isLangDropdownOpen) {
                 <div class="lang-dropdown" data-testid="lang-dropdown">
                     @for (lang of availableLanguages; track lang.code) {
-                    <button
-                        class="lang-option"
-                        [class.active]="lang.code === currentLang"
-                        (click)="switchLang(lang.code)"
-                    >
+                    <button class="lang-option" [class.active]="lang.code === currentLang"
+                        (click)="switchLang(lang.code)">
                         {{ lang.label }}
                     </button>
                     }
@@ -70,11 +67,15 @@
             @if (isDropdownOpen) {
             <div class="dropdown-menu" data-testid="navbar-dropdown">
                 @if (authService.isAuthenticated$ | async) {
-                <a class="dropdown-item" (click)="logout()" data-testid="btn-logout">{{ 'NAVBAR.LOGOUT' | translate }}</a>
+                <a class="dropdown-item" (click)="logout()" data-testid="btn-logout">{{ 'NAVBAR.LOGOUT' | translate
+                    }}</a>
                 } @else {
                 <a class="dropdown-item">{{ 'NAVBAR.REGISTER' | translate }}</a>
-                <a routerLink="/login" class="dropdown-item" (click)="isDropdownOpen=false">{{ 'NAVBAR.LOGIN' | translate }}</a>
+                <a routerLink="/login" class="dropdown-item" (click)="isDropdownOpen=false">{{ 'NAVBAR.LOGIN' |
+                    translate }}</a>
                 }
+                <div class="dropdown-divider"></div>
+                <div class="version-info">v{{ appVersion }}</div>
             </div>
             }
         </div>

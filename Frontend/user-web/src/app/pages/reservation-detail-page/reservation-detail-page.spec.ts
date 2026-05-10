@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -91,6 +92,7 @@ describe('ReservationDetailPage', () => {
   let component: ReservationDetailPage;
   let httpTesting: HttpTestingController;
   let router: Router;
+  let location: Location;
 
   beforeEach(async () => {
     localStorage.setItem('th_access_token', 'access-token');
@@ -120,10 +122,15 @@ describe('ReservationDetailPage', () => {
       ],
     }).compileComponents();
 
+    spyOn(console, 'info');
+    spyOn(console, 'warn');
+    spyOn(console, 'error');
+
     fixture = TestBed.createComponent(ReservationDetailPage);
     component = fixture.componentInstance;
     httpTesting = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
+    location = TestBed.inject(Location);
     fixture.detectChanges();
   });
 
@@ -392,5 +399,140 @@ describe('ReservationDetailPage', () => {
     expect(component.error()).toBeNull();
     expect(component.detail()?.id).toBe(RESERVATION_ID);
     expect(fixture.nativeElement.querySelector('[data-testid="reservation-detail-success"]')).toBeTruthy();
+  });
+
+  it('should expose empty current image while detail is not loaded', () => {
+    expect(component.currentImageUrl()).toBe('');
+    flushBooking();
+    flushCatalog();
+    flushApprovedPayment();
+  });
+
+  it('should navigate back with browser history or fallback to reservations list', () => {
+    flushBooking();
+    flushCatalog();
+    flushApprovedPayment();
+
+    const backSpy = spyOn(location, 'back');
+    const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
+    spyOnProperty(window.history, 'length', 'get').and.returnValues(2, 1);
+
+    (component as any).goBack();
+    expect(backSpy).toHaveBeenCalled();
+
+    (component as any).goBack();
+    expect(navigateSpy).toHaveBeenCalledWith(['/mis-reservas']);
+  });
+
+  it('should wrap gallery navigation and ignore invalid indicators', () => {
+    flushBooking();
+    flushCatalog();
+    flushApprovedPayment();
+
+    expect(component.currentImageIndex()).toBe(0);
+
+    (component as any).previousImage();
+    expect(component.currentImageIndex()).toBe(1);
+
+    (component as any).nextImage();
+    expect(component.currentImageIndex()).toBe(0);
+
+    component.currentImageIndex.set(1);
+    (component as any).nextImage();
+    expect(component.currentImageIndex()).toBe(0);
+
+    (component as any).goToImage(-1);
+    expect(component.currentImageIndex()).toBe(0);
+
+    (component as any).goToImage(99);
+    expect(component.currentImageIndex()).toBe(0);
+  });
+
+  it('should keep gallery guards safe for zero or one image', () => {
+    flushBooking();
+    flushCatalog({
+      ...mockCatalogDetail,
+      galeria: [
+        { id_media: 'img-001', url_full: 'https://example.com/1.jpg', tipo: 'FOTO', orden: 1 },
+      ],
+    });
+    flushApprovedPayment();
+
+    (component as any).previousImage();
+    (component as any).nextImage();
+    (component as any).goToImage(1);
+
+    expect(component.currentImageIndex()).toBe(0);
+  });
+
+  it('should ignore cancellation start when detail is not available', () => {
+    const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
+
+    (component as any).startCancellation();
+
+    expect(navigateSpy).not.toHaveBeenCalled();
+    flushBooking();
+    flushCatalog();
+    flushApprovedPayment();
+  });
+
+  it('should show controlled error when booking has no category', () => {
+    flushBooking({ ...mockBooking, id_categoria: '' });
+    fixture.detectChanges();
+
+    httpTesting.expectNone(r => r.url.includes('/view-detail'));
+    expect(component.error()).toBe('La reserva no tiene información de hospedaje disponible.');
+    expect(component.detail()).toBeNull();
+  });
+
+  it('should build detail with optional catalog and booking fallbacks', () => {
+    flushBooking({
+      ...mockBooking,
+      id_reserva: '',
+      ocupacion: undefined,
+    } as unknown as BookingReservation);
+    flushCatalog({
+      ...mockCatalogDetail,
+      categoria: {
+        ...mockCatalogDetail.categoria,
+        politica_cancelacion: undefined,
+      } as unknown as RoomDetailResponse['categoria'],
+      galeria: undefined,
+    } as unknown as RoomDetailResponse);
+
+    const paymentReq = httpTesting.expectOne(r => r.url.endsWith('/payments/by-reserva/'));
+    paymentReq.flush({ detail: 'Pago no encontrado' }, { status: 404, statusText: 'Not Found' });
+    const priceReq = httpTesting.expectOne(r => r.url.endsWith('/calculate-room-price'));
+    priceReq.flush({ error: 'Server error' }, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(component.detail()).toEqual(jasmine.objectContaining({
+      id: '',
+      confirmationNumber: null,
+      guests: 0,
+      images: [],
+      canCancel: false,
+    }));
+  });
+
+  it('should keep update total and format helpers safe for null values', () => {
+    flushBooking();
+    flushCatalog();
+    flushApprovedPayment();
+
+    component.detail.set(null);
+    (component as any).updateDetailTotal(100, 'USD', 'CONFIRMADA');
+
+    expect(component.detail()).toBeNull();
+    expect((component as any).formatCurrency(null, 'USD')).toBe('');
+  });
+
+  it('should detect not found errors from generic Error messages', () => {
+    flushBooking();
+    flushCatalog();
+    flushApprovedPayment();
+
+    expect((component as any).isNotFoundError(new Error('404 not found'))).toBeTrue();
+    expect((component as any).isNotFoundError(new Error('network'))).toBeFalse();
   });
 });

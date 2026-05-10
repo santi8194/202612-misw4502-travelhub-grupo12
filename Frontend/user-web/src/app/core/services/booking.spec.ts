@@ -164,4 +164,208 @@ describe('BookingService', () => {
     const req = httpTesting.expectOne(`${BOOKING_URL}`);
     req.flush({ mensaje: 'No existe inventario para la categoria en la fecha 2026-04-12' });
   });
+
+  it('should fail createHold when user session is missing', () => {
+    localStorage.clear();
+    const request: HoldRequest = {
+      categoryId: 'cat-1',
+      checkIn: '2026-10-10',
+      checkOut: '2026-10-15',
+      guests: 2,
+    };
+
+    service.createHold(request).subscribe({
+      next: () => fail('Expected createHold to fail without user session'),
+      error: (error: Error) => {
+        expect(error.message).toContain('Inicia sesi');
+      },
+    });
+
+    httpTesting.expectNone(`${BOOKING_URL}`);
+  });
+
+  it('should read booking by id', () => {
+    service.getBookingById('reserva-123').subscribe((response) => {
+      expect(response.id_reserva).toBe('reserva-123');
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ id_reserva: 'reserva-123' });
+  });
+
+  it('should propagate booking read errors', () => {
+    service.getBookingById('reserva-123').subscribe({
+      next: () => fail('Expected getBookingById to fail'),
+      error: (error: HttpErrorResponse) => {
+        expect(error.status).toBe(500);
+      },
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123`);
+    req.flush({ error: 'fail' }, { status: 500, statusText: 'Server Error' });
+  });
+
+  it('should expire booking by id', () => {
+    service.expireBookingById('reserva-123').subscribe((response) => {
+      expect(response.estado).toBe('EXPIRADA');
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/expirar`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush({ estado: 'EXPIRADA' });
+  });
+
+  it('should propagate expire booking errors', () => {
+    service.expireBookingById('reserva-123').subscribe({
+      next: () => fail('Expected expireBookingById to fail'),
+      error: (error: HttpErrorResponse) => {
+        expect(error.status).toBe(409);
+      },
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/expirar`);
+    req.flush({ message: 'No expirable' }, { status: 409, statusText: 'Conflict' });
+  });
+
+  it('should read catalog, category and categories endpoints', () => {
+    service.getCatalogByCategoryId('cat-1').subscribe((response) => {
+      expect(response.id_categoria).toBe('cat-1');
+    });
+    httpTesting.expectOne(`${environment.catalogApiUrl}/properties/by-category/cat-1`)
+      .flush({ id_categoria: 'cat-1' });
+
+    service.getCategoryById('cat-1').subscribe((response) => {
+      expect(response.nombre_comercial).toBe('Suite');
+    });
+    httpTesting.expectOne(`${environment.catalogApiUrl}/categories/cat-1`)
+      .flush({ nombre_comercial: 'Suite' });
+
+    service.getPropertyCategories('prop-1').subscribe((response) => {
+      expect(response.length).toBe(1);
+    });
+    httpTesting.expectOne(`${environment.catalogApiUrl}/properties/prop-1/categories`)
+      .flush([{ id_categoria: 'cat-1' }]);
+  });
+
+  it('should fallback when primary property endpoint fails', () => {
+    service.getPropertyById('prop-1').subscribe((response) => {
+      expect(response.nombre).toBe('Hotel fallback');
+    });
+
+    httpTesting.expectOne(`${environment.catalogApiUrl}/properties/prop-1`)
+      .flush({ error: 'fail' }, { status: 500, statusText: 'Server Error' });
+    httpTesting.expectOne(`${environment.catalogApiUrl}/property/prop-1`)
+      .flush({ nombre: 'Hotel fallback' });
+  });
+
+  it('should propagate property fallback errors', () => {
+    service.getPropertyById('prop-1').subscribe({
+      next: () => fail('Expected getPropertyById to fail'),
+      error: (error: HttpErrorResponse) => {
+        expect(error.status).toBe(404);
+      },
+    });
+
+    httpTesting.expectOne(`${environment.catalogApiUrl}/properties/prop-1`)
+      .flush({ error: 'fail' }, { status: 500, statusText: 'Server Error' });
+    httpTesting.expectOne(`${environment.catalogApiUrl}/property/prop-1`)
+      .flush({ error: 'missing' }, { status: 404, statusText: 'Not Found' });
+  });
+
+  it('should propagate catalog endpoint errors', () => {
+    service.getCatalogByCategoryId('cat-1').subscribe({
+      next: () => fail('Expected getCatalogByCategoryId to fail'),
+      error: (error: HttpErrorResponse) => expect(error.status).toBe(500),
+    });
+    httpTesting.expectOne(`${environment.catalogApiUrl}/properties/by-category/cat-1`)
+      .flush({ error: 'fail' }, { status: 500, statusText: 'Server Error' });
+
+    service.getCategoryById('cat-1').subscribe({
+      next: () => fail('Expected getCategoryById to fail'),
+      error: (error: HttpErrorResponse) => expect(error.status).toBe(500),
+    });
+    httpTesting.expectOne(`${environment.catalogApiUrl}/categories/cat-1`)
+      .flush({ error: 'fail' }, { status: 500, statusText: 'Server Error' });
+
+    service.getPropertyCategories('prop-1').subscribe({
+      next: () => fail('Expected getPropertyCategories to fail'),
+      error: (error: HttpErrorResponse) => expect(error.status).toBe(500),
+    });
+    httpTesting.expectOne(`${environment.catalogApiUrl}/properties/prop-1/categories`)
+      .flush({ error: 'fail' }, { status: 500, statusText: 'Server Error' });
+  });
+
+  it('should create booking when backend returns reservation id', () => {
+    const request = {
+      id_usuario: 'user-1',
+      id_categoria: 'cat-1',
+      fecha_check_in: '2026-04-12',
+      fecha_check_out: '2026-04-13',
+      ocupacion: {
+        adultos: 2,
+        ninos: 0,
+        infantes: 0,
+      },
+    };
+
+    service.createBooking(request).subscribe((response) => {
+      expect(response.id_reserva).toBe('reserva-123');
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ id_reserva: 'reserva-123' });
+  });
+
+  it('should fail createBooking with generic message when id_reserva and message are missing', () => {
+    const request = {
+      id_usuario: 'user-1',
+      id_categoria: 'cat-1',
+      fecha_check_in: '2026-04-12',
+      fecha_check_out: '2026-04-13',
+      ocupacion: {
+        adultos: 2,
+        ninos: 0,
+        infantes: 0,
+      },
+    };
+
+    service.createBooking(request).subscribe({
+      next: () => fail('Expected createBooking to fail'),
+      error: (error: Error) => {
+        expect(error.message).toContain('identificador');
+      },
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}`);
+    req.flush({});
+  });
+
+  it('should map generic transport and backend errors to useful reservation messages', () => {
+    expect(service.getReservationErrorMessage(new HttpErrorResponse({ status: 0 }))).toContain('comunicarse');
+    expect(service.getReservationErrorMessage(new HttpErrorResponse({ status: 404 }))).toContain('No fue posible crear');
+    expect(service.getReservationErrorMessage(new HttpErrorResponse({ status: 409 }))).toContain('disponibilidad');
+    expect(service.getReservationErrorMessage(new HttpErrorResponse({ status: 422, error: { message: 'Bad request' } }))).toContain('datos enviados');
+    expect(service.getReservationErrorMessage(new HttpErrorResponse({ status: 400, error: { message: 'Bad request' } }))).toContain('No hay disponibilidad');
+    expect(service.getReservationErrorMessage(new HttpErrorResponse({ status: 500, error: { message: 'Internal server error' } }))).toContain('present');
+  });
+
+  it('should extract nested backend messages and fallback when message is generic or absent', () => {
+    const nestedError = new HttpErrorResponse({
+      status: 400,
+      error: {
+        errors: [
+          { detail: '' },
+          { title: 'La categoria no encontrada' },
+        ],
+      },
+    });
+    expect(service.getReservationErrorMessage(nestedError)).toBe('La categoria no encontrada');
+
+    expect(service.getReservationErrorMessage('   fechas invalidas   ')).toContain('fechas invalidas');
+    expect(service.getReservationErrorMessage(new Error('ocupacion invalida'))).toContain('ocupacion invalida');
+    expect(service.getReservationErrorMessage({}, 'Mensaje fallback')).toBe('Mensaje fallback');
+  });
 });

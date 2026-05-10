@@ -52,7 +52,6 @@ export class HeaderComponent {
   }
 
   logout(): void {
-  logout(): void {
     const reservationId = this.extractReservationId(this.router.url);
 
     const finishLogout = () => {

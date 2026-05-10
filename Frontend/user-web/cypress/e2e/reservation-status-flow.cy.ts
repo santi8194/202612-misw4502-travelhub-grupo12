@@ -1,4 +1,5 @@
 const RESERVATION_ID = 'reserva-status-e2e-001';
+const CONFIRMATION_CODE = RESERVATION_ID.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
 const CATEGORY_ID = 'categoria-e2e-001';
 const PROPERTY_ID = 'propiedad-e2e-001';
 
@@ -65,7 +66,7 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
       .should('contain.text', 'Tu reserva ha sido confirmada. Se ha enviado un correo con los detalles.');
 
     cy.contains('Número de confirmación').should('be.visible');
-    cy.contains(RESERVATION_ID).should('be.visible');
+    cy.contains(CONFIRMATION_CODE).should('be.visible');
 
     cy.get('[data-testid="booking-summary"]')
       .should('be.visible')

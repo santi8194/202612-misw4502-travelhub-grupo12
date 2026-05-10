@@ -147,9 +147,9 @@ services:
       context: ../../Backend/search
       dockerfile: Dockerfile
     ports:
-      - "8002:8002"
+      - "8002:8000"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -183,7 +183,7 @@ services:
       context: ../../Backend/booking
       dockerfile: Dockerfile
     ports:
-      - "8003:8003"
+      - "8003:8000"
     environment:
       BOOKING_DB_MODE: postgres
       DB_HOST: postgres-db

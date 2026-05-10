@@ -35,6 +35,7 @@ from modules.catalog.infrastructure.models import (
     MediaModel,
     InventarioModel,
     TemporadaModel,
+    ResenaModel,
 )
 from modules.catalog.infrastructure.database import Base
 
@@ -143,6 +144,8 @@ DESCRIPTORS = ["Vista Mar", "Centro Histórico", "Zona Rosa", "Playa Dorada", "C
 
 def generate_properties(total_count=100):
     """Genera propiedades de forma programática con variación."""
+    import random
+    random.seed(42)
     properties = []
     property_counter = 1
     
@@ -561,6 +564,33 @@ def seed_database(purge=False):
                     porcentaje=Decimal(str(season["porcentaje"])),
                 )
                 session.add(temporada)
+                
+            # Agregar reseñas a la propiedad
+            num_resenas = random.randint(3, 5)
+            autores = [("Jorge Silva", "https://ui-avatars.com/api/?name=Jorge+Silva"),
+                       ("Ana Gómez", "https://ui-avatars.com/api/?name=Ana+Gomez"),
+                       ("María Camila", "https://ui-avatars.com/api/?name=Maria+Camila"),
+                       ("Carlos Restrepo", "https://ui-avatars.com/api/?name=Carlos+Restrepo"),
+                       ("Luis Fernando", "https://ui-avatars.com/api/?name=Luis+Fernando"),
+                       ("Diana Carolina", "https://ui-avatars.com/api/?name=Diana+Carolina")]
+            comentarios = ["Excelente servicio y ubicación.", "Muy recomendado, volvería sin dudarlo.", 
+                           "Lugar agradable para descansar.", "Buena atención, aunque podría mejorar.",
+                           "Instalaciones de primera calidad."]
+            for r_idx in range(num_resenas):
+                autor = random.choice(autores)
+                base_estrellas = prop_data["estrellas"]
+                calificacion = min(5, max(1, base_estrellas + random.randint(-1, 1)))
+                resena = ResenaModel(
+                    id_resena=uuid4(),
+                    id_propiedad=property_id,
+                    id_usuario=uuid4(),
+                    nombre_autor=autor[0],
+                    avatar_url=autor[1],
+                    calificacion=calificacion,
+                    comentario=random.choice(comentarios),
+                    fecha_creacion=today - timedelta(days=random.randint(1, 30))
+                )
+                session.add(resena)
             
             print(f"  ✅ {idx}. {prop_data['nombre']} ({prop_data['ciudad']}, {prop_data['pais']})")
         
@@ -579,6 +609,7 @@ def seed_database(purge=False):
         print(f"   • Inventario: {len(PROPERTIES_DATA) * 30} registros (30 días por categoría)")
         print(f"   • Temporadas: {len(PROPERTIES_DATA) * len(SEASONS)} registros")
         print(f"   • Imágenes: {sum(len(p['imagenes']) for p in PROPERTIES_DATA)} registros")
+        print(f"   • Reseñas: ~{len(PROPERTIES_DATA) * 4} registros")
         print("="*60)
         
     except Exception as e:

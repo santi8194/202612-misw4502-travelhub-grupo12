@@ -52,6 +52,7 @@ def verify_seed():
             "Inventario": "SELECT COUNT(*) FROM inventario",
             "Temporadas": "SELECT COUNT(*) FROM temporadas",
             "Imágenes (Media)": "SELECT COUNT(*) FROM media",
+            "Reseñas": "SELECT COUNT(*) FROM resenas",
         }
         
         for label, query in queries.items():
@@ -191,6 +192,17 @@ def verify_seed():
         cats_no_images = session.execute(query).scalar()
         status = "✅" if cats_no_images == 0 else "⚠️"
         print(f"{status} Categorías sin imágenes: {cats_no_images}")
+        
+        # Propiedades sin reseñas
+        query = text("""
+            SELECT COUNT(*) 
+            FROM propiedades p
+            LEFT JOIN resenas r ON p.id_propiedad = r.id_propiedad
+            WHERE r.id_resena IS NULL
+        """)
+        props_no_reviews = session.execute(query).scalar()
+        status = "✅" if props_no_reviews == 0 else "⚠️"
+        print(f"{status} Propiedades sin reseñas: {props_no_reviews}")
         
         print()
         print("=" * 80)

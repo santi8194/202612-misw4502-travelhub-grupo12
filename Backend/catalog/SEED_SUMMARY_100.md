@@ -80,6 +80,7 @@ Los tipos se distribuyen de forma balanceada usando rotación.
 | Inventario | 3,000 | 30 días × 100 categorías |
 | Temporadas | 300 | 3 temporadas × 100 propiedades |
 | Imágenes | 200 | 2 imágenes × 100 categorías |
+| Reseñas | ~400 | 3-5 reseñas aleatorias por propiedad |
 
 ## 🎯 Códigos PMS
 
@@ -102,9 +103,9 @@ Cada categoría tiene un código único: `RM001` a `RM100`
 
 ### Archivos Relacionados
 
-1. **`Backend/mock-pms/data/inventory.json`**
-   - Debe actualizarse con una muestra de las 100 propiedades
-   - Recomendado: 20-30 propiedades para testing
+1. **`Backend/mock-pms/data/inventory_100.json`**
+   - Se genera automáticamente desde `generate_inventory_mock.py`
+   - Contiene las 100 propiedades perfectamente sincronizadas
 
 2. **`Backend/mock-pms/data/pms_mapping.json`**
    - Mapeo de códigos PMS a UUIDs

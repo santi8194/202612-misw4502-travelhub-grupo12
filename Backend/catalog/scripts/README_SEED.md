@@ -15,6 +15,7 @@ Script completo que crea desde cero toda la base de datos con:
 - ✅ Inventario para los próximos 30 días
 - ✅ Temporadas de precio (Verano, Navidad, Mitad de año)
 - ✅ Imágenes de Unsplash
+- ✅ Reseñas simuladas (3-5 por hotel) con calificaciones
 
 ### `generate_uuid_mapping_v2.py`
 Genera el mapeo completo de códigos PMS a UUIDs para las 100 propiedades.
@@ -37,7 +38,14 @@ cd Backend/catalog
 python3 scripts/seed_full_catalog.py
 ```
 
-### Opción 3: Ver ayuda
+### Opción 3: Generar archivos JSON sincronizados
+Si necesitas sincronizar el Mock PMS y el pms-integration:
+```bash
+python3 scripts/generate_uuid_mapping_v2.py
+python3 scripts/generate_inventory_mock.py
+```
+
+### Opción 4: Ver ayuda
 ```bash
 python3 scripts/seed_full_catalog.py --help
 ```

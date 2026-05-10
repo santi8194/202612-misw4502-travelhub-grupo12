@@ -106,7 +106,7 @@ export class ReservasComponent implements OnChanges {
     private mapReserva(item: ReservaPorPropiedadApi): Reserva {
         return {
             id: item.id_reserva,
-            propietario: item.id_usuario ?? 'N/A',
+            propietario: item.nombre_usuario ?? item.id_usuario ?? 'N/A',
             habitacion: item.habitacion ?? 'Categoría sin nombre',
             checkIn: this.parseDate(item.fecha_check_in),
             checkOut: this.parseDate(item.fecha_check_out),

@@ -30,12 +30,13 @@ app = FastAPI(title="Mock PMS", description="Simulador local de PMS externo para
 PMS_INTEGRATION_URL = os.getenv("PMS_INTEGRATION_URL", "http://pms-integration:8001")
 
 # Archivo de inventario simulado
-DATA_FILE = Path(__file__).parent / "data" / "inventory.json"
+DATA_FILE = Path(__file__).parent / "data" / "inventory_100.json"
 
 
 def _load_inventory() -> list[dict]:
     with open(DATA_FILE, encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+        return data["inventory"] if isinstance(data, dict) else data
 
 
 @app.get("/health")

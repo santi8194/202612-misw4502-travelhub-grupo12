@@ -1,0 +1,92 @@
+{
+	"info": {
+		"_postman_id": "c13d8e57-2e11-44eb-b5de-8c8872b2253d",
+		"name": "Mock PMS - TravelHub",
+		"description": "Endpoints para simular el PMS externo en el entorno local de TravelHub.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/health",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Verifica que el servicio mock-pms esté en línea."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Polling: Get Inventory Changes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/api/inventory/changes?since=2026-05-01T00:00:00Z",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"inventory",
+						"changes"
+					],
+					"query": [
+						{
+							"key": "since",
+							"value": "2026-05-01T00:00:00Z",
+							"description": "ISO 8601 timestamp. Opcional. Úsalo para ver cómo responde con deltas o envíalo vacío para obtener todo el inventario."
+						}
+					]
+				},
+				"description": "Endpoint que simula la respuesta de un PMS real cuando pms-integration hace polling."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Webhook: Force Webhook Push",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/force-webhook?hotel_code=CAT-HOTEL-01&cupos=0",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"force-webhook"
+					],
+					"query": [
+						{
+							"key": "hotel_code",
+							"value": "CAT-HOTEL-01",
+							"description": "Código de hotel en el inventario simulado"
+						},
+						{
+							"key": "cupos",
+							"value": "0",
+							"description": "Cupos disponibles a reportar (0 = habitación llena)"
+						}
+					]
+				},
+				"description": "Dispara manualmente un webhook desde el PMS simulado hacia el pms-integration. Esto es útil para probar el flujo de sincronización empujada (Push/Webhook)."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

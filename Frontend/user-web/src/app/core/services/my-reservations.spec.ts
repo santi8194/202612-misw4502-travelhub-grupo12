@@ -110,7 +110,9 @@ describe('MyReservationsService', () => {
   });
 
   function createService(): MyReservationsService {
-    return TestBed.inject(MyReservationsService);
+    const service = TestBed.inject(MyReservationsService);
+    service.loadCurrentUserReservations();
+    return service;
   }
 
   function flushLocale(): void {
@@ -169,7 +171,6 @@ describe('MyReservationsService', () => {
   it('should not fetch reservations when there is no authenticated user id', () => {
     localStorage.clear();
     const service = createService();
-    flushLocale();
 
     httpTesting.expectNone(req => req.url.includes('/usuario/'));
     expect(service.reservations()).toEqual([]);

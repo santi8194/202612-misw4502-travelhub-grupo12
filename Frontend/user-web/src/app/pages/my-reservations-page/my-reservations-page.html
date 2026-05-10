@@ -12,8 +12,14 @@
       </p>
     </section>
 
-    <!-- Summary counter bar -->
-    <section class="counter-bar" aria-label="Resumen de reservas" data-testid="counter-bar">
+    @if (service.isLoading()) {
+      <section class="loading-state" aria-live="polite" data-testid="loading-state">
+        <span class="loading-spinner" aria-hidden="true"></span>
+        <p>Cargando tus reservas...</p>
+      </section>
+    } @else {
+      <!-- Summary counter bar -->
+      <section class="counter-bar" aria-label="Resumen de reservas" data-testid="counter-bar">
 
       <button
         class="counter-card counter-card--active"
@@ -67,10 +73,10 @@
         <span class="counter-card__label">Canceladas</span>
       </button>
 
-    </section>
+      </section>
 
-    <!-- Reservations list -->
-    <section class="reservations-list" data-testid="reservations-list">
+      <!-- Reservations list -->
+      <section class="reservations-list" data-testid="reservations-list">
 
       @if (service.filteredReservations().length === 0) {
         <div class="empty-state" data-testid="empty-state">
@@ -87,7 +93,8 @@
         <app-reservation-card [reservation]="reservation" />
       }
 
-    </section>
+      </section>
+    }
 
   </main>
 

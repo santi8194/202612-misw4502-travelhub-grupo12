@@ -81,4 +81,19 @@ describe('HeaderComponent', () => {
 
     expect(navigateSpy).toHaveBeenCalledWith(['/mis-reservas']);
   });
+
+  it('should clear session and navigate home when logging out', () => {
+    localStorage.setItem('th_access_token', 'acc-token-xyz');
+    localStorage.setItem('th_refresh_token', 'ref-token-xyz');
+    localStorage.setItem('th_token_type', 'Bearer');
+    localStorage.setItem('th_user_email', 'ana@travelhub.com');
+    localStorage.setItem('th_user_id', 'user-123');
+
+    const navigateSpy = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
+
+    component.logout();
+
+    expect(localStorage.getItem('th_access_token')).toBeNull();
+    expect(navigateSpy).toHaveBeenCalledWith(['/'], { replaceUrl: true });
+  });
 });

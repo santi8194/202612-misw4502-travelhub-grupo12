@@ -39,6 +39,7 @@ export class HeaderComponent {
   logout(): void {
     this.authService.clearSession();
     this.closeProfileMenu();
+    this.router.navigate(['/'], { replaceUrl: true });
   }
 
   goToMyReservations(): void {

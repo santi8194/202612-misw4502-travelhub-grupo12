@@ -69,6 +69,8 @@ describe('MyReservationsPage', () => {
     fixture = TestBed.createComponent(MyReservationsPage);
     service = TestBed.inject(MyReservationsService);
 
+    fixture.detectChanges();
+
     httpTesting.expectOne('assets/data/user-locale.json').flush(MOCK_LOCALE);
     httpTesting.expectOne(`${BOOKING_URL}/usuario/${CURRENT_USER_ID}`).flush([MOCK_BOOKING]);
     httpTesting.expectOne(`${CATALOG_URL}/categories/${MOCK_BOOKING.id_categoria}`).flush(MOCK_CATEGORY);

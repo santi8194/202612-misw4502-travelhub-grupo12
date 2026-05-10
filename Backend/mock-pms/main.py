@@ -102,6 +102,7 @@ async def force_webhook(hotel_code: str = "CAT-HOTEL-01", cupos: int = 0):
         "hotel_code": item["hotel_code"],
         "room_type_code": item["room_type_code"],
         "date": item["date"],
+        "total_units": item["total_units"],
         "available_units": cupos,
         "last_modified": datetime.now(timezone.utc).isoformat(),
     }

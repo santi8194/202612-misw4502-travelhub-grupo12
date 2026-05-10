@@ -69,6 +69,7 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+      ENABLE_EVENTS: "true"
     depends_on:
       postgres-db:
         condition: service_healthy

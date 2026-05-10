@@ -43,11 +43,6 @@ def cancel_reservation(request: CancelRequest):
     return command.execute(request.id_reserva)
 
 
-@router.get("/health")
-def health_check():
-    return {"status": "PMS Integration Service running"}
-
-
 class InventoryWebhookPayload(BaseModel):
     """Payload del webhook de inventario del PMS."""
     hotel_code: str

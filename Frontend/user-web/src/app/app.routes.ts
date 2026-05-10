@@ -72,8 +72,15 @@ export const routes: Routes = [
       import('./pages/my-reservations-page/my-reservations-page').then(m => m.MyReservationsPage),
   },
   {
-    path: 'mis-reservas/:id_reserva',
+    path: 'mis-reservas/:id_reserva/cancelar',
+    canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/my-reservations-page/my-reservations-page').then(m => m.MyReservationsPage),
+      import('./pages/cancel-reservation-todo-page/cancel-reservation-todo-page').then(m => m.CancelReservationTodoPage),
+  },
+  {
+    path: 'mis-reservas/:id_reserva',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/reservation-detail-page/reservation-detail-page').then(m => m.ReservationDetailPage),
   },
 ];

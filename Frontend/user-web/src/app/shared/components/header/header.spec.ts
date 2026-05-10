@@ -137,19 +137,18 @@ describe('HeaderComponent', () => {
     localStorage.setItem('th_user_id', 'user-123');
     localStorage.setItem('th_user_name', 'a.perez');
 
-    // Set booking session in sessionStorage
     sessionStorage.setItem('booking-session:test-signature', JSON.stringify({
-      expiresAt: Date.now() + 900000
+      expiresAt: Date.now() + 900000,
     }));
     sessionStorage.setItem('hold:reservation-123', JSON.stringify({
-      holdId: 'optimistic-hold'
+      holdId: 'optimistic-hold',
     }));
 
     const notificationSpy = spyOn(notificationService, 'showSuccess');
     const navigateSpy = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
     const mockUserProfile = {
       id_usuario: 'user-123',
-      username: 'a.perez'
+      username: 'a.perez',
     };
 
     spyOn(authService, 'getUserProfile').and.returnValue(of(mockUserProfile));
@@ -158,7 +157,9 @@ describe('HeaderComponent', () => {
     component.toggleProfileMenu();
     fixture.detectChanges();
 
-    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.dropdown-item--button')) as HTMLButtonElement[];
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('.dropdown-item--button')
+    ) as HTMLButtonElement[];
     const logoutButton = buttons.find(button => button.textContent?.includes('Cerrar sesión'));
 
     expect(logoutButton).toBeTruthy();
@@ -167,10 +168,10 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
 
     expect(notificationSpy).toHaveBeenCalledWith('Tu sesión ha sido cerrada exitosamente.');
-    expect(navigateSpy).toHaveBeenCalledWith(['/']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/'], { replaceUrl: true });
     expect(component.userProfile()).toBeNull();
-    
-    // Verify session storage was cleared
+    expect(localStorage.getItem('th_access_token')).toBeNull();
+
     expect(sessionStorage.getItem('booking-session:test-signature')).toBeNull();
     expect(sessionStorage.getItem('hold:reservation-123')).toBeNull();
   });
@@ -190,6 +191,6 @@ describe('HeaderComponent', () => {
     component.logout();
 
     expect(cancelSpy).toHaveBeenCalledWith('reserva-123');
-    expect(navigateSpy).toHaveBeenCalledWith(['/']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/'], { replaceUrl: true });
   });
 });

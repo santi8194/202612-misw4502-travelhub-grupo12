@@ -39,14 +39,8 @@
         </div>
 
         <p class="card-meta" data-testid="reservation-id">
-          ID Reserva: {{ reservation().id_reserva.slice(0, 8).toUpperCase() }}
+          Código confirmación: {{ getConfirmationCode(reservation().id_reserva) }}
         </p>
-
-        @if (reservation().codigo_confirmacion) {
-          <p class="card-meta" data-testid="reservation-confirmation">
-            Confirmación: <strong>{{ reservation().codigo_confirmacion }}</strong>
-          </p>
-        }
       </div>
 
       <div class="card-price" data-testid="reservation-price">

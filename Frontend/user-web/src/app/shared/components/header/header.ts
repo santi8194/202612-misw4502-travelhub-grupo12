@@ -52,6 +52,7 @@ export class HeaderComponent {
   }
 
   logout(): void {
+  logout(): void {
     const reservationId = this.extractReservationId(this.router.url);
 
     const finishLogout = () => {
@@ -60,7 +61,7 @@ export class HeaderComponent {
       this.clearBookingStorage();
       this.closeProfileMenu();
       this.notificationService.showSuccess('Tu sesión ha sido cerrada exitosamente.');
-      this.router.navigate(['/']);
+      this.router.navigate(['/'], { replaceUrl: true });
     };
 
     if (!reservationId) {

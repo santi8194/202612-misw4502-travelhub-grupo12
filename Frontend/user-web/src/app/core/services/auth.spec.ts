@@ -15,6 +15,14 @@ const mockTokens: AuthTokenResponse = {
   user_id: 'test-user-uuid-001',
 };
 
+function buildJwt(payload: Record<string, unknown>): string {
+  const encoded = btoa(JSON.stringify(payload))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+  return `header.${encoded}.signature`;
+}
+
 describe('AuthService', () => {
   let service: AuthService;
   let httpTesting: HttpTestingController;
@@ -104,6 +112,68 @@ describe('AuthService', () => {
       expect(localStorage.getItem('th_user_id')).toBe('test-user-uuid-001');
       expect(localStorage.getItem('th_user_name')).toBe('juan');
     });
+
+    it('should resolve user data and expiration from jwt claims', () => {
+      const accessToken = buildJwt({
+        sub: 'claim-user-001',
+        name: 'Ana Maria',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      });
+
+      service.saveSession({
+        access_token: accessToken,
+        refresh_token: 'refresh',
+        token_type: 'Bearer',
+      }, 'ana@example.com');
+
+      expect(localStorage.getItem('th_user_id')).toBe('claim-user-001');
+      expect(localStorage.getItem('th_user_name')).toBe('Ana Maria');
+      expect(localStorage.getItem('th_access_token_expires_at')).not.toBeNull();
+      expect(service.getCurrentSession()?.expiresAt).toBeGreaterThan(Date.now());
+    });
+
+    it('should resolve name from first name claim before falling back to email', () => {
+      const accessToken = buildJwt({
+        user_id: 'claim-user-002',
+        first_name: 'Ana',
+        last_name: 'Perez',
+        exp: String(Math.floor(Date.now() / 1000) + 3600),
+      });
+
+      service.saveSession({
+        access_token: accessToken,
+        refresh_token: 'refresh',
+        token_type: 'Bearer',
+      }, 'ana@example.com');
+
+      expect(localStorage.getItem('th_user_name')).toBe('Ana');
+    });
+
+    it('should resolve first name from token when last name is missing', () => {
+      service.saveSession({
+        access_token: 'invalid-token',
+        refresh_token: 'refresh',
+        token_type: 'Bearer',
+        id_usuario: 'token-user-001',
+        first_name: 'Ana',
+      }, 'ana@example.com');
+
+      expect(localStorage.getItem('th_user_id')).toBe('token-user-001');
+      expect(localStorage.getItem('th_user_name')).toBe('Ana');
+    });
+
+    it('should fallback to existing user id and default user name when needed', () => {
+      localStorage.setItem('user_id', 'legacy-user-001');
+
+      service.saveSession({
+        access_token: 'invalid-token',
+        refresh_token: 'refresh',
+        token_type: 'Bearer',
+      }, '');
+
+      expect(localStorage.getItem('th_user_id')).toBe('legacy-user-001');
+      expect(localStorage.getItem('th_user_name')).toBe('Usuario');
+    });
   });
 
   // ─── clearSession ───────────────────────────────
@@ -147,6 +217,46 @@ describe('AuthService', () => {
       service.saveSession(mockTokens, 'juan@ejemplo.com');
       service.clearSession();
       expect(service.isLoggedIn()).toBeFalse();
+    });
+
+    it('should rebuild session from stored values when session state is empty', () => {
+      const accessToken = buildJwt({
+        sub: 'stored-user-001',
+        given_name: 'Carlos',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      });
+      localStorage.setItem('th_access_token', accessToken);
+      localStorage.setItem('th_refresh_token', 'refresh');
+      localStorage.setItem('th_token_type', 'Bearer');
+      localStorage.setItem('th_user_email', 'carlos@example.com');
+
+      expect(service.isLoggedIn()).toBeTrue();
+      expect(service.getCurrentUserId()).toBe('stored-user-001');
+      expect(localStorage.getItem('th_user_name')).toBe('Carlos');
+    });
+
+    it('should use stored expiration timestamp when available', () => {
+      localStorage.setItem('th_access_token', 'invalid-token');
+      localStorage.setItem('th_refresh_token', 'refresh');
+      localStorage.setItem('th_token_type', 'Bearer');
+      localStorage.setItem('th_user_email', 'ana@example.com');
+      localStorage.setItem('th_user_id', 'stored-user-002');
+      localStorage.setItem('th_user_name', 'Ana');
+      localStorage.setItem('th_access_token_expires_at', String(Date.now() + 3600000));
+
+      expect(service.isLoggedIn()).toBeTrue();
+      expect(service.getCurrentSession()?.expiresAt).toBeGreaterThan(Date.now());
+    });
+
+    it('should clear expired stored sessions', () => {
+      localStorage.setItem('th_access_token', buildJwt({ sub: 'expired-user' }));
+      localStorage.setItem('th_refresh_token', 'refresh');
+      localStorage.setItem('th_token_type', 'Bearer');
+      localStorage.setItem('th_user_email', 'old@example.com');
+      localStorage.setItem('th_access_token_expires_at', String(Date.now() - 1000));
+
+      expect(service.isLoggedIn()).toBeFalse();
+      expect(localStorage.getItem('th_access_token')).toBeNull();
     });
 
     it('should expire session after inactivity timeout', () => {

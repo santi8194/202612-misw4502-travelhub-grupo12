@@ -40,6 +40,44 @@ describe('PaymentPage', () => {
     const error = fixture.nativeElement.querySelector('[data-testid="payment-error"]');
     expect(error).toBeTruthy();
     expect(error.textContent).toContain('No se encontro una intencion de pago activa');
+    expect(fixture.componentInstance.amountLabel()).toBe('');
+  });
+
+  it('should show an error when stored payment has no checkout data', () => {
+    sessionStorage.setItem(
+      `${PAYMENT_STORAGE_PREFIX}reserva-123`,
+      JSON.stringify({
+        id_pago: 'pay-1',
+        id_reserva: 'reserva-123',
+        referencia: 'PAY-1',
+        estado: 'PENDING',
+        monto: 120000,
+        moneda: 'COP',
+        checkout: null,
+      })
+    );
+
+    fixture = TestBed.createComponent(PaymentPage);
+    fixture.detectChanges();
+
+    const error = fixture.nativeElement.querySelector('[data-testid="payment-error"]');
+    expect(error).toBeTruthy();
+    expect(error.textContent).toContain('La intencion de pago no contiene datos de checkout');
+  });
+
+  it('should protect widget attribute building without checkout data', () => {
+    fixture = TestBed.createComponent(PaymentPage);
+    const component = fixture.componentInstance;
+
+    expect(() => (component as any).buildWidgetAttributes({
+      id_pago: 'pay-1',
+      id_reserva: 'reserva-123',
+      referencia: 'PAY-1',
+      estado: 'PENDING',
+      monto: 120000,
+      moneda: 'COP',
+      checkout: null,
+    })).toThrowError('Payment checkout is required');
   });
 
   it('should render the Wompi widget script with required checkout fields', () => {

@@ -6,6 +6,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { of } from 'rxjs';
 import { RoomDetailPage } from './room-detail-page';
 import { NotificationService } from '../../core/services/notification';
+import { BookingStore } from '../../core/store/booking-store';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
 import { RoomPriceResponse } from '../../models/room-price.interface';
 
@@ -96,6 +97,7 @@ describe('RoomDetailPage', () => {
   let fixture: ComponentFixture<RoomDetailPage>;
   let httpTesting: HttpTestingController;
   let notificationService: NotificationService;
+  let bookingStore: BookingStore;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -126,10 +128,15 @@ describe('RoomDetailPage', () => {
       ],
     }).compileComponents();
 
+    spyOn(console, 'info');
+    spyOn(console, 'warn');
+    spyOn(console, 'error');
+
     fixture = TestBed.createComponent(RoomDetailPage);
     component = fixture.componentInstance;
     httpTesting = TestBed.inject(HttpTestingController);
     notificationService = TestBed.inject(NotificationService);
+    bookingStore = TestBed.inject(BookingStore);
 
     localStorage.setItem('th_access_token', 'acc-token-xyz');
     localStorage.setItem('th_refresh_token', 'ref-token-xyz');
@@ -403,5 +410,272 @@ describe('RoomDetailPage', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/auth/login'], {
       queryParams: { redirect: '/' },
     });
+  });
+
+  it('should return zero nights for missing or reversed dates', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    component.checkInInput.set('');
+    component.checkOutInput.set('2026-06-03');
+    expect(component.nightsCount()).toBe(0);
+
+    component.checkInInput.set('2026-06-05');
+    component.checkOutInput.set('2026-06-03');
+    expect(component.nightsCount()).toBe(0);
+  });
+
+  it('should use room price, invalid fallback and currency branches', () => {
+    flushUserLocale();
+    flushViewDetail({
+      ...mockRoomDetail,
+      categoria: {
+        ...mockRoomDetail.categoria,
+        precio_base: {
+          ...mockRoomDetail.categoria.precio_base,
+          monto: 'no-es-numero',
+          moneda: 'USD',
+        },
+      },
+    });
+
+    expect(component.pricePerNight()).toBe(0);
+    expect(component.currencySymbol()).toBe('$');
+
+    component.roomPrice.set({
+      ...mockRoomPrice,
+      precio_por_noche: 410000,
+      simbolo_moneda: '€',
+    });
+
+    expect(component.pricePerNight()).toBe(410000);
+    expect(component.currencySymbol()).toBe('€');
+  });
+
+  it('should resolve taxes, service fee and tax label fallback branches', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    expect(component.impuestos()).toBe(0);
+    expect(component.cargoServicio()).toBe(0);
+    expect(component.impuestoNombre()).toBe('IVA');
+
+    component.roomPrice.set({
+      ...mockRoomPrice,
+      impuestos_y_cargos: 12000,
+      impuestos: undefined,
+      cargo_servicio: 9000,
+      impuesto_nombre: undefined,
+    } as unknown as RoomPriceResponse);
+
+    expect(component.impuestos()).toBe(12000);
+    expect(component.cargoServicio()).toBe(0);
+    expect(component.impuestoNombre()).toBe('IVA');
+
+    component.roomPrice.set({
+      ...mockRoomPrice,
+      impuestos: undefined,
+      cargo_servicio: undefined,
+    } as unknown as RoomPriceResponse);
+
+    expect(component.impuestos()).toBe(0);
+    expect(component.cargoServicio()).toBe(0);
+  });
+
+  it('should build gallery placeholders, sorted repeated images and short descriptions', () => {
+    flushUserLocale();
+    flushViewDetail({
+      ...mockRoomDetail,
+      categoria: {
+        ...mockRoomDetail.categoria,
+        descripcion: 'x'.repeat(245),
+      },
+      galeria: [
+        { id_media: '2', url_full: 'https://example.com/segunda.jpg', tipo: 'FOTO', orden: 2 },
+        { id_media: '1', url_full: 'https://example.com/primera.jpg', tipo: 'FOTO', orden: 1 },
+      ],
+    });
+
+    expect(component.galleryImages()).toEqual([
+      'https://example.com/primera.jpg',
+      'https://example.com/segunda.jpg',
+      'https://example.com/segunda.jpg',
+      'https://example.com/segunda.jpg',
+      'https://example.com/segunda.jpg',
+    ]);
+    expect(component.shortDescription()).toBe(`${'x'.repeat(240)}...`);
+
+    component.roomDetail.set({ ...mockRoomDetail, galeria: [] });
+
+    expect(component.galleryImages()).toEqual(['', '', '', '', '']);
+  });
+
+  it('should format empty dates, zero currency and unknown amenity icons', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    expect(component.formatDate('')).toBe('');
+    expect(component.formatCurrency(0)).toBe('0');
+    expect(component.formatCurrency(1234567)).toBe('1.234.567');
+    expect(component.getAmenityIcon('unknown-icon')).toBe(component.amenityIconSvg['default']);
+  });
+
+  it('should toggle long description state', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    expect(component.descriptionExpanded()).toBeFalse();
+    component.toggleDescription();
+    expect(component.descriptionExpanded()).toBeTrue();
+    component.toggleDescription();
+    expect(component.descriptionExpanded()).toBeFalse();
+  });
+
+  it('should handle user locale load errors with the default country', () => {
+    const req = httpTesting.expectOne(r => USER_LOCALE_URL_PATTERN.test(r.url));
+    req.flush({}, { status: 404, statusText: 'Not Found' });
+    flushViewDetail();
+
+    expect(component.paisUsuario()).toBe('Colombia');
+  });
+
+  it('should calculate price only when dates are valid', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    (component as any).calculatePrice();
+    httpTesting.expectNone(r => CALCULATE_PRICE_URL_PATTERN.test(r.url));
+
+    component.checkInInput.set('2026-06-01');
+    component.checkOutInput.set('2026-06-03');
+
+    (component as any).calculatePrice();
+
+    const priceReq = httpTesting.expectOne(r => CALCULATE_PRICE_URL_PATTERN.test(r.url));
+    expect(priceReq.request.body).toEqual({
+      id_categoria: '7723e55e-6a70-4f25-9bb6-092d9b0e583d',
+      fecha_inicio: '2026-06-01',
+      fecha_fin: '2026-06-03',
+      pais_usuario: 'Colombia',
+    });
+
+    priceReq.flush(mockRoomPrice);
+    expect(component.roomPrice()).toEqual(mockRoomPrice);
+    expect(component.loadingPrice()).toBeFalse();
+  });
+
+  it('should keep the page usable when price calculation fails', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    component.checkInInput.set('2026-06-01');
+    component.checkOutInput.set('2026-06-03');
+
+    (component as any).calculatePrice();
+
+    const priceReq = httpTesting.expectOne(r => CALCULATE_PRICE_URL_PATTERN.test(r.url));
+    priceReq.flush({ message: 'Price error' }, { status: 500, statusText: 'Error' });
+
+    expect(component.roomPrice()).toBeNull();
+    expect(component.loadingPrice()).toBeFalse();
+  });
+
+  it('should block booking when required data is invalid', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    component.checkInInput.set('2026-06-03');
+    component.checkOutInput.set('2026-06-01');
+    component.guestsInput.set(2);
+
+    component.reservar();
+
+    httpTesting.expectNone(r => BOOKING_URL_PATTERN.test(r.url));
+    expect(component.error()).toBe('Faltan datos para crear la reserva. Verifica las fechas e inténtalo de nuevo.');
+  });
+
+  it('should redirect to existing active booking session', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    const navigateSpy = spyOn(TestBed.inject(Router), 'navigate');
+    component.checkInInput.set('2026-06-01');
+    component.checkOutInput.set('2026-06-03');
+    component.guestsInput.set(2);
+
+    bookingStore.setBookingSession(
+      '7723e55e-6a70-4f25-9bb6-092d9b0e583d|2026-06-01|2026-06-03|2',
+      {
+        reservationId: 'reserva-activa',
+        signature: '7723e55e-6a70-4f25-9bb6-092d9b0e583d|2026-06-01|2026-06-03|2',
+        expiresAt: Date.now() + 60000,
+      }
+    );
+
+    component.reservar();
+
+    httpTesting.expectNone(r => BOOKING_URL_PATTERN.test(r.url));
+    expect(navigateSpy).toHaveBeenCalledWith(['/existing-session-redirect'], {
+      queryParams: { reservationId: 'reserva-activa' },
+    });
+  });
+
+  it('should clear expired session and create a new booking', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    component.checkInInput.set('2026-06-01');
+    component.checkOutInput.set('2026-06-03');
+    component.guestsInput.set(2);
+
+    const signature = '7723e55e-6a70-4f25-9bb6-092d9b0e583d|2026-06-01|2026-06-03|2';
+    bookingStore.setBookingSession(signature, {
+      reservationId: 'reserva-expirada',
+      signature,
+      expiresAt: Date.now() - 1000,
+    });
+
+    component.reservar();
+
+    expect(bookingStore.getBookingSession(signature)).toBeNull();
+    const bookingReq = httpTesting.expectOne(r => BOOKING_URL_PATTERN.test(r.url));
+    bookingReq.flush({ id_reserva: 'reserva-nueva' });
+  });
+
+  it('should show a controlled error when booking response has no id_reserva', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    component.checkInInput.set('2026-06-01');
+    component.checkOutInput.set('2026-06-03');
+    component.guestsInput.set(2);
+
+    component.reservar();
+
+    const bookingReq = httpTesting.expectOne(r => BOOKING_URL_PATTERN.test(r.url));
+    bookingReq.flush({});
+
+    expect(component.error()).toBe('No fue posible crear la reserva. Intenta nuevamente.');
+    expect(component.creatingBooking()).toBeFalse();
+  });
+
+  it('should show mapped booking errors when createBooking fails', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    component.checkInInput.set('2026-06-01');
+    component.checkOutInput.set('2026-06-03');
+    component.guestsInput.set(2);
+
+    component.reservar();
+
+    const bookingReq = httpTesting.expectOne(r => BOOKING_URL_PATTERN.test(r.url));
+    bookingReq.flush(
+      { detail: { code: 'BOOKING_HOLD_ALREADY_ACTIVE' } },
+      { status: 409, statusText: 'Conflict' }
+    );
+
+    expect(component.error()).toBe('No fue posible crear la reserva. Intenta nuevamente.');
+    expect(component.creatingBooking()).toBeFalse();
   });
 });

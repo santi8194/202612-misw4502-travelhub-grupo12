@@ -96,6 +96,21 @@ describe('ReservationCardComponent', () => {
     expect(el.textContent.trim()).toBe('3');
   });
 
+  it('should display confirmation code from reservation id', async () => {
+    await setup(makeReservation({
+      id_reserva: 'test-uuid-1234',
+      codigo_confirmacion: 'TH-001',
+    }));
+
+    const el = fixture.nativeElement.querySelector('[data-testid="reservation-id"]');
+
+    expect(el.textContent).toContain('Código confirmación');
+    expect(el.textContent).toContain('TESTUU');
+    expect(el.textContent).not.toContain('ID Reserva');
+    expect(el.textContent).not.toContain('TH-001');
+    expect(fixture.nativeElement.querySelector('[data-testid="reservation-confirmation"]')).toBeNull();
+  });
+
   it('should display formatted price when monto_total is set', async () => {
     await setup(makeReservation({ monto_total: 1500, moneda: 'USD' }));
     const el = fixture.nativeElement.querySelector('[data-testid="reservation-price"]');

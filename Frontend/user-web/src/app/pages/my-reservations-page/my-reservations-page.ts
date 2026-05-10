@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { ReservationCardComponent } from '../../shared/components/reservation-card/reservation-card';
@@ -12,8 +12,12 @@ import { ReservationFilter } from '../../models/reservation.interface';
   templateUrl: './my-reservations-page.html',
   styleUrl: './my-reservations-page.css',
 })
-export class MyReservationsPage {
+export class MyReservationsPage implements OnInit {
   protected readonly service = inject(MyReservationsService);
+
+  ngOnInit(): void {
+    this.service.loadCurrentUserReservations();
+  }
 
   protected setFilter(filter: ReservationFilter): void {
     this.service.setFilter(filter);

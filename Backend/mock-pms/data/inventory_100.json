@@ -1,6 +1,6 @@
 {
   "description": "Inventario simulado del Mock PMS - Generado automáticamente desde el seed",
-  "last_updated": "2026-05-10T21:16:42.561903+00:00",
+  "last_updated": "2026-05-10T22:08:31.609578+00:00",
   "total_properties": 100,
   "inventory": [
     {
@@ -10,7 +10,7 @@
       "date": "2026-05-10",
       "total_units": 5,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-001",
@@ -19,7 +19,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-002",
@@ -28,7 +28,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-002",
@@ -37,7 +37,7 @@
       "date": "2026-05-11",
       "total_units": 6,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-003",
@@ -46,7 +46,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 12,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-003",
@@ -55,7 +55,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-004",
@@ -64,7 +64,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-004",
@@ -73,7 +73,7 @@
       "date": "2026-05-11",
       "total_units": 10,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-005",
@@ -82,7 +82,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-005",
@@ -91,7 +91,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-006",
@@ -100,7 +100,7 @@
       "date": "2026-05-10",
       "total_units": 9,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-006",
@@ -109,7 +109,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-007",
@@ -118,7 +118,7 @@
       "date": "2026-05-10",
       "total_units": 9,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-007",
@@ -127,7 +127,7 @@
       "date": "2026-05-11",
       "total_units": 11,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-008",
@@ -136,7 +136,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-008",
@@ -145,7 +145,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-009",
@@ -154,7 +154,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 13,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-009",
@@ -163,7 +163,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-010",
@@ -172,7 +172,7 @@
       "date": "2026-05-10",
       "total_units": 5,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-010",
@@ -181,7 +181,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-011",
@@ -190,7 +190,7 @@
       "date": "2026-05-10",
       "total_units": 8,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-011",
@@ -199,7 +199,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-012",
@@ -208,7 +208,7 @@
       "date": "2026-05-10",
       "total_units": 8,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-012",
@@ -217,7 +217,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-013",
@@ -226,7 +226,7 @@
       "date": "2026-05-10",
       "total_units": 9,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-013",
@@ -235,7 +235,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 12,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-014",
@@ -244,7 +244,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 13,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-014",
@@ -253,7 +253,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-015",
@@ -262,7 +262,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-015",
@@ -271,7 +271,7 @@
       "date": "2026-05-11",
       "total_units": 14,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-016",
@@ -280,7 +280,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-016",
@@ -289,7 +289,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-017",
@@ -298,7 +298,7 @@
       "date": "2026-05-10",
       "total_units": 7,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-017",
@@ -307,7 +307,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-018",
@@ -316,7 +316,7 @@
       "date": "2026-05-10",
       "total_units": 11,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-018",
@@ -325,7 +325,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-019",
@@ -334,7 +334,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 9,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-019",
@@ -343,7 +343,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-020",
@@ -352,7 +352,7 @@
       "date": "2026-05-10",
       "total_units": 8,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-020",
@@ -361,7 +361,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-021",
@@ -370,7 +370,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-021",
@@ -379,7 +379,7 @@
       "date": "2026-05-11",
       "total_units": 10,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-022",
@@ -388,7 +388,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-022",
@@ -397,7 +397,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 12,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-023",
@@ -406,7 +406,7 @@
       "date": "2026-05-10",
       "total_units": 9,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-023",
@@ -415,7 +415,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-024",
@@ -424,7 +424,7 @@
       "date": "2026-05-10",
       "total_units": 11,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-024",
@@ -433,7 +433,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-025",
@@ -442,7 +442,7 @@
       "date": "2026-05-10",
       "total_units": 9,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-025",
@@ -451,7 +451,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 15,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-026",
@@ -460,7 +460,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-026",
@@ -469,7 +469,7 @@
       "date": "2026-05-11",
       "total_units": 6,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-027",
@@ -478,7 +478,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 13,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-027",
@@ -487,7 +487,7 @@
       "date": "2026-05-11",
       "total_units": 6,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-028",
@@ -496,7 +496,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-028",
@@ -505,7 +505,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-029",
@@ -514,7 +514,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-029",
@@ -523,7 +523,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-030",
@@ -532,7 +532,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-030",
@@ -541,7 +541,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-031",
@@ -550,7 +550,7 @@
       "date": "2026-05-10",
       "total_units": 5,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-031",
@@ -559,7 +559,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-032",
@@ -568,7 +568,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-032",
@@ -577,7 +577,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-033",
@@ -586,7 +586,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-033",
@@ -595,7 +595,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-034",
@@ -604,7 +604,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-034",
@@ -613,7 +613,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-035",
@@ -622,7 +622,7 @@
       "date": "2026-05-10",
       "total_units": 7,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-035",
@@ -631,7 +631,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-036",
@@ -640,7 +640,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 11,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-036",
@@ -649,7 +649,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-037",
@@ -658,7 +658,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 9,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-037",
@@ -667,7 +667,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-038",
@@ -676,7 +676,7 @@
       "date": "2026-05-10",
       "total_units": 5,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-038",
@@ -685,7 +685,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-039",
@@ -694,7 +694,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 11,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-039",
@@ -703,7 +703,7 @@
       "date": "2026-05-11",
       "total_units": 14,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-040",
@@ -712,7 +712,7 @@
       "date": "2026-05-10",
       "total_units": 11,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-040",
@@ -721,7 +721,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-041",
@@ -730,7 +730,7 @@
       "date": "2026-05-10",
       "total_units": 9,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-041",
@@ -739,7 +739,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-042",
@@ -748,7 +748,7 @@
       "date": "2026-05-10",
       "total_units": 11,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-042",
@@ -757,7 +757,7 @@
       "date": "2026-05-11",
       "total_units": 14,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-043",
@@ -766,7 +766,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-043",
@@ -775,7 +775,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 9,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-044",
@@ -784,7 +784,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-044",
@@ -793,7 +793,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-045",
@@ -802,7 +802,7 @@
       "date": "2026-05-10",
       "total_units": 7,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-045",
@@ -811,7 +811,7 @@
       "date": "2026-05-11",
       "total_units": 11,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-046",
@@ -820,7 +820,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-046",
@@ -829,7 +829,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-047",
@@ -838,7 +838,7 @@
       "date": "2026-05-10",
       "total_units": 7,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-047",
@@ -847,7 +847,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-048",
@@ -856,7 +856,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-048",
@@ -865,7 +865,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-049",
@@ -874,7 +874,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-049",
@@ -883,7 +883,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-050",
@@ -892,7 +892,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-050",
@@ -901,7 +901,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 12,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-051",
@@ -910,7 +910,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-051",
@@ -919,7 +919,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-052",
@@ -928,7 +928,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-052",
@@ -937,7 +937,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-053",
@@ -946,7 +946,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 11,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-053",
@@ -955,7 +955,7 @@
       "date": "2026-05-11",
       "total_units": 10,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-054",
@@ -964,7 +964,7 @@
       "date": "2026-05-10",
       "total_units": 5,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-054",
@@ -973,7 +973,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-055",
@@ -982,7 +982,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-055",
@@ -991,7 +991,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 14,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-056",
@@ -1000,7 +1000,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-056",
@@ -1009,7 +1009,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-057",
@@ -1018,7 +1018,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-057",
@@ -1027,7 +1027,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-058",
@@ -1036,7 +1036,7 @@
       "date": "2026-05-10",
       "total_units": 9,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-058",
@@ -1045,7 +1045,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-059",
@@ -1054,7 +1054,7 @@
       "date": "2026-05-10",
       "total_units": 5,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-059",
@@ -1063,7 +1063,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-060",
@@ -1072,7 +1072,7 @@
       "date": "2026-05-10",
       "total_units": 11,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-060",
@@ -1081,7 +1081,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-061",
@@ -1090,7 +1090,7 @@
       "date": "2026-05-10",
       "total_units": 5,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-061",
@@ -1099,7 +1099,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-062",
@@ -1108,7 +1108,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-062",
@@ -1117,7 +1117,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-063",
@@ -1126,7 +1126,7 @@
       "date": "2026-05-10",
       "total_units": 9,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-063",
@@ -1135,7 +1135,7 @@
       "date": "2026-05-11",
       "total_units": 10,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-064",
@@ -1144,7 +1144,7 @@
       "date": "2026-05-10",
       "total_units": 11,
       "available_units": 11,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-064",
@@ -1153,7 +1153,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-065",
@@ -1162,7 +1162,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-065",
@@ -1171,7 +1171,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 11,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-066",
@@ -1180,7 +1180,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-066",
@@ -1189,7 +1189,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-067",
@@ -1198,7 +1198,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-067",
@@ -1207,7 +1207,7 @@
       "date": "2026-05-11",
       "total_units": 11,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-068",
@@ -1216,7 +1216,7 @@
       "date": "2026-05-10",
       "total_units": 11,
       "available_units": 9,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-068",
@@ -1225,7 +1225,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-069",
@@ -1234,7 +1234,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-069",
@@ -1243,7 +1243,7 @@
       "date": "2026-05-11",
       "total_units": 6,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-070",
@@ -1252,7 +1252,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 9,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-070",
@@ -1261,7 +1261,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-FINC-071",
@@ -1270,7 +1270,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 11,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-FINC-071",
@@ -1279,7 +1279,7 @@
       "date": "2026-05-11",
       "total_units": 11,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOTE-072",
@@ -1288,7 +1288,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOTE-072",
@@ -1297,7 +1297,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-APAR-073",
@@ -1306,7 +1306,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 9,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-APAR-073",
@@ -1315,7 +1315,7 @@
       "date": "2026-05-11",
       "total_units": 11,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-RESO-074",
@@ -1324,7 +1324,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-RESO-074",
@@ -1333,7 +1333,7 @@
       "date": "2026-05-11",
       "total_units": 6,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-CABA-075",
@@ -1342,7 +1342,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 12,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-CABA-075",
@@ -1351,7 +1351,7 @@
       "date": "2026-05-11",
       "total_units": 10,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOST-076",
@@ -1360,7 +1360,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOST-076",
@@ -1369,7 +1369,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-FINC-077",
@@ -1378,7 +1378,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-FINC-077",
@@ -1387,7 +1387,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOTE-078",
@@ -1396,7 +1396,7 @@
       "date": "2026-05-10",
       "total_units": 7,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOTE-078",
@@ -1405,7 +1405,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-APAR-079",
@@ -1414,7 +1414,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-APAR-079",
@@ -1423,7 +1423,7 @@
       "date": "2026-05-11",
       "total_units": 14,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-RESO-080",
@@ -1432,7 +1432,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-RESO-080",
@@ -1441,7 +1441,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 14,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-CABA-081",
@@ -1450,7 +1450,7 @@
       "date": "2026-05-10",
       "total_units": 10,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-CABA-081",
@@ -1459,7 +1459,7 @@
       "date": "2026-05-11",
       "total_units": 12,
       "available_units": 12,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOST-082",
@@ -1468,7 +1468,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOST-082",
@@ -1477,7 +1477,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-FINC-083",
@@ -1486,7 +1486,7 @@
       "date": "2026-05-10",
       "total_units": 11,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-FINC-083",
@@ -1495,7 +1495,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOTE-084",
@@ -1504,7 +1504,7 @@
       "date": "2026-05-10",
       "total_units": 8,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOTE-084",
@@ -1513,7 +1513,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-APAR-085",
@@ -1522,7 +1522,7 @@
       "date": "2026-05-10",
       "total_units": 7,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-APAR-085",
@@ -1531,7 +1531,7 @@
       "date": "2026-05-11",
       "total_units": 13,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-RESO-086",
@@ -1540,7 +1540,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-RESO-086",
@@ -1549,7 +1549,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-CABA-087",
@@ -1558,7 +1558,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-CABA-087",
@@ -1567,7 +1567,7 @@
       "date": "2026-05-11",
       "total_units": 14,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOST-088",
@@ -1576,7 +1576,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOST-088",
@@ -1585,7 +1585,7 @@
       "date": "2026-05-11",
       "total_units": 6,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-FINC-089",
@@ -1594,7 +1594,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 3,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-FINC-089",
@@ -1603,7 +1603,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOTE-090",
@@ -1612,7 +1612,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "MEX-HOTE-090",
@@ -1621,7 +1621,7 @@
       "date": "2026-05-11",
       "total_units": 15,
       "available_units": 10,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-091",
@@ -1630,7 +1630,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 11,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-091",
@@ -1639,7 +1639,7 @@
       "date": "2026-05-11",
       "total_units": 6,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-092",
@@ -1648,7 +1648,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 4,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-092",
@@ -1657,7 +1657,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-093",
@@ -1666,7 +1666,7 @@
       "date": "2026-05-10",
       "total_units": 15,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-093",
@@ -1675,7 +1675,7 @@
       "date": "2026-05-11",
       "total_units": 10,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-094",
@@ -1684,7 +1684,7 @@
       "date": "2026-05-10",
       "total_units": 8,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-094",
@@ -1693,7 +1693,7 @@
       "date": "2026-05-11",
       "total_units": 8,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-095",
@@ -1702,7 +1702,7 @@
       "date": "2026-05-10",
       "total_units": 8,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-FINC-095",
@@ -1711,7 +1711,7 @@
       "date": "2026-05-11",
       "total_units": 5,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-096",
@@ -1720,7 +1720,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 9,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOTE-096",
@@ -1729,7 +1729,7 @@
       "date": "2026-05-11",
       "total_units": 10,
       "available_units": 7,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-097",
@@ -1738,7 +1738,7 @@
       "date": "2026-05-10",
       "total_units": 13,
       "available_units": 2,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-APAR-097",
@@ -1747,7 +1747,7 @@
       "date": "2026-05-11",
       "total_units": 14,
       "available_units": 14,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-098",
@@ -1756,7 +1756,7 @@
       "date": "2026-05-10",
       "total_units": 6,
       "available_units": 0,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-RESO-098",
@@ -1765,7 +1765,7 @@
       "date": "2026-05-11",
       "total_units": 9,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-099",
@@ -1774,7 +1774,7 @@
       "date": "2026-05-10",
       "total_units": 12,
       "available_units": 8,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-CABA-099",
@@ -1783,7 +1783,7 @@
       "date": "2026-05-11",
       "total_units": 11,
       "available_units": 6,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-100",
@@ -1792,7 +1792,7 @@
       "date": "2026-05-10",
       "total_units": 14,
       "available_units": 1,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     },
     {
       "hotel_code": "COL-HOST-100",
@@ -1801,7 +1801,7 @@
       "date": "2026-05-11",
       "total_units": 7,
       "available_units": 5,
-      "last_modified": "2026-05-10T21:16:42.561903+00:00"
+      "last_modified": "2026-05-10T22:08:31.609578+00:00"
     }
   ]
 }

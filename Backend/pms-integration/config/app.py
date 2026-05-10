@@ -3,5 +3,5 @@ from api.router import router
 
 def create_app():
     app = FastAPI(title="PMS Integration Service")
-    app.include_router(router)
+    app.include_router(router, prefix="/api")
     return app

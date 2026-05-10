@@ -120,5 +120,33 @@
     "LOGOUT": "Déconnexion",
     "REGISTER": "S'inscrire",
     "LOGIN": "Se connecter"
+  },
+  "RESERVAS": {
+    "SEARCH_PLACEHOLDER": "Rechercher par nom du client ou ID de réservation...",
+    "FILTER_ALL_STATES": "Tous les statuts",
+    "FILTER_ALL_PAYMENTS": "Tous les paiements",
+    "COL_ACTIONS": "ACTIONS",
+    "COL_ID": "ID RÉSERVATION",
+    "COL_OWNER": "CLIENT",
+    "COL_ROOM": "CHAMBRE",
+    "COL_CHECKIN": "ARRIVÉE",
+    "COL_CHECKOUT": "DÉPART",
+    "COL_GUESTS": "VOYAGEURS",
+    "COL_STATUS": "STATUT",
+    "COL_PAYMENT": "PAIEMENT",
+    "COL_TOTAL": "TOTAL",
+    "LOADING": "Chargement des réservations...",
+    "LOAD_ERROR": "Impossible de charger les réservations.",
+    "EMPTY": "Aucune réservation trouvée.",
+    "BTN_VIEW": "Voir les détails",
+    "SHOWING": "Affichage de {{shown}} sur {{total}} réservations",
+    "PREV": "Précédent",
+    "NEXT": "Suivant",
+    "STATUS_CONFIRMADA": "Confirmée",
+    "STATUS_PENDIENTE": "En attente",
+    "STATUS_CANCELADA": "Annulée",
+    "PAYMENT_PAGO": "Payé",
+    "PAYMENT_REEMBOLSO": "Remboursé",
+    "PAYMENT_PENDIENTE": "En attente"
   }
 }

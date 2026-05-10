@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { ReservasService, ReservaPorPropiedadApi } from '../../../../core/services/reservas.service';
 
 export interface Reserva {
@@ -20,7 +21,7 @@ const PAGE_SIZE = 5;
 @Component({
     selector: 'app-reservas',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, TranslateModule],
     templateUrl: './reservas.component.html',
     styleUrl: './reservas.component.scss'
 })
@@ -30,6 +31,8 @@ export class ReservasComponent implements OnChanges {
 
     busqueda = '';
     filtroFecha = '';
+    filtroEstado = '';
+    filtroPago = '';
     paginaActual = 1;
     readonly tamanioPagina = PAGE_SIZE;
     loading = false;
@@ -53,7 +56,9 @@ export class ReservasComponent implements OnChanges {
             const coincideFecha = !this.filtroFecha ||
                 r.checkIn.toISOString().startsWith(this.filtroFecha) ||
                 r.checkOut.toISOString().startsWith(this.filtroFecha);
-            return coincideTexto && coincideFecha;
+            const coincideEstado = !this.filtroEstado || r.estado === this.filtroEstado;
+            const coincidePago = !this.filtroPago || r.pago === this.filtroPago;
+            return coincideTexto && coincideFecha && coincideEstado && coincidePago;
         });
     }
 
@@ -138,10 +143,10 @@ export class ReservasComponent implements OnChanges {
 
     private toPagoUi(value: string | null): 'Pago' | 'Reembolso' | 'Pendiente' {
         const pago = (value || '').toUpperCase();
-        if (pago === 'PAGO' || pago === 'PAGADO' || pago === 'PAID') {
+        if (pago === 'PAGO' || pago === 'PAGADO' || pago === 'PAID' || pago === 'APPROVED') {
             return 'Pago';
         }
-        if (pago === 'REEMBOLSO' || pago === 'REEMBOLSADO' || pago === 'REFUND') {
+        if (pago === 'REEMBOLSO' || pago === 'REEMBOLSADO' || pago === 'REFUND' || pago === 'REFUNDED') {
             return 'Reembolso';
         }
         return 'Pendiente';

@@ -120,5 +120,33 @@
     "LOGOUT": "Cerrar sesión",
     "REGISTER": "Registrarse",
     "LOGIN": "Iniciar sesión"
+  },
+  "RESERVAS": {
+    "SEARCH_PLACEHOLDER": "Buscar por nombre del huésped o ID de reserva...",
+    "FILTER_ALL_STATES": "Todos los estados",
+    "FILTER_ALL_PAYMENTS": "Todos los pagos",
+    "COL_ACTIONS": "ACCIONES",
+    "COL_ID": "ID RESERVA",
+    "COL_OWNER": "PROPIETARIO",
+    "COL_ROOM": "HABITACIÓN",
+    "COL_CHECKIN": "CHECK-IN",
+    "COL_CHECKOUT": "CHECK-OUT",
+    "COL_GUESTS": "HUÉSPEDES",
+    "COL_STATUS": "ESTADO",
+    "COL_PAYMENT": "PAGO",
+    "COL_TOTAL": "TOTAL",
+    "LOADING": "Cargando reservas...",
+    "LOAD_ERROR": "No fue posible cargar las reservas.",
+    "EMPTY": "No se encontraron reservas.",
+    "BTN_VIEW": "Ver Detalle",
+    "SHOWING": "Mostrando {{shown}} de {{total}} reservas",
+    "PREV": "Anterior",
+    "NEXT": "Siguiente",
+    "STATUS_CONFIRMADA": "Confirmada",
+    "STATUS_PENDIENTE": "Pendiente",
+    "STATUS_CANCELADA": "Cancelada",
+    "PAYMENT_PAGO": "Pago",
+    "PAYMENT_REEMBOLSO": "Reembolso",
+    "PAYMENT_PENDIENTE": "Pendiente"
   }
 }

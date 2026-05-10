@@ -120,5 +120,33 @@
     "LOGOUT": "Sign out",
     "REGISTER": "Register",
     "LOGIN": "Sign in"
+  },
+  "RESERVAS": {
+    "SEARCH_PLACEHOLDER": "Search by guest name or reservation ID...",
+    "FILTER_ALL_STATES": "All statuses",
+    "FILTER_ALL_PAYMENTS": "All payments",
+    "COL_ACTIONS": "ACTIONS",
+    "COL_ID": "RESERVATION ID",
+    "COL_OWNER": "GUEST",
+    "COL_ROOM": "ROOM",
+    "COL_CHECKIN": "CHECK-IN",
+    "COL_CHECKOUT": "CHECK-OUT",
+    "COL_GUESTS": "GUESTS",
+    "COL_STATUS": "STATUS",
+    "COL_PAYMENT": "PAYMENT",
+    "COL_TOTAL": "TOTAL",
+    "LOADING": "Loading reservations...",
+    "LOAD_ERROR": "Could not load reservations.",
+    "EMPTY": "No reservations found.",
+    "BTN_VIEW": "View Details",
+    "SHOWING": "Showing {{shown}} of {{total}} reservations",
+    "PREV": "Previous",
+    "NEXT": "Next",
+    "STATUS_CONFIRMADA": "Confirmed",
+    "STATUS_PENDIENTE": "Pending",
+    "STATUS_CANCELADA": "Cancelled",
+    "PAYMENT_PAGO": "Paid",
+    "PAYMENT_REEMBOLSO": "Refunded",
+    "PAYMENT_PENDIENTE": "Pending"
   }
 }

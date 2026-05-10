@@ -3,6 +3,7 @@ from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarRese
 from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ObtenerReservasPorUsuarioHandler, ExpirarReservaHandler, CancelarReservaLocalHandler
 from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
 from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
+from modulos.reserva.infraestructura.auth_client import AuthServiceClient
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
 from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
 from config.uow import UnidadTrabajoHibrida
@@ -265,6 +266,11 @@ def obtener_reservas_por_propiedad(id_propiedad):
         with uow:
             reservas = repositorio.obtener_por_categorias(ids_categoria)
 
+        # Resolver nombres únicos desde authservice (una llamada por usuario único)
+        auth_client = AuthServiceClient()
+        ids_usuario = list({str(r.usuario.id) for r in reservas if r.usuario and r.usuario.id})
+        nombre_por_usuario = {uid: auth_client.get_full_name(uid) for uid in ids_usuario}
+
         resultado = []
 
         for reserva in reservas:
@@ -280,9 +286,12 @@ def obtener_reservas_por_propiedad(id_propiedad):
                     + (reserva.ocupacion.infantes or 0)
                 )
 
+            id_usuario = str(reserva.usuario.id) if reserva.usuario and reserva.usuario.id else None
+
             resultado.append({
                 "id_reserva": str(reserva.id),
-                "id_usuario": str(reserva.usuario.id) if reserva.usuario and reserva.usuario.id else None,
+                "id_usuario": id_usuario,
+                "nombre_usuario": nombre_por_usuario.get(id_usuario) if id_usuario else None,
                 "id_propiedad": id_propiedad,
                 "id_categoria": id_categoria,
                 "habitacion": categoria_a_nombre.get(id_categoria),

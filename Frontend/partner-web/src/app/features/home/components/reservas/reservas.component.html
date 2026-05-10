@@ -7,14 +7,23 @@
             <input
                 type="text"
                 class="search-input"
-                placeholder="Buscar por nombre del huésped o ID de reserva..."
+                [placeholder]="'RESERVAS.SEARCH_PLACEHOLDER' | translate"
                 [(ngModel)]="busqueda"
                 (ngModelChange)="onBusqueda()"
             />
         </div>
-        <button type="button" class="filter-btn" title="Filtrar">
-            <span>⊟</span>
-        </button>
+        <select class="select-filter" [(ngModel)]="filtroEstado" (ngModelChange)="onBusqueda()">
+            <option value="">{{ 'RESERVAS.FILTER_ALL_STATES' | translate }}</option>
+            <option value="Confirmada">{{ 'RESERVAS.STATUS_CONFIRMADA' | translate }}</option>
+            <option value="Pendiente">{{ 'RESERVAS.STATUS_PENDIENTE' | translate }}</option>
+            <option value="Cancelada">{{ 'RESERVAS.STATUS_CANCELADA' | translate }}</option>
+        </select>
+        <select class="select-filter" [(ngModel)]="filtroPago" (ngModelChange)="onBusqueda()">
+            <option value="">{{ 'RESERVAS.FILTER_ALL_PAYMENTS' | translate }}</option>
+            <option value="Pago">{{ 'RESERVAS.PAYMENT_PAGO' | translate }}</option>
+            <option value="Reembolso">{{ 'RESERVAS.PAYMENT_REEMBOLSO' | translate }}</option>
+            <option value="Pendiente">{{ 'RESERVAS.PAYMENT_PENDIENTE' | translate }}</option>
+        </select>
         <input
             type="date"
             class="date-filter"
@@ -28,31 +37,31 @@
         <table class="reservas-table">
             <thead>
                 <tr>
-                    <th>ACCIONES</th>
-                    <th>ID RESERVA</th>
-                    <th>PROPIETARIO</th>
-                    <th>HABITACIÓN</th>
-                    <th>CHECK-IN</th>
-                    <th>CHECK-OUT</th>
-                    <th>HUÉSPEDES</th>
-                    <th>ESTADO</th>
-                    <th>PAGO</th>
-                    <th>TOTAL</th>
+                    <th>{{ 'RESERVAS.COL_ACTIONS' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_ID' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_OWNER' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_ROOM' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_CHECKIN' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_CHECKOUT' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_GUESTS' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_STATUS' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_PAYMENT' | translate }}</th>
+                    <th>{{ 'RESERVAS.COL_TOTAL' | translate }}</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngIf="loading">
-                    <td colspan="10" class="empty-row">Cargando reservas...</td>
+                    <td colspan="10" class="empty-row">{{ 'RESERVAS.LOADING' | translate }}</td>
                 </tr>
 
                 <tr *ngIf="!loading && loadError">
-                    <td colspan="10" class="empty-row">No fue posible cargar las reservas.</td>
+                    <td colspan="10" class="empty-row">{{ 'RESERVAS.LOAD_ERROR' | translate }}</td>
                 </tr>
 
                 <tr *ngFor="let reserva of reservasPagina">
                     <td>
                         <button type="button" class="btn-ver-detalle" (click)="verDetalle(reserva)">
-                            👁 Ver Detalle
+                            👁 {{ 'RESERVAS.BTN_VIEW' | translate }}
                         </button>
                     </td>
                     <td class="cell-id">{{ reserva.id }}</td>
@@ -63,19 +72,19 @@
                     <td class="cell-huespedes">{{ reserva.huespedes }}</td>
                     <td>
                         <span class="badge" [ngClass]="estadoClass(reserva.estado)">
-                            {{ reserva.estado }}
+                            {{ ('RESERVAS.STATUS_' + reserva.estado.toUpperCase()) | translate }}
                         </span>
                     </td>
                     <td>
                         <span class="badge" [ngClass]="pagoClass(reserva.pago)">
-                            {{ reserva.pago }}
+                            {{ ('RESERVAS.PAYMENT_' + reserva.pago.toUpperCase()) | translate }}
                         </span>
                     </td>
                     <td class="cell-total">${{ reserva.total }}</td>
                 </tr>
 
                 <tr *ngIf="!loading && !loadError && reservasPagina.length === 0">
-                    <td colspan="10" class="empty-row">No se encontraron reservas.</td>
+                    <td colspan="10" class="empty-row">{{ 'RESERVAS.EMPTY' | translate }}</td>
                 </tr>
             </tbody>
         </table>
@@ -84,7 +93,7 @@
     <!-- Pie de tabla: conteo + paginación -->
     <div class="reservas-footer">
         <span class="reservas-count">
-            Mostrando {{ reservasPagina.length }} de {{ reservasFiltradas.length }} reservas
+            {{ 'RESERVAS.SHOWING' | translate:{ shown: reservasPagina.length, total: reservasFiltradas.length } }}
         </span>
 
         <div class="pagination">
@@ -94,7 +103,7 @@
                 [disabled]="paginaActual === 1"
                 (click)="irAPagina(paginaActual - 1)"
             >
-                Anterior
+                {{ 'RESERVAS.PREV' | translate }}
             </button>
 
             <button
@@ -113,7 +122,7 @@
                 [disabled]="paginaActual === totalPaginas"
                 (click)="irAPagina(paginaActual + 1)"
             >
-                Siguiente
+                {{ 'RESERVAS.NEXT' | translate }}
             </button>
         </div>
     </div>

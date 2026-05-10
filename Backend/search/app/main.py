@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import threading
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
@@ -20,6 +21,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Initialize the repositories required by the service."""
     os_client = None
     pg_pool = None
+
+    # Capturar el loop principal para ejecutar corutinas desde el hilo del consumer
+    main_loop = asyncio.get_running_loop()
 
     if settings.use_postgres_database:
         import asyncpg
@@ -92,7 +96,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     
     if settings.enable_events:
         def event_handler_wrapper(data, routing_key):
-            handle_event(data, routing_key, pg_pool)
+            handle_event(data, routing_key, pg_pool, main_loop)
         
         consumer = RabbitMQConsumer(event_handler_wrapper)
         consumer_thread = threading.Thread(target=consumer.start, daemon=True)

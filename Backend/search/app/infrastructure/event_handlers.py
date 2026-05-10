@@ -51,38 +51,56 @@ async def _update_postgres_availability(pool: Any, id_categoria: UUID, fecha: da
     """
     Actualiza disponibilidad en PostgreSQL usando JSONB.
     
+    La columna disponibilidad es una lista de objetos {"fecha": "YYYY-MM-DD", "cupos": N}.
+    La lógica es:
+      1. Filtrar y eliminar el objeto con la fecha indicada (si existe).
+      2. Si cupos > 0: agregar el nuevo objeto {"fecha": ..., "cupos": ...}.
+      3. Si cupos == 0: solo eliminar (la fecha queda sin disponibilidad).
+    Las demás fechas del array quedan intactas.
+    
     Args:
         pool: Pool de conexiones asyncpg
         id_categoria: UUID de la categoría
         fecha: Fecha del inventario
         cupos: Cupos disponibles
     """
+    fecha_str = fecha.isoformat()
     async with pool.acquire() as conn:
         if cupos == 0:
+            # Eliminar el objeto con esa fecha; el resto del array queda intacto
             await conn.execute(
                 """
                 UPDATE search.hospedajes
-                SET disponibilidad = disponibilidad - $1
-                WHERE id_categoria = $2
+                SET disponibilidad = (
+                    SELECT COALESCE(jsonb_agg(elem ORDER BY elem->>'fecha'), '[]'::jsonb)
+                    FROM jsonb_array_elements(disponibilidad) AS elem
+                    WHERE elem->>'fecha' != $1::text
+                )
+                WHERE id_categoria = $2::uuid
                 """,
-                fecha.isoformat(),
-                id_categoria
+                fecha_str,
+                id_categoria,
             )
             print(f"[SEARCH] Fecha {fecha} eliminada del array (cupos=0)")
         else:
+            # Eliminar objeto existente con esa fecha y agregar el actualizado
             await conn.execute(
                 """
                 UPDATE search.hospedajes
-                SET disponibilidad = CASE
-                    WHEN disponibilidad ? $1 THEN disponibilidad
-                    ELSE disponibilidad || jsonb_build_array($1)
-                END
-                WHERE id_categoria = $2
+                SET disponibilidad = (
+                    SELECT COALESCE(jsonb_agg(elem ORDER BY elem->>'fecha'), '[]'::jsonb)
+                    FROM jsonb_array_elements(disponibilidad) AS elem
+                    WHERE elem->>'fecha' != $1::text
+                ) || jsonb_build_array(
+                    jsonb_build_object('fecha', $1::text, 'cupos', $3::int)
+                )
+                WHERE id_categoria = $2::uuid
                 """,
-                fecha.isoformat(),
-                id_categoria
+                fecha_str,
+                id_categoria,
+                cupos,
             )
-            print(f"[SEARCH] Fecha {fecha} agregada/mantenida en array (cupos={cupos})")
+            print(f"[SEARCH] Disponibilidad actualizada: {fecha} -> {cupos} cupos")
 
 
 async def _update_sqlite_availability(id_categoria: UUID, fecha: date, cupos: int) -> None:
@@ -116,15 +134,15 @@ async def _update_sqlite_availability(id_categoria: UUID, fecha: date, cupos: in
         disponibilidad = json.loads(row[0]) if row[0] else []
         fecha_str = fecha.isoformat()
         
+        # Filtrar el objeto existente con esa fecha; el resto queda intacto
+        disponibilidad = [elem for elem in disponibilidad if isinstance(elem, dict) and elem.get("fecha") != fecha_str]
+        
         if cupos == 0:
-            if fecha_str in disponibilidad:
-                disponibilidad.remove(fecha_str)
-                print(f"[SEARCH] Fecha {fecha} eliminada del array (cupos=0)")
+            print(f"[SEARCH] Fecha {fecha} eliminada del array (cupos=0)")
         else:
-            if fecha_str not in disponibilidad:
-                disponibilidad.append(fecha_str)
-                disponibilidad.sort()
-                print(f"[SEARCH] Fecha {fecha} agregada al array (cupos={cupos})")
+            disponibilidad.append({"fecha": fecha_str, "cupos": cupos})
+            disponibilidad.sort(key=lambda e: e["fecha"])
+            print(f"[SEARCH] Disponibilidad actualizada: {fecha} -> {cupos} cupos")
         
         cursor.execute(
             "UPDATE hospedajes SET disponibilidad = ? WHERE id_categoria = ?",
@@ -216,20 +234,40 @@ async def _update_sqlite_pricing(id_categoria: UUID, precio: float, moneda: str)
         conn.close()
 
 
-def handle_event(data: dict[str, Any], routing_key: str, pool: Any = None) -> None:
+def handle_event(data: dict[str, Any], routing_key: str, pool: Any = None, loop: Any = None) -> None:
     """
     Router de eventos que delega al handler apropiado.
+    
+    Cuando se invoca desde un hilo daemon (consumer de RabbitMQ), se debe
+    pasar el loop principal para usar run_coroutine_threadsafe y evitar el
+    CancelledError que ocurre al llamar asyncio.run() desde un hilo diferente
+    al que creó el pool de asyncpg.
     
     Args:
         data: Payload del evento
         routing_key: Routing key del mensaje
         pool: Pool de conexiones (solo para PostgreSQL)
+        loop: Event loop principal de la aplicación (opcional)
     """
     event_type = data.get("type", "unknown")
     
+    coro = None
     if routing_key == "catalog.inventory.updated" or event_type == "InventarioActualizado":
-        asyncio.run(handle_inventory_updated(data, pool))
+        coro = handle_inventory_updated(data, pool)
     elif routing_key == "catalog.category.pricing.updated" or event_type == "TarifasActualizadas":
-        asyncio.run(handle_pricing_updated(data, pool))
+        coro = handle_pricing_updated(data, pool)
     else:
         print(f"[SEARCH] Evento no reconocido: {event_type} / {routing_key}")
+        return
+    
+    if loop and loop.is_running():
+        # Ejecutar la corutina en el loop principal desde el hilo del consumer
+        future = asyncio.run_coroutine_threadsafe(coro, loop)
+        try:
+            future.result(timeout=10)
+        except Exception as e:
+            print(f"[SEARCH] Error en tarea asíncrona del evento: {e}")
+            raise
+    else:
+        # Fallback para ejecución directa (tests, scripts)
+        asyncio.run(coro)

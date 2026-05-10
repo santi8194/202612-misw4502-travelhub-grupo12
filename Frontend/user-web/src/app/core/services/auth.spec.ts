@@ -148,5 +148,29 @@ describe('AuthService', () => {
       service.clearSession();
       expect(service.isLoggedIn()).toBeFalse();
     });
+
+    it('should expire session after inactivity timeout', () => {
+      service.saveSession(mockTokens, 'juan@ejemplo.com');
+
+      const staleTimestamp = Date.now() - (16 * 60 * 1000);
+      localStorage.setItem('th_last_activity_at', String(staleTimestamp));
+
+      expect(service.isLoggedIn()).toBeFalse();
+      expect(localStorage.getItem('th_access_token')).toBeNull();
+    });
+
+    it('should refresh last activity timestamp when reading current session', () => {
+      service.saveSession(mockTokens, 'juan@ejemplo.com');
+
+      const staleTimestamp = Date.now() - (5 * 60 * 1000);
+      localStorage.setItem('th_last_activity_at', String(staleTimestamp));
+
+      const before = Number(localStorage.getItem('th_last_activity_at'));
+      const session = service.getCurrentSession();
+      const after = Number(localStorage.getItem('th_last_activity_at'));
+
+      expect(session).toBeTruthy();
+      expect(after).toBeGreaterThanOrEqual(before);
+    });
   });
 });

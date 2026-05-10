@@ -34,29 +34,72 @@ export class AuthLoginPage {
     password: false,
   });
 
+  errorMessages = signal({
+    email: '',
+    password: '',
+  });
+
+  private touched = signal({
+    email: false,
+    password: false,
+  });
+
   togglePassword(): void {
     this.showPassword.update(value => !value);
   }
 
-  updateField(field: 'email' | 'password', value: string): void {
-    this.form.update(current => ({
-      ...current,
-      [field]: value,
-    }));
+  onGoogleSignIn(): void {
+    alert('La autenticación con Google no está disponible en este momento. Por favor, usa el formulario de inicio de sesión.');
+  }
 
-    this.errors.update(current => ({
-      ...current,
-      [field]: false,
-    }));
+  onRememberMe(): void {
+    alert('La funcionalidad de "Recuérdame" no está disponible en este momento.');
+  }
+
+  onForgotPassword(): void {
+    alert('La funcionalidad de recuperación de contraseña no está disponible en este momento.');
+  }
+
+  updateField(field: 'email' | 'password', value: string): void {
+    this.form.update(current => ({ ...current, [field]: value }));
+    if (this.touched()[field]) {
+      this.validateSingleField(field, value);
+    }
+  }
+
+  markTouched(field: 'email' | 'password'): void {
+    this.touched.update(t => ({ ...t, [field]: true }));
+    this.validateSingleField(field, this.form()[field]);
+  }
+
+  private validateSingleField(field: 'email' | 'password', value: string): void {
+    let hasError = false;
+    let message = '';
+
+    if (field === 'email') {
+      if (!value.trim()) {
+        hasError = true;
+        message = 'El correo es obligatorio.';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+        hasError = true;
+        message = 'Ingresa un correo válido (ej: tu@ejemplo.com).';
+      }
+    } else if (field === 'password') {
+      if (!value.trim()) {
+        hasError = true;
+        message = 'La contraseña es obligatoria.';
+      }
+    }
+
+    this.errors.update(e => ({ ...e, [field]: hasError }));
+    this.errorMessages.update(m => ({ ...m, [field]: message }));
   }
 
   private validateForm(): boolean {
     const f = this.form();
+    this.touched.set({ email: true, password: true });
 
-    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      f.email.trim()
-    );
-
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim());
     const passwordValid = !!f.password.trim();
 
     const nextErrors = {
@@ -65,6 +108,10 @@ export class AuthLoginPage {
     };
 
     this.errors.set(nextErrors);
+    this.errorMessages.set({
+      email: !emailValid ? (!f.email.trim() ? 'El correo es obligatorio.' : 'Ingresa un correo válido (ej: tu@ejemplo.com).') : '',
+      password: !passwordValid ? 'La contraseña es obligatoria.' : '',
+    });
 
     return !Object.values(nextErrors).some(Boolean);
   }

@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from data.user import UserInDB
+from schemas.user import UserInDB
 
 
 @pytest.fixture

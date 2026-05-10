@@ -8,7 +8,7 @@ from typing import Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from data.auth import (
+from schemas.auth import (
     ConfirmRegisterRequest,
     LoginRequest,
     MessageResponse,
@@ -17,7 +17,7 @@ from data.auth import (
     RegisterResponse,
     Token,
 )
-from data.user import UserResponse
+from schemas.user import UserResponse
 from modules.auth_service import AuthService
 from modules.user_service import UserService
 from api.dependencies.auth import get_current_user
@@ -115,7 +115,7 @@ def read_users_me(current_user: UserResponse = Depends(get_current_user)) -> Any
 @router.get("/users/{id_usuario}", response_model=UserResponse)
 def read_user_by_id(
     id_usuario: UUID,
-    _current_user: UserResponse = Depends(get_current_user),
+    current_user: UserResponse = Depends(get_current_user),
 ) -> Any:
     """
     Endpoint: Obtiene los datos de un usuario por id para integraciones internas autenticadas.
@@ -125,6 +125,13 @@ def read_user_by_id(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Usuario no encontrado",
+        )
+
+    # Restriccion de acceso: un usuario autenticado solo puede consultar su propia cuenta.
+    if user.id_usuario != current_user.id_usuario:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permisos para consultar este usuario",
         )
 
     return UserResponse(

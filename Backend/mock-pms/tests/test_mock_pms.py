@@ -71,7 +71,7 @@ def test_force_webhook_exitoso():
     mock_async_client.__aexit__ = AsyncMock(return_value=None)
 
     with patch("main.httpx.AsyncClient", return_value=mock_async_client):
-        response = client.post("/force-webhook?hotel_code=COL-APAR-001&cupos=3")
+        response = client.post("/force-webhook?hotel_code=COL-APAR-001&cupos=3&fecha=2026-06-01")
 
     assert response.status_code == 200
     body = response.json()
@@ -91,7 +91,7 @@ def test_force_webhook_connect_error():
     mock_async_client.__aexit__ = AsyncMock(return_value=None)
 
     with patch("main.httpx.AsyncClient", return_value=mock_async_client):
-        response = client.post("/force-webhook?hotel_code=COL-APAR-001&cupos=0")
+        response = client.post("/force-webhook?hotel_code=COL-APAR-001&cupos=0&fecha=2026-06-01")
 
     assert response.status_code == 503
     assert "pms-integration" in response.json()["detail"]

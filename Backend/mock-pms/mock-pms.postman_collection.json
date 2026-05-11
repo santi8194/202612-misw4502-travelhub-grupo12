@@ -57,7 +57,7 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "{{url}}/force-webhook?hotel_code=CAT-HOTEL-01&cupos=0",
+					"raw": "{{url}}/force-webhook?hotel_code=CAT-HOTEL-01&cupos=0&fecha=2026-06-01",
 					"host": [
 						"{{url}}"
 					],
@@ -74,6 +74,11 @@
 							"key": "cupos",
 							"value": "0",
 							"description": "Cupos disponibles a reportar (0 = habitación llena)"
+						},
+						{
+							"key": "fecha",
+							"value": "2026-06-01",
+							"description": "Fecha de disponibilidad a actualizar (YYYY-MM-DD)"
 						}
 					]
 				},

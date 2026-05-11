@@ -81,7 +81,11 @@ def get_inventory_changes(
 
 
 @app.post("/force-webhook")
-async def force_webhook(hotel_code: str = "CAT-HOTEL-01", cupos: int = 0):
+async def force_webhook(
+    hotel_code: str = "CAT-HOTEL-01",
+    cupos: int = 0,
+    fecha: str = Query(..., description="Fecha de disponibilidad a actualizar (YYYY-MM-DD)"),
+):
     """Dispara manualmente un webhook hacia pms-integration.
 
     Útil para simular en Postman que un hotel marca una habitación como ocupada.
@@ -101,7 +105,7 @@ async def force_webhook(hotel_code: str = "CAT-HOTEL-01", cupos: int = 0):
     webhook_payload = {
         "hotel_code": item["hotel_code"],
         "room_type_code": item["room_type_code"],
-        "date": item["date"],
+        "date": fecha,
         "total_units": item["total_units"],
         "available_units": cupos,
         "last_modified": datetime.now(timezone.utc).isoformat(),

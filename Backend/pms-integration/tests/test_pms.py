@@ -147,7 +147,7 @@ def test_router_health_endpoint():
     response = _client().get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "PMS Integration Service running"}
+    assert response.json() == {"status": "ok", "service": "pms-integration"}
 
 
 def test_router_cancelar_reserva_delegates_command(monkeypatch):
@@ -160,7 +160,7 @@ def test_router_cancelar_reserva_delegates_command(monkeypatch):
 
     monkeypatch.setattr(router_module, "CancelReservation", FakeCancelReservation)
 
-    response = _client().post("/cancelar-reserva", json={"id_reserva": "res-10"})
+    response = _client().post("/api/cancelar-reserva", json={"id_reserva": "res-10"})
 
     assert response.status_code == 200
     assert response.json() == {"reservation_id": "res-10", "state": "CANCELLED"}
@@ -182,7 +182,7 @@ def test_router_confirmar_reserva_delegates_command(monkeypatch):
     monkeypatch.setattr(router_module, "ConfirmReservation", FakeConfirmReservation)
 
     response = _client().post(
-        "/confirmar-reserva",
+        "/api/confirmar-reserva",
         json={
             "id_reserva": "res-11",
             "id_habitacion": "room-11",

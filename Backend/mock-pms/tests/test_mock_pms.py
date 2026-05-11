@@ -54,7 +54,7 @@ def test_get_inventory_changes_since_invalido():
 
 def test_force_webhook_hotel_no_encontrado():
     """Hotel code inexistente retorna 404."""
-    response = client.post("/force-webhook?hotel_code=HOTEL-INEXISTENTE&cupos=0")
+    response = client.post("/force-webhook?hotel_code=HOTEL-INEXISTENTE&cupos=0&fecha=2026-06-01")
     assert response.status_code == 404
 
 

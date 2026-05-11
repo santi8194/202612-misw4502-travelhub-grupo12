@@ -2,13 +2,14 @@ import { Component, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Hospedaje } from '../../../models/hospedaje.interface';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 const MAX_AMENIDADES_VISIBLES = 3;
 
 @Component({
   selector: 'app-hospedaje-card',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslatePipe],
   templateUrl: './hospedaje-card.html',
   styleUrl: './hospedaje-card.css',
 })

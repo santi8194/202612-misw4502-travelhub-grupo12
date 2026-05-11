@@ -8,11 +8,13 @@ import { AuthService, UserProfile } from '../../../core/services/auth';
 import { NotificationService } from '../../../core/services/notification';
 import { BookingStore } from '../../../core/store/booking-store';
 import { BookingService } from '../../../core/services/booking';
+import { I18nService, LanguageCode } from '../../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [SearchBarComponent, CompactSearchBarComponent, RouterLink],
+  imports: [SearchBarComponent, CompactSearchBarComponent, RouterLink, TranslatePipe],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })
@@ -23,14 +25,17 @@ export class HeaderComponent {
   private readonly notificationService = inject(NotificationService);
   private readonly bookingStore = inject(BookingStore);
   private readonly bookingService = inject(BookingService);
+  protected readonly i18n = inject(I18nService);
 
   mode = input<'default' | 'compact'>('default');
   profileMenuOpen = signal(false);
+  languageMenuOpen = signal(false);
   userProfile = signal<UserProfile | null>(null);
   isLoadingProfile = signal(false);
   
   readonly userSession = computed(() => this.authService.session());
   readonly isAuthenticated = computed(() => !!this.userSession());
+  readonly supportedLanguages = this.i18n.supportedLanguages;
 
   constructor() {
     this.syncUserSession();
@@ -39,6 +44,7 @@ export class HeaderComponent {
   toggleProfileMenu(event?: Event): void {
     event?.stopPropagation();
     this.syncUserSession();
+    this.languageMenuOpen.set(false);
     
     if (!this.profileMenuOpen()) {
       this.loadUserProfile();
@@ -51,6 +57,21 @@ export class HeaderComponent {
     this.profileMenuOpen.set(false);
   }
 
+  toggleLanguageMenu(event?: Event): void {
+    event?.stopPropagation();
+    this.profileMenuOpen.set(false);
+    this.languageMenuOpen.update(open => !open);
+  }
+
+  closeLanguageMenu(): void {
+    this.languageMenuOpen.set(false);
+  }
+
+  setLanguage(language: LanguageCode): void {
+    this.i18n.setLanguage(language);
+    this.closeLanguageMenu();
+  }
+
   logout(): void {
     const reservationId = this.extractReservationId(this.router.url);
 
@@ -59,7 +80,7 @@ export class HeaderComponent {
       this.userProfile.set(null);
       this.clearBookingStorage();
       this.closeProfileMenu();
-      this.notificationService.showSuccess('Tu sesión ha sido cerrada exitosamente.');
+      this.notificationService.showSuccess(this.i18n.translate('auth.login.logoutSuccess'));
       this.router.navigate(['/'], { replaceUrl: true });
     };
 
@@ -141,6 +162,7 @@ export class HeaderComponent {
     const target = event.target as Node | null;
     if (target && !this.hostElement.nativeElement.contains(target)) {
       this.closeProfileMenu();
+      this.closeLanguageMenu();
     }
   }
 

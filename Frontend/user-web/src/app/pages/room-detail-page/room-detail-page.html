@@ -14,7 +14,7 @@
     } @else if (error()) {
       <section class="state-card state-card--error" data-testid="room-detail-error">
         <p>{{ error() }}</p>
-        <a routerLink="/resultados" class="back-link">← Volver a resultados</a>
+        <a routerLink="/resultados" class="back-link">← {{ 'room.backToResults' | translate }}</a>
       </section>
     } @else if (roomDetail()) {
 
@@ -31,7 +31,7 @@
             {{ roomDetail()!.rating_promedio }}
           </span>
           <span class="room-meta__dot">·</span>
-          <a class="room-meta__reviews" href="#room-reviews">{{ roomDetail()!.total_resenas }} reseñas</a>
+          <a class="room-meta__reviews" href="#room-reviews">{{ roomDetail()!.total_resenas }} {{ 'room.reviews' | translate }}</a>
           <span class="room-meta__dot">·</span>
           <span class="room-meta__location">
             {{ roomDetail()!.propiedad.ubicacion.ciudad }},
@@ -73,7 +73,7 @@
           <div class="room-info-top" data-testid="room-info-top">
             <div class="room-info-top__text">
               <p class="room-info-top__title">{{ roomDetail()!.propiedad.nombre }}</p>
-              <p class="room-info-top__sub">{{ roomDetail()!.categoria.capacidad_pax }} huéspedes</p>
+              <p class="room-info-top__sub">{{ roomDetail()!.categoria.capacidad_pax }} {{ 'room.guests' | translate }}</p>
             </div>
           </div>
           <hr class="room-divider-sm" />
@@ -85,7 +85,7 @@
             </p>
             @if (roomDetail()!.categoria.descripcion.length > 240) {
               <button class="room-description__toggle" (click)="toggleDescription()">
-                {{ descriptionExpanded() ? 'Ver menos' : 'Ver más' }}
+                {{ descriptionExpanded() ? ('room.showLess' | translate) : ('room.showMore' | translate) }}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-chevron" [class.icon-chevron--up]="descriptionExpanded()">
                   <path d="M9 18l6-6-6-6"/>
                 </svg>
@@ -96,7 +96,7 @@
 
           <!-- Amenities -->
           <div class="room-amenities" data-testid="room-amenities">
-            <h2 class="room-section-title">Amenidades</h2>
+            <h2 class="room-section-title">{{ 'room.amenities' | translate }}</h2>
             <div class="amenities-grid">
               @for (amenidad of roomDetail()!.amenidades; track amenidad.id_amenidad) {
                 <div class="amenity-item" data-testid="room-amenity-item">
@@ -119,7 +119,7 @@
                 <span class="booking-box__price-amount">
                   {{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }}
                 </span>
-                <span class="booking-box__price-label">/ noche</span>
+                <span class="booking-box__price-label">{{ 'room.perNight' | translate }}</span>
               </div>
               <div class="booking-box__rating">
                 <svg class="icon-star icon-star--sm" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -127,7 +127,7 @@
                 </svg>
                 {{ roomDetail()!.rating_promedio }}
                 <span class="booking-box__dot">·</span>
-                <span class="booking-box__reviews">{{ roomDetail()!.total_resenas }} reseñas</span>
+                <span class="booking-box__reviews">{{ roomDetail()!.total_resenas }} {{ 'room.reviews' | translate }}</span>
               </div>
             </div>
 
@@ -135,7 +135,7 @@
             <div class="booking-box__fields" data-testid="room-booking-fields">
               <div class="booking-box__dates">
                 <label class="booking-box__field booking-box__field--left">
-                  <span class="booking-box__field-label">ENTRADA</span>
+                  <span class="booking-box__field-label">{{ 'room.checkIn' | translate }}</span>
                   <input
                     type="date"
                     class="booking-box__field-input"
@@ -145,7 +145,7 @@
                   />
                 </label>
                 <label class="booking-box__field booking-box__field--right">
-                  <span class="booking-box__field-label">SALIDA</span>
+                  <span class="booking-box__field-label">{{ 'room.checkOut' | translate }}</span>
                   <input
                     type="date"
                     class="booking-box__field-input"
@@ -156,7 +156,7 @@
                 </label>
               </div>
               <label class="booking-box__guests" data-testid="room-guests-field">
-                <span class="booking-box__field-label">HUÉSPEDES</span>
+                <span class="booking-box__field-label">{{ 'room.guestsLabel' | translate }}</span>
                 <div class="booking-box__guests-inner">
                   <input
                     type="number"
@@ -180,11 +180,11 @@
               (click)="reservar()"
               data-testid="room-reservar-btn"
             >
-              {{ creatingBooking() ? 'Reservando...' : 'Reservar' }}
+              {{ creatingBooking() ? ('room.reserving' | translate) : ('room.reserve' | translate) }}
             </button>
 
             @if (!canReserve() && !creatingBooking()) {
-              <p class="booking-box__hint">Aún no se te cobrará</p>
+              <p class="booking-box__hint">{{ 'room.noChargeYet' | translate }}</p>
             }
 
             @if (error()) {
@@ -201,24 +201,24 @@
             } @else if (roomPrice()) {
               <div class="booking-box__breakdown" data-testid="room-price-breakdown">
                 <div class="booking-box__breakdown-row">
-                  <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ roomPrice()!.noches }} noches</span>
+                  <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ roomPrice()!.noches }} {{ 'room.nights' | translate }}</span>
                   <span>{{ currencySymbol() }} {{ formatCurrency(subtotal()) }}</span>
                 </div>
                 @if (impuestos() > 0) {
                   <div class="booking-box__breakdown-row" data-testid="room-impuestos-row">
-                    <span>Impuesto {{ impuestoNombre() }}</span>
+                    <span>{{ 'room.tax' | translate:{ name: impuestoNombre() } }}</span>
                     <span>{{ currencySymbol() }} {{ formatCurrency(impuestos()) }}</span>
                   </div>
                 }
                 @if (cargoServicio() > 0) {
                   <div class="booking-box__breakdown-row" data-testid="room-cargo-servicio-row">
-                    <span>Tarifa del servicio</span>
+                    <span>{{ 'room.serviceFee' | translate }}</span>
                     <span>{{ currencySymbol() }} {{ formatCurrency(cargoServicio()) }}</span>
                   </div>
                 }
                 <hr class="booking-box__breakdown-divider" />
                 <div class="booking-box__breakdown-row booking-box__breakdown-row--total">
-                  <span>Total</span>
+                  <span>{{ 'room.total' | translate }}</span>
                   <span>{{ currencySymbol() }} {{ formatCurrency(total()) }}</span>
                 </div>
               </div>

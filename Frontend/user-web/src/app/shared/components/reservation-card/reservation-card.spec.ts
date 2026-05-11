@@ -114,7 +114,7 @@ describe('ReservationCardComponent', () => {
   it('should display formatted price when monto_total is set', async () => {
     await setup(makeReservation({ monto_total: 1500, moneda: 'USD' }));
     const el = fixture.nativeElement.querySelector('[data-testid="reservation-price"]');
-    expect(el.textContent).toContain('1,500');
+    expect(el.textContent).toContain('1500');
   });
 
   it('should always render Ver detalles button', async () => {

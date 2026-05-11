@@ -7,17 +7,20 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 
 import { AuthService } from '../../core/services/auth';
 import { NotificationService } from '../../core/services/notification';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-auth-register-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [FormsModule, RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './auth-register-page.html',
   styleUrl: './auth-register-page.css',
 })
 export class AuthRegisterPage {
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
 
   readonly loading = signal(false);
@@ -99,7 +102,7 @@ export class AuthRegisterPage {
   }
 
   onGoogleSignUp(): void {
-    alert('El registro con Google no está disponible en este momento. Por favor, usa el formulario de registro.');
+    alert(this.i18n.translate('auth.register.googleUnavailable'));
   }
 
   updateField(
@@ -126,33 +129,33 @@ export class AuthRegisterPage {
 
     switch (field) {
       case 'firstName':
-        if (!value.trim()) { hasError = true; message = 'El nombre es obligatorio.'; }
-        else if (!this.namePattern.test(value.trim())) { hasError = true; message = 'Solo letras, espacios y guiones (máx. 50 caracteres).'; }
+        if (!value.trim()) { hasError = true; message = this.i18n.translate('auth.register.firstNameRequired'); }
+        else if (!this.namePattern.test(value.trim())) { hasError = true; message = this.i18n.translate('auth.register.nameInvalid'); }
         break;
       case 'lastName':
-        if (!value.trim()) { hasError = true; message = 'El apellido es obligatorio.'; }
-        else if (!this.namePattern.test(value.trim())) { hasError = true; message = 'Solo letras, espacios y guiones (máx. 50 caracteres).'; }
+        if (!value.trim()) { hasError = true; message = this.i18n.translate('auth.register.lastNameRequired'); }
+        else if (!this.namePattern.test(value.trim())) { hasError = true; message = this.i18n.translate('auth.register.nameInvalid'); }
         break;
       case 'email':
-        if (!value.trim()) { hasError = true; message = 'El correo es obligatorio.'; }
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) { hasError = true; message = 'Ingresa un correo válido (ej: tu@ejemplo.com).'; }
+        if (!value.trim()) { hasError = true; message = this.i18n.translate('auth.register.emailRequired'); }
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) { hasError = true; message = this.i18n.translate('auth.login.emailInvalid'); }
         break;
       case 'phone':
-        if (!value.trim()) { hasError = true; message = 'El teléfono es obligatorio.'; }
+        if (!value.trim()) { hasError = true; message = this.i18n.translate('auth.register.phoneRequired'); }
         else if (!/^\+[1-9]\d{6,14}$/.test(value.replace(/[\s\-()]/g, ''))) {
-          hasError = true; message = 'Debe incluir el código de país (ej: +573001112233).';
+          hasError = true; message = this.i18n.translate('auth.register.phoneInvalid');
         }
         break;
       case 'password':
-        if (!value) { hasError = true; message = 'La contraseña es obligatoria.'; }
+        if (!value) { hasError = true; message = this.i18n.translate('auth.register.passwordRequired'); }
         else if (!this.passwordPattern.test(value)) {
-          hasError = true; message = 'Debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.';
+          hasError = true; message = this.i18n.translate('auth.register.passwordInvalid');
         }
         break;
       case 'confirmPassword': {
         const currentPassword = this.form().password;
-        if (!value) { hasError = true; message = 'Confirma tu contraseña.'; }
-        else if (value !== currentPassword) { hasError = true; message = 'Las contraseñas no coinciden.'; }
+        if (!value) { hasError = true; message = this.i18n.translate('auth.register.confirmRequired'); }
+        else if (value !== currentPassword) { hasError = true; message = this.i18n.translate('auth.register.passwordMismatch'); }
         break;
       }
     }
@@ -188,12 +191,12 @@ export class AuthRegisterPage {
 
     this.errors.set(nextErrors);
     this.errorMessages.set({
-      firstName: !f.firstName.trim() ? 'El nombre es obligatorio.' : !this.namePattern.test(f.firstName.trim()) ? 'Solo letras, espacios y guiones (máx. 50 caracteres).' : '',
-      lastName: !f.lastName.trim() ? 'El apellido es obligatorio.' : !this.namePattern.test(f.lastName.trim()) ? 'Solo letras, espacios y guiones (máx. 50 caracteres).' : '',
-      email: !f.email.trim() ? 'El correo es obligatorio.' : !emailValid ? 'Ingresa un correo válido (ej: tu@ejemplo.com).' : '',
-      phone: !f.phone.trim() ? 'El teléfono es obligatorio.' : !phoneValid ? 'Debe incluir el código de país (ej: +573001112233).' : '',
-      password: !f.password ? 'La contraseña es obligatoria.' : !passwordValid ? 'Debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.' : '',
-      confirmPassword: !f.confirmPassword ? 'Confirma tu contraseña.' : f.confirmPassword !== f.password ? 'Las contraseñas no coinciden.' : '',
+      firstName: !f.firstName.trim() ? this.i18n.translate('auth.register.firstNameRequired') : !this.namePattern.test(f.firstName.trim()) ? this.i18n.translate('auth.register.nameInvalid') : '',
+      lastName: !f.lastName.trim() ? this.i18n.translate('auth.register.lastNameRequired') : !this.namePattern.test(f.lastName.trim()) ? this.i18n.translate('auth.register.nameInvalid') : '',
+      email: !f.email.trim() ? this.i18n.translate('auth.register.emailRequired') : !emailValid ? this.i18n.translate('auth.login.emailInvalid') : '',
+      phone: !f.phone.trim() ? this.i18n.translate('auth.register.phoneRequired') : !phoneValid ? this.i18n.translate('auth.register.phoneInvalid') : '',
+      password: !f.password ? this.i18n.translate('auth.register.passwordRequired') : !passwordValid ? this.i18n.translate('auth.register.passwordInvalid') : '',
+      confirmPassword: !f.confirmPassword ? this.i18n.translate('auth.register.confirmRequired') : f.confirmPassword !== f.password ? this.i18n.translate('auth.register.passwordMismatch') : '',
     });
 
     return !Object.values(nextErrors).some(Boolean);
@@ -219,7 +222,7 @@ export class AuthRegisterPage {
       .subscribe({
         next: () => {
           this.notificationService.showSuccess(
-            'Te enviamos un código de verificación. Revisa tu correo para confirmar tu cuenta.'
+            this.i18n.translate('auth.register.success')
           );
 
           this.router.navigate(['/auth/confirmar'], {
@@ -231,7 +234,7 @@ export class AuthRegisterPage {
 
         error: () => {
           this.notificationService.showError(
-            'No fue posible registrar la cuenta. Verifica los datos e intenta nuevamente.'
+            this.i18n.translate('auth.register.error')
           );
 
           this.loading.set(false);

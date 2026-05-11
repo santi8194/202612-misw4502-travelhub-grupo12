@@ -6,42 +6,42 @@
       <svg class="back-link-icon" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      <span>Volver</span>
+      <span>{{ 'reservationDetail.back' | translate }}</span>
     </button>
 
     <section class="page-heading" data-testid="reservation-detail-heading">
-      <h1 class="page-title">Detalles de la Reserva</h1>
-      <p class="page-subtitle">Consulta la información principal de tu hospedaje.</p>
+      <h1 class="page-title">{{ 'reservationDetail.title' | translate }}</h1>
+      <p class="page-subtitle">{{ 'reservationDetail.subtitle' | translate }}</p>
     </section>
 
     <section class="detail-shell" aria-label="Detalle de reserva">
       @if (loading()) {
         <div class="detail-skeleton" data-testid="reservation-detail-loading" aria-label="Cargando detalle de la reserva">
           <div class="skeleton-block skeleton-block--hero"></div>
-          <p>Cargando detalle de la reserva...</p>
+          <p>{{ 'reservationDetail.loading' | translate }}</p>
         </div>
       } @else if (unauthorized()) {
         <div class="state-message state-message--warning" data-testid="reservation-detail-unauthorized">
-          <h2>Reserva no disponible</h2>
-          <p>No podemos mostrar información de una reserva que no pertenece a tu cuenta.</p>
-          <button class="state-action" type="button" (click)="goBack()">Volver</button>
+          <h2>{{ 'reservationDetail.unauthorizedTitle' | translate }}</h2>
+          <p>{{ 'reservationDetail.unauthorizedBody' | translate }}</p>
+          <button class="state-action" type="button" (click)="goBack()">{{ 'reservationDetail.back' | translate }}</button>
         </div>
       } @else if (notFound()) {
         <div class="state-message" data-testid="reservation-detail-not-found">
-          <h2>Reserva no encontrada</h2>
-          <p>La reserva solicitada no existe o ya no está disponible.</p>
+          <h2>{{ 'reservationDetail.notFoundTitle' | translate }}</h2>
+          <p>{{ 'reservationDetail.notFoundBody' | translate }}</p>
           <div class="state-actions">
-            <button class="state-action" type="button" (click)="retry()">Reintentar</button>
-            <button class="state-action state-action--secondary" type="button" (click)="goBack()">Volver</button>
+            <button class="state-action" type="button" (click)="retry()">{{ 'reservationDetail.retry' | translate }}</button>
+            <button class="state-action state-action--secondary" type="button" (click)="goBack()">{{ 'reservationDetail.back' | translate }}</button>
           </div>
         </div>
       } @else if (error()) {
         <div class="state-message state-message--error" data-testid="reservation-detail-error">
-          <h2>No pudimos cargar el detalle</h2>
+          <h2>{{ 'reservationDetail.errorTitle' | translate }}</h2>
           <p>{{ error() }}</p>
           <div class="state-actions">
-            <button class="state-action" type="button" (click)="retry()">Reintentar</button>
-            <button class="state-action state-action--secondary" type="button" (click)="goBack()">Volver</button>
+            <button class="state-action" type="button" (click)="retry()">{{ 'reservationDetail.retry' | translate }}</button>
+            <button class="state-action state-action--secondary" type="button" (click)="goBack()">{{ 'reservationDetail.back' | translate }}</button>
           </div>
         </div>
       } @else if (detail()) {
@@ -117,45 +117,45 @@
 
           <div class="info-grid" data-testid="reservation-detail-info">
             <div class="info-row">
-              <span>Fecha de llegada</span>
+              <span>{{ 'reservationDetail.arrival' | translate }}</span>
               <strong data-testid="reservation-detail-check-in">{{ formatDate(detail()!.checkInDate) }}</strong>
             </div>
             <div class="info-row">
-              <span>Fecha de salida</span>
+              <span>{{ 'reservationDetail.departure' | translate }}</span>
               <strong data-testid="reservation-detail-check-out">{{ formatDate(detail()!.checkOutDate) }}</strong>
             </div>
             <div class="info-row">
-              <span>Número de huéspedes</span>
+              <span>{{ 'reservationDetail.guests' | translate }}</span>
               <strong data-testid="reservation-detail-guests">{{ detail()!.guests }}</strong>
             </div>
             <div class="info-row">
-              <span>Número de confirmación</span>
+              <span>{{ 'reservationDetail.confirmation' | translate }}</span>
               <strong class="confirmation-code" data-testid="reservation-detail-confirmation">
-                {{ detail()!.confirmationNumber || 'No disponible' }}
+                {{ detail()!.confirmationNumber || ('reservationDetail.confirmationUnavailable' | translate) }}
               </strong>
             </div>
           </div>
 
           <div class="total-panel" data-testid="reservation-detail-total">
-            <span>Valor total</span>
+            <span>{{ 'reservationDetail.total' | translate }}</span>
             @if (totalLoading()) {
-              <strong>Consultando valor...</strong>
+              <strong>{{ 'reservationDetail.consultingTotal' | translate }}</strong>
             } @else if (detail()!.totalAmount !== null) {
               <strong>{{ formatCurrency(detail()!.totalAmount, detail()!.currency) }}</strong>
             } @else {
               <div class="total-panel__unavailable" data-testid="reservation-detail-total-unavailable">
-                <strong>Valor no disponible</strong>
-                <small>Vuelve a consultar en un rato.</small>
+                <strong>{{ 'reservationDetail.totalUnavailable' | translate }}</strong>
+                <small>{{ 'reservationDetail.totalUnavailableHelp' | translate }}</small>
               </div>
             }
           </div>
 
           <section class="actions-panel" aria-label="Acciones disponibles" data-testid="reservation-detail-actions">
             <div>
-              <h3>¿Necesitas hacer cambios?</h3>
+              <h3>{{ 'reservationDetail.actionsTitle' | translate }}</h3>
               <p>
                 @if (detail()!.canCancel) {
-                  Puedes iniciar la solicitud de cancelaciÃ³n de esta reserva.
+                  {{ 'reservationDetail.cancelPromptAllowed' | translate }}
                 } @else {
                   {{ detail()!.cancellationReason }}
                 }
@@ -168,7 +168,7 @@
               (click)="startCancellation()"
               data-testid="reservation-detail-cancel"
             >
-              Cancelar Reserva
+              {{ 'reservationDetail.cancelButton' | translate }}
             </button>
           </section>
         </div>

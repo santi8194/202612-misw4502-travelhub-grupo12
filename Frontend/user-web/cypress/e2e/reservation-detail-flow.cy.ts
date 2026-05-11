@@ -146,7 +146,7 @@ describe('Reservation Detail Flow', () => {
     cy.get('[data-testid="reservation-detail-check-out"]').should('contain.text', '10 mar 2026');
     cy.get('[data-testid="reservation-detail-guests"]').should('contain.text', '3');
     cy.get('[data-testid="reservation-detail-confirmation"]').should('contain.text', 'RES001');
-    cy.get('[data-testid="reservation-detail-total"]').should('contain.text', '$580');
+    cy.get('[data-testid="reservation-detail-total"]').should('contain.text', '580').and('contain.text', 'US$');
     cy.get('[data-testid="reservation-detail-status"]').should('contain.text', 'Confirmada');
     cy.get('[data-testid="reservation-detail-cancel"]').should('be.visible');
   });

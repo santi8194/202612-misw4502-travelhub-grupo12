@@ -5,19 +5,19 @@
     <div class="auth-wrapper">
       <div class="brand">
         <h1>TravelHub</h1>
-        <p>Bienvenido de nuevo a tu compañero de viajes</p>
+        <p>{{ 'auth.login.brand' | translate }}</p>
       </div>
 
       <article class="auth-card">
-        <h2 class="card-title">Iniciar Sesión</h2>
+        <h2 class="card-title">{{ 'auth.login.title' | translate }}</h2>
 
         <p class="subtitle">
-          Ingresa tus credenciales para acceder a tu cuenta
+          {{ 'auth.login.subtitle' | translate }}
         </p>
 
         <form class="auth-form" (ngSubmit)="onSubmit()">
           <label>
-            Correo Electrónico
+            {{ 'auth.login.email' | translate }}
 
             <div class="input-wrapper" [class.input-wrapper--error]="errors().email">
               <input
@@ -25,7 +25,7 @@
                 [value]="form().email"
                 (input)="updateField('email', $any($event.target).value)"
                 (blur)="markTouched('email')"
-                placeholder="tu@ejemplo.com"
+                [placeholder]="'auth.login.emailPlaceholder' | translate"
               />
             </div>
 
@@ -35,7 +35,7 @@
           </label>
 
           <label>
-            Contraseña
+            {{ 'auth.login.password' | translate }}
 
             <div class="input-wrapper password-input" [class.input-wrapper--error]="errors().password">
               <input
@@ -43,7 +43,7 @@
                 [value]="form().password"
                 (input)="updateField('password', $any($event.target).value)"
                 (blur)="markTouched('password')"
-                placeholder="Ingresa tu contraseña"
+                [placeholder]="'auth.login.passwordPlaceholder' | translate"
               />
 
               <button
@@ -81,30 +81,30 @@
           <div class="options-row">
             <label class="remember">
               <input type="checkbox" (change)="onRememberMe()" />
-              Recordarme
+              {{ 'auth.login.rememberMe' | translate }}
             </label>
 
             <a class="forgot-password" (click)="onForgotPassword(); $event.preventDefault()">
-              ¿Olvidaste tu contraseña?
+              {{ 'auth.login.forgotPassword' | translate }}
             </a>
           </div>
 
           <button class="primary" type="submit" [disabled]="loading()">
-            {{ loading() ? 'Ingresando...' : '→ Iniciar Sesión' }}
+            {{ loading() ? ('auth.login.submitLoading' | translate) : ('auth.login.submit' | translate) }}
           </button>
 
           <div class="divider">
-            <span>O continuar con</span>
+            <span>{{ 'auth.login.googleDivider' | translate }}</span>
           </div>
 
           <button type="button" class="google-btn" (click)="onGoogleSignIn()">
-            Continuar con Google
+            {{ 'auth.login.google' | translate }}
           </button>
         </form>
 
         <p class="hint">
-          ¿No tienes una cuenta?
-          <a routerLink="/auth/registro">Regístrate →</a>
+          {{ 'auth.login.signupHint' | translate }}
+          <a routerLink="/auth/registro">{{ 'auth.login.signupLink' | translate }}</a>
         </p>
       </article>
     </div>

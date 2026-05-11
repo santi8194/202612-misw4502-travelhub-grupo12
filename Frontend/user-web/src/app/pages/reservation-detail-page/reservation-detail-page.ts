@@ -9,6 +9,8 @@ import { AuthService } from '../../core/services/auth';
 import { getStatusLabel, resolveReservationStatus } from '../../core/services/reservation-status.resolver';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import type { BookingReservation, PaymentInfo, ReservationStatus } from '../../models/reservation.interface';
 import type { RoomDetailResponse } from '../../models/room-detail.interface';
 
@@ -34,7 +36,7 @@ interface ReservationDetail {
 @Component({
   selector: 'app-reservation-detail-page',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent],
+  imports: [HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './reservation-detail-page.html',
   styleUrl: './reservation-detail-page.css',
 })
@@ -48,6 +50,7 @@ export class ReservationDetailPage {
   private readonly bookingService = inject(BookingService);
   private readonly catalogService = inject(CatalogService);
   private readonly authService = inject(AuthService);
+  private readonly i18n = inject(I18nService);
   private readonly paymentApiUrl = environment.paymentApiUrl;
 
   readonly loading = signal(true);
@@ -152,7 +155,7 @@ export class ReservationDetailPage {
     }
 
     if (!booking.id_categoria) {
-      this.error.set('La reserva no tiene información de hospedaje disponible.');
+      this.error.set(this.i18n.translate('reservationDetail.notFoundBody'));
       this.loading.set(false);
       return;
     }
@@ -164,7 +167,7 @@ export class ReservationDetailPage {
         this.resolveTotal(booking);
       },
       error: () => {
-        this.error.set('No fue posible cargar la información del hospedaje.');
+        this.error.set(this.i18n.translate('reservationDetail.errorTitle'));
         this.loading.set(false);
       },
     });
@@ -174,7 +177,7 @@ export class ReservationDetailPage {
     if (this.isNotFoundError(error)) {
       this.notFound.set(true);
     } else {
-      this.error.set('No fue posible cargar el detalle de la reserva.');
+      this.error.set(this.i18n.translate('reservationDetail.errorTitle'));
     }
 
     this.loading.set(false);
@@ -299,21 +302,12 @@ export class ReservationDetailPage {
   }
 
   protected formatDate(dateStr: string): string {
-    const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+    return this.i18n.formatDate(dateStr);
   }
 
   protected formatCurrency(amount: number | null, currency: string): string {
     if (amount === null) return '';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return this.i18n.formatCurrency(amount, currency);
   }
 
   protected getStatusLabel(status: ReservationStatus): string {

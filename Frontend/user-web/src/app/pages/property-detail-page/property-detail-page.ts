@@ -7,6 +7,8 @@ import { BookingService } from '../../core/services/booking';
 import { BookingStore } from '../../core/store/booking-store';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 interface PropertyLocation {
   ciudad?: string;
@@ -64,7 +66,7 @@ interface CategoryCardData {
 @Component({
   selector: 'app-property-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './property-detail-page.html',
   styleUrl: './property-detail-page.css',
 })
@@ -74,6 +76,7 @@ export class PropertyDetailPage {
   private readonly authService = inject(AuthService);
   private readonly bookingService = inject(BookingService);
   private readonly store = inject(BookingStore);
+  private readonly i18n = inject(I18nService);
 
   readonly loading = signal(true);
   readonly creatingBooking = signal(false);
@@ -109,7 +112,7 @@ export class PropertyDetailPage {
   private loadPropertyDetail(): void {
     const propertyId = this.propertyId();
     if (!propertyId) {
-      this.error.set('No se encontró el identificador de la propiedad.');
+      this.error.set(this.i18n.translate('reservationDetail.notFoundBody'));
       this.loading.set(false);
       console.warn('[PropertyDetailPage] Missing property_id route param');
       return;
@@ -125,7 +128,7 @@ export class PropertyDetailPage {
     this.bookingService.getPropertyById(propertyId).pipe(
       catchError((error) => {
         console.error('[PropertyDetailPage] getPropertyById failed', { propertyId, error });
-        this.error.set('No fue posible cargar el detalle de la propiedad.');
+        this.error.set(this.i18n.translate('reservationDetail.errorTitle'));
         return of(null);
       }),
       finalize(() => this.loading.set(false))
@@ -180,7 +183,7 @@ export class PropertyDetailPage {
     this.bookingService.getPropertyCategories(propertyId).pipe(
       catchError((error) => {
         console.error('[PropertyDetailPage] getPropertyCategories failed', { propertyId, error });
-        this.categoriesError.set('No fue posible cargar las categorias de esta propiedad.');
+        this.categoriesError.set(this.i18n.translate('reservationDetail.errorTitle'));
         return of([]);
       }),
       finalize(() => this.loadingCategories.set(false))
@@ -289,7 +292,7 @@ export class PropertyDetailPage {
         checkOut,
         guests,
       });
-      this.error.set('Faltan datos para crear la reserva. Regresa al listado y selecciona de nuevo.');
+      this.error.set(this.i18n.translate('bookingCart.invalidReservation'));
       return;
     }
 
@@ -314,7 +317,7 @@ export class PropertyDetailPage {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
       this.creatingBooking.set(false);
-      this.error.set('Tu sesión no está activa. Inicia sesión para crear una reserva.');
+      this.error.set(this.i18n.translate('auth.login.error'));
       return;
     }
 

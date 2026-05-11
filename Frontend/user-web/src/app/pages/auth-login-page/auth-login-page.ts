@@ -7,17 +7,20 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 
 import { AuthService } from '../../core/services/auth';
 import { NotificationService } from '../../core/services/notification';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-auth-login-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [FormsModule, RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './auth-login-page.html',
   styleUrl: './auth-login-page.css',
 })
 export class AuthLoginPage {
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly i18n = inject(I18nService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -49,15 +52,15 @@ export class AuthLoginPage {
   }
 
   onGoogleSignIn(): void {
-    alert('La autenticación con Google no está disponible en este momento. Por favor, usa el formulario de inicio de sesión.');
+    alert(this.i18n.translate('auth.login.googleUnavailable'));
   }
 
   onRememberMe(): void {
-    alert('La funcionalidad de "Recuérdame" no está disponible en este momento.');
+    alert(this.i18n.translate('auth.login.rememberUnavailable'));
   }
 
   onForgotPassword(): void {
-    alert('La funcionalidad de recuperación de contraseña no está disponible en este momento.');
+    alert(this.i18n.translate('auth.login.forgotUnavailable'));
   }
 
   updateField(field: 'email' | 'password', value: string): void {
@@ -79,15 +82,15 @@ export class AuthLoginPage {
     if (field === 'email') {
       if (!value.trim()) {
         hasError = true;
-        message = 'El correo es obligatorio.';
+          message = this.i18n.translate('auth.login.emailRequired');
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
         hasError = true;
-        message = 'Ingresa un correo válido (ej: tu@ejemplo.com).';
+          message = this.i18n.translate('auth.login.emailInvalid');
       }
     } else if (field === 'password') {
       if (!value.trim()) {
         hasError = true;
-        message = 'La contraseña es obligatoria.';
+          message = this.i18n.translate('auth.login.passwordRequired');
       }
     }
 
@@ -109,8 +112,8 @@ export class AuthLoginPage {
 
     this.errors.set(nextErrors);
     this.errorMessages.set({
-      email: !emailValid ? (!f.email.trim() ? 'El correo es obligatorio.' : 'Ingresa un correo válido (ej: tu@ejemplo.com).') : '',
-      password: !passwordValid ? 'La contraseña es obligatoria.' : '',
+      email: !emailValid ? (!f.email.trim() ? this.i18n.translate('auth.login.emailRequired') : this.i18n.translate('auth.login.emailInvalid')) : '',
+      password: !passwordValid ? this.i18n.translate('auth.login.passwordRequired') : '',
     });
 
     return !Object.values(nextErrors).some(Boolean);
@@ -138,7 +141,7 @@ export class AuthLoginPage {
           this.authService.saveSession(response, f.email.trim());
 
           this.notificationService.showSuccess(
-            'Inicio de sesión exitoso. Bienvenido a TravelHub.'
+            this.i18n.translate('auth.login.success')
           );
 
           this.router.navigateByUrl(redirectTarget);
@@ -146,7 +149,7 @@ export class AuthLoginPage {
 
         error: () => {
           this.notificationService.showError(
-            'No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.'
+            this.i18n.translate('auth.login.error')
           );
 
           this.loading.set(false);

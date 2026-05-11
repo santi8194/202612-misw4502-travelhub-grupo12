@@ -97,8 +97,8 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
     it('Escenario A: Renderiza los elementos principales', () => {
       cy.contains('TravelHub').should('be.visible');
       cy.contains('Crear Cuenta').should('be.visible');
-      cy.get('input[placeholder="Juan"]').should('exist');
-      cy.get('input[placeholder="Pérez"]').should('exist');
+      cy.get('input[placeholder="Nombre"]').should('exist');
+      cy.get('input[placeholder="Apellido"]').should('exist');
       cy.get('input[type="email"]').should('exist');
       cy.get('button[type="submit"]').should('be.visible');
     });
@@ -109,8 +109,8 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
     });
 
     it('Escenario C: Muestra error cuando las contraseñas no coinciden', () => {
-      cy.get('input[placeholder="Juan"]').type('Juan');
-      cy.get('input[placeholder="Pérez"]').type('Pérez');
+      cy.get('input[placeholder="Nombre"]').type('Juan');
+      cy.get('input[placeholder="Apellido"]').type('Pérez');
       cy.get('input[type="email"]').type('juan@ejemplo.com');
       cy.get('input[type="tel"]').type('+573001112233');
 
@@ -127,8 +127,8 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
         body: { message: 'User registered' },
       }).as('registerRequest');
 
-      cy.get('input[placeholder="Juan"]').type('Juan');
-      cy.get('input[placeholder="Pérez"]').type('Pérez');
+      cy.get('input[placeholder="Nombre"]').type('Juan');
+      cy.get('input[placeholder="Apellido"]').type('Pérez');
       cy.get('input[type="email"]').type('juan@ejemplo.com');
       cy.get('input[type="tel"]').type('+573001112233');
 
@@ -146,8 +146,8 @@ describe('Flujo de Autenticación (Login, Register, Confirm)', () => {
         body: { detail: 'Email already in use' },
       }).as('registerFail');
 
-      cy.get('input[placeholder="Juan"]').type('Juan');
-      cy.get('input[placeholder="Pérez"]').type('Pérez');
+      cy.get('input[placeholder="Nombre"]').type('Juan');
+      cy.get('input[placeholder="Apellido"]').type('Pérez');
       cy.get('input[type="email"]').type('existente@ejemplo.com');
       cy.get('input[type="tel"]').type('+573001112233');
 

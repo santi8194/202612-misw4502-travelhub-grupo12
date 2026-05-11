@@ -405,8 +405,8 @@ describe('RoomDetailPage', () => {
     fixture.detectChanges();
 
     httpTesting.expectNone(r => BOOKING_URL_PATTERN.test(r.url));
-    expect(component.error()).toBe('Debes iniciar sesión antes de crear la reserva.');
-    expect(notificationSpy).toHaveBeenCalledWith('Debes iniciar sesión antes de crear la reserva.');
+    expect(component.error()).toBe('No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.');
+    expect(notificationSpy).toHaveBeenCalledWith('No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.');
     expect(navigateSpy).toHaveBeenCalledWith(['/auth/login'], {
       queryParams: { redirect: '/' },
     });
@@ -591,7 +591,7 @@ describe('RoomDetailPage', () => {
     component.reservar();
 
     httpTesting.expectNone(r => BOOKING_URL_PATTERN.test(r.url));
-    expect(component.error()).toBe('Faltan datos para crear la reserva. Verifica las fechas e inténtalo de nuevo.');
+    expect(component.error()).toBe('La reserva no tiene todos los datos necesarios para continuar con el pago.');
   });
 
   it('should redirect to existing active booking session', () => {

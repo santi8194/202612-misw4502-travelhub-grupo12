@@ -8,18 +8,30 @@
 			<app-search-bar />
 		}
 
-		<div class="actions" aria-label="Preferencias de usuario">
-			<button class="action-text">
+		<div class="actions" [attr.aria-label]="i18n.translate('header.profile.auth')">
+			<div class="language-wrapper">
+				<button class="action-text" type="button" (click)="toggleLanguageMenu($event)" [attr.aria-expanded]="languageMenuOpen()" aria-haspopup="true">
 				<svg viewBox="0 0 24 24">
 					<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
 					<path d="M3.5 12h17" stroke="currentColor" stroke-width="1.6"/>
 					<path d="M12 3c2.2 2.3 3.5 5.6 3.5 9S14.2 18.7 12 21" stroke="currentColor" stroke-width="1.6" fill="none"/>
 					<path d="M12 3C9.8 5.3 8.5 8.6 8.5 12s1.3 6.7 3.5 9" stroke="currentColor" stroke-width="1.6" fill="none"/>
 				</svg>
-				<span>Español (SP)</span>
-			</button>
+					<span>{{ i18n.activeLanguageLabel }} ({{ i18n.language() === 'es' ? 'ES' : 'EN' }})</span>
+				</button>
 
-			<button class="action-text">
+				@if (languageMenuOpen()) {
+					<div class="profile-dropdown language-dropdown" role="menu" [attr.aria-label]="i18n.translate('header.language.label')">
+						@for (language of supportedLanguages; track language.code) {
+							<button class="dropdown-item dropdown-item--button" type="button" (click)="setLanguage(language.code)">
+								{{ language.label }}
+							</button>
+						}
+					</div>
+				}
+			</div>
+
+			<button class="action-text" type="button">
 				<svg viewBox="0 0 24 24">
 					<path d="M12 4v16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
 					<path d="M16.4 8.2c0-1.8-1.9-3.2-4.4-3.2s-4.4 1.4-4.4 3.2 1.6 2.7 4.4 3.3c2.8.6 4.4 1.5 4.4 3.3s-1.9 3.2-4.4 3.2-4.4-1.4-4.4-3.2" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
@@ -30,7 +42,7 @@
 				<button
 					class="user-menu"
 					type="button"
-					aria-label="Abrir menú de perfil"
+					[attr.aria-label]="i18n.translate('header.profile.open')"
 					[attr.aria-expanded]="profileMenuOpen()"
 					aria-haspopup="true"
 					(click)="toggleProfileMenu($event)">
@@ -49,20 +61,20 @@
 				</button>
 
 				@if (profileMenuOpen()) {
-					<div class="profile-dropdown" role="menu" aria-label="Menú de autenticación">
+					<div class="profile-dropdown" role="menu" [attr.aria-label]="i18n.translate('header.profile.menu')">
 						@if (isAuthenticated()) {
 							<div class="profile-summary" role="presentation">
 								<p class="profile-name">{{ getProfileDisplayName() }}</p>
 							</div>
 							<button class="dropdown-item dropdown-item--button" type="button" (click)="goToMyReservations()">
-								Mis Reservas
+								{{ 'header.profile.myReservations' | translate }}
 							</button>
 							<button class="dropdown-item dropdown-item--button" type="button" (click)="logout()">
-								Cerrar sesión
+								{{ 'header.profile.logout' | translate }}
 							</button>
 						} @else {
-							<a class="dropdown-item" routerLink="/auth/registro" (click)="closeProfileMenu()">Registrarse</a>
-							<a class="dropdown-item" routerLink="/auth/login" (click)="closeProfileMenu()">Iniciar Sesión</a>
+							<a class="dropdown-item" routerLink="/auth/registro" (click)="closeProfileMenu()">{{ 'header.profile.register' | translate }}</a>
+							<a class="dropdown-item" routerLink="/auth/login" (click)="closeProfileMenu()">{{ 'header.profile.login' | translate }}</a>
 						}
 					</div>
 				}

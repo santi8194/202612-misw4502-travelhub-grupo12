@@ -8,6 +8,8 @@ import { CatalogService } from '../../core/services/catalog';
 import { AuthService } from '../../core/services/auth';
 import { BookingStore } from '../../core/store/booking-store';
 import { NotificationService } from '../../core/services/notification';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
@@ -16,7 +18,7 @@ import { RoomPriceResponse } from '../../models/room-price.interface';
 @Component({
   selector: 'app-room-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './room-detail-page.html',
   styleUrl: './room-detail-page.css',
 })
@@ -29,6 +31,7 @@ export class RoomDetailPage {
   private readonly authService = inject(AuthService);
   private readonly store = inject(BookingStore);
   private readonly notificationService = inject(NotificationService);
+  private readonly i18n = inject(I18nService);
 
   // ── Estado ──
   readonly loading = signal(true);
@@ -126,14 +129,11 @@ export class RoomDetailPage {
   }
 
   formatDate(isoDate: string): string {
-    if (!isoDate) return '';
-    const date = new Date(isoDate);
-    return date.toLocaleDateString('es-CO', { year: 'numeric', month: 'long' });
+    return this.i18n.formatMonthYear(isoDate);
   }
 
   formatCurrency(amount: number): string {
-    if (!amount) return '0';
-    return amount.toLocaleString('es-CO');
+    return this.i18n.formatNumber(amount);
   }
 
   constructor() {
@@ -150,7 +150,7 @@ export class RoomDetailPage {
   private loadRoomDetail(): void {
     const categoryId = this.categoryId();
     if (!categoryId) {
-      this.error.set('No se encontró el identificador de la categoría.');
+      this.error.set(this.i18n.translate('reservationDetail.notFoundBody'));
       this.loading.set(false);
       console.warn('[RoomDetailPage] Missing category_id route param');
       return;
@@ -161,7 +161,7 @@ export class RoomDetailPage {
     this.catalogService.getCategoryViewDetail(categoryId).pipe(
       catchError((err) => {
         console.error('[RoomDetailPage] getCategoryViewDetail failed', { categoryId, err });
-        this.error.set('No fue posible cargar el detalle de la habitación.');
+        this.error.set(this.i18n.translate('room.loadError'));
         return of(null);
       }),
       finalize(() => this.loading.set(false))
@@ -211,7 +211,7 @@ export class RoomDetailPage {
       console.error('[RoomDetailPage] reservar blocked due to missing or invalid data', {
         categoryId, checkIn, checkOut, guests,
       });
-      this.error.set('Faltan datos para crear la reserva. Verifica las fechas e inténtalo de nuevo.');
+      this.error.set(this.i18n.translate('bookingCart.invalidReservation'));
       return;
     }
 
@@ -236,7 +236,7 @@ export class RoomDetailPage {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
       this.creatingBooking.set(false);
-      const message = 'Debes iniciar sesión antes de crear la reserva.';
+      const message = this.i18n.translate('auth.login.error');
       this.error.set(message);
       this.notificationService.showError(message);
       this.router.navigate(['/auth/login'], {

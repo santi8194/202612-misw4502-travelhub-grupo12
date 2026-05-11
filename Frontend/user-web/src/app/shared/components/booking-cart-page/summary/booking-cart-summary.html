@@ -7,10 +7,10 @@
       <div class="skeleton skeleton-text skeleton-text--short"></div>
     </div>
   } @else if (!data) {
-    <h3 class="summary-title">Resumen de Reserva</h3>
-    <p>No se pudo cargar la reserva desde el backend.</p>
+    <h3 class="summary-title">{{ 'bookingCart.summaryTitle' | translate }}</h3>
+    <p>{{ 'bookingCart.summaryLoadError' | translate }}</p>
   } @else {
-    <h3 class="summary-title">Resumen de Reserva</h3>
+    <h3 class="summary-title">{{ 'bookingCart.summaryTitle' | translate }}</h3>
 
     @if (data.imageUrl) {
       <img [src]="data.imageUrl" class="summary-image" [alt]="data.propertyName" />
@@ -23,19 +23,19 @@
 
     <div class="summary-details">
       <div class="row">
-        <span>Llegada</span>
+        <span>{{ 'bookingCart.arrival' | translate }}</span>
         <span>{{ data.checkIn }}</span>
       </div>
       <div class="row">
-        <span>Salida</span>
+        <span>{{ 'bookingCart.departure' | translate }}</span>
         <span>{{ data.checkOut }}</span>
       </div>
       <div class="row">
-        <span>Huéspedes</span>
+        <span>{{ 'bookingCart.guests' | translate }}</span>
         <span>{{ data.guests }}</span>
       </div>
       <div class="row">
-        <span>Noches</span>
+        <span>{{ 'bookingCart.nights' | translate }}</span>
         <span>{{ data.nights }}</span>
       </div>
     </div>
@@ -56,7 +56,7 @@
     <div class="divider"></div>
 
     <div class="summary-total" data-testid="booking-total">
-      <span>Total</span>
+      <span>{{ 'bookingCart.total' | translate }}</span>
       <span>{{ formatPrice(data.total) }}</span>
     </div>
   }

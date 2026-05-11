@@ -32,7 +32,7 @@ def test_get_inventory_changes_sin_filtro():
 
 def test_get_inventory_changes_con_since_futuro():
     """Con since muy futuro devuelve lista vacía."""
-    response = client.get("/api/inventory/changes?since=2099-01-01T00:00:00+00:00")
+    response = client.get("/api/inventory/changes?since=2099-01-01T00:00:00Z")
     assert response.status_code == 200
     data = response.json()
     assert data["changes"] == []
@@ -40,7 +40,7 @@ def test_get_inventory_changes_con_since_futuro():
 
 def test_get_inventory_changes_con_since_pasado():
     """Con since en el pasado devuelve al menos un registro."""
-    response = client.get("/api/inventory/changes?since=2000-01-01T00:00:00+00:00")
+    response = client.get("/api/inventory/changes?since=2000-01-01T00:00:00Z")
     assert response.status_code == 200
     data = response.json()
     assert len(data["changes"]) > 0

@@ -174,4 +174,10 @@ describe('ReservationCardComponent', () => {
     const img = fixture.nativeElement.querySelector('[data-testid="card-image"] img');
     expect(img).toBeNull();
   });
+
+  it('should show dash when monto_total is null', async () => {
+    await setup(makeReservation({ monto_total: null }));
+    const el = fixture.nativeElement.querySelector('[data-testid="reservation-price"]');
+    expect(el.textContent).toContain('—');
+  });
 });

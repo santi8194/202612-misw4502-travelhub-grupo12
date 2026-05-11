@@ -3,7 +3,10 @@ from modules.catalog.application.commands.register_category_housing import Regis
 from modules.catalog.application.commands.update_inventory import UpdateInventory
 from modules.catalog.infrastructure.repository import PropertyRepository
 from modules.catalog.infrastructure.services.event_bus import EventBus
-from datetime import date
+from modules.catalog.infrastructure.database import SessionLocal
+from modules.catalog.infrastructure.models import InventarioModel
+from modules.catalog.domain.events import InventarioActualizado
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -113,3 +116,112 @@ def handle_update_inventory(data):
 
 	print("[CATALOG] Result:", result)
 	return result
+
+
+def handle_pms_inventory_updated(data):
+	"""
+	Maneja el evento PMSInventoryUpdated del PMS.
+	
+	Implementa idempotencia por timestamp y control de concurrencia
+	con SELECT FOR UPDATE para evitar race conditions.
+	
+	Args:
+		data: Payload del evento PMSInventoryUpdated
+	"""
+	try:
+		id_categoria = UUID(data["id_categoria"])
+		fecha_str = data["fecha"]
+		cupos_totales = data["cupos_totales"]
+		cupos_disponibles = data["cupos_disponibles"]
+		event_timestamp_str = data["event_timestamp"]
+		
+		fecha = datetime.fromisoformat(fecha_str.replace('Z', '+00:00')).date()
+		event_timestamp = datetime.fromisoformat(event_timestamp_str.replace('Z', '+00:00'))
+		
+		print(f"[CATALOG] Procesando PMSInventoryUpdated: {id_categoria} @ {fecha} -> {cupos_disponibles} cupos")
+		
+		db = SessionLocal()
+		
+		try:
+			inventario = db.query(InventarioModel).filter_by(
+				id_categoria=id_categoria,
+				fecha=fecha.isoformat()
+			).with_for_update().first()
+			
+			if not inventario:
+				print(f"[CATALOG] Inventario no encontrado para {id_categoria} @ {fecha}. Creando nuevo registro.")
+				
+				# Se usa cupos_totales del evento PMS solo al crear registros nuevos
+				inventario = InventarioModel(
+					id_inventario=f"{id_categoria}-{fecha.isoformat()}",
+					id_categoria=id_categoria,
+					fecha=fecha.isoformat(),
+					cupos_totales=cupos_totales,
+					cupos_disponibles=cupos_disponibles,
+					last_pms_update_at=event_timestamp
+				)
+				db.add(inventario)
+				db.commit()
+				
+				_publish_inventario_actualizado(inventario)
+				
+				print(f"[CATALOG] Inventario creado: {inventario.id_inventario}")
+				return
+			
+			if inventario.last_pms_update_at and event_timestamp <= inventario.last_pms_update_at:
+				print(f"[CATALOG] Evento descartado (timestamp viejo): {event_timestamp} <= {inventario.last_pms_update_at}")
+				db.rollback()
+				return
+			
+			inventario.cupos_disponibles = cupos_disponibles
+			inventario.last_pms_update_at = event_timestamp
+			
+			db.commit()
+			
+			_publish_inventario_actualizado(inventario)
+			
+			print(f"[CATALOG] Inventario actualizado: {inventario.id_inventario} -> {cupos_disponibles} cupos")
+			
+		except Exception as e:
+			db.rollback()
+			print(f"[CATALOG] Error actualizando inventario: {e}")
+			raise
+		finally:
+			db.close()
+			
+	except KeyError as e:
+		raise ValueError(f"Campo requerido faltante en evento: {e}")
+	except Exception as e:
+		print(f"[CATALOG] Error procesando PMSInventoryUpdated: {e}")
+		raise
+
+
+def _publish_inventario_actualizado(inventario: InventarioModel):
+	"""
+	Publica evento InventarioActualizado hacia Search.
+	
+	Args:
+		inventario: Modelo de inventario actualizado
+	"""
+	try:
+		event_bus = EventBus()
+		
+		event = InventarioActualizado(
+			id_propiedad=str(inventario.categoria.id_propiedad) if inventario.categoria else "unknown",
+			id_categoria=str(inventario.id_categoria),
+			id_inventario=inventario.id_inventario,
+			fecha=inventario.fecha,
+			cupos_totales=inventario.cupos_totales,
+			cupos_disponibles=inventario.cupos_disponibles
+		)
+		
+		event_bus.publish_event(
+			routing_key=event.routing_key,
+			event_type=event.type,
+			payload=event.to_dict()
+		)
+		
+		print(f"[CATALOG] Evento InventarioActualizado publicado: {inventario.id_inventario}")
+		
+	except Exception as e:
+		print(f"[CATALOG] Error publicando InventarioActualizado: {e}")

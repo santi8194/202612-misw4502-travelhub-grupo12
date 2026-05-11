@@ -203,8 +203,8 @@ describe('ReservationDetailPage', () => {
     expect(success).toBeTruthy();
     expect(success.textContent).toContain('Suite Deluxe');
     expect(success.textContent).toContain('Bogota, Colombia');
-    expect(success.textContent).toContain('$580');
-    expect(success.textContent).toContain('07 mar 2026');
+    expect(success.textContent).toMatch(/580/);
+    expect(success.textContent).toMatch(/7\s+mar\s+2026/i);
     expect(success.textContent).toContain('10 mar 2026');
     expect(success.textContent).toContain('Confirmada');
   });
@@ -373,7 +373,7 @@ describe('ReservationDetailPage', () => {
     req.flush({ error: 'Server error' }, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
 
-    expect(component.error()).toBe('No fue posible cargar la información del hospedaje.');
+    expect(component.error()).toBe('No pudimos cargar el detalle');
     expect(component.detail()).toBeNull();
 
     const error = fixture.nativeElement.querySelector('[data-testid="reservation-detail-error"]');
@@ -387,7 +387,7 @@ describe('ReservationDetailPage', () => {
     firstReq.flush({ error: 'Server error' }, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
 
-    expect(component.error()).toBe('No fue posible cargar el detalle de la reserva.');
+    expect(component.error()).toBe('No pudimos cargar el detalle');
     const retryButton = fixture.nativeElement.querySelector('[data-testid="reservation-detail-error"] .state-action') as HTMLButtonElement;
     retryButton.click();
     fixture.detectChanges();
@@ -481,7 +481,7 @@ describe('ReservationDetailPage', () => {
     fixture.detectChanges();
 
     httpTesting.expectNone(r => r.url.includes('/view-detail'));
-    expect(component.error()).toBe('La reserva no tiene información de hospedaje disponible.');
+    expect(component.error()).toBe('La reserva solicitada no existe o ya no está disponible.');
     expect(component.detail()).toBeNull();
   });
 

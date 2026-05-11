@@ -4,11 +4,12 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 import { ReservationCardComponent } from '../../shared/components/reservation-card/reservation-card';
 import { MyReservationsService } from '../../core/services/my-reservations';
 import { ReservationFilter } from '../../models/reservation.interface';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-my-reservations-page',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent, ReservationCardComponent],
+  imports: [HeaderComponent, FooterComponent, ReservationCardComponent, TranslatePipe],
   templateUrl: './my-reservations-page.html',
   styleUrl: './my-reservations-page.css',
 })

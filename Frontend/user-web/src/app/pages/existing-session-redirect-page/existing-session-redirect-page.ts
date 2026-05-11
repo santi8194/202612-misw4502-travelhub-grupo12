@@ -4,6 +4,8 @@ import { finalize } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 interface BookingStatusResponse {
   estado?: string;
@@ -16,7 +18,7 @@ interface BookingStatusResponse {
 @Component({
   selector: 'app-existing-session-redirect-page',
   standalone: true,
-  imports: [RouterLink, HeaderComponent, FooterComponent],
+  imports: [RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './existing-session-redirect-page.html',
   styleUrl: './existing-session-redirect-page.css',
 })
@@ -24,10 +26,11 @@ export class ExistingSessionRedirectPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookingService = inject(BookingService);
+  private readonly i18n = inject(I18nService);
 
   readonly targetReservationId = this.route.snapshot.queryParamMap.get('reservationId') ?? '';
   isRedirecting = signal(true);
-  statusMessage = signal('Estamos validando el estado de tu reserva activa...');
+  statusMessage = signal(this.i18n.translate('processing.message'));
   hasResolutionError = signal(false);
 
   private resolvedStatus = signal<'hold' | 'pending' | 'confirmed' | 'cancelled' | 'unknown' | 'error' | null>(null);
@@ -37,7 +40,7 @@ export class ExistingSessionRedirectPage {
     if (!this.targetReservationId) {
       this.isRedirecting.set(false);
       this.hasResolutionError.set(true);
-      this.statusMessage.set('No encontramos una sesión activa para redirigirte.');
+      this.statusMessage.set(this.i18n.translate('existingSession.error'));
       return;
     }
 
@@ -48,7 +51,7 @@ export class ExistingSessionRedirectPage {
     if (!this.targetReservationId) {
       this.isRedirecting.set(false);
       this.hasResolutionError.set(true);
-      this.statusMessage.set('No encontramos una sesión activa para redirigirte.');
+      this.statusMessage.set(this.i18n.translate('existingSession.error'));
       return;
     }
 
@@ -60,19 +63,19 @@ export class ExistingSessionRedirectPage {
 
         if (status === 'HOLD') {
           this.resolvedStatus.set('hold');
-          this.statusMessage.set('Tu reserva sigue activa en HOLD. Puedes abrirla para continuar en el carrito.');
+          this.statusMessage.set(this.i18n.translate('processing.sagaProcessing'));
           return;
         }
 
         if (status === 'PENDIENTE') {
           this.resolvedStatus.set('pending');
-          this.statusMessage.set('Tu reserva esta siendo procesada. Puedes abrir la vista de seguimiento.');
+          this.statusMessage.set(this.i18n.translate('processing.message'));
           return;
         }
 
         if (status === 'CONFIRMADA') {
           this.resolvedStatus.set('confirmed');
-          this.statusMessage.set('Tu reserva ya fue confirmada.');
+          this.statusMessage.set(this.i18n.translate('processing.confirmed'));
           return;
         }
 
@@ -82,20 +85,20 @@ export class ExistingSessionRedirectPage {
             ?? response?.mensaje
             ?? response?.detail
             ?? response?.error
-            ?? 'Tu reserva ya estaba cancelada. Puedes buscar una nueva opcion.';
+            ?? this.i18n.translate('processing.cancelled');
           this.resolvedReason.set(reason);
-          this.statusMessage.set('Tu reserva ya estaba cancelada.');
+          this.statusMessage.set(this.i18n.translate('processing.cancelled'));
           return;
         }
 
         this.resolvedStatus.set('unknown');
         this.hasResolutionError.set(true);
-        this.statusMessage.set('No pudimos determinar el estado de tu sesion activa. Puedes abrirla manualmente.');
+        this.statusMessage.set(this.i18n.translate('existingSession.error'));
       },
       error: () => {
         this.resolvedStatus.set('error');
         this.hasResolutionError.set(true);
-        this.statusMessage.set('No fue posible validar el estado de la reserva en este momento. Puedes abrirla manualmente.');
+        this.statusMessage.set(this.i18n.translate('existingSession.error'));
       },
     });
   }
@@ -116,7 +119,7 @@ export class ExistingSessionRedirectPage {
       this.router.navigate(['/booking', this.targetReservationId, 'confirm-reservation'], {
         queryParams: {
           status: 'confirmed',
-          reason: 'Tu reserva ya estaba confirmada.',
+          reason: this.i18n.translate('processing.confirmed'),
         },
       });
       return;
@@ -126,7 +129,7 @@ export class ExistingSessionRedirectPage {
       this.router.navigate(['/booking', this.targetReservationId, 'confirm-reservation'], {
         queryParams: {
           status: 'rejected',
-          reason: this.resolvedReason() || 'Tu reserva ya estaba cancelada. Puedes buscar una nueva opcion.',
+          reason: this.resolvedReason() || this.i18n.translate('processing.cancelled'),
         },
       });
       return;
@@ -138,17 +141,17 @@ export class ExistingSessionRedirectPage {
   actionLabel(): string {
     const status = this.resolvedStatus();
     if (status === 'pending') {
-      return 'Abrir seguimiento de reserva';
+      return this.i18n.translate('existingSession.goToActive');
     }
 
     if (status === 'confirmed') {
-      return 'Ver confirmacion de reserva';
+      return this.i18n.translate('existingSession.goToActive');
     }
 
     if (status === 'cancelled') {
-      return 'Ver detalle de reserva cancelada';
+      return this.i18n.translate('existingSession.goToActive');
     }
 
-    return 'Ir ahora a mi sesion activa';
+    return this.i18n.translate('existingSession.openAnyway');
   }
 }

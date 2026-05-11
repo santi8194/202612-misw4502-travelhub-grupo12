@@ -5,16 +5,19 @@ import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { PaymentIntentResponse } from '../../core/services/booking';
 import { PAYMENT_STORAGE_PREFIX } from '../../core/storage/payment-storage';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-payment-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './payment-page.html',
   styleUrl: './payment-page.css',
 })
 export class PaymentPage implements OnInit, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly i18n = inject(I18nService);
 
   @ViewChild('wompiWidgetForm') private readonly wompiWidgetForm?: ElementRef<HTMLFormElement>;
 
@@ -38,32 +41,32 @@ export class PaymentPage implements OnInit, AfterViewInit {
       return '';
     }
 
-    return `${current.moneda} ${Math.round(current.monto).toLocaleString('es-CO')}`;
+    return this.i18n.formatCurrency(Math.round(current.monto), current.moneda);
   };
 
   private loadPayment(): void {
     if (!this.reservationId) {
-      this.error.set('No se encontro el identificador de la reserva.');
+      this.error.set(this.i18n.translate('payment.identifyReservationMissing'));
       return;
     }
 
     const rawPayment = sessionStorage.getItem(this.storageKey());
     if (!rawPayment) {
-      this.error.set('No se encontro una intencion de pago activa para esta reserva.');
+      this.error.set(this.i18n.translate('payment.activeIntentMissing'));
       return;
     }
 
     try {
       const payment = JSON.parse(rawPayment) as PaymentIntentResponse;
       if (!payment.checkout) {
-        this.error.set('La intencion de pago no contiene datos de checkout.');
+        this.error.set(this.i18n.translate('payment.checkoutMissing'));
         return;
       }
 
       this.payment.set(payment);
       this.renderWompiWidget();
     } catch {
-      this.error.set('No fue posible leer la intencion de pago.');
+      this.error.set(this.i18n.translate('payment.readError'));
     }
   }
 
@@ -101,7 +104,7 @@ export class PaymentPage implements OnInit, AfterViewInit {
       script.async = true;
       script.onload = () => this.isWidgetReady.set(true);
       script.onerror = () => {
-        this.error.set('No fue posible cargar el widget de Wompi. Verifica la conexion e intenta nuevamente.');
+        this.error.set(this.i18n.translate('payment.widgetLoadError'));
         this.isWidgetReady.set(false);
       };
 
@@ -113,7 +116,7 @@ export class PaymentPage implements OnInit, AfterViewInit {
       this.widgetRenderId.update((current) => current + 1);
     } catch (error) {
       console.error('[PaymentPage] Wompi widget render error', error);
-      this.error.set('No fue posible preparar el widget de Wompi. Intenta nuevamente.');
+      this.error.set(this.i18n.translate('payment.widgetPrepareError'));
     }
   }
 

@@ -117,8 +117,8 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
     cy.wait('@getPendingBooking');
 
     cy.get('[data-testid="existing-session-redirect-card"]').should('be.visible');
-    cy.contains('Tu reserva esta siendo procesada').should('be.visible');
-    cy.contains('Abrir seguimiento de reserva').click();
+    cy.contains('Tu reserva está en proceso').should('be.visible');
+    cy.contains('Ir a la reserva activa').click();
 
     cy.location('pathname').should('eq', `/booking/${RESERVATION_ID}/processing-reservation`);
     cy.get('[data-testid="processing-reservation-card"]').should('be.visible');

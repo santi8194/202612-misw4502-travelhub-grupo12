@@ -4,16 +4,16 @@
   <main class="processing-content">
     <section class="processing-card" data-testid="processing-reservation-card">
       <div class="spinner" aria-hidden="true"></div>
-      <h1 class="processing-title">Estamos procesando tu reserva</h1>
+      <h1 class="processing-title">{{ 'processing.title' | translate }}</h1>
       <p class="processing-message" data-testid="processing-reservation-message">
         {{ message() }}
       </p>
       <p class="processing-status" data-testid="processing-reservation-status">
-        Estado actual: <strong>{{ status() }}</strong>
+        {{ 'processing.status' | translate }} <strong>{{ status() }}</strong>
       </p>
 
       @if (!isPolling()) {
-        <a class="processing-action" [routerLink]="['/booking', reservationId]">Volver al carrito</a>
+        <a class="processing-action" [routerLink]="['/booking', reservationId]">{{ 'processing.backToCart' | translate }}</a>
       }
     </section>
   </main>

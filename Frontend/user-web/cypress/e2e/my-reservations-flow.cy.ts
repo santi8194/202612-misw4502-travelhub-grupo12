@@ -82,7 +82,7 @@ describe('My Reservations Flow', () => {
       cy.get('[data-testid="reservation-card"]').eq(0).within(() => {
         cy.get('[data-testid="reservation-name"]').should('contain.text', 'Suite Deluxe');
         cy.get('[data-testid="reservation-status-badge"]').should('contain.text', 'Confirmada');
-        cy.get('[data-testid="reservation-price"]').should('contain.text', '$580');
+        cy.get('[data-testid="reservation-price"]').should('contain.text', '580').and('contain.text', 'US$');
         cy.get('[data-testid="reservation-id"]')
           .should('contain.text', 'Código confirmación')
           .and('contain.text', 'RES001');
@@ -157,7 +157,7 @@ describe('My Reservations Flow', () => {
 
       // Validate that it shows the price from calculate-room-price (COP 1,500)
       cy.get('[data-testid="reservation-card"]').within(() => {
-        cy.get('[data-testid="reservation-price"]').should('contain.text', 'COP').and('contain.text', '1,500');
+        cy.get('[data-testid="reservation-price"]').should('contain.text', '1500').and('contain.text', 'COP');
       });
     });
   });

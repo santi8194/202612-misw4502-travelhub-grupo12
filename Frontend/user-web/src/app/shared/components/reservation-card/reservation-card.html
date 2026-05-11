@@ -39,7 +39,7 @@
         </div>
 
         <p class="card-meta" data-testid="reservation-id">
-          Código confirmación: {{ getConfirmationCode(reservation().id_reserva) }}
+          {{ 'reservationCard.confirmationCode' | translate:{ code: getConfirmationCode(reservation().id_reserva) } }}
         </p>
       </div>
 
@@ -47,7 +47,7 @@
         <span class="card-price__amount">
           {{ formatCurrency(reservation().monto_total, reservation().moneda) }}
         </span>
-        <span class="card-price__label">Total</span>
+        <span class="card-price__label">{{ 'reservationCard.total' | translate }}</span>
       </div>
     </div>
 
@@ -59,7 +59,7 @@
           <path d="M16 2v4M8 2v4M3 10h18"/>
         </svg>
         <div>
-          <span class="detail-label">Llegada</span>
+          <span class="detail-label">{{ 'reservationCard.arrival' | translate }}</span>
           <span class="detail-value" data-testid="check-in-date">{{ formatDate(reservation().fecha_check_in) }}</span>
         </div>
       </div>
@@ -70,7 +70,7 @@
           <path d="M16 2v4M8 2v4M3 10h18"/>
         </svg>
         <div>
-          <span class="detail-label">Salida</span>
+          <span class="detail-label">{{ 'reservationCard.departure' | translate }}</span>
           <span class="detail-value" data-testid="check-out-date">{{ formatDate(reservation().fecha_check_out) }}</span>
         </div>
       </div>
@@ -83,7 +83,7 @@
           <path d="M21 20c0-2.8-2-4.9-4.5-5.5"/>
         </svg>
         <div>
-          <span class="detail-label">Huéspedes</span>
+          <span class="detail-label">{{ 'reservationCard.guests' | translate }}</span>
           <span class="detail-value" data-testid="total-guests">{{ reservation().total_huespedes }}</span>
         </div>
       </div>
@@ -100,7 +100,7 @@
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>
-        Ver detalles
+        {{ 'reservationCard.details' | translate }}
       </a>
 
       @if (showCompletarPago(reservation().estado)) {
@@ -109,7 +109,7 @@
           type="button"
           data-testid="btn-completar-pago"
         >
-          Completar Pago
+          {{ 'reservationCard.completePayment' | translate }}
         </button>
       }
 
@@ -123,14 +123,14 @@
             <circle cx="12" cy="12" r="10"/>
             <path d="M15 9l-6 6M9 9l6 6"/>
           </svg>
-          Cancelar Reserva
+          {{ 'reservationCard.cancelReservation' | translate }}
         </button>
       }
 
       <button
         class="btn btn--icon"
         type="button"
-        aria-label="Más opciones"
+        [attr.aria-label]="'reservationCard.moreOptions' | translate"
         data-testid="btn-more-options"
       >
         <svg viewBox="0 0 24 24" fill="currentColor">

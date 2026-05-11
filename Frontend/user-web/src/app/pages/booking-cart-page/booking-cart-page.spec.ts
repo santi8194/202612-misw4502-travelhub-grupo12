@@ -334,7 +334,7 @@ describe('BookingCartPage', () => {
     component.createHold();
 
     expect(component.holdError()).toContain('No se pudo cargar la reserva');
-    expect(window.alert).toHaveBeenCalledWith('No se pudo cargar la reserva desde backend');
+    expect(window.alert).toHaveBeenCalledWith('No se pudo cargar la reserva desde backend. Vuelve a intentarlo más tarde.');
   });
 
   it('should block hold creation when backend booking data is incomplete', async () => {

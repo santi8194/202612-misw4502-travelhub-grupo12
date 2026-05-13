@@ -4,7 +4,7 @@ from modules.catalog.application.commands.update_inventory import UpdateInventor
 from modules.catalog.infrastructure.repository import PropertyRepository
 from modules.catalog.infrastructure.services.event_bus import EventBus
 from modules.catalog.infrastructure.database import SessionLocal
-from modules.catalog.infrastructure.models import InventarioModel
+from modules.catalog.infrastructure.models import InventarioModel, CategoriaHabitacionModel
 from modules.catalog.domain.events import InventarioActualizado
 from datetime import date, datetime
 from decimal import Decimal
@@ -122,6 +122,8 @@ def handle_pms_inventory_updated(data):
 	"""
 	Maneja el evento PMSInventoryUpdated del PMS.
 	
+	Resuelve el UUID de la categoría a partir del codigo_mapeo_pms
+	(formato hotel_code:room_type_code) consultando la base de datos local.
 	Implementa idempotencia por timestamp y control de concurrencia
 	con SELECT FOR UPDATE para evitar race conditions.
 	
@@ -129,18 +131,29 @@ def handle_pms_inventory_updated(data):
 		data: Payload del evento PMSInventoryUpdated
 	"""
 	try:
-		id_categoria = UUID(data["id_categoria"])
+		codigo_mapeo_pms = data["codigo_mapeo_pms"]
 		fecha_str = data["fecha"]
 		cupos_totales = data["cupos_totales"]
 		cupos_disponibles = data["cupos_disponibles"]
 		event_timestamp_str = data["event_timestamp"]
-		
+
 		fecha = datetime.fromisoformat(fecha_str.replace('Z', '+00:00')).date()
 		event_timestamp = datetime.fromisoformat(event_timestamp_str.replace('Z', '+00:00'))
-		
-		print(f"[CATALOG] Procesando PMSInventoryUpdated: {id_categoria} @ {fecha} -> {cupos_disponibles} cupos")
-		
+
+		print(f"[CATALOG] Procesando PMSInventoryUpdated: {codigo_mapeo_pms} @ {fecha} -> {cupos_disponibles} cupos")
+
 		db = SessionLocal()
+
+		categoria_row = db.query(CategoriaHabitacionModel).filter_by(
+			codigo_mapeo_pms=codigo_mapeo_pms
+		).first()
+
+		if not categoria_row:
+			print(f"[CATALOG] Categoría no encontrada para codigo_mapeo_pms: {codigo_mapeo_pms}. Evento ignorado.")
+			db.close()
+			return
+
+		id_categoria = categoria_row.id_categoria
 		
 		try:
 			inventario = db.query(InventarioModel).filter_by(

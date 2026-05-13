@@ -51,13 +51,13 @@ class PMSInventoryUpdated:
     Evento publicado cuando el PMS notifica un cambio de inventario.
     
     Este evento es consumido por Catalog para actualizar su inventario.
+    Catalog resuelve el UUID de la categoría usando el codigo_mapeo_pms.
     """
     
-    def __init__(self, id_propiedad, id_categoria, fecha, cupos_totales, cupos_disponibles, event_timestamp):
+    def __init__(self, codigo_mapeo_pms, fecha, cupos_totales, cupos_disponibles, event_timestamp):
         self.routing_key = "pms.inventory.updated"
         self.type = "PMSInventoryUpdated"
-        self.id_propiedad = str(id_propiedad)
-        self.id_categoria = str(id_categoria)
+        self.codigo_mapeo_pms = codigo_mapeo_pms
         self.fecha = fecha.isoformat() if hasattr(fecha, 'isoformat') else fecha
         self.cupos_totales = cupos_totales
         self.cupos_disponibles = cupos_disponibles
@@ -66,8 +66,7 @@ class PMSInventoryUpdated:
     def to_dict(self):
         return {
             "type": self.type,
-            "id_propiedad": self.id_propiedad,
-            "id_categoria": self.id_categoria,
+            "codigo_mapeo_pms": self.codigo_mapeo_pms,
             "fecha": self.fecha,
             "cupos_totales": self.cupos_totales,
             "cupos_disponibles": self.cupos_disponibles,

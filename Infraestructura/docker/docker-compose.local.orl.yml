@@ -60,6 +60,7 @@ services:
       timeout: 5s
       retries: 5
     environment:
+      TZ: America/Bogota
       DB_HOST: postgres-db
       DB_PORT: 5432
       DB_NAME: catalog_db
@@ -95,6 +96,7 @@ services:
       timeout: 5s
       retries: 5
     environment:
+      TZ: America/Bogota
       PMS_DB_HOST: postgres-db
       PMS_DB_PORT: 5432
       PMS_DB_NAME: pms_db
@@ -133,7 +135,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - ../../Backend/mock-pms/data:/app/data
     environment:
+      TZ: America/Bogota
       PMS_INTEGRATION_URL: http://pms-integration:8001
     networks:
       - travelhub-dev-net
@@ -155,6 +160,7 @@ services:
       timeout: 5s
       retries: 5
     environment:
+      TZ: America/Bogota
       DB_HOST: postgres-db
       DB_PORT: 5432
       DB_NAME: search_db
@@ -186,6 +192,7 @@ services:
     ports:
       - "8003:8000"
     environment:
+      TZ: America/Bogota
       BOOKING_DB_MODE: postgres
       DB_HOST: postgres-db
       DB_PORT: 5432

@@ -361,6 +361,237 @@ def test_cancelar_reserva_handler_value_error_returns_400(client, monkeypatch):
     assert "cancelar" in response.json["error"].lower()
 
 
+def _fake_reserva_preview(estado='CONFIRMADA', check_in_days=10):
+    reserva_id = uuid.uuid4()
+    id_categoria = uuid.uuid4()
+    return SimpleNamespace(
+        id=reserva_id,
+        id_categoria=id_categoria,
+        codigo_confirmacion_ota='BK-001',
+        codigo_localizador_pms=None,
+        estado=SimpleNamespace(value=estado),
+        fecha_check_in=datetime.date.today() + datetime.timedelta(days=check_in_days),
+        fecha_check_out=datetime.date.today() + datetime.timedelta(days=check_in_days + 3),
+        ocupacion=SimpleNamespace(adultos=2, ninos=1, infantes=0),
+    )
+
+
+def _setup_cancelacion_preview(
+    monkeypatch,
+    reserva,
+    *,
+    porcentaje_penalidad=50,
+    dias_anticipacion=2,
+    payment=None,
+):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, reserva_id):
+            return reserva
+
+    class DummyCatalogClient:
+        def get_category_by_id(self, id_categoria):
+            assert id_categoria == str(reserva.id_categoria)
+            return {
+                "nombre_comercial": "Suite Deluxe",
+                "precio_base": {"monto": 120000, "moneda": "COP"},
+                "politica_cancelacion": {
+                    "dias_anticipacion": dias_anticipacion,
+                    "porcentaje_penalidad": porcentaje_penalidad,
+                },
+            }
+
+        def get_property_by_category_id(self, id_categoria):
+            assert id_categoria == str(reserva.id_categoria)
+            return {
+                "nombre": "Hotel Andino",
+                "ubicacion": {"ciudad": "Bogota", "pais": "Colombia"},
+            }
+
+    class DummyPaymentClient:
+        def get_payment_for_reserva(self, id_reserva):
+            assert id_reserva == str(reserva.id)
+            return payment or {"estado": "APPROVED", "monto": 1000, "moneda": "COP"}
+
+    monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', DummyCatalogClient)
+    monkeypatch.setattr(reserva_api_mod, 'PaymentServiceClient', DummyPaymentClient)
+
+
+def test_cancelacion_preview_confirmada_returns_200(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=50)
+
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+
+    assert response.status_code == 200
+    body = response.json
+    assert body["reservationId"] == str(reserva.id)
+    assert body["reservationNumber"] == "BK-001"
+    assert body["hotelName"] == "Hotel Andino"
+    assert body["location"] == "Bogota, Colombia"
+    assert body["checkInDate"] == reserva.fecha_check_in.isoformat()
+    assert body["checkOutDate"] == reserva.fecha_check_out.isoformat()
+    assert body["guests"] == 3
+    assert body["currentStatus"] == "CONFIRMADA"
+    assert body["totalPaid"] == 1000
+    assert body["currency"] == "COP"
+    assert body["canCancel"] is True
+    assert body["nonCancelableReason"] is None
+
+
+def test_cancelacion_preview_not_found_returns_404(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, _reserva_id):
+            return None
+
+    monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    response = client.get(f'/api/reserva/{uuid.uuid4()}/cancelacion-preview')
+
+    assert response.status_code == 404
+    assert response.is_json
+    assert "No se encontro la reserva" in response.json["error"]
+
+
+@pytest.mark.parametrize(
+    "estado, reason_fragment",
+    [
+        ("CANCELADA", "cancelada"),
+        ("EXPIRADA", "expirada"),
+        ("HOLD", "HOLD"),
+        ("PENDIENTE", "pendiente"),
+    ],
+)
+def test_cancelacion_preview_estados_no_cancelables(client, monkeypatch, estado, reason_fragment):
+    reserva = _fake_reserva_preview(estado=estado)
+    _setup_cancelacion_preview(monkeypatch, reserva)
+
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+
+    assert response.status_code == 200
+    body = response.json
+    assert body["currentStatus"] == estado
+    assert body["canCancel"] is False
+    assert reason_fragment in body["nonCancelableReason"]
+    assert body["refund"]["expectedRefundAmount"] == 0
+    assert body["refund"]["refundStatus"] == "NOT_APPLICABLE"
+
+
+@pytest.mark.parametrize(
+    "porcentaje_penalidad, expected_type, expected_refund, expected_status",
+    [
+        (0, "FREE_CANCELLATION", 1000, "PENDING"),
+        (50, "PARTIAL_REFUND", 500, "PENDING"),
+        (100, "NON_REFUNDABLE", 0, "NOT_APPLICABLE"),
+    ],
+)
+def test_cancelacion_preview_politica_y_reembolso(
+    client,
+    monkeypatch,
+    porcentaje_penalidad,
+    expected_type,
+    expected_refund,
+    expected_status,
+):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=porcentaje_penalidad)
+
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+
+    assert response.status_code == 200
+    body = response.json
+    assert body["cancellationPolicy"]["type"] == expected_type
+    assert body["cancellationPolicy"]["porcentajePenalidad"] == porcentaje_penalidad
+    assert body["refund"]["paidAmount"] == 1000
+    assert body["refund"]["expectedRefundAmount"] == expected_refund
+    assert body["refund"]["refundStatus"] == expected_status
+
+
+def test_cancelacion_preview_fuera_de_ventana_no_cancelable(client, monkeypatch):
+    reserva = _fake_reserva_preview(check_in_days=1)
+    _setup_cancelacion_preview(monkeypatch, reserva, dias_anticipacion=2)
+
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+
+    assert response.status_code == 200
+    body = response.json
+    assert body["canCancel"] is False
+    assert "2 dias de anticipacion" in body["nonCancelableReason"]
+    assert body["refund"]["expectedRefundAmount"] == 0
+    assert body["refund"]["refundStatus"] == "NOT_APPLICABLE"
+
+
+def test_cancelacion_preview_sin_pago_aprobado_no_cancelable(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(
+        monkeypatch,
+        reserva,
+        payment={"estado": "PENDING", "monto": 1000, "moneda": "COP"},
+    )
+
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+
+    assert response.status_code == 200
+    body = response.json
+    assert body["canCancel"] is False
+    assert "pago aprobado" in body["nonCancelableReason"]
+    assert body["totalPaid"] == 1000
+    assert body["refund"]["refundStatus"] == "NOT_APPLICABLE"
+
+
+def test_cancelacion_preview_no_invoca_pms_ni_refund_payment(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    payment_calls = []
+
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, _reserva_id):
+            return reserva
+
+    class DummyCatalogClient:
+        def get_category_by_id(self, _id_categoria):
+            return {
+                "politica_cancelacion": {
+                    "dias_anticipacion": 2,
+                    "porcentaje_penalidad": 0,
+                },
+            }
+
+        def get_property_by_category_id(self, _id_categoria):
+            return {"nombre": "Hotel Andino"}
+
+    class ReadOnlyPaymentClient:
+        def get_payment_for_reserva(self, id_reserva):
+            payment_calls.append(id_reserva)
+            return {"estado": "APPROVED", "monto": 1000, "moneda": "COP"}
+
+    monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', DummyCatalogClient)
+    monkeypatch.setattr(reserva_api_mod, 'PaymentServiceClient', ReadOnlyPaymentClient)
+
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+
+    assert response.status_code == 200
+    assert payment_calls == [str(reserva.id)]
+
+
 def test_get_reserva_by_id_returns_200(client):
     payload = {
         'id_usuario': str(uuid.uuid4()),

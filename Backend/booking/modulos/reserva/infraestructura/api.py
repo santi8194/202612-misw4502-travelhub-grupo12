@@ -8,6 +8,7 @@ from modulos.reserva.infraestructura.payment_client import PaymentServiceClient
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
 from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
 from config.uow import UnidadTrabajoHibrida
+import datetime
 import json
 import os
 import urllib.error
@@ -119,6 +120,239 @@ def crear_checkout_pago(id_reserva: str, monto: float, moneda: str):
         raise RuntimeError(f"No se pudo crear el pago: {detalle}") from e
     except urllib.error.URLError as e:
         raise RuntimeError(f"No se pudo conectar con payment: {e.reason}") from e
+
+
+def _valor_estado_reserva(reserva) -> str | None:
+    estado = getattr(reserva, "estado", None)
+    return estado.value if hasattr(estado, "value") else estado
+
+
+def _valor_fecha_iso(fecha) -> str | None:
+    return fecha.isoformat() if fecha else None
+
+
+def _total_huespedes(ocupacion) -> int:
+    if not ocupacion:
+        return 0
+
+    if isinstance(ocupacion, dict):
+        return (
+            (ocupacion.get("adultos") or 0)
+            + (ocupacion.get("ninos") or 0)
+            + (ocupacion.get("infantes") or 0)
+        )
+
+    return (
+        (getattr(ocupacion, "adultos", 0) or 0)
+        + (getattr(ocupacion, "ninos", 0) or 0)
+        + (getattr(ocupacion, "infantes", 0) or 0)
+    )
+
+
+def _nested_get(data: dict | None, *keys):
+    current = data or {}
+    for key in keys:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def _extraer_politica_cancelacion(category_info: dict) -> dict | None:
+    return (
+        category_info.get("politica_cancelacion")
+        or _nested_get(category_info, "categoria", "politica_cancelacion")
+    )
+
+
+def _extraer_precio_base(category_info: dict) -> dict | None:
+    return (
+        category_info.get("precio_base")
+        or _nested_get(category_info, "categoria", "precio_base")
+    )
+
+
+def _extraer_hotel_name(category_info: dict, property_info: dict) -> str | None:
+    return (
+        property_info.get("nombre")
+        or property_info.get("nombre_comercial")
+        or category_info.get("nombre_comercial")
+        or _nested_get(category_info, "categoria", "nombre_comercial")
+    )
+
+
+def _extraer_location(property_info: dict) -> str | None:
+    ubicacion = property_info.get("ubicacion") if property_info else None
+    if isinstance(ubicacion, dict):
+        partes = [ubicacion.get("ciudad"), ubicacion.get("pais")]
+        return ", ".join([parte for parte in partes if parte]) or None
+
+    partes = [
+        property_info.get("ciudad") if property_info else None,
+        property_info.get("pais") if property_info else None,
+    ]
+    return ", ".join([parte for parte in partes if parte]) or None
+
+
+def _monto_float(value, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _policy_type_and_copy(porcentaje_penalidad: float) -> tuple[str, str, str]:
+    if porcentaje_penalidad <= 0:
+        return (
+            "FREE_CANCELLATION",
+            "Cancelacion gratuita",
+            "La reserva puede cancelarse dentro de la ventana permitida sin penalidad.",
+        )
+    if porcentaje_penalidad >= 100:
+        return (
+            "NON_REFUNDABLE",
+            "No reembolsable",
+            "La reserva puede cancelarse dentro de la ventana permitida sin reembolso.",
+        )
+    return (
+        "PARTIAL_REFUND",
+        "Reembolso parcial",
+        "La reserva puede cancelarse dentro de la ventana permitida con penalidad parcial.",
+    )
+
+
+def _payment_info_for_preview(payment_info: dict | None, category_info: dict) -> tuple[float, str, bool]:
+    payment_info = payment_info or {}
+    precio_base = _extraer_precio_base(category_info) or {}
+
+    total_paid = _monto_float(payment_info.get("monto"))
+    currency = payment_info.get("moneda") or precio_base.get("moneda") or "COP"
+    payment_status = payment_info.get("estado")
+    payment_approved = payment_status == "APPROVED"
+
+    return total_paid, currency, payment_approved
+
+
+def _build_cancellation_preview(reserva, category_info: dict, property_info: dict, payment_info: dict | None) -> dict:
+    policy = _extraer_politica_cancelacion(category_info)
+    if not policy:
+        raise ValueError("No existe politica de cancelacion para la categoria")
+
+    dias_anticipacion = int(policy.get("dias_anticipacion") or 0)
+    porcentaje_penalidad = _monto_float(policy.get("porcentaje_penalidad"))
+    policy_type, policy_label, policy_description = _policy_type_and_copy(porcentaje_penalidad)
+
+    total_paid, currency, payment_approved = _payment_info_for_preview(payment_info, category_info)
+    estado = _valor_estado_reserva(reserva)
+    check_in = getattr(reserva, "fecha_check_in", None)
+    days_until_check_in = (check_in - datetime.date.today()).days if check_in else None
+
+    can_cancel = True
+    non_cancelable_reason = None
+
+    if estado == "CANCELADA":
+        can_cancel = False
+        non_cancelable_reason = "La reserva ya esta cancelada."
+    elif estado == "EXPIRADA":
+        can_cancel = False
+        non_cancelable_reason = "La reserva ya esta expirada."
+    elif estado == "HOLD":
+        can_cancel = False
+        non_cancelable_reason = "Las reservas en HOLD se liberan por expiracion, no por cancelacion de usuario."
+    elif estado == "PENDIENTE":
+        can_cancel = False
+        non_cancelable_reason = "La reserva pendiente requiere confirmacion antes de evaluar cancelacion."
+    elif estado != "CONFIRMADA":
+        can_cancel = False
+        non_cancelable_reason = "El estado actual de la reserva no permite cancelacion."
+    elif not payment_approved:
+        can_cancel = False
+        non_cancelable_reason = "No existe un pago aprobado confiable para calcular el reembolso."
+    elif days_until_check_in is None:
+        can_cancel = False
+        non_cancelable_reason = "La reserva no tiene fecha de llegada para evaluar la politica."
+    elif days_until_check_in < dias_anticipacion:
+        can_cancel = False
+        non_cancelable_reason = f"La politica requiere al menos {dias_anticipacion} dias de anticipacion para cancelar."
+
+    expected_refund = 0.0
+    if can_cancel:
+        expected_refund = round(total_paid * (1 - porcentaje_penalidad / 100), 2)
+
+    refund_status = "PENDING" if expected_refund > 0 else "NOT_APPLICABLE"
+
+    return {
+        "reservationId": str(reserva.id),
+        "reservationNumber": (
+            getattr(reserva, "codigo_confirmacion_ota", None)
+            or getattr(reserva, "codigo_localizador_pms", None)
+            or str(reserva.id)
+        ),
+        "hotelName": _extraer_hotel_name(category_info, property_info),
+        "location": _extraer_location(property_info),
+        "checkInDate": _valor_fecha_iso(getattr(reserva, "fecha_check_in", None)),
+        "checkOutDate": _valor_fecha_iso(getattr(reserva, "fecha_check_out", None)),
+        "guests": _total_huespedes(getattr(reserva, "ocupacion", None)),
+        "currentStatus": estado,
+        "totalPaid": total_paid,
+        "currency": currency,
+        "canCancel": can_cancel,
+        "nonCancelableReason": non_cancelable_reason,
+        "cancellationPolicy": {
+            "type": policy_type,
+            "label": policy_label,
+            "description": policy_description,
+            "diasAnticipacion": dias_anticipacion,
+            "porcentajePenalidad": porcentaje_penalidad,
+        },
+        "refund": {
+            "paidAmount": total_paid,
+            "expectedRefundAmount": expected_refund,
+            "refundStatus": refund_status,
+            "processingTimeLabel": "5 a 10 dias habiles",
+        },
+    }
+
+
+@reserva_api.route('/reserva/<id_reserva>/cancelacion-preview', methods=['GET'])
+def obtener_cancelacion_preview(id_reserva):
+    try:
+        reserva_id = uuid.UUID(id_reserva)
+        uow = UnidadTrabajoHibrida()
+        repositorio = RepositorioReservas()
+        handler = ObtenerReservaPorIdHandler(repositorio=repositorio, uow=uow)
+        reserva = handler.handle(reserva_id)
+
+        if not reserva:
+            return jsonify({"error": f"No se encontro la reserva con ID: {id_reserva}"}), 404
+
+        id_categoria = str(reserva.id_categoria) if reserva.id_categoria else None
+        if not id_categoria:
+            return jsonify({"error": "La reserva no tiene categoria asociada para evaluar cancelacion"}), 400
+
+        catalog_client = CatalogServiceClient()
+        try:
+            category_info = catalog_client.get_category_by_id(id_categoria) or {}
+            property_info = catalog_client.get_property_by_category_id(id_categoria) or {}
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 502
+
+        payment_client = PaymentServiceClient()
+        payment_info = payment_client.get_payment_for_reserva(str(reserva.id))
+
+        preview = _build_cancellation_preview(
+            reserva=reserva,
+            category_info=category_info,
+            property_info=property_info,
+            payment_info=payment_info,
+        )
+
+        return jsonify(preview), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @reserva_api.route('/reserva/<id_reserva>', methods=['GET'])

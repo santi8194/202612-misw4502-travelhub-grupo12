@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 from seedwork.aplicacion.comandos import Handler
 from modulos.reserva.aplicacion.comandos import (
     CrearReservaHold, FormalizarReserva, 
-    ConfirmarReservaLocalCmd, CancelarReservaLocalCmd, ExpirarReserva
+    ConfirmarReservaLocalCmd, CancelarReservaLocalCmd, ConfirmarCancelacionPmsLocalCmd, ExpirarReserva
 )
 from modulos.reserva.dominio.entidades import Reserva, Usuario, CategoriaHabitacion
 from modulos.reserva.dominio.objetos_valor import EstadoReserva, Pax
@@ -216,6 +216,45 @@ class CancelarReservaLocalHandler(Handler):
             self.uow.commit() 
             logger.info(f"❌ [HANDLER LOCAL] Reserva {reserva.id} CANCELADA localmente por compensación.")
         return evento_falla
+
+
+class ConfirmarCancelacionPmsLocalHandler(Handler):
+    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
+        self.repositorio = repositorio
+        self.uow = uow
+
+    def handle(self, comando: ConfirmarCancelacionPmsLocalCmd) -> bool:
+        with self.uow:
+            reserva: Reserva = self.repositorio.obtener_por_id(str(comando.id_reserva))
+            if not reserva:
+                logger.warning(
+                    "Confirmacion PMS de cancelacion ignorada: reserva %s no encontrada",
+                    comando.id_reserva,
+                )
+                return False
+
+            try:
+                changed = reserva.confirmar_cancelacion_pms()
+            except ValueError as exc:
+                logger.warning(
+                    "Confirmacion PMS de cancelacion ignorada para reserva %s: %s",
+                    comando.id_reserva,
+                    exc,
+                )
+                return False
+
+            if not changed:
+                logger.info(
+                    "Confirmacion PMS de cancelacion duplicada para reserva %s; ya estaba CANCELADA",
+                    comando.id_reserva,
+                )
+                return False
+
+            self.uow.agregar_eventos(reserva.eventos)
+            self.repositorio.actualizar(reserva)
+            self.uow.commit()
+            logger.info("Reserva %s marcada como CANCELADA por confirmacion PMS.", reserva.id)
+            return True
 
 
 class ObtenerReservasPorUsuarioHandler(Handler):

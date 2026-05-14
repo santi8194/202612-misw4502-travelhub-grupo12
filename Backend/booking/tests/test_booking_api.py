@@ -383,6 +383,38 @@ def test_cancelar_reserva_con_accepted_terms_inicia_cancelacion_controlada(clien
     assert reserva.estado.value == "CANCELACION_EN_PROCESO"
 
 
+def test_cancelar_reserva_con_accepted_terms_emite_comando_pms(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    uows = []
+
+    def uow_factory():
+        uow = MagicMock()
+        uow.__enter__ = MagicMock(return_value=uow)
+        uow.__exit__ = MagicMock(return_value=None)
+        uows.append(uow)
+        return uow
+
+    _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=50)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', uow_factory)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True},
+    )
+
+    assert response.status_code == 200
+    pms_commands = [
+        command
+        for uow in uows
+        for call in uow.agregar_eventos.call_args_list
+        for command in call.args[0]
+        if command.__class__.__name__ == "CancelarReservaPmsCmd"
+    ]
+    assert len(pms_commands) == 1
+    assert pms_commands[0].id_reserva == reserva.id
+    assert pms_commands[0].id_habitacion == reserva.id_categoria
+
+
 def test_cancelar_reserva_con_reason_vacio_lo_acepta_como_no_informado(client, monkeypatch):
     reserva = _fake_reserva_preview()
     _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=0)
@@ -461,7 +493,30 @@ def test_cancelar_reserva_hu_web_11_estado_no_cancelable_returns_400(client, mon
     assert "error" in response.json
 
 
-def test_cancelar_reserva_hu_web_11_no_invoca_pms_ni_refund_payment(client, monkeypatch):
+def test_cancelar_reserva_hu_web_11_no_emite_pms_si_no_es_cancelable(client, monkeypatch):
+    reserva = _fake_reserva_preview(estado="CANCELADA")
+    uows = []
+
+    def uow_factory():
+        uow = MagicMock()
+        uow.__enter__ = MagicMock(return_value=uow)
+        uow.__exit__ = MagicMock(return_value=None)
+        uows.append(uow)
+        return uow
+
+    _setup_cancelacion_preview(monkeypatch, reserva)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', uow_factory)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True},
+    )
+
+    assert response.status_code == 400
+    assert all(not uow.agregar_eventos.called for uow in uows)
+
+
+def test_cancelar_reserva_hu_web_11_no_invoca_refund_payment(client, monkeypatch):
     reserva = _fake_reserva_preview()
     payment_calls = []
 

@@ -6,6 +6,7 @@ from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
 from modulos.reserva.infraestructura.auth_client import AuthServiceClient
 from modulos.reserva.infraestructura.payment_client import PaymentServiceClient
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+from modulos.saga_reservas.dominio.comandos import CancelarReservaPmsCmd
 from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
 from config.uow import UnidadTrabajoHibrida
 import datetime
@@ -624,6 +625,12 @@ def cancelar_reserva(id_reserva):
             repositorio_actualizacion = RepositorioReservas()
             with uow_actualizacion:
                 repositorio_actualizacion.actualizar(reserva)
+                uow_actualizacion.agregar_eventos([
+                    CancelarReservaPmsCmd(
+                        id_reserva=reserva.id,
+                        id_habitacion=reserva.id_categoria,
+                    )
+                ])
                 uow_actualizacion.commit()
 
             refund_amount = preview["refund"]["expectedRefundAmount"]

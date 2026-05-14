@@ -1,0 +1,1407 @@
+{
+  "description": "Mapeo de códigos PMS del Mock a UUIDs reales de TravelHub Catalog",
+  "generated_with": "uuid5(NAMESPACE_DNS, key)",
+  "total_properties": 100,
+  "mappings": {
+    "COL-APAR-001": {
+      "hotel_code": "COL-APAR-001",
+      "hotel_name": "Apartamento Express Cartagena 1",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "7460e891-e016-5a89-8230-6c34a190c261",
+      "rooms": {
+        "RM001": {
+          "room_type_code": "RM001",
+          "category_type": "Apartamento",
+          "category_uuid": "4da16224-9f8c-5c84-bec0-daa88517dd6f"
+        }
+      }
+    },
+    "COL-RESO-002": {
+      "hotel_code": "COL-RESO-002",
+      "hotel_name": "Resort Grand Cartagena 2",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "7edeb605-78ca-5f4c-aee2-34d5e3a66759",
+      "rooms": {
+        "RM002": {
+          "room_type_code": "RM002",
+          "category_type": "Resort",
+          "category_uuid": "6931847c-929e-566a-b2d5-6d557307fd9e"
+        }
+      }
+    },
+    "COL-CABA-003": {
+      "hotel_code": "COL-CABA-003",
+      "hotel_name": "Cabaña Real Zona Rosa 3",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "41c10dcb-75f8-5365-933d-4627b8baa5cd",
+      "rooms": {
+        "RM003": {
+          "room_type_code": "RM003",
+          "category_type": "Cabaña",
+          "category_uuid": "07201c8e-faee-550a-8c04-fe97d306a7ad"
+        }
+      }
+    },
+    "COL-HOST-004": {
+      "hotel_code": "COL-HOST-004",
+      "hotel_name": "Hostal Royal Zona Rosa 4",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "558e7e19-fdc4-5227-803a-bb2d7221e6cd",
+      "rooms": {
+        "RM004": {
+          "room_type_code": "RM004",
+          "category_type": "Hostal",
+          "category_uuid": "72de44c6-4899-5597-bb8c-1103bf298dca"
+        }
+      }
+    },
+    "COL-FINC-005": {
+      "hotel_code": "COL-FINC-005",
+      "hotel_name": "Finca Eco Cartagena 5",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "a7c734ee-fe69-5e23-88fc-7d56ab551d5f",
+      "rooms": {
+        "RM005": {
+          "room_type_code": "RM005",
+          "category_type": "Finca",
+          "category_uuid": "5b03dba8-b987-5d64-ad2b-0dd2189e2965"
+        }
+      }
+    },
+    "COL-HOTE-006": {
+      "hotel_code": "COL-HOTE-006",
+      "hotel_name": "Hotel Eco Vista Mar 6",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "d0424307-1d9d-5cf2-b979-5ba0697b8fca",
+      "rooms": {
+        "RM006": {
+          "room_type_code": "RM006",
+          "category_type": "Hotel",
+          "category_uuid": "9fd8512c-ffc9-58fd-aacd-50209af091d7"
+        }
+      }
+    },
+    "COL-APAR-007": {
+      "hotel_code": "COL-APAR-007",
+      "hotel_name": "Apartamento Deluxe Cartagena 7",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "04aeda8b-e492-5803-8cad-edd81ef174af",
+      "rooms": {
+        "RM007": {
+          "room_type_code": "RM007",
+          "category_type": "Apartamento",
+          "category_uuid": "759c427a-7a7c-51be-b9fd-955bac1c64c3"
+        }
+      }
+    },
+    "COL-RESO-008": {
+      "hotel_code": "COL-RESO-008",
+      "hotel_name": "Resort Imperial Moderno 8",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "e20588ca-2f8b-55e9-a4a5-310315c1f051",
+      "rooms": {
+        "RM008": {
+          "room_type_code": "RM008",
+          "category_type": "Resort",
+          "category_uuid": "f76e8c8e-f433-5f69-ac81-62877b0534b7"
+        }
+      }
+    },
+    "COL-CABA-009": {
+      "hotel_code": "COL-CABA-009",
+      "hotel_name": "Cabaña Imperial Cartagena 9",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "71570bc9-9517-5771-bfbd-8a44ab34e547",
+      "rooms": {
+        "RM009": {
+          "room_type_code": "RM009",
+          "category_type": "Cabaña",
+          "category_uuid": "f3e1a7fd-1056-572d-8836-e21a19110a60"
+        }
+      }
+    },
+    "COL-HOST-010": {
+      "hotel_code": "COL-HOST-010",
+      "hotel_name": "Hostal Eco Colonial 10",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "169df042-3797-530f-a37e-92dd42d3844f",
+      "rooms": {
+        "RM010": {
+          "room_type_code": "RM010",
+          "category_type": "Hostal",
+          "category_uuid": "45ae1ed7-0cf9-5b61-b6c6-211d7894ac41"
+        }
+      }
+    },
+    "COL-FINC-011": {
+      "hotel_code": "COL-FINC-011",
+      "hotel_name": "Finca Real Vista Mar 11",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "cd19af09-714a-5cfd-8b23-8a4c4ebd7ddd",
+      "rooms": {
+        "RM011": {
+          "room_type_code": "RM011",
+          "category_type": "Finca",
+          "category_uuid": "1ba1bbdc-2a7a-5d13-95f0-fde31057e101"
+        }
+      }
+    },
+    "COL-HOTE-012": {
+      "hotel_code": "COL-HOTE-012",
+      "hotel_name": "Hotel Grand Playa Dorada 12",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "f381512b-ae30-51b8-9974-ebafd545fcce",
+      "rooms": {
+        "RM012": {
+          "room_type_code": "RM012",
+          "category_type": "Hotel",
+          "category_uuid": "cf59aab8-70ab-5610-9810-c1298be254b2"
+        }
+      }
+    },
+    "COL-APAR-013": {
+      "hotel_code": "COL-APAR-013",
+      "hotel_name": "Apartamento Boutique Cartagena 13",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "f79507b7-55ad-5d8f-8fa6-15f13033a194",
+      "rooms": {
+        "RM013": {
+          "room_type_code": "RM013",
+          "category_type": "Apartamento",
+          "category_uuid": "0d637d14-2ffe-57fa-9ce5-50ff1c7df0c2"
+        }
+      }
+    },
+    "COL-RESO-014": {
+      "hotel_code": "COL-RESO-014",
+      "hotel_name": "Resort Eco Cartagena 14",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "707669ab-628c-52d5-aa53-1c095a14163f",
+      "rooms": {
+        "RM014": {
+          "room_type_code": "RM014",
+          "category_type": "Resort",
+          "category_uuid": "3c3eb3a8-a50d-520d-8bf6-82f1c571ed31"
+        }
+      }
+    },
+    "COL-CABA-015": {
+      "hotel_code": "COL-CABA-015",
+      "hotel_name": "Cabaña Real Cartagena 15",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "0e6b2fb7-37ac-5023-94ce-fc8b378492bf",
+      "rooms": {
+        "RM015": {
+          "room_type_code": "RM015",
+          "category_type": "Cabaña",
+          "category_uuid": "14cce399-8392-5220-a099-d72e17b1a13c"
+        }
+      }
+    },
+    "COL-HOST-016": {
+      "hotel_code": "COL-HOST-016",
+      "hotel_name": "Hostal Real Centro Histórico 16",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "95a72c3f-45ae-55c7-85f5-9d4d4c183a78",
+      "rooms": {
+        "RM016": {
+          "room_type_code": "RM016",
+          "category_type": "Hostal",
+          "category_uuid": "89a665c2-6a8c-5609-9d6b-8eb149018cc0"
+        }
+      }
+    },
+    "COL-FINC-017": {
+      "hotel_code": "COL-FINC-017",
+      "hotel_name": "Finca Boutique Centro Histórico 17",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "f5482549-1691-5098-98d9-c55c95fd2a3b",
+      "rooms": {
+        "RM017": {
+          "room_type_code": "RM017",
+          "category_type": "Finca",
+          "category_uuid": "7dbcdcd1-f7b4-5d26-8f6a-9d8fc85c1995"
+        }
+      }
+    },
+    "COL-HOTE-018": {
+      "hotel_code": "COL-HOTE-018",
+      "hotel_name": "Hotel Central Moderno 18",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "6acc72cf-e8d1-5a36-9fad-f36a2535463a",
+      "rooms": {
+        "RM018": {
+          "room_type_code": "RM018",
+          "category_type": "Hotel",
+          "category_uuid": "42b198a0-a69b-5bab-8060-5dbfc999f6a1"
+        }
+      }
+    },
+    "COL-APAR-019": {
+      "hotel_code": "COL-APAR-019",
+      "hotel_name": "Apartamento Grand Colonial 19",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "dd1f1ba4-0f5f-5776-a1d0-a968cc984608",
+      "rooms": {
+        "RM019": {
+          "room_type_code": "RM019",
+          "category_type": "Apartamento",
+          "category_uuid": "ecd27d47-c0f1-5a9f-8809-91d590f1ee5f"
+        }
+      }
+    },
+    "COL-RESO-020": {
+      "hotel_code": "COL-RESO-020",
+      "hotel_name": "Resort Royal Colonial 20",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "ba4bfff3-5ef3-5ac5-84ee-f96213052c6f",
+      "rooms": {
+        "RM020": {
+          "room_type_code": "RM020",
+          "category_type": "Resort",
+          "category_uuid": "8f3309a2-e769-5e57-b002-f22bab6d760c"
+        }
+      }
+    },
+    "COL-CABA-021": {
+      "hotel_code": "COL-CABA-021",
+      "hotel_name": "Cabaña Deluxe Cartagena 21",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "d654542b-1d57-5ade-b0fb-8d3245594ed3",
+      "rooms": {
+        "RM021": {
+          "room_type_code": "RM021",
+          "category_type": "Cabaña",
+          "category_uuid": "3b8c38d6-673c-51e8-b501-5de11172022c"
+        }
+      }
+    },
+    "COL-HOST-022": {
+      "hotel_code": "COL-HOST-022",
+      "hotel_name": "Hostal Express Cartagena 22",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "04ffb597-e0a1-53c0-b784-51c10a746330",
+      "rooms": {
+        "RM022": {
+          "room_type_code": "RM022",
+          "category_type": "Hostal",
+          "category_uuid": "39a1c7fd-fc8a-555e-bb4e-dfe1778c0332"
+        }
+      }
+    },
+    "COL-FINC-023": {
+      "hotel_code": "COL-FINC-023",
+      "hotel_name": "Finca Grand Cartagena 23",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "afdad56f-f5c7-5489-b32d-d78334e387b1",
+      "rooms": {
+        "RM023": {
+          "room_type_code": "RM023",
+          "category_type": "Finca",
+          "category_uuid": "366350fd-70ee-5ce7-b428-db8eb6e928ca"
+        }
+      }
+    },
+    "COL-HOTE-024": {
+      "hotel_code": "COL-HOTE-024",
+      "hotel_name": "Hotel Premium Cartagena 24",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "81b5aa22-f1ee-53fe-b246-cb08904965fc",
+      "rooms": {
+        "RM024": {
+          "room_type_code": "RM024",
+          "category_type": "Hotel",
+          "category_uuid": "0bbcfd97-93f2-59da-ad7e-b52399025d63"
+        }
+      }
+    },
+    "COL-APAR-025": {
+      "hotel_code": "COL-APAR-025",
+      "hotel_name": "Apartamento Imperial Zona Rosa 25",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "16394f35-646a-5b79-b6ff-f78659387c39",
+      "rooms": {
+        "RM025": {
+          "room_type_code": "RM025",
+          "category_type": "Apartamento",
+          "category_uuid": "26cb47a0-3382-507d-ac82-539f870157ea"
+        }
+      }
+    },
+    "COL-RESO-026": {
+      "hotel_code": "COL-RESO-026",
+      "hotel_name": "Resort Eco Playa Dorada 26",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "d9174ce3-2d7f-59c4-be8b-7e7a7906bae7",
+      "rooms": {
+        "RM026": {
+          "room_type_code": "RM026",
+          "category_type": "Resort",
+          "category_uuid": "26777709-8392-53f2-9c61-3deba78567bb"
+        }
+      }
+    },
+    "COL-CABA-027": {
+      "hotel_code": "COL-CABA-027",
+      "hotel_name": "Cabaña Imperial Vista Mar 27",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "3ab085f2-38f4-5d07-863b-454ea464b123",
+      "rooms": {
+        "RM027": {
+          "room_type_code": "RM027",
+          "category_type": "Cabaña",
+          "category_uuid": "f9c33012-9e58-5220-9c08-8be2cd0d2151"
+        }
+      }
+    },
+    "COL-HOST-028": {
+      "hotel_code": "COL-HOST-028",
+      "hotel_name": "Hostal Central Cartagena 28",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "9bc5ee88-268c-5898-af39-39fa9998d19f",
+      "rooms": {
+        "RM028": {
+          "room_type_code": "RM028",
+          "category_type": "Hostal",
+          "category_uuid": "130b419d-9e43-57df-8b47-1b531639d198"
+        }
+      }
+    },
+    "COL-FINC-029": {
+      "hotel_code": "COL-FINC-029",
+      "hotel_name": "Finca Premium Cartagena 29",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "73904cc2-da91-558b-ba1f-bc22540e88cd",
+      "rooms": {
+        "RM029": {
+          "room_type_code": "RM029",
+          "category_type": "Finca",
+          "category_uuid": "f086fda5-1171-5a6e-90f8-af4679d44ef6"
+        }
+      }
+    },
+    "COL-HOTE-030": {
+      "hotel_code": "COL-HOTE-030",
+      "hotel_name": "Hotel Grand Moderno 30",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "b52e3c62-f8ac-5f42-9330-1050dca38e52",
+      "rooms": {
+        "RM030": {
+          "room_type_code": "RM030",
+          "category_type": "Hotel",
+          "category_uuid": "fb10ec1e-1eb9-5f54-98b0-960bde621a41"
+        }
+      }
+    },
+    "COL-APAR-031": {
+      "hotel_code": "COL-APAR-031",
+      "hotel_name": "Apartamento Central Colonial 31",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "4753128b-2e8f-5c6b-826a-ee306ab4ca0d",
+      "rooms": {
+        "RM031": {
+          "room_type_code": "RM031",
+          "category_type": "Apartamento",
+          "category_uuid": "8eebc16f-4a88-51f8-96e1-5a9bfbd17874"
+        }
+      }
+    },
+    "COL-RESO-032": {
+      "hotel_code": "COL-RESO-032",
+      "hotel_name": "Resort Deluxe Cartagena 32",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "d4fa3081-4e5d-54fc-8cbd-768a80a0f731",
+      "rooms": {
+        "RM032": {
+          "room_type_code": "RM032",
+          "category_type": "Resort",
+          "category_uuid": "31aa0f0a-a2fe-5dea-9f42-e46ec2e40655"
+        }
+      }
+    },
+    "COL-CABA-033": {
+      "hotel_code": "COL-CABA-033",
+      "hotel_name": "Cabaña Express Cartagena 33",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "86788af3-851b-56ee-a2b3-a49f124a5be8",
+      "rooms": {
+        "RM033": {
+          "room_type_code": "RM033",
+          "category_type": "Cabaña",
+          "category_uuid": "3310701e-f6ef-5ff6-a541-610f9d12f2ce"
+        }
+      }
+    },
+    "COL-HOST-034": {
+      "hotel_code": "COL-HOST-034",
+      "hotel_name": "Hostal Deluxe Cartagena 34",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "62718e7d-4d5c-5d90-be3c-16518b42fbef",
+      "rooms": {
+        "RM034": {
+          "room_type_code": "RM034",
+          "category_type": "Hostal",
+          "category_uuid": "77a24d03-24c0-5d6d-adb9-1110064677e5"
+        }
+      }
+    },
+    "COL-FINC-035": {
+      "hotel_code": "COL-FINC-035",
+      "hotel_name": "Finca Boutique Cartagena 35",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "c5217da9-a1bb-5af0-98df-bf84aa54bc98",
+      "rooms": {
+        "RM035": {
+          "room_type_code": "RM035",
+          "category_type": "Finca",
+          "category_uuid": "82172836-e5d6-5bb2-ad9b-00f33844d9df"
+        }
+      }
+    },
+    "COL-HOTE-036": {
+      "hotel_code": "COL-HOTE-036",
+      "hotel_name": "Hotel Express Colonial 36",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "3bfbaae6-81f0-5f98-9840-84c1239a1057",
+      "rooms": {
+        "RM036": {
+          "room_type_code": "RM036",
+          "category_type": "Hotel",
+          "category_uuid": "21a44df1-872d-53a8-8a85-5ecc511192f3"
+        }
+      }
+    },
+    "COL-APAR-037": {
+      "hotel_code": "COL-APAR-037",
+      "hotel_name": "Apartamento Central Moderno 37",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "d74912bb-538b-544d-b184-0ba15a7b34f1",
+      "rooms": {
+        "RM037": {
+          "room_type_code": "RM037",
+          "category_type": "Apartamento",
+          "category_uuid": "27ed5bfa-bd84-5890-8ddb-9c07435424c6"
+        }
+      }
+    },
+    "COL-RESO-038": {
+      "hotel_code": "COL-RESO-038",
+      "hotel_name": "Resort Deluxe Cartagena 38",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "574d81fe-6320-5f5e-820a-113a6dba4a18",
+      "rooms": {
+        "RM038": {
+          "room_type_code": "RM038",
+          "category_type": "Resort",
+          "category_uuid": "570a1a5c-e4e6-57e2-acef-3d4614b239a1"
+        }
+      }
+    },
+    "COL-CABA-039": {
+      "hotel_code": "COL-CABA-039",
+      "hotel_name": "Cabaña Imperial Centro Histórico 39",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "d1d57a02-aa63-58db-abc4-05d888247182",
+      "rooms": {
+        "RM039": {
+          "room_type_code": "RM039",
+          "category_type": "Cabaña",
+          "category_uuid": "b8d5767c-7a27-5943-915c-687295614f3e"
+        }
+      }
+    },
+    "COL-HOST-040": {
+      "hotel_code": "COL-HOST-040",
+      "hotel_name": "Hostal Real Cartagena 40",
+      "ciudad": "Cartagena",
+      "pais": "Colombia",
+      "property_uuid": "451b62c1-0c0b-5bd5-9069-8416f47712a3",
+      "rooms": {
+        "RM040": {
+          "room_type_code": "RM040",
+          "category_type": "Hostal",
+          "category_uuid": "c296e14a-4ad3-5a87-baf6-c5cfc782802e"
+        }
+      }
+    },
+    "COL-FINC-041": {
+      "hotel_code": "COL-FINC-041",
+      "hotel_name": "Finca Boutique Moderno 41",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "37331329-7d6e-543c-81af-718cc682e39f",
+      "rooms": {
+        "RM041": {
+          "room_type_code": "RM041",
+          "category_type": "Finca",
+          "category_uuid": "3075ad88-01e2-5320-82db-246432eb4176"
+        }
+      }
+    },
+    "COL-HOTE-042": {
+      "hotel_code": "COL-HOTE-042",
+      "hotel_name": "Hotel Real Bogotá 42",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "18229948-27d8-563d-a50b-707ac890fa37",
+      "rooms": {
+        "RM042": {
+          "room_type_code": "RM042",
+          "category_type": "Hotel",
+          "category_uuid": "c4cf7031-7e25-5c92-944e-7daac73682df"
+        }
+      }
+    },
+    "COL-APAR-043": {
+      "hotel_code": "COL-APAR-043",
+      "hotel_name": "Apartamento Central Bogotá 43",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "f652bf9b-d06d-58ae-abe5-7c0f2a18a4cd",
+      "rooms": {
+        "RM043": {
+          "room_type_code": "RM043",
+          "category_type": "Apartamento",
+          "category_uuid": "6c3fb174-b8f4-5b6d-9f12-436c7edb9000"
+        }
+      }
+    },
+    "COL-RESO-044": {
+      "hotel_code": "COL-RESO-044",
+      "hotel_name": "Resort Grand Bogotá 44",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "a5053c5f-43a1-5c8b-96cf-a69c9df66af8",
+      "rooms": {
+        "RM044": {
+          "room_type_code": "RM044",
+          "category_type": "Resort",
+          "category_uuid": "60da426b-3a4d-5b71-a4c4-d6a60877cd36"
+        }
+      }
+    },
+    "COL-CABA-045": {
+      "hotel_code": "COL-CABA-045",
+      "hotel_name": "Cabaña Central Bogotá 45",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "ef76dab1-18c0-595b-9ad6-faf7b7ef7f7f",
+      "rooms": {
+        "RM045": {
+          "room_type_code": "RM045",
+          "category_type": "Cabaña",
+          "category_uuid": "1f9128c0-c491-52e9-abca-9d4db746cb54"
+        }
+      }
+    },
+    "COL-HOST-046": {
+      "hotel_code": "COL-HOST-046",
+      "hotel_name": "Hostal Real Colonial 46",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "ade71564-d265-520f-b7a2-be078599865a",
+      "rooms": {
+        "RM046": {
+          "room_type_code": "RM046",
+          "category_type": "Hostal",
+          "category_uuid": "d9376dd4-79f4-5cc1-88a6-c91824e668ec"
+        }
+      }
+    },
+    "COL-FINC-047": {
+      "hotel_code": "COL-FINC-047",
+      "hotel_name": "Finca Eco Bogotá 47",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "a8f4ca95-cb35-583c-a6d8-afe586c5d1de",
+      "rooms": {
+        "RM047": {
+          "room_type_code": "RM047",
+          "category_type": "Finca",
+          "category_uuid": "804fea5b-0c01-540a-85f7-df222e5603f6"
+        }
+      }
+    },
+    "COL-HOTE-048": {
+      "hotel_code": "COL-HOTE-048",
+      "hotel_name": "Hotel Deluxe Playa Dorada 48",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "2496ad92-6826-5296-a1d1-1a2097d3900f",
+      "rooms": {
+        "RM048": {
+          "room_type_code": "RM048",
+          "category_type": "Hotel",
+          "category_uuid": "ac872fa1-e9fc-5bde-9b2d-4ec0dbd5b83b"
+        }
+      }
+    },
+    "COL-APAR-049": {
+      "hotel_code": "COL-APAR-049",
+      "hotel_name": "Apartamento Grand Bogotá 49",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "35355b6c-add0-5c0b-8cf0-2eafa6c18d69",
+      "rooms": {
+        "RM049": {
+          "room_type_code": "RM049",
+          "category_type": "Apartamento",
+          "category_uuid": "9d5b07cc-2f9b-5b31-8811-2145541adc49"
+        }
+      }
+    },
+    "COL-RESO-050": {
+      "hotel_code": "COL-RESO-050",
+      "hotel_name": "Resort Real Bogotá 50",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "bbd0552a-d430-5308-85c6-e690b10604a8",
+      "rooms": {
+        "RM050": {
+          "room_type_code": "RM050",
+          "category_type": "Resort",
+          "category_uuid": "42a78cf7-a859-551e-80a2-97edd6050505"
+        }
+      }
+    },
+    "COL-CABA-051": {
+      "hotel_code": "COL-CABA-051",
+      "hotel_name": "Cabaña Express Bogotá 51",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "53539c63-f5b3-5a8f-927b-ae5a8a737c3e",
+      "rooms": {
+        "RM051": {
+          "room_type_code": "RM051",
+          "category_type": "Cabaña",
+          "category_uuid": "776d58a9-5c2d-5b06-9fd3-f558cf3ea2ab"
+        }
+      }
+    },
+    "COL-HOST-052": {
+      "hotel_code": "COL-HOST-052",
+      "hotel_name": "Hostal Eco Bogotá 52",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "b1655121-dc98-5cae-bfae-fa5aeedb6093",
+      "rooms": {
+        "RM052": {
+          "room_type_code": "RM052",
+          "category_type": "Hostal",
+          "category_uuid": "55f6025e-0a98-58a6-baa1-8fe7d4c31738"
+        }
+      }
+    },
+    "COL-FINC-053": {
+      "hotel_code": "COL-FINC-053",
+      "hotel_name": "Finca Real Bogotá 53",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "b7ab0a9b-092b-51f6-a6a6-7eb988371919",
+      "rooms": {
+        "RM053": {
+          "room_type_code": "RM053",
+          "category_type": "Finca",
+          "category_uuid": "a6fa20d5-3fb2-59d3-aff7-9e1334efb05f"
+        }
+      }
+    },
+    "COL-HOTE-054": {
+      "hotel_code": "COL-HOTE-054",
+      "hotel_name": "Hotel Royal Bogotá 54",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "4eaeb246-7068-5e0e-af24-1e283439a1a6",
+      "rooms": {
+        "RM054": {
+          "room_type_code": "RM054",
+          "category_type": "Hotel",
+          "category_uuid": "73427ecf-2191-5610-abb2-c911b0f479a6"
+        }
+      }
+    },
+    "COL-APAR-055": {
+      "hotel_code": "COL-APAR-055",
+      "hotel_name": "Apartamento Imperial Bogotá 55",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "97ec8b4a-b956-5b62-9270-dfac715f0ee2",
+      "rooms": {
+        "RM055": {
+          "room_type_code": "RM055",
+          "category_type": "Apartamento",
+          "category_uuid": "c7e1f23c-4ca7-5824-ac83-ce5ed2b13822"
+        }
+      }
+    },
+    "COL-RESO-056": {
+      "hotel_code": "COL-RESO-056",
+      "hotel_name": "Resort Royal Centro Histórico 56",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "a64211a6-ac0e-5e64-8a9b-0b631c3b70e1",
+      "rooms": {
+        "RM056": {
+          "room_type_code": "RM056",
+          "category_type": "Resort",
+          "category_uuid": "c3c4ffd3-7513-56c9-b5bf-49bf70861bc0"
+        }
+      }
+    },
+    "COL-CABA-057": {
+      "hotel_code": "COL-CABA-057",
+      "hotel_name": "Cabaña Deluxe Bogotá 57",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "29fa38a6-b85b-53c4-b3c8-53a08933f7f6",
+      "rooms": {
+        "RM057": {
+          "room_type_code": "RM057",
+          "category_type": "Cabaña",
+          "category_uuid": "00cd60f6-a607-513e-90b1-1c529bb76881"
+        }
+      }
+    },
+    "COL-HOST-058": {
+      "hotel_code": "COL-HOST-058",
+      "hotel_name": "Hostal Premium Bogotá 58",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "9a1b62e8-50a7-5438-9851-98799b760ec5",
+      "rooms": {
+        "RM058": {
+          "room_type_code": "RM058",
+          "category_type": "Hostal",
+          "category_uuid": "ce1618bb-6f5f-54e8-a5b4-4568612fe4fd"
+        }
+      }
+    },
+    "COL-FINC-059": {
+      "hotel_code": "COL-FINC-059",
+      "hotel_name": "Finca Express Bogotá 59",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "0caf14bf-87f0-526e-9db4-26adf28290d9",
+      "rooms": {
+        "RM059": {
+          "room_type_code": "RM059",
+          "category_type": "Finca",
+          "category_uuid": "e3fe7719-905f-52ff-b41c-7ea6190e2753"
+        }
+      }
+    },
+    "COL-HOTE-060": {
+      "hotel_code": "COL-HOTE-060",
+      "hotel_name": "Hotel Deluxe Bogotá 60",
+      "ciudad": "Bogotá",
+      "pais": "Colombia",
+      "property_uuid": "f1ee9fee-289f-5c3e-b803-7de213af66c2",
+      "rooms": {
+        "RM060": {
+          "room_type_code": "RM060",
+          "category_type": "Hotel",
+          "category_uuid": "8070b514-1b8d-5a19-8abb-5f7710e4c00c"
+        }
+      }
+    },
+    "COL-APAR-061": {
+      "hotel_code": "COL-APAR-061",
+      "hotel_name": "Apartamento Premium Colonial 61",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "e39bff67-0557-50b5-9154-75958acdd788",
+      "rooms": {
+        "RM061": {
+          "room_type_code": "RM061",
+          "category_type": "Apartamento",
+          "category_uuid": "0ac1ba47-7fd1-5390-ba57-8c66b8c2df14"
+        }
+      }
+    },
+    "COL-RESO-062": {
+      "hotel_code": "COL-RESO-062",
+      "hotel_name": "Resort Deluxe Medellín 62",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "9641b6fa-2f2c-5f99-b020-05ac4a693b03",
+      "rooms": {
+        "RM062": {
+          "room_type_code": "RM062",
+          "category_type": "Resort",
+          "category_uuid": "276ddc3c-ac14-544c-a189-ffa06b4ec55f"
+        }
+      }
+    },
+    "COL-CABA-063": {
+      "hotel_code": "COL-CABA-063",
+      "hotel_name": "Cabaña Deluxe Moderno 63",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "6e562aad-d8d7-565b-90b0-aa553372e87f",
+      "rooms": {
+        "RM063": {
+          "room_type_code": "RM063",
+          "category_type": "Cabaña",
+          "category_uuid": "05c1f9f6-a197-551a-845c-8f6df07576c8"
+        }
+      }
+    },
+    "COL-HOST-064": {
+      "hotel_code": "COL-HOST-064",
+      "hotel_name": "Hostal Real Colonial 64",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "bc77e106-2555-5b5a-99fb-f97177ad91a5",
+      "rooms": {
+        "RM064": {
+          "room_type_code": "RM064",
+          "category_type": "Hostal",
+          "category_uuid": "7a4f55c5-6593-5435-811f-8690ff9c321e"
+        }
+      }
+    },
+    "COL-FINC-065": {
+      "hotel_code": "COL-FINC-065",
+      "hotel_name": "Finca Royal Moderno 65",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "b5aded41-4ea3-53b7-932f-a2f86bbccf7f",
+      "rooms": {
+        "RM065": {
+          "room_type_code": "RM065",
+          "category_type": "Finca",
+          "category_uuid": "99a5ee87-7f20-53b4-9c7d-15cb87290899"
+        }
+      }
+    },
+    "COL-HOTE-066": {
+      "hotel_code": "COL-HOTE-066",
+      "hotel_name": "Hotel Real Playa Dorada 66",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "2c5062ab-f7fe-5810-af9d-b07464d7a1c8",
+      "rooms": {
+        "RM066": {
+          "room_type_code": "RM066",
+          "category_type": "Hotel",
+          "category_uuid": "39ae7a3e-716a-50c0-bf3f-bb115bf4d099"
+        }
+      }
+    },
+    "COL-APAR-067": {
+      "hotel_code": "COL-APAR-067",
+      "hotel_name": "Apartamento Premium Playa Dorada 67",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "34837db5-404b-5245-8d0c-03d1a5c0a4b0",
+      "rooms": {
+        "RM067": {
+          "room_type_code": "RM067",
+          "category_type": "Apartamento",
+          "category_uuid": "17c4646b-e7d7-5511-8d5f-a6fd69911dbf"
+        }
+      }
+    },
+    "COL-RESO-068": {
+      "hotel_code": "COL-RESO-068",
+      "hotel_name": "Resort Grand Medellín 68",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "3bd40aee-c82d-5b6b-9bbf-8dc85589725d",
+      "rooms": {
+        "RM068": {
+          "room_type_code": "RM068",
+          "category_type": "Resort",
+          "category_uuid": "969c78c7-3f2d-552f-8db4-4d39ba401016"
+        }
+      }
+    },
+    "COL-CABA-069": {
+      "hotel_code": "COL-CABA-069",
+      "hotel_name": "Cabaña Deluxe Medellín 69",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "a41af38a-ab3d-503f-a166-26dd4f6a6551",
+      "rooms": {
+        "RM069": {
+          "room_type_code": "RM069",
+          "category_type": "Cabaña",
+          "category_uuid": "e991711d-a585-5965-9732-b64c60b5ffb1"
+        }
+      }
+    },
+    "COL-HOST-070": {
+      "hotel_code": "COL-HOST-070",
+      "hotel_name": "Hostal Imperial Medellín 70",
+      "ciudad": "Medellín",
+      "pais": "Colombia",
+      "property_uuid": "22cea13f-4460-5ba4-87cf-e1b23965ffc8",
+      "rooms": {
+        "RM070": {
+          "room_type_code": "RM070",
+          "category_type": "Hostal",
+          "category_uuid": "702dd24a-0498-5327-b7bb-de1f6de657e9"
+        }
+      }
+    },
+    "MEX-FINC-071": {
+      "hotel_code": "MEX-FINC-071",
+      "hotel_name": "Finca Deluxe Moderno 71",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "722670f2-7739-5db1-bd90-1578faea0eec",
+      "rooms": {
+        "RM071": {
+          "room_type_code": "RM071",
+          "category_type": "Finca",
+          "category_uuid": "812aa0d6-6fa9-5f53-89fc-f27e7c236a18"
+        }
+      }
+    },
+    "MEX-HOTE-072": {
+      "hotel_code": "MEX-HOTE-072",
+      "hotel_name": "Hotel Real Cancún 72",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "8aad83ef-56bd-5fea-a4a9-61a95a26dd2d",
+      "rooms": {
+        "RM072": {
+          "room_type_code": "RM072",
+          "category_type": "Hotel",
+          "category_uuid": "af964240-793a-5298-84c4-711696170be8"
+        }
+      }
+    },
+    "MEX-APAR-073": {
+      "hotel_code": "MEX-APAR-073",
+      "hotel_name": "Apartamento Deluxe Zona Rosa 73",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "93d4627b-d203-55a9-ad01-f338bb69cdd3",
+      "rooms": {
+        "RM073": {
+          "room_type_code": "RM073",
+          "category_type": "Apartamento",
+          "category_uuid": "095cc84a-7b13-5bd4-a12a-957dbcc31ecb"
+        }
+      }
+    },
+    "MEX-RESO-074": {
+      "hotel_code": "MEX-RESO-074",
+      "hotel_name": "Resort Deluxe Cancún 74",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "ab2142f3-52c7-51b4-a516-45db9da41f4d",
+      "rooms": {
+        "RM074": {
+          "room_type_code": "RM074",
+          "category_type": "Resort",
+          "category_uuid": "9df0f6dd-f96e-51fb-8204-8988c27f44b1"
+        }
+      }
+    },
+    "MEX-CABA-075": {
+      "hotel_code": "MEX-CABA-075",
+      "hotel_name": "Cabaña Imperial Cancún 75",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "5cc756a8-da66-54a1-ba03-fa78ce9d1813",
+      "rooms": {
+        "RM075": {
+          "room_type_code": "RM075",
+          "category_type": "Cabaña",
+          "category_uuid": "97e8df15-ff9a-503c-a53c-5c35dc787764"
+        }
+      }
+    },
+    "MEX-HOST-076": {
+      "hotel_code": "MEX-HOST-076",
+      "hotel_name": "Hostal Central Cancún 76",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "c42b30f9-179b-5d87-9116-feaff63c38e7",
+      "rooms": {
+        "RM076": {
+          "room_type_code": "RM076",
+          "category_type": "Hostal",
+          "category_uuid": "ada1b444-923a-51ab-9808-48f86263246d"
+        }
+      }
+    },
+    "MEX-FINC-077": {
+      "hotel_code": "MEX-FINC-077",
+      "hotel_name": "Finca Royal Cancún 77",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "4a79766a-cc83-59f0-9d78-71c503d12354",
+      "rooms": {
+        "RM077": {
+          "room_type_code": "RM077",
+          "category_type": "Finca",
+          "category_uuid": "cadf1031-6879-54bc-9940-e6598fd6f4bd"
+        }
+      }
+    },
+    "MEX-HOTE-078": {
+      "hotel_code": "MEX-HOTE-078",
+      "hotel_name": "Hotel Grand Cancún 78",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "e369dbc8-ea78-563f-a129-53918f3903ff",
+      "rooms": {
+        "RM078": {
+          "room_type_code": "RM078",
+          "category_type": "Hotel",
+          "category_uuid": "acfe0460-abe6-55f1-aab6-f57d5816876c"
+        }
+      }
+    },
+    "MEX-APAR-079": {
+      "hotel_code": "MEX-APAR-079",
+      "hotel_name": "Apartamento Deluxe Cancún 79",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "4809845c-f723-5796-8eca-064f20cd60e8",
+      "rooms": {
+        "RM079": {
+          "room_type_code": "RM079",
+          "category_type": "Apartamento",
+          "category_uuid": "5f644aa9-c546-5c51-b8e1-7c93716f539b"
+        }
+      }
+    },
+    "MEX-RESO-080": {
+      "hotel_code": "MEX-RESO-080",
+      "hotel_name": "Resort Royal Vista Mar 80",
+      "ciudad": "Cancún",
+      "pais": "México",
+      "property_uuid": "282a7f07-19a1-5405-967d-46b711db933f",
+      "rooms": {
+        "RM080": {
+          "room_type_code": "RM080",
+          "category_type": "Resort",
+          "category_uuid": "a2c8e143-f2a3-51d1-a0d5-862e27c5c0d4"
+        }
+      }
+    },
+    "MEX-CABA-081": {
+      "hotel_code": "MEX-CABA-081",
+      "hotel_name": "Cabaña Imperial Colonial 81",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "ac47eac0-710b-55ba-ad24-a69e94389503",
+      "rooms": {
+        "RM081": {
+          "room_type_code": "RM081",
+          "category_type": "Cabaña",
+          "category_uuid": "5d454f27-27dc-5255-bee6-eec4c8388abc"
+        }
+      }
+    },
+    "MEX-HOST-082": {
+      "hotel_code": "MEX-HOST-082",
+      "hotel_name": "Hostal Real Vista Mar 82",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "f36f395b-25cc-517c-a16d-575a116f4cfa",
+      "rooms": {
+        "RM082": {
+          "room_type_code": "RM082",
+          "category_type": "Hostal",
+          "category_uuid": "a63d34b2-5e95-5a8f-b281-80971dfc837a"
+        }
+      }
+    },
+    "MEX-FINC-083": {
+      "hotel_code": "MEX-FINC-083",
+      "hotel_name": "Finca Grand Ciudad de México 83",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "69d8c9b9-be1c-59a9-b626-8735a8665e5e",
+      "rooms": {
+        "RM083": {
+          "room_type_code": "RM083",
+          "category_type": "Finca",
+          "category_uuid": "83759d93-1998-54a4-a570-742f0b53fdea"
+        }
+      }
+    },
+    "MEX-HOTE-084": {
+      "hotel_code": "MEX-HOTE-084",
+      "hotel_name": "Hotel Boutique Ciudad de México 84",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "0cb99787-34d8-51e7-81f9-885efd963d74",
+      "rooms": {
+        "RM084": {
+          "room_type_code": "RM084",
+          "category_type": "Hotel",
+          "category_uuid": "fef8343c-9277-52ed-8f5d-235b5b8125a6"
+        }
+      }
+    },
+    "MEX-APAR-085": {
+      "hotel_code": "MEX-APAR-085",
+      "hotel_name": "Apartamento Grand Centro Histórico 85",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "fc5fe017-2f02-5a97-8b15-300f7ad03258",
+      "rooms": {
+        "RM085": {
+          "room_type_code": "RM085",
+          "category_type": "Apartamento",
+          "category_uuid": "bb3ad7c4-5cad-52eb-ad12-029ed0cadae1"
+        }
+      }
+    },
+    "MEX-RESO-086": {
+      "hotel_code": "MEX-RESO-086",
+      "hotel_name": "Resort Imperial Playa Dorada 86",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "52091ed5-0213-581b-aae4-a2e7860ce540",
+      "rooms": {
+        "RM086": {
+          "room_type_code": "RM086",
+          "category_type": "Resort",
+          "category_uuid": "4d8db504-88d4-5c3d-ad46-9c5ebae7f7ba"
+        }
+      }
+    },
+    "MEX-CABA-087": {
+      "hotel_code": "MEX-CABA-087",
+      "hotel_name": "Cabaña Boutique Ciudad de México 87",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "8f9e4fa2-729d-56f1-b5ee-692f2fbcb831",
+      "rooms": {
+        "RM087": {
+          "room_type_code": "RM087",
+          "category_type": "Cabaña",
+          "category_uuid": "e6bf6eae-697c-53ec-be08-13a3b0e5ed65"
+        }
+      }
+    },
+    "MEX-HOST-088": {
+      "hotel_code": "MEX-HOST-088",
+      "hotel_name": "Hostal Real Zona Rosa 88",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "c0da777e-75b3-5b39-857b-8543e0e327a3",
+      "rooms": {
+        "RM088": {
+          "room_type_code": "RM088",
+          "category_type": "Hostal",
+          "category_uuid": "d5071156-9777-5830-96e7-ff4d6b7a809a"
+        }
+      }
+    },
+    "MEX-FINC-089": {
+      "hotel_code": "MEX-FINC-089",
+      "hotel_name": "Finca Premium Ciudad de México 89",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "7476a7c5-6773-5c41-abb7-6c9ab21423cc",
+      "rooms": {
+        "RM089": {
+          "room_type_code": "RM089",
+          "category_type": "Finca",
+          "category_uuid": "72cac871-b019-5d56-a0b0-9d59e4e45fd0"
+        }
+      }
+    },
+    "MEX-HOTE-090": {
+      "hotel_code": "MEX-HOTE-090",
+      "hotel_name": "Hotel Premium Ciudad de México 90",
+      "ciudad": "Ciudad de México",
+      "pais": "México",
+      "property_uuid": "4f76790c-7164-5c1d-8f21-cbdb17c30ded",
+      "rooms": {
+        "RM090": {
+          "room_type_code": "RM090",
+          "category_type": "Hotel",
+          "category_uuid": "e6280d45-6978-551d-a5ed-702419d943ea"
+        }
+      }
+    },
+    "COL-APAR-091": {
+      "hotel_code": "COL-APAR-091",
+      "hotel_name": "Apartamento Boutique Cali 91",
+      "ciudad": "Cali",
+      "pais": "Colombia",
+      "property_uuid": "582f9623-44c0-5839-aee2-7636d880c0dc",
+      "rooms": {
+        "RM091": {
+          "room_type_code": "RM091",
+          "category_type": "Apartamento",
+          "category_uuid": "1b91f64a-820d-5ca7-bfdf-83faf77a0969"
+        }
+      }
+    },
+    "COL-RESO-092": {
+      "hotel_code": "COL-RESO-092",
+      "hotel_name": "Resort Grand Vista Mar 92",
+      "ciudad": "Cali",
+      "pais": "Colombia",
+      "property_uuid": "7e639e9f-4115-5847-b89b-fb60f7f59138",
+      "rooms": {
+        "RM092": {
+          "room_type_code": "RM092",
+          "category_type": "Resort",
+          "category_uuid": "fdc0a49e-e0e0-524e-a9c5-b3eab49c5ebd"
+        }
+      }
+    },
+    "COL-CABA-093": {
+      "hotel_code": "COL-CABA-093",
+      "hotel_name": "Cabaña Boutique Cali 93",
+      "ciudad": "Cali",
+      "pais": "Colombia",
+      "property_uuid": "4c753dc3-375b-518b-88de-a49c0a6ae56c",
+      "rooms": {
+        "RM093": {
+          "room_type_code": "RM093",
+          "category_type": "Cabaña",
+          "category_uuid": "762ecbf2-06c0-5842-928a-ff6151714b12"
+        }
+      }
+    },
+    "COL-HOST-094": {
+      "hotel_code": "COL-HOST-094",
+      "hotel_name": "Hostal Boutique Colonial 94",
+      "ciudad": "Cali",
+      "pais": "Colombia",
+      "property_uuid": "5cae28d7-a95e-5d0a-866e-3f80b2e1b171",
+      "rooms": {
+        "RM094": {
+          "room_type_code": "RM094",
+          "category_type": "Hostal",
+          "category_uuid": "a79022a9-199e-5e3f-a008-49bab47da610"
+        }
+      }
+    },
+    "COL-FINC-095": {
+      "hotel_code": "COL-FINC-095",
+      "hotel_name": "Finca Boutique Santa Marta 95",
+      "ciudad": "Santa Marta",
+      "pais": "Colombia",
+      "property_uuid": "beb4fe0a-6418-5e15-a0f9-f00e3ca21abe",
+      "rooms": {
+        "RM095": {
+          "room_type_code": "RM095",
+          "category_type": "Finca",
+          "category_uuid": "7372348c-666b-5393-afc8-a57669fb93d3"
+        }
+      }
+    },
+    "COL-HOTE-096": {
+      "hotel_code": "COL-HOTE-096",
+      "hotel_name": "Hotel Eco Santa Marta 96",
+      "ciudad": "Santa Marta",
+      "pais": "Colombia",
+      "property_uuid": "4bafb6f5-f9ac-5431-b2d0-49bf3b53b826",
+      "rooms": {
+        "RM096": {
+          "room_type_code": "RM096",
+          "category_type": "Hotel",
+          "category_uuid": "26a5cdcc-0382-50f9-919e-7914a7ad2087"
+        }
+      }
+    },
+    "COL-APAR-097": {
+      "hotel_code": "COL-APAR-097",
+      "hotel_name": "Apartamento Boutique Santa Marta 97",
+      "ciudad": "Santa Marta",
+      "pais": "Colombia",
+      "property_uuid": "34eaf3e1-715a-593c-bffe-187b9e8f2648",
+      "rooms": {
+        "RM097": {
+          "room_type_code": "RM097",
+          "category_type": "Apartamento",
+          "category_uuid": "44468429-1550-5931-ac2e-1fb31b6cda83"
+        }
+      }
+    },
+    "COL-RESO-098": {
+      "hotel_code": "COL-RESO-098",
+      "hotel_name": "Resort Eco Zona Rosa 98",
+      "ciudad": "Barranquilla",
+      "pais": "Colombia",
+      "property_uuid": "258887c4-28da-5a7f-95ab-9af917307a0f",
+      "rooms": {
+        "RM098": {
+          "room_type_code": "RM098",
+          "category_type": "Resort",
+          "category_uuid": "09bf8525-8ea9-57d2-a681-a0eb0dd6024c"
+        }
+      }
+    },
+    "COL-CABA-099": {
+      "hotel_code": "COL-CABA-099",
+      "hotel_name": "Cabaña Deluxe Colonial 99",
+      "ciudad": "Barranquilla",
+      "pais": "Colombia",
+      "property_uuid": "9a60e07d-4b98-5688-817a-9592fbed4d15",
+      "rooms": {
+        "RM099": {
+          "room_type_code": "RM099",
+          "category_type": "Cabaña",
+          "category_uuid": "6f3dc3bd-9246-52a4-bc3f-2193fc26687c"
+        }
+      }
+    },
+    "COL-HOST-100": {
+      "hotel_code": "COL-HOST-100",
+      "hotel_name": "Hostal Real Playa Dorada 100",
+      "ciudad": "Barranquilla",
+      "pais": "Colombia",
+      "property_uuid": "d4b47f3b-a2d4-510d-9d74-2c81a86817f5",
+      "rooms": {
+        "RM100": {
+          "room_type_code": "RM100",
+          "category_type": "Hostal",
+          "category_uuid": "f0d250c1-24f6-5b28-b83f-a4868e46c645"
+        }
+      }
+    }
+  }
+}

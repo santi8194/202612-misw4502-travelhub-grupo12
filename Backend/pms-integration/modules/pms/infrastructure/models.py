@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, Index
+from sqlalchemy import Column, String, Integer, Index, DateTime
+from datetime import datetime
 from .database import Base
 
 class ReservationModel(Base):
@@ -41,3 +42,16 @@ class ReservationModel(Base):
     __mapper_args__ = {
         "version_id_col": version
     }
+
+
+class SyncCursorModel(Base):
+    """
+    Modelo para almacenar el cursor de sincronización del polling.
+    
+    Registra el último timestamp procesado para cada proveedor PMS,
+    permitiendo consultar solo cambios incrementales.
+    """
+    __tablename__ = "sync_cursors"
+    
+    provider_name = Column(String, primary_key=True)
+    last_sync_timestamp = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)

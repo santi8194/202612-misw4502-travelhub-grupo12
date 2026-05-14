@@ -1,0 +1,1807 @@
+{
+  "description": "Inventario simulado del Mock PMS - Generado automáticamente desde el seed",
+  "last_updated": "2026-05-11T02:45:43.322097+00:00",
+  "total_properties": 100,
+  "inventory": [
+    {
+      "hotel_code": "COL-APAR-001",
+      "hotel_name": "Apartamento Express Cartagena 1",
+      "room_type_code": "RM001",
+      "date": "2026-05-11",
+      "total_units": 5,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-001",
+      "hotel_name": "Apartamento Express Cartagena 1",
+      "room_type_code": "RM001",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-002",
+      "hotel_name": "Resort Grand Cartagena 2",
+      "room_type_code": "RM002",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-002",
+      "hotel_name": "Resort Grand Cartagena 2",
+      "room_type_code": "RM002",
+      "date": "2026-05-12",
+      "total_units": 6,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-003",
+      "hotel_name": "Cabaña Real Zona Rosa 3",
+      "room_type_code": "RM003",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 12,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-003",
+      "hotel_name": "Cabaña Real Zona Rosa 3",
+      "room_type_code": "RM003",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-004",
+      "hotel_name": "Hostal Royal Zona Rosa 4",
+      "room_type_code": "RM004",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-004",
+      "hotel_name": "Hostal Royal Zona Rosa 4",
+      "room_type_code": "RM004",
+      "date": "2026-05-12",
+      "total_units": 10,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-005",
+      "hotel_name": "Finca Eco Cartagena 5",
+      "room_type_code": "RM005",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-005",
+      "hotel_name": "Finca Eco Cartagena 5",
+      "room_type_code": "RM005",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-006",
+      "hotel_name": "Hotel Eco Vista Mar 6",
+      "room_type_code": "RM006",
+      "date": "2026-05-11",
+      "total_units": 9,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-006",
+      "hotel_name": "Hotel Eco Vista Mar 6",
+      "room_type_code": "RM006",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-007",
+      "hotel_name": "Apartamento Deluxe Cartagena 7",
+      "room_type_code": "RM007",
+      "date": "2026-05-11",
+      "total_units": 9,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-007",
+      "hotel_name": "Apartamento Deluxe Cartagena 7",
+      "room_type_code": "RM007",
+      "date": "2026-05-12",
+      "total_units": 11,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-008",
+      "hotel_name": "Resort Imperial Moderno 8",
+      "room_type_code": "RM008",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-008",
+      "hotel_name": "Resort Imperial Moderno 8",
+      "room_type_code": "RM008",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-009",
+      "hotel_name": "Cabaña Imperial Cartagena 9",
+      "room_type_code": "RM009",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 13,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-009",
+      "hotel_name": "Cabaña Imperial Cartagena 9",
+      "room_type_code": "RM009",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-010",
+      "hotel_name": "Hostal Eco Colonial 10",
+      "room_type_code": "RM010",
+      "date": "2026-05-11",
+      "total_units": 5,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-010",
+      "hotel_name": "Hostal Eco Colonial 10",
+      "room_type_code": "RM010",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-011",
+      "hotel_name": "Finca Real Vista Mar 11",
+      "room_type_code": "RM011",
+      "date": "2026-05-11",
+      "total_units": 8,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-011",
+      "hotel_name": "Finca Real Vista Mar 11",
+      "room_type_code": "RM011",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-012",
+      "hotel_name": "Hotel Grand Playa Dorada 12",
+      "room_type_code": "RM012",
+      "date": "2026-05-11",
+      "total_units": 8,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-012",
+      "hotel_name": "Hotel Grand Playa Dorada 12",
+      "room_type_code": "RM012",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-013",
+      "hotel_name": "Apartamento Boutique Cartagena 13",
+      "room_type_code": "RM013",
+      "date": "2026-05-11",
+      "total_units": 9,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-013",
+      "hotel_name": "Apartamento Boutique Cartagena 13",
+      "room_type_code": "RM013",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 12,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-014",
+      "hotel_name": "Resort Eco Cartagena 14",
+      "room_type_code": "RM014",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 13,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-014",
+      "hotel_name": "Resort Eco Cartagena 14",
+      "room_type_code": "RM014",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-015",
+      "hotel_name": "Cabaña Real Cartagena 15",
+      "room_type_code": "RM015",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-015",
+      "hotel_name": "Cabaña Real Cartagena 15",
+      "room_type_code": "RM015",
+      "date": "2026-05-12",
+      "total_units": 14,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-016",
+      "hotel_name": "Hostal Real Centro Histórico 16",
+      "room_type_code": "RM016",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-016",
+      "hotel_name": "Hostal Real Centro Histórico 16",
+      "room_type_code": "RM016",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-017",
+      "hotel_name": "Finca Boutique Centro Histórico 17",
+      "room_type_code": "RM017",
+      "date": "2026-05-11",
+      "total_units": 7,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-017",
+      "hotel_name": "Finca Boutique Centro Histórico 17",
+      "room_type_code": "RM017",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-018",
+      "hotel_name": "Hotel Central Moderno 18",
+      "room_type_code": "RM018",
+      "date": "2026-05-11",
+      "total_units": 11,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-018",
+      "hotel_name": "Hotel Central Moderno 18",
+      "room_type_code": "RM018",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-019",
+      "hotel_name": "Apartamento Grand Colonial 19",
+      "room_type_code": "RM019",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 9,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-019",
+      "hotel_name": "Apartamento Grand Colonial 19",
+      "room_type_code": "RM019",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-020",
+      "hotel_name": "Resort Royal Colonial 20",
+      "room_type_code": "RM020",
+      "date": "2026-05-11",
+      "total_units": 8,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-020",
+      "hotel_name": "Resort Royal Colonial 20",
+      "room_type_code": "RM020",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-021",
+      "hotel_name": "Cabaña Deluxe Cartagena 21",
+      "room_type_code": "RM021",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-021",
+      "hotel_name": "Cabaña Deluxe Cartagena 21",
+      "room_type_code": "RM021",
+      "date": "2026-05-12",
+      "total_units": 10,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-022",
+      "hotel_name": "Hostal Express Cartagena 22",
+      "room_type_code": "RM022",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-022",
+      "hotel_name": "Hostal Express Cartagena 22",
+      "room_type_code": "RM022",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 12,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-023",
+      "hotel_name": "Finca Grand Cartagena 23",
+      "room_type_code": "RM023",
+      "date": "2026-05-11",
+      "total_units": 9,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-023",
+      "hotel_name": "Finca Grand Cartagena 23",
+      "room_type_code": "RM023",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-024",
+      "hotel_name": "Hotel Premium Cartagena 24",
+      "room_type_code": "RM024",
+      "date": "2026-05-11",
+      "total_units": 11,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-024",
+      "hotel_name": "Hotel Premium Cartagena 24",
+      "room_type_code": "RM024",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-025",
+      "hotel_name": "Apartamento Imperial Zona Rosa 25",
+      "room_type_code": "RM025",
+      "date": "2026-05-11",
+      "total_units": 9,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-025",
+      "hotel_name": "Apartamento Imperial Zona Rosa 25",
+      "room_type_code": "RM025",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 15,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-026",
+      "hotel_name": "Resort Eco Playa Dorada 26",
+      "room_type_code": "RM026",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-026",
+      "hotel_name": "Resort Eco Playa Dorada 26",
+      "room_type_code": "RM026",
+      "date": "2026-05-12",
+      "total_units": 6,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-027",
+      "hotel_name": "Cabaña Imperial Vista Mar 27",
+      "room_type_code": "RM027",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 13,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-027",
+      "hotel_name": "Cabaña Imperial Vista Mar 27",
+      "room_type_code": "RM027",
+      "date": "2026-05-12",
+      "total_units": 6,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-028",
+      "hotel_name": "Hostal Central Cartagena 28",
+      "room_type_code": "RM028",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-028",
+      "hotel_name": "Hostal Central Cartagena 28",
+      "room_type_code": "RM028",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-029",
+      "hotel_name": "Finca Premium Cartagena 29",
+      "room_type_code": "RM029",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-029",
+      "hotel_name": "Finca Premium Cartagena 29",
+      "room_type_code": "RM029",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-030",
+      "hotel_name": "Hotel Grand Moderno 30",
+      "room_type_code": "RM030",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-030",
+      "hotel_name": "Hotel Grand Moderno 30",
+      "room_type_code": "RM030",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-031",
+      "hotel_name": "Apartamento Central Colonial 31",
+      "room_type_code": "RM031",
+      "date": "2026-05-11",
+      "total_units": 5,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-031",
+      "hotel_name": "Apartamento Central Colonial 31",
+      "room_type_code": "RM031",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-032",
+      "hotel_name": "Resort Deluxe Cartagena 32",
+      "room_type_code": "RM032",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-032",
+      "hotel_name": "Resort Deluxe Cartagena 32",
+      "room_type_code": "RM032",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-033",
+      "hotel_name": "Cabaña Express Cartagena 33",
+      "room_type_code": "RM033",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-033",
+      "hotel_name": "Cabaña Express Cartagena 33",
+      "room_type_code": "RM033",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-034",
+      "hotel_name": "Hostal Deluxe Cartagena 34",
+      "room_type_code": "RM034",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-034",
+      "hotel_name": "Hostal Deluxe Cartagena 34",
+      "room_type_code": "RM034",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-035",
+      "hotel_name": "Finca Boutique Cartagena 35",
+      "room_type_code": "RM035",
+      "date": "2026-05-11",
+      "total_units": 7,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-035",
+      "hotel_name": "Finca Boutique Cartagena 35",
+      "room_type_code": "RM035",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-036",
+      "hotel_name": "Hotel Express Colonial 36",
+      "room_type_code": "RM036",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 11,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-036",
+      "hotel_name": "Hotel Express Colonial 36",
+      "room_type_code": "RM036",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-037",
+      "hotel_name": "Apartamento Central Moderno 37",
+      "room_type_code": "RM037",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 9,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-037",
+      "hotel_name": "Apartamento Central Moderno 37",
+      "room_type_code": "RM037",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-038",
+      "hotel_name": "Resort Deluxe Cartagena 38",
+      "room_type_code": "RM038",
+      "date": "2026-05-11",
+      "total_units": 5,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-038",
+      "hotel_name": "Resort Deluxe Cartagena 38",
+      "room_type_code": "RM038",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-039",
+      "hotel_name": "Cabaña Imperial Centro Histórico 39",
+      "room_type_code": "RM039",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 11,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-039",
+      "hotel_name": "Cabaña Imperial Centro Histórico 39",
+      "room_type_code": "RM039",
+      "date": "2026-05-12",
+      "total_units": 14,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-040",
+      "hotel_name": "Hostal Real Cartagena 40",
+      "room_type_code": "RM040",
+      "date": "2026-05-11",
+      "total_units": 11,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-040",
+      "hotel_name": "Hostal Real Cartagena 40",
+      "room_type_code": "RM040",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-041",
+      "hotel_name": "Finca Boutique Moderno 41",
+      "room_type_code": "RM041",
+      "date": "2026-05-11",
+      "total_units": 9,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-041",
+      "hotel_name": "Finca Boutique Moderno 41",
+      "room_type_code": "RM041",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-042",
+      "hotel_name": "Hotel Real Bogotá 42",
+      "room_type_code": "RM042",
+      "date": "2026-05-11",
+      "total_units": 11,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-042",
+      "hotel_name": "Hotel Real Bogotá 42",
+      "room_type_code": "RM042",
+      "date": "2026-05-12",
+      "total_units": 14,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-043",
+      "hotel_name": "Apartamento Central Bogotá 43",
+      "room_type_code": "RM043",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-043",
+      "hotel_name": "Apartamento Central Bogotá 43",
+      "room_type_code": "RM043",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 9,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-044",
+      "hotel_name": "Resort Grand Bogotá 44",
+      "room_type_code": "RM044",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-044",
+      "hotel_name": "Resort Grand Bogotá 44",
+      "room_type_code": "RM044",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-045",
+      "hotel_name": "Cabaña Central Bogotá 45",
+      "room_type_code": "RM045",
+      "date": "2026-05-11",
+      "total_units": 7,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-045",
+      "hotel_name": "Cabaña Central Bogotá 45",
+      "room_type_code": "RM045",
+      "date": "2026-05-12",
+      "total_units": 11,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-046",
+      "hotel_name": "Hostal Real Colonial 46",
+      "room_type_code": "RM046",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-046",
+      "hotel_name": "Hostal Real Colonial 46",
+      "room_type_code": "RM046",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-047",
+      "hotel_name": "Finca Eco Bogotá 47",
+      "room_type_code": "RM047",
+      "date": "2026-05-11",
+      "total_units": 7,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-047",
+      "hotel_name": "Finca Eco Bogotá 47",
+      "room_type_code": "RM047",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-048",
+      "hotel_name": "Hotel Deluxe Playa Dorada 48",
+      "room_type_code": "RM048",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-048",
+      "hotel_name": "Hotel Deluxe Playa Dorada 48",
+      "room_type_code": "RM048",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-049",
+      "hotel_name": "Apartamento Grand Bogotá 49",
+      "room_type_code": "RM049",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-049",
+      "hotel_name": "Apartamento Grand Bogotá 49",
+      "room_type_code": "RM049",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-050",
+      "hotel_name": "Resort Real Bogotá 50",
+      "room_type_code": "RM050",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-050",
+      "hotel_name": "Resort Real Bogotá 50",
+      "room_type_code": "RM050",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 12,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-051",
+      "hotel_name": "Cabaña Express Bogotá 51",
+      "room_type_code": "RM051",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-051",
+      "hotel_name": "Cabaña Express Bogotá 51",
+      "room_type_code": "RM051",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-052",
+      "hotel_name": "Hostal Eco Bogotá 52",
+      "room_type_code": "RM052",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-052",
+      "hotel_name": "Hostal Eco Bogotá 52",
+      "room_type_code": "RM052",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-053",
+      "hotel_name": "Finca Real Bogotá 53",
+      "room_type_code": "RM053",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 11,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-053",
+      "hotel_name": "Finca Real Bogotá 53",
+      "room_type_code": "RM053",
+      "date": "2026-05-12",
+      "total_units": 10,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-054",
+      "hotel_name": "Hotel Royal Bogotá 54",
+      "room_type_code": "RM054",
+      "date": "2026-05-11",
+      "total_units": 5,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-054",
+      "hotel_name": "Hotel Royal Bogotá 54",
+      "room_type_code": "RM054",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-055",
+      "hotel_name": "Apartamento Imperial Bogotá 55",
+      "room_type_code": "RM055",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-055",
+      "hotel_name": "Apartamento Imperial Bogotá 55",
+      "room_type_code": "RM055",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 14,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-056",
+      "hotel_name": "Resort Royal Centro Histórico 56",
+      "room_type_code": "RM056",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-056",
+      "hotel_name": "Resort Royal Centro Histórico 56",
+      "room_type_code": "RM056",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-057",
+      "hotel_name": "Cabaña Deluxe Bogotá 57",
+      "room_type_code": "RM057",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-057",
+      "hotel_name": "Cabaña Deluxe Bogotá 57",
+      "room_type_code": "RM057",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-058",
+      "hotel_name": "Hostal Premium Bogotá 58",
+      "room_type_code": "RM058",
+      "date": "2026-05-11",
+      "total_units": 9,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-058",
+      "hotel_name": "Hostal Premium Bogotá 58",
+      "room_type_code": "RM058",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-059",
+      "hotel_name": "Finca Express Bogotá 59",
+      "room_type_code": "RM059",
+      "date": "2026-05-11",
+      "total_units": 5,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-059",
+      "hotel_name": "Finca Express Bogotá 59",
+      "room_type_code": "RM059",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-060",
+      "hotel_name": "Hotel Deluxe Bogotá 60",
+      "room_type_code": "RM060",
+      "date": "2026-05-11",
+      "total_units": 11,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-060",
+      "hotel_name": "Hotel Deluxe Bogotá 60",
+      "room_type_code": "RM060",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-061",
+      "hotel_name": "Apartamento Premium Colonial 61",
+      "room_type_code": "RM061",
+      "date": "2026-05-11",
+      "total_units": 5,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-061",
+      "hotel_name": "Apartamento Premium Colonial 61",
+      "room_type_code": "RM061",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-062",
+      "hotel_name": "Resort Deluxe Medellín 62",
+      "room_type_code": "RM062",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-062",
+      "hotel_name": "Resort Deluxe Medellín 62",
+      "room_type_code": "RM062",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-063",
+      "hotel_name": "Cabaña Deluxe Moderno 63",
+      "room_type_code": "RM063",
+      "date": "2026-05-11",
+      "total_units": 9,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-063",
+      "hotel_name": "Cabaña Deluxe Moderno 63",
+      "room_type_code": "RM063",
+      "date": "2026-05-12",
+      "total_units": 10,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-064",
+      "hotel_name": "Hostal Real Colonial 64",
+      "room_type_code": "RM064",
+      "date": "2026-05-11",
+      "total_units": 11,
+      "available_units": 11,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-064",
+      "hotel_name": "Hostal Real Colonial 64",
+      "room_type_code": "RM064",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-065",
+      "hotel_name": "Finca Royal Moderno 65",
+      "room_type_code": "RM065",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-065",
+      "hotel_name": "Finca Royal Moderno 65",
+      "room_type_code": "RM065",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 11,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-066",
+      "hotel_name": "Hotel Real Playa Dorada 66",
+      "room_type_code": "RM066",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-066",
+      "hotel_name": "Hotel Real Playa Dorada 66",
+      "room_type_code": "RM066",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-067",
+      "hotel_name": "Apartamento Premium Playa Dorada 67",
+      "room_type_code": "RM067",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-067",
+      "hotel_name": "Apartamento Premium Playa Dorada 67",
+      "room_type_code": "RM067",
+      "date": "2026-05-12",
+      "total_units": 11,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-068",
+      "hotel_name": "Resort Grand Medellín 68",
+      "room_type_code": "RM068",
+      "date": "2026-05-11",
+      "total_units": 11,
+      "available_units": 9,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-068",
+      "hotel_name": "Resort Grand Medellín 68",
+      "room_type_code": "RM068",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-069",
+      "hotel_name": "Cabaña Deluxe Medellín 69",
+      "room_type_code": "RM069",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-069",
+      "hotel_name": "Cabaña Deluxe Medellín 69",
+      "room_type_code": "RM069",
+      "date": "2026-05-12",
+      "total_units": 6,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-070",
+      "hotel_name": "Hostal Imperial Medellín 70",
+      "room_type_code": "RM070",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 9,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-070",
+      "hotel_name": "Hostal Imperial Medellín 70",
+      "room_type_code": "RM070",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-FINC-071",
+      "hotel_name": "Finca Deluxe Moderno 71",
+      "room_type_code": "RM071",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 11,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-FINC-071",
+      "hotel_name": "Finca Deluxe Moderno 71",
+      "room_type_code": "RM071",
+      "date": "2026-05-12",
+      "total_units": 11,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOTE-072",
+      "hotel_name": "Hotel Real Cancún 72",
+      "room_type_code": "RM072",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOTE-072",
+      "hotel_name": "Hotel Real Cancún 72",
+      "room_type_code": "RM072",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-APAR-073",
+      "hotel_name": "Apartamento Deluxe Zona Rosa 73",
+      "room_type_code": "RM073",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 9,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-APAR-073",
+      "hotel_name": "Apartamento Deluxe Zona Rosa 73",
+      "room_type_code": "RM073",
+      "date": "2026-05-12",
+      "total_units": 11,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-RESO-074",
+      "hotel_name": "Resort Deluxe Cancún 74",
+      "room_type_code": "RM074",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-RESO-074",
+      "hotel_name": "Resort Deluxe Cancún 74",
+      "room_type_code": "RM074",
+      "date": "2026-05-12",
+      "total_units": 6,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-CABA-075",
+      "hotel_name": "Cabaña Imperial Cancún 75",
+      "room_type_code": "RM075",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 12,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-CABA-075",
+      "hotel_name": "Cabaña Imperial Cancún 75",
+      "room_type_code": "RM075",
+      "date": "2026-05-12",
+      "total_units": 10,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOST-076",
+      "hotel_name": "Hostal Central Cancún 76",
+      "room_type_code": "RM076",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOST-076",
+      "hotel_name": "Hostal Central Cancún 76",
+      "room_type_code": "RM076",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-FINC-077",
+      "hotel_name": "Finca Royal Cancún 77",
+      "room_type_code": "RM077",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-FINC-077",
+      "hotel_name": "Finca Royal Cancún 77",
+      "room_type_code": "RM077",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOTE-078",
+      "hotel_name": "Hotel Grand Cancún 78",
+      "room_type_code": "RM078",
+      "date": "2026-05-11",
+      "total_units": 7,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOTE-078",
+      "hotel_name": "Hotel Grand Cancún 78",
+      "room_type_code": "RM078",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-APAR-079",
+      "hotel_name": "Apartamento Deluxe Cancún 79",
+      "room_type_code": "RM079",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-APAR-079",
+      "hotel_name": "Apartamento Deluxe Cancún 79",
+      "room_type_code": "RM079",
+      "date": "2026-05-12",
+      "total_units": 14,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-RESO-080",
+      "hotel_name": "Resort Royal Vista Mar 80",
+      "room_type_code": "RM080",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-RESO-080",
+      "hotel_name": "Resort Royal Vista Mar 80",
+      "room_type_code": "RM080",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 14,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-CABA-081",
+      "hotel_name": "Cabaña Imperial Colonial 81",
+      "room_type_code": "RM081",
+      "date": "2026-05-11",
+      "total_units": 10,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-CABA-081",
+      "hotel_name": "Cabaña Imperial Colonial 81",
+      "room_type_code": "RM081",
+      "date": "2026-05-12",
+      "total_units": 12,
+      "available_units": 12,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOST-082",
+      "hotel_name": "Hostal Real Vista Mar 82",
+      "room_type_code": "RM082",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOST-082",
+      "hotel_name": "Hostal Real Vista Mar 82",
+      "room_type_code": "RM082",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-FINC-083",
+      "hotel_name": "Finca Grand Ciudad de México 83",
+      "room_type_code": "RM083",
+      "date": "2026-05-11",
+      "total_units": 11,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-FINC-083",
+      "hotel_name": "Finca Grand Ciudad de México 83",
+      "room_type_code": "RM083",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOTE-084",
+      "hotel_name": "Hotel Boutique Ciudad de México 84",
+      "room_type_code": "RM084",
+      "date": "2026-05-11",
+      "total_units": 8,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOTE-084",
+      "hotel_name": "Hotel Boutique Ciudad de México 84",
+      "room_type_code": "RM084",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-APAR-085",
+      "hotel_name": "Apartamento Grand Centro Histórico 85",
+      "room_type_code": "RM085",
+      "date": "2026-05-11",
+      "total_units": 7,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-APAR-085",
+      "hotel_name": "Apartamento Grand Centro Histórico 85",
+      "room_type_code": "RM085",
+      "date": "2026-05-12",
+      "total_units": 13,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-RESO-086",
+      "hotel_name": "Resort Imperial Playa Dorada 86",
+      "room_type_code": "RM086",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-RESO-086",
+      "hotel_name": "Resort Imperial Playa Dorada 86",
+      "room_type_code": "RM086",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-CABA-087",
+      "hotel_name": "Cabaña Boutique Ciudad de México 87",
+      "room_type_code": "RM087",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-CABA-087",
+      "hotel_name": "Cabaña Boutique Ciudad de México 87",
+      "room_type_code": "RM087",
+      "date": "2026-05-12",
+      "total_units": 14,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOST-088",
+      "hotel_name": "Hostal Real Zona Rosa 88",
+      "room_type_code": "RM088",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOST-088",
+      "hotel_name": "Hostal Real Zona Rosa 88",
+      "room_type_code": "RM088",
+      "date": "2026-05-12",
+      "total_units": 6,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-FINC-089",
+      "hotel_name": "Finca Premium Ciudad de México 89",
+      "room_type_code": "RM089",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 3,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-FINC-089",
+      "hotel_name": "Finca Premium Ciudad de México 89",
+      "room_type_code": "RM089",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOTE-090",
+      "hotel_name": "Hotel Premium Ciudad de México 90",
+      "room_type_code": "RM090",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "MEX-HOTE-090",
+      "hotel_name": "Hotel Premium Ciudad de México 90",
+      "room_type_code": "RM090",
+      "date": "2026-05-12",
+      "total_units": 15,
+      "available_units": 10,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-091",
+      "hotel_name": "Apartamento Boutique Cali 91",
+      "room_type_code": "RM091",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 11,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-091",
+      "hotel_name": "Apartamento Boutique Cali 91",
+      "room_type_code": "RM091",
+      "date": "2026-05-12",
+      "total_units": 6,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-092",
+      "hotel_name": "Resort Grand Vista Mar 92",
+      "room_type_code": "RM092",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 4,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-092",
+      "hotel_name": "Resort Grand Vista Mar 92",
+      "room_type_code": "RM092",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-093",
+      "hotel_name": "Cabaña Boutique Cali 93",
+      "room_type_code": "RM093",
+      "date": "2026-05-11",
+      "total_units": 15,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-093",
+      "hotel_name": "Cabaña Boutique Cali 93",
+      "room_type_code": "RM093",
+      "date": "2026-05-12",
+      "total_units": 10,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-094",
+      "hotel_name": "Hostal Boutique Colonial 94",
+      "room_type_code": "RM094",
+      "date": "2026-05-11",
+      "total_units": 8,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-094",
+      "hotel_name": "Hostal Boutique Colonial 94",
+      "room_type_code": "RM094",
+      "date": "2026-05-12",
+      "total_units": 8,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-095",
+      "hotel_name": "Finca Boutique Santa Marta 95",
+      "room_type_code": "RM095",
+      "date": "2026-05-11",
+      "total_units": 8,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-FINC-095",
+      "hotel_name": "Finca Boutique Santa Marta 95",
+      "room_type_code": "RM095",
+      "date": "2026-05-12",
+      "total_units": 5,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-096",
+      "hotel_name": "Hotel Eco Santa Marta 96",
+      "room_type_code": "RM096",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 9,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOTE-096",
+      "hotel_name": "Hotel Eco Santa Marta 96",
+      "room_type_code": "RM096",
+      "date": "2026-05-12",
+      "total_units": 10,
+      "available_units": 7,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-097",
+      "hotel_name": "Apartamento Boutique Santa Marta 97",
+      "room_type_code": "RM097",
+      "date": "2026-05-11",
+      "total_units": 13,
+      "available_units": 2,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-APAR-097",
+      "hotel_name": "Apartamento Boutique Santa Marta 97",
+      "room_type_code": "RM097",
+      "date": "2026-05-12",
+      "total_units": 14,
+      "available_units": 14,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-098",
+      "hotel_name": "Resort Eco Zona Rosa 98",
+      "room_type_code": "RM098",
+      "date": "2026-05-11",
+      "total_units": 6,
+      "available_units": 0,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-RESO-098",
+      "hotel_name": "Resort Eco Zona Rosa 98",
+      "room_type_code": "RM098",
+      "date": "2026-05-12",
+      "total_units": 9,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-099",
+      "hotel_name": "Cabaña Deluxe Colonial 99",
+      "room_type_code": "RM099",
+      "date": "2026-05-11",
+      "total_units": 12,
+      "available_units": 8,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-CABA-099",
+      "hotel_name": "Cabaña Deluxe Colonial 99",
+      "room_type_code": "RM099",
+      "date": "2026-05-12",
+      "total_units": 11,
+      "available_units": 6,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-100",
+      "hotel_name": "Hostal Real Playa Dorada 100",
+      "room_type_code": "RM100",
+      "date": "2026-05-11",
+      "total_units": 14,
+      "available_units": 1,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    },
+    {
+      "hotel_code": "COL-HOST-100",
+      "hotel_name": "Hostal Real Playa Dorada 100",
+      "room_type_code": "RM100",
+      "date": "2026-05-12",
+      "total_units": 7,
+      "available_units": 5,
+      "last_modified": "2026-05-11T02:45:43.322097+00:00"
+    }
+  ]
+}

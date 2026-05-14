@@ -102,6 +102,11 @@ export class PropertyDetailPage {
     return !!this.selectedCategoryId() && !!checkIn && !!checkOut && checkOut > checkIn && guests > 0;
   });
 
+  readonly translatedPropertyDescription = computed(() => {
+    const description = this.property()?.descripcion ?? '';
+    return this.translateBackendDescription(description);
+  });
+
   constructor() {
     this.checkInInput.set(this.route.snapshot.queryParamMap.get('fecha_inicio') ?? '');
     this.checkOutInput.set(this.route.snapshot.queryParamMap.get('fecha_fin') ?? '');
@@ -247,6 +252,48 @@ export class PropertyDetailPage {
   currencySymbol(moneda: string): string {
     return moneda === 'USD' ? '$' : moneda;
   }
+
+  translatedCategoryName(value: string): string {
+    const normalized = value.trim().toLowerCase();
+    const key = this.propertyTypeTranslationMap[normalized];
+    return key ? this.i18n.translate(key) : value;
+  }
+
+  translatedGuestsLabel(count: number): string {
+    return this.i18n.translate(count === 1 ? 'propertyDetail.guestSingular' : 'propertyDetail.guestPlural', { count });
+  }
+
+  private translateBackendDescription(description: string): string {
+    if (!description) return '';
+
+    const pattern = /^Alojamiento tipo\s+(.+?)\s+en\s+(.+?)\.\s*(\d+)\s+estrellas?\.?$/i;
+    const match = description.trim().match(pattern);
+
+    if (!match) {
+      return description;
+    }
+
+    const rawType = match[1]?.trim() ?? '';
+    const city = match[2]?.trim() ?? '';
+    const stars = Number(match[3]);
+
+    return this.i18n.translate('propertyDetail.descriptionTemplate', {
+      type: this.translatedCategoryName(rawType),
+      city,
+      stars,
+    });
+  }
+
+  private readonly propertyTypeTranslationMap: Record<string, string> = {
+    finca: 'propertyType.finca',
+    hotel: 'propertyType.hotel',
+    hostal: 'propertyType.hostal',
+    apartamento: 'propertyType.apartment',
+    apartahotel: 'propertyType.aparthotel',
+    casa: 'propertyType.house',
+    cabaña: 'propertyType.cabin',
+    cabana: 'propertyType.cabin',
+  };
 
   private ensureSelectedCategory(): void {
     if (this.selectedCategoryId() && this.categories().some((c) => c.id_categoria === this.selectedCategoryId())) {

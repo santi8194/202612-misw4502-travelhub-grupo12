@@ -21,7 +21,7 @@
       <!-- ── HEADER ── -->
       <section class="room-header" data-testid="room-header">
         <h1 class="room-title" data-testid="room-detail-title">
-          {{ roomDetail()!.categoria.nombre_comercial }}
+          {{ getPropertyTypeDisplayName(roomDetail()!.categoria.nombre_comercial) }}
         </h1>
         <div class="room-meta">
           <span class="room-meta__rating">
@@ -46,7 +46,7 @@
         <div class="image-grid__main">
           <img
             [src]="galleryImages()[0]"
-            [alt]="roomDetail()!.categoria.nombre_comercial"
+            [alt]="getPropertyTypeDisplayName(roomDetail()!.categoria.nombre_comercial)"
             class="image-grid__img"
           />
         </div>
@@ -55,7 +55,7 @@
             <div class="image-grid__cell">
               <img
                 [src]="img"
-                [alt]="roomDetail()!.categoria.nombre_comercial + ' ' + ($index + 2)"
+                [alt]="getPropertyTypeDisplayName(roomDetail()!.categoria.nombre_comercial) + ' ' + ($index + 2)"
                 class="image-grid__img"
               />
             </div>
@@ -72,7 +72,7 @@
           <!-- Top: Propiedad + Capacidad -->
           <div class="room-info-top" data-testid="room-info-top">
             <div class="room-info-top__text">
-              <p class="room-info-top__title">{{ roomDetail()!.propiedad.nombre }}</p>
+              <p class="room-info-top__title">{{ getPropertyTypeDisplayName(roomDetail()!.propiedad.nombre) }}</p>
               <p class="room-info-top__sub">{{ roomDetail()!.categoria.capacidad_pax }} {{ 'room.guests' | translate }}</p>
             </div>
           </div>
@@ -101,7 +101,7 @@
               @for (amenidad of roomDetail()!.amenidades; track amenidad.id_amenidad) {
                 <div class="amenity-item" data-testid="room-amenity-item">
                   <span class="amenity-item__icon" [innerHTML]="getAmenityIcon(amenidad.icono)"></span>
-                  <span class="amenity-item__name">{{ amenidad.nombre }}</span>
+                  <span class="amenity-item__name">{{ getAmenityDisplayName(amenidad.nombre) }}</span>
                 </div>
               }
             </div>
@@ -206,7 +206,7 @@
                 </div>
                 @if (impuestos() > 0) {
                   <div class="booking-box__breakdown-row" data-testid="room-impuestos-row">
-                    <span>{{ 'room.tax' | translate:{ name: impuestoNombre() } }}</span>
+                    <span>{{ 'room.tax' | translate:{ name: getTaxDisplayName(impuestoNombre()) } }}</span>
                     <span>{{ currencySymbol() }} {{ formatCurrency(impuestos()) }}</span>
                   </div>
                 }
@@ -242,7 +242,7 @@
             {{ roomDetail()!.rating_promedio }}
           </span>
           <span class="reviews-header__dot">·</span>
-          <span class="reviews-header__count">{{ roomDetail()!.total_resenas }} reseñas</span>
+          <span class="reviews-header__count">{{ 'room.reviewCount' | translate:{ count: roomDetail()!.total_resenas } }}</span>
         </div>
 
         <div class="reviews-grid" data-testid="room-reviews-grid">
@@ -277,19 +277,17 @@
 
       <!-- ── DEBES SABER ── -->
       <section class="room-policies" data-testid="room-policies">
-        <h2 class="room-section-title">Debes saber</h2>
+        <h2 class="room-section-title">{{ 'room.mustKnow' | translate }}</h2>
         <div class="policies-columns">
           <div class="policy-item">
-            <h3 class="policy-item__title">Política de cancelación</h3>
+            <h3 class="policy-item__title">{{ 'room.cancellationPolicy.title' | translate }}</h3>
             <p class="policy-item__text">
-              Cancelación gratuita con
-              {{ roomDetail()!.categoria.politica_cancelacion.dias_anticipacion }} días de anticipación.
+              {{ 'room.cancellationPolicy.freeCancellation' | translate:{ days: roomDetail()!.categoria.politica_cancelacion.dias_anticipacion } }}
             </p>
             <p class="policy-item__text">
-              Penalidad del {{ roomDetail()!.categoria.politica_cancelacion.porcentaje_penalidad }}%
-              si se cancela después del plazo.
+              {{ 'room.cancellationPolicy.penalty' | translate:{ percentage: roomDetail()!.categoria.politica_cancelacion.porcentaje_penalidad } }}
             </p>
-            <button class="policy-item__link">Ver más ›</button>
+            <button class="policy-item__link">{{ 'room.showMore' | translate }} ›</button>
           </div>
         </div>
       </section>

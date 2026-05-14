@@ -1,7 +1,7 @@
 import { Component, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ReservationViewModel, ReservationStatus } from '../../../models/reservation.interface';
-import { getStatusLabel } from '../../../core/services/reservation-status.resolver';
+import { getStatusTranslationKey } from '../../../core/services/reservation-status.resolver';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
@@ -15,8 +15,6 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 export class ReservationCardComponent {
   private readonly i18n = inject(I18nService);
   reservation = input.required<ReservationViewModel>();
-
-  protected readonly getStatusLabel = getStatusLabel;
 
   protected formatDate(dateStr: string): string {
     return this.i18n.formatDate(dateStr);
@@ -35,6 +33,10 @@ export class ReservationCardComponent {
       CANCELADA: 'badge--cancelada',
     };
     return map[estado];
+  }
+
+  protected getStatusLabel(estado: ReservationStatus): string {
+    return this.i18n.translate(getStatusTranslationKey(estado));
   }
 
   protected getConfirmationCode(idReserva: string): string {

@@ -128,12 +128,70 @@ export class RoomDetailPage {
     return this.amenityIconSvg[icono] ?? this.amenityIconSvg['default'];
   }
 
+  getAmenityDisplayName(name: string): string {
+    const normalized = name.trim().toLowerCase();
+    const key = this.amenityTranslationKeyMap[normalized];
+    return key ? this.i18n.translate(key) : name;
+  }
+
+  getTaxDisplayName(name: string): string {
+    const normalized = name.trim().toLowerCase();
+    const key = this.taxTranslationKeyMap[normalized];
+    return key ? this.i18n.translate(key) : name;
+  }
+
+  getPropertyTypeDisplayName(name: string): string {
+    const normalized = name.trim().toLowerCase();
+    const key = this.propertyTypeTranslationKeyMap[normalized];
+    if (key) {
+      return this.i18n.translate(key);
+    }
+
+    let translated = name;
+    for (const [token, tokenKey] of Object.entries(this.propertyTypeTranslationKeyMap)) {
+      const localized = this.i18n.translate(tokenKey);
+      const regex = new RegExp(`\\b${this.escapeRegex(token)}\\b`, 'gi');
+      translated = translated.replace(regex, localized);
+    }
+
+    return translated;
+  }
+
   formatDate(isoDate: string): string {
     return this.i18n.formatMonthYear(isoDate);
   }
 
   formatCurrency(amount: number): string {
     return this.i18n.formatNumber(amount);
+  }
+
+  private readonly amenityTranslationKeyMap: Record<string, string> = {
+    piscina: 'room.amenity.pool',
+    spa: 'room.amenity.spa',
+    cocina: 'room.amenity.kitchen',
+    gimnasio: 'room.amenity.gym',
+    restaurante: 'room.amenity.restaurant',
+    'aire acondicionado': 'room.amenity.ac',
+  };
+
+  private readonly taxTranslationKeyMap: Record<string, string> = {
+    iva: 'room.taxName.vat',
+    vat: 'room.taxName.vat',
+  };
+
+  private readonly propertyTypeTranslationKeyMap: Record<string, string> = {
+    finca: 'propertyType.finca',
+    hotel: 'propertyType.hotel',
+    hostal: 'propertyType.hostal',
+    apartamento: 'propertyType.apartment',
+    apartahotel: 'propertyType.aparthotel',
+    casa: 'propertyType.house',
+    cabaña: 'propertyType.cabin',
+    cabana: 'propertyType.cabin',
+  };
+
+  private escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   constructor() {

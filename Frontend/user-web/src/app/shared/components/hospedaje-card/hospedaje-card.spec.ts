@@ -3,6 +3,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { HospedajeCardComponent } from './hospedaje-card';
 import { Hospedaje } from '../../../models/hospedaje.interface';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 const mockHospedaje: Hospedaje = {
   id_propiedad: '550e8400-e29b-41d4-a716-446655440000',
@@ -26,6 +27,14 @@ const mockHospedaje: Hospedaje = {
 describe('HospedajeCardComponent', () => {
   let component: HospedajeCardComponent;
   let fixture: ComponentFixture<HospedajeCardComponent>;
+
+  beforeEach(() => {
+    localStorage.removeItem('th_language');
+  });
+
+  afterEach(() => {
+    localStorage.removeItem('th_language');
+  });
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -135,5 +144,23 @@ describe('HospedajeCardComponent', () => {
 
     const price = fixture.nativeElement.querySelector('[data-testid="card-price-value"]');
     expect(price.textContent).toContain('EUR');
+  });
+
+  it('should translate backend property type labels when language is en', async () => {
+    TestBed.inject(I18nService).setLanguage('en');
+
+    const backendLabelHospedaje: Hospedaje = {
+      ...mockHospedaje,
+      propiedad_nombre: 'Finca',
+      categoria_nombre: 'Finca',
+    };
+
+    fixture.componentRef.setInput('hospedaje', backendLabelHospedaje);
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('[data-testid="card-badge"]');
+    const title = fixture.nativeElement.querySelector('[data-testid="card-title"]');
+    expect(badge.textContent.trim()).toBe('Country house');
+    expect(title.textContent.trim()).toBe('Country house');
   });
 });

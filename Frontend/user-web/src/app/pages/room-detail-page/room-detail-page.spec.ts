@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 import { RoomDetailPage } from './room-detail-page';
 import { NotificationService } from '../../core/services/notification';
 import { BookingStore } from '../../core/store/booking-store';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
 import { RoomPriceResponse } from '../../models/room-price.interface';
 
@@ -100,6 +101,8 @@ describe('RoomDetailPage', () => {
   let bookingStore: BookingStore;
 
   beforeEach(async () => {
+    localStorage.removeItem('th_language');
+
     await TestBed.configureTestingModule({
       imports: [RoomDetailPage],
       providers: [
@@ -223,6 +226,24 @@ describe('RoomDetailPage', () => {
     expect(title.textContent.trim()).toContain('Cabaña Eco Bogotá 0');
   });
 
+  it('should translate backend property type label in title when language is en', () => {
+    flushUserLocale();
+    const fincaRoomDetail: RoomDetailResponse = {
+      ...mockRoomDetail,
+      categoria: {
+        ...mockRoomDetail.categoria,
+        nombre_comercial: 'Finca',
+      },
+    };
+    flushViewDetail(fincaRoomDetail);
+
+    TestBed.inject(I18nService).setLanguage('en');
+    fixture.detectChanges();
+
+    const title = fixture.nativeElement.querySelector('[data-testid="room-detail-title"]');
+    expect(title.textContent.trim()).toBe('Country house');
+  });
+
   it('should render image grid on success', () => {
     flushUserLocale();
     flushViewDetail();
@@ -260,6 +281,23 @@ describe('RoomDetailPage', () => {
     flushViewDetail();
     const policies = fixture.nativeElement.querySelector('[data-testid="room-policies"]');
     expect(policies).toBeTruthy();
+  });
+
+  it('should render reviews, policies and amenity labels in English when language is en', () => {
+    flushUserLocale();
+    flushViewDetail();
+
+    TestBed.inject(I18nService).setLanguage('en');
+    fixture.detectChanges();
+
+    const reviewsCount = fixture.nativeElement.querySelector('.reviews-header__count');
+    expect(reviewsCount.textContent).toContain('reviews');
+
+    const policyTitle = fixture.nativeElement.querySelector('.policy-item__title');
+    expect(policyTitle.textContent).toContain('Cancellation policy');
+
+    const amenityName = fixture.nativeElement.querySelector('.amenity-item__name');
+    expect(amenityName.textContent).toContain('Pool');
   });
 
   it('should calculate nightsCount correctly', () => {

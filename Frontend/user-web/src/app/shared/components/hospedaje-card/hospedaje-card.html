@@ -9,11 +9,11 @@
     <img
       class="card__image"
       [src]="hospedaje().imagen_principal_url"
-      [alt]="hospedaje().categoria_nombre"
+      [alt]="translatedCategoryName()"
       data-testid="card-image"
     />
     <span class="card__badge" data-testid="card-badge">
-      {{ hospedaje().propiedad_nombre }}
+      {{ translatedPropertyName() }}
     </span>
   </div>
 
@@ -23,7 +23,7 @@
     <!-- Nombre + Rating -->
     <div class="card__header" data-testid="card-header">
       <div class="card__title-group">
-        <h3 class="card__title" data-testid="card-title">{{ hospedaje().categoria_nombre }}</h3>
+        <h3 class="card__title" data-testid="card-title">{{ translatedCategoryName() }}</h3>
         <div class="card__location" data-testid="card-location">
           <svg class="card__location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>

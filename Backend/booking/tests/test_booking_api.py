@@ -307,6 +307,60 @@ def test_expirar_reserva_handler_value_error_returns_400(client, monkeypatch):
     assert "EXPIRADA" in response.json["error"]
 
 
+def test_cancelar_reserva_returns_200_when_handler_ok(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow, catalog_client):
+            self.repositorio = repositorio
+            self.uow = uow
+            self.catalog_client = catalog_client
+
+        def handle(self, comando):
+            return True
+
+    monkeypatch.setattr(reserva_api_mod, 'CancelarReservaLocalHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', lambda: MagicMock())
+
+    id_reserva = str(uuid.uuid4())
+    response = client.post(f'/api/reserva/{id_reserva}/cancelar')
+
+    assert response.status_code == 200
+    assert response.is_json
+    assert response.json["mensaje"] == "Reserva marcada como CANCELADA"
+
+
+def test_cancelar_reserva_invalid_uuid_returns_400(client):
+    response = client.post('/api/reserva/uuid-invalido/cancelar')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert "badly formed hexadecimal UUID" in response.json["error"]
+
+
+def test_cancelar_reserva_handler_value_error_returns_400(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow, catalog_client):
+            self.repositorio = repositorio
+            self.uow = uow
+            self.catalog_client = catalog_client
+
+        def handle(self, comando):
+            raise ValueError("La reserva no se puede cancelar en su estado actual")
+
+    monkeypatch.setattr(reserva_api_mod, 'CancelarReservaLocalHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', lambda: MagicMock())
+
+    id_reserva = str(uuid.uuid4())
+    response = client.post(f'/api/reserva/{id_reserva}/cancelar')
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert "cancelar" in response.json["error"].lower()
+
+
 def test_get_reserva_by_id_returns_200(client):
     payload = {
         'id_usuario': str(uuid.uuid4()),

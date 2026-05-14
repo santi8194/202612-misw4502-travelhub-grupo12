@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
-from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva, ExpirarReserva
-from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ObtenerReservasPorUsuarioHandler, ExpirarReservaHandler
+from modulos.reserva.aplicacion.comandos import CrearReservaHold, FormalizarReserva, ExpirarReserva, CancelarReservaLocalCmd
+from modulos.reserva.aplicacion.handlers import CrearReservaHoldHandler, FormalizarReservaHandler, ObtenerReservaPorIdHandler, ObtenerReservasPorUsuarioHandler, ExpirarReservaHandler, CancelarReservaLocalHandler
 from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
 from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
+from modulos.reserva.infraestructura.auth_client import AuthServiceClient
+from modulos.reserva.infraestructura.payment_client import PaymentServiceClient
 from modulos.reserva.infraestructura.repositorios import RepositorioReservas
 from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
 from config.uow import UnidadTrabajoHibrida
@@ -265,6 +267,14 @@ def obtener_reservas_por_propiedad(id_propiedad):
         with uow:
             reservas = repositorio.obtener_por_categorias(ids_categoria)
 
+        # Resolver nombres únicos desde authservice (una llamada por usuario único)
+        auth_client = AuthServiceClient()
+        ids_usuario = list({str(r.usuario.id) for r in reservas if r.usuario and r.usuario.id})
+        nombre_por_usuario = {uid: auth_client.get_full_name(uid) for uid in ids_usuario}
+
+        # Resolver pago y total desde payment service
+        payment_client = PaymentServiceClient()
+
         resultado = []
 
         for reserva in reservas:
@@ -280,9 +290,17 @@ def obtener_reservas_por_propiedad(id_propiedad):
                     + (reserva.ocupacion.infantes or 0)
                 )
 
+            id_usuario = str(reserva.usuario.id) if reserva.usuario and reserva.usuario.id else None
+            id_reserva_str = str(reserva.id)
+
+            pago_info = payment_client.get_payment_for_reserva(id_reserva_str)
+            pago_estado = pago_info.get("estado") if pago_info else None
+            total = pago_info.get("monto") if pago_info else None
+
             resultado.append({
-                "id_reserva": str(reserva.id),
-                "id_usuario": str(reserva.usuario.id) if reserva.usuario and reserva.usuario.id else None,
+                "id_reserva": id_reserva_str,
+                "id_usuario": id_usuario,
+                "nombre_usuario": nombre_por_usuario.get(id_usuario) if id_usuario else None,
                 "id_propiedad": id_propiedad,
                 "id_categoria": id_categoria,
                 "habitacion": categoria_a_nombre.get(id_categoria),
@@ -290,8 +308,8 @@ def obtener_reservas_por_propiedad(id_propiedad):
                 "fecha_check_in": reserva.fecha_check_in.isoformat() if reserva.fecha_check_in else None,
                 "fecha_check_out": reserva.fecha_check_out.isoformat() if reserva.fecha_check_out else None,
                 "huespedes": huespedes,
-                "pago": "PENDIENTE",
-                "total": None,
+                "pago": pago_estado or "PENDIENTE",
+                "total": total,
                 "fecha_creacion": reserva.fecha_creacion.isoformat() if reserva.fecha_creacion else None,
                 "fecha_actualizacion": reserva.fecha_actualizacion.isoformat() if reserva.fecha_actualizacion else None,
             })
@@ -315,6 +333,30 @@ def expirar_reserva(id_reserva):
         handler.handle(comando)
 
         return jsonify({"mensaje": "Reserva marcada como EXPIRADA"}), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@reserva_api.route('/reserva/<id_reserva>/cancelar', methods=['POST'])
+def cancelar_reserva(id_reserva):
+    try:
+        comando = CancelarReservaLocalCmd(id_reserva=uuid.UUID(id_reserva))
+
+        uow = UnidadTrabajoHibrida()
+        repositorio = RepositorioReservas()
+        catalog_client = CatalogServiceClient()
+        handler = CancelarReservaLocalHandler(
+            repositorio=repositorio,
+            uow=uow,
+            catalog_client=catalog_client,
+        )
+
+        handler.handle(comando)
+
+        return jsonify({"mensaje": "Reserva marcada como CANCELADA"}), 200
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

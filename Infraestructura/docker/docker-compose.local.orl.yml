@@ -1,0 +1,215 @@
+services:
+  # ─────────────────────────────────────────────────────────────────
+  # Base de Datos Centralizada (PostgreSQL)
+  # ─────────────────────────────────────────────────────────────────
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: travelhub-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: travelhub_main
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - travelhub-dev-net
+
+  # ─────────────────────────────────────────────────────────────────
+  # Mensajería (RabbitMQ)
+  # ─────────────────────────────────────────────────────────────────
+  rabbitmq-broker:
+    image: rabbitmq:3.13-management-alpine
+    container_name: travelhub-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  # ─────────────────────────────────────────────────────────────────
+  # Microservicio: Catalog (Fuente de Verdad de Inventario)
+  # ─────────────────────────────────────────────────────────────────
+  catalog:
+    container_name: travelhub-catalog-orl
+    image: travelhub-local/catalog:dev
+    build:
+      context: ../../Backend/catalog
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      DB_HOST: postgres-db
+      DB_PORT: 5432
+      DB_NAME: catalog_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      ENABLE_EVENTS: "true"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_healthy
+    networks:
+      - travelhub-dev-net
+
+  # ─────────────────────────────────────────────────────────────────
+  # Microservicio: PMS Integration (Gateway Webhook/Polling)
+  # ─────────────────────────────────────────────────────────────────
+  pms-integration:
+    container_name: travelhub-pms-integration-orl
+    image: travelhub-local/pms-integration:dev
+    build:
+      context: ../../Backend/pms-integration
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      PMS_DB_HOST: postgres-db
+      PMS_DB_PORT: 5432
+      PMS_DB_NAME: pms_db
+      PMS_DB_USER: postgres
+      PMS_DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      MOCK_PMS_URL: http://mock-pms:8080
+      POLLING_INTERVAL_SECONDS: "120"
+      ENABLE_EVENTS: "true"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_healthy
+      mock-pms:
+        condition: service_healthy
+    networks:
+      - travelhub-dev-net
+
+  # ─────────────────────────────────────────────────────────────────
+  # Mock PMS — Simulador externo (Solo desarrollo local)
+  # ─────────────────────────────────────────────────────────────────
+  mock-pms:
+    container_name: travelhub-mock-pms-orl
+    image: travelhub-local/mock-pms:dev
+    build:
+      context: ../../Backend/mock-pms
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      PMS_INTEGRATION_URL: http://pms-integration:8001
+    networks:
+      - travelhub-dev-net
+
+  # ─────────────────────────────────────────────────────────────────
+  # Microservicio: Search (Buscador y Disponibilidad)
+  # ─────────────────────────────────────────────────────────────────
+  search:
+    container_name: travelhub-search-orl
+    image: travelhub-local/search:dev
+    build:
+      context: ../../Backend/search
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      DB_HOST: postgres-db
+      DB_PORT: 5432
+      DB_NAME: search_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      ENABLE_EVENTS: "true"
+      REPOSITORY_TYPE: "postgres"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_healthy
+    networks:
+      - travelhub-dev-net
+
+  # ─────────────────────────────────────────────────────────────────
+  # Microservicio: Booking (Gestión de Reservas)
+  # ─────────────────────────────────────────────────────────────────
+  booking:
+    container_name: travelhub-booking-orl
+    image: travelhub-local/booking:dev
+    build:
+      context: ../../Backend/booking
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8000"
+    environment:
+      BOOKING_DB_MODE: postgres
+      DB_HOST: postgres-db
+      DB_PORT: 5432
+      DB_NAME: booking_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq-broker
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      CATALOG_SERVICE_URL: http://catalog:8000
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      rabbitmq-broker:
+        condition: service_healthy
+      catalog:
+        condition: service_healthy
+    networks:
+      - travelhub-dev-net
+
+networks:
+  travelhub-dev-net:
+    driver: bridge
+
+volumes:
+  postgres_data:

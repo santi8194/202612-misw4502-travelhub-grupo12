@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     db_user: str | None = None
     db_password: str | None = None
     sqlite_path: str = "data/search.db"
+    
+    rabbitmq_host: str = "localhost"
+    rabbitmq_port: int = 5672
+    rabbitmq_user: str = "guest"
+    rabbitmq_pass: str = "guest"
+    enable_events: bool = False
 
     @property
     def use_postgres_database(self) -> bool:

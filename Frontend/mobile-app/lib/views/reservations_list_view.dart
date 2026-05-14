@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../view_models/reservations_list_view_model.dart';
 import '../widgets/reservation_card.dart';
+import '../widgets/reservation_card_skeleton.dart';
 import 'reservation_detail_view.dart';
 
 class ReservationsListView extends StatefulWidget {
@@ -33,7 +34,7 @@ class _ReservationsListViewState extends State<ReservationsListView> {
         child: Consumer<ReservationsListViewModel>(
           builder: (context, viewModel, child) {
             if (viewModel.isLoading && viewModel.reservations.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
+              return _buildSkeletonLoader(l10n, theme);
             }
 
             return RefreshIndicator(
@@ -157,6 +158,52 @@ class _ReservationsListViewState extends State<ReservationsListView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSkeletonLoader(AppLocalizations l10n, ThemeData theme) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.myReservationsTitle,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.myReservationsSubtitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        _buildSectionHeader(l10n.upcomingReservationsSection),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => const ReservationCardSkeleton(),
+            childCount: 2,
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        _buildSectionHeader(l10n.pastReservationsSection),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => const ReservationCardSkeleton(isPast: true),
+            childCount: 3,
+          ),
+        ),
+      ],
     );
   }
 

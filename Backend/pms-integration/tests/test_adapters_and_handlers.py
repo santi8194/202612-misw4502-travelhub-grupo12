@@ -1,9 +1,8 @@
 """Tests para adaptadores PMS y handlers de infraestructura."""
 
-import json
 import pytest
 from unittest.mock import MagicMock, patch
-from uuid import UUID
+from datetime import date
 
 from modules.pms.application.adapters.mock_pms_adapter import MockPMSAdapter
 from modules.pms.application.adapters.adapter_registry import get_adapter
@@ -12,77 +11,19 @@ from modules.pms.infrastructure.services.handlers import (
     handle_cancel_reservation,
 )
 
-_FAKE_MAPPING = {
-    "mappings": {
-        "COL-TEST-001": {
-            "property_uuid": "550e8400-e29b-41d4-a716-446655440000",
-            "rooms": {
-                "RM001": {
-                    "category_uuid": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-                }
-            },
-        }
-    }
-}
-
 _HANDLERS_MODULE = "modules.pms.infrastructure.services.handlers"
 
 
 @pytest.fixture
-def mapping_file(tmp_path):
-    """Crea un archivo de mapeo temporal para las pruebas."""
-    f = tmp_path / "pms_uuid_mapping_full.json"
-    f.write_text(json.dumps(_FAKE_MAPPING))
-    return str(f)
-
-
-@pytest.fixture
-def adapter(mapping_file):
-    """Instancia de MockPMSAdapter con mapeo temporal."""
-    return MockPMSAdapter(mapping_file=mapping_file)
-
-
-# ─── MockPMSAdapter._load_mapping ───
-
-def test_load_mapping_archivo_no_encontrado(tmp_path):
-    """Lanza ValueError cuando el archivo de mapeo no existe."""
-    with pytest.raises(ValueError, match="no encontrado"):
-        MockPMSAdapter(mapping_file=str(tmp_path / "inexistente.json"))
-
-
-def test_load_mapping_json_invalido(tmp_path):
-    """Lanza ValueError cuando el JSON es inválido."""
-    f = tmp_path / "bad.json"
-    f.write_text("not-valid-json{{")
-    with pytest.raises(ValueError, match="parsear"):
-        MockPMSAdapter(mapping_file=str(f))
-
-
-# ─── MockPMSAdapter._get_uuids ───
-
-def test_get_uuids_hotel_no_encontrado(adapter):
-    """Lanza ValueError cuando el hotel_code no está en el mapeo."""
-    with pytest.raises(ValueError, match="no encontrado"):
-        adapter._get_uuids("HOTEL-INEXISTENTE", "RM001")
-
-
-def test_get_uuids_room_no_encontrado(adapter):
-    """Lanza ValueError cuando el room_type_code no existe en el hotel."""
-    with pytest.raises(ValueError, match="no encontrado"):
-        adapter._get_uuids("COL-TEST-001", "RM999")
-
-
-def test_get_uuids_exitoso(adapter):
-    """Retorna la tupla (property_uuid, category_uuid) correctamente."""
-    prop_uuid, cat_uuid = adapter._get_uuids("COL-TEST-001", "RM001")
-    assert prop_uuid == UUID("550e8400-e29b-41d4-a716-446655440000")
-    assert cat_uuid == UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+def adapter():
+    """Instancia de MockPMSAdapter (no requiere archivos externos)."""
+    return MockPMSAdapter()
 
 
 # ─── MockPMSAdapter.normalize_webhook ───
 
 def test_normalize_webhook_exitoso(adapter):
-    """Normaliza correctamente un payload válido de webhook."""
+    """Normaliza correctamente un payload válido y genera el codigo_mapeo_pms compuesto."""
     payload = {
         "hotel_code": "COL-TEST-001",
         "room_type_code": "RM001",
@@ -92,9 +33,27 @@ def test_normalize_webhook_exitoso(adapter):
         "last_modified": "2026-06-01T10:00:00Z",
     }
     dto = adapter.normalize_webhook(payload)
-    assert dto.id_propiedad == UUID("550e8400-e29b-41d4-a716-446655440000")
-    assert dto.id_categoria == UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+    assert dto.codigo_mapeo_pms == "COL-TEST-001:RM001"
     assert dto.cupos_disponibles == 7
+    assert dto.cupos_totales == 10
+    assert dto.fecha == date(2026, 6, 1)
+
+
+def test_normalize_webhook_codigo_compuesto_formato(adapter):
+    """El codigo_mapeo_pms tiene el formato hotel_code:room_type_code."""
+    payload = {
+        "hotel_code": "MEX-RESO-099",
+        "room_type_code": "RM099",
+        "date": "2026-07-15",
+        "total_units": 5,
+        "available_units": 3,
+        "last_modified": "2026-07-15T08:00:00Z",
+    }
+    dto = adapter.normalize_webhook(payload)
+    partes = dto.codigo_mapeo_pms.split(":")
+    assert len(partes) == 2
+    assert partes[0] == "MEX-RESO-099"
+    assert partes[1] == "RM099"
 
 
 def test_normalize_webhook_campo_faltante(adapter):
@@ -103,18 +62,16 @@ def test_normalize_webhook_campo_faltante(adapter):
         adapter.normalize_webhook({"hotel_code": "COL-TEST-001"})
 
 
-def test_normalize_webhook_hotel_no_mapeado(adapter):
-    """Lanza ValueError cuando el hotel_code no está en el mapeo."""
-    payload = {
-        "hotel_code": "UNKNOWN",
-        "room_type_code": "RM001",
-        "date": "2026-06-01",
-        "total_units": 5,
-        "available_units": 3,
-        "last_modified": "2026-06-01T10:00:00Z",
-    }
+def test_normalize_webhook_campo_date_faltante(adapter):
+    """Lanza ValueError cuando falta el campo date."""
     with pytest.raises(ValueError):
-        adapter.normalize_webhook(payload)
+        adapter.normalize_webhook({
+            "hotel_code": "COL-TEST-001",
+            "room_type_code": "RM001",
+            "total_units": 5,
+            "available_units": 3,
+            "last_modified": "2026-06-01T10:00:00Z",
+        })
 
 
 # ─── MockPMSAdapter.normalize_poll_response ───
@@ -131,11 +88,21 @@ def test_normalize_poll_response_exitoso(adapter):
                 "total_units": 10,
                 "available_units": 5,
                 "last_modified": "2026-06-01T10:00:00Z",
-            }
+            },
+            {
+                "hotel_code": "COL-TEST-002",
+                "room_type_code": "RM002",
+                "date": "2026-06-02",
+                "total_units": 8,
+                "available_units": 2,
+                "last_modified": "2026-06-02T10:00:00Z",
+            },
         ],
     }
     dtos = adapter.normalize_poll_response(response)
-    assert len(dtos) == 1
+    assert len(dtos) == 2
+    assert dtos[0].codigo_mapeo_pms == "COL-TEST-001:RM001"
+    assert dtos[1].codigo_mapeo_pms == "COL-TEST-002:RM002"
     assert dtos[0].cupos_disponibles == 5
 
 
@@ -145,12 +112,17 @@ def test_normalize_poll_response_lista_vacia(adapter):
     assert dtos == []
 
 
+def test_normalize_poll_response_sin_clave_changes(adapter):
+    """Retorna lista vacía cuando la clave changes no está presente."""
+    dtos = adapter.normalize_poll_response({"provider": "mock-pms"})
+    assert dtos == []
+
+
 # ─── adapter_registry.get_adapter ───
 
-def test_get_adapter_mock(mapping_file):
+def test_get_adapter_mock():
     """get_adapter('mock') retorna un MockPMSAdapter."""
-    with patch.object(MockPMSAdapter, "_load_mapping", return_value=_FAKE_MAPPING["mappings"]):
-        adapter = get_adapter("mock")
+    adapter = get_adapter("mock")
     assert isinstance(adapter, MockPMSAdapter)
 
 

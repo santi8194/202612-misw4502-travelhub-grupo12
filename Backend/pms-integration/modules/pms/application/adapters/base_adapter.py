@@ -23,10 +23,11 @@ class PMSAdapter(ABC):
             raw_payload: Datos crudos del webhook del PMS
             
         Returns:
-            InventoryChangeDTO con UUIDs de TravelHub
+            InventoryChangeDTO con codigo_mapeo_pms como string compuesto
+            hotel_code:room_type_code. Catalog resuelve el UUID internamente.
             
         Raises:
-            ValueError: Si el payload es inválido o faltan códigos en el mapeo
+            ValueError: Si el payload es inválido o faltan campos requeridos
         """
         pass
 
@@ -39,7 +40,7 @@ class PMSAdapter(ABC):
             raw_response: Respuesta cruda del endpoint de polling del PMS
             
         Returns:
-            Lista de InventoryChangeDTO
+            Lista de InventoryChangeDTO con codigo_mapeo_pms como identificador
             
         Raises:
             ValueError: Si la respuesta es inválida

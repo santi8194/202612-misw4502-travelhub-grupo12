@@ -4,7 +4,6 @@ DTOs para sincronización de inventario PMS.
 
 from dataclasses import dataclass
 from datetime import date, datetime
-from uuid import UUID
 
 
 @dataclass(frozen=True)
@@ -15,9 +14,10 @@ class InventoryChangeDTO:
     Formato único independiente del PMS origen.
     Usado internamente por pms-integration para normalizar
     datos de diferentes proveedores PMS.
+    El campo codigo_mapeo_pms viaja como string compuesto
+    hotel_code:room_type_code. Catalog resuelve el UUID internamente.
     """
-    id_propiedad: UUID
-    id_categoria: UUID
+    codigo_mapeo_pms: str
     fecha: date
     cupos_totales: int
     cupos_disponibles: int

@@ -1,0 +1,61 @@
+{
+  "info": {
+    "_postman_id": "8f2a1b0c-4d5e-4f6a-9b8c-7d6e5f4a3b2c",
+    "name": "PMS Integration - TravelHub",
+    "description": "Colección para probar la integración con el PMS (Webhooks y Health)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8001/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8001",
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Inventory Webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-PMS-Provider",
+            "value": "mock",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hotel_code\": \"COL-HOTE-001\",\n  \"room_type_code\": \"RM001\",\n  \"date\": \"2026-05-15\",\n  \"total_units\": 10,\n  \"available_units\": 3,\n  \"last_modified\": \"{{$isoTimestamp}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8001/api/webhooks/inventory",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8001",
+          "path": ["api", "webhooks", "inventory"]
+        },
+        "description": "Simula un push de inventario desde el PMS. El codigo_mapeo_pms se construirá internamente como COL-HOTE-001:RM001 y Catalog lo resolverá al UUID correspondiente."
+      },
+      "response": []
+    }
+  ]
+}

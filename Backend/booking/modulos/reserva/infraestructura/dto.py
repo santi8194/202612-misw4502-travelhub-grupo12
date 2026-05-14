@@ -7,7 +7,7 @@ class ReservaDTO(db.Model):
     id_categoria = db.Column(db.String(40), nullable=False)
     codigo_confirmacion_ota = db.Column(db.String(100), nullable=True)
     codigo_localizador_pms = db.Column(db.String(100), nullable=True)
-    estado = db.Column(db.String(20), nullable=False)
+    estado = db.Column(db.String(30), nullable=False)
     fecha_check_in = db.Column(db.String(20), nullable=True)
     fecha_check_out = db.Column(db.String(20), nullable=True)
     ocupacion_adultos = db.Column(db.Integer, nullable=True)

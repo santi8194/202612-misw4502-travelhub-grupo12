@@ -262,6 +262,9 @@ def _build_cancellation_preview(reserva, category_info: dict, property_info: dic
     elif estado == "PENDIENTE":
         can_cancel = False
         non_cancelable_reason = "La reserva pendiente requiere confirmacion antes de evaluar cancelacion."
+    elif estado == "CANCELACION_EN_PROCESO":
+        can_cancel = False
+        non_cancelable_reason = "La reserva ya tiene una cancelacion en proceso."
     elif estado != "CONFIRMADA":
         can_cancel = False
         non_cancelable_reason = "El estado actual de la reserva no permite cancelacion."
@@ -314,6 +317,33 @@ def _build_cancellation_preview(reserva, category_info: dict, property_info: dic
     }
 
 
+def _build_cancellation_preview_for_reserva(reserva) -> dict:
+    id_categoria = str(reserva.id_categoria) if reserva.id_categoria else None
+    if not id_categoria:
+        raise ValueError("La reserva no tiene categoria asociada para evaluar cancelacion")
+
+    catalog_client = CatalogServiceClient()
+    try:
+        category_info = catalog_client.get_category_by_id(id_categoria) or {}
+        property_info = catalog_client.get_property_by_category_id(id_categoria) or {}
+    except ValueError as e:
+        raise RuntimeError(str(e)) from e
+
+    payment_client = PaymentServiceClient()
+    payment_info = payment_client.get_payment_for_reserva(str(reserva.id))
+
+    return _build_cancellation_preview(
+        reserva=reserva,
+        category_info=category_info,
+        property_info=property_info,
+        payment_info=payment_info,
+    )
+
+
+def _cancellation_reference(id_reserva: str) -> str:
+    return f"CXL-{id_reserva[:8].upper()}"
+
+
 @reserva_api.route('/reserva/<id_reserva>/cancelacion-preview', methods=['GET'])
 def obtener_cancelacion_preview(id_reserva):
     try:
@@ -326,29 +356,12 @@ def obtener_cancelacion_preview(id_reserva):
         if not reserva:
             return jsonify({"error": f"No se encontro la reserva con ID: {id_reserva}"}), 404
 
-        id_categoria = str(reserva.id_categoria) if reserva.id_categoria else None
-        if not id_categoria:
-            return jsonify({"error": "La reserva no tiene categoria asociada para evaluar cancelacion"}), 400
-
-        catalog_client = CatalogServiceClient()
-        try:
-            category_info = catalog_client.get_category_by_id(id_categoria) or {}
-            property_info = catalog_client.get_property_by_category_id(id_categoria) or {}
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 502
-
-        payment_client = PaymentServiceClient()
-        payment_info = payment_client.get_payment_for_reserva(str(reserva.id))
-
-        preview = _build_cancellation_preview(
-            reserva=reserva,
-            category_info=category_info,
-            property_info=property_info,
-            payment_info=payment_info,
-        )
+        preview = _build_cancellation_preview_for_reserva(reserva)
 
         return jsonify(preview), 200
 
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 502
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
@@ -577,6 +590,57 @@ def expirar_reserva(id_reserva):
 @reserva_api.route('/reserva/<id_reserva>/cancelar', methods=['POST'])
 def cancelar_reserva(id_reserva):
     try:
+        data = request.get_json(silent=True)
+
+        if data is not None:
+            accepted_terms = data.get("acceptedTerms")
+            if accepted_terms is not True:
+                return jsonify({"error": "Debe aceptar los terminos de cancelacion para continuar"}), 400
+
+            reason = data.get("reason")
+            reason = reason.strip() if isinstance(reason, str) and reason.strip() else None
+
+            reserva_id = uuid.UUID(id_reserva)
+            uow_consulta = UnidadTrabajoHibrida()
+            repositorio_consulta = RepositorioReservas()
+            handler = ObtenerReservaPorIdHandler(repositorio=repositorio_consulta, uow=uow_consulta)
+            reserva = handler.handle(reserva_id)
+
+            if not reserva:
+                return jsonify({"error": f"No se encontro la reserva con ID: {id_reserva}"}), 404
+
+            preview = _build_cancellation_preview_for_reserva(reserva)
+            if not preview["canCancel"]:
+                return jsonify({
+                    "error": preview["nonCancelableReason"] or "La reserva no se puede cancelar",
+                    "reservationId": str(reserva.id),
+                    "reservationStatus": preview["currentStatus"],
+                    "cancellationReference": _cancellation_reference(str(reserva.id)),
+                }), 400
+
+            reserva.iniciar_cancelacion()
+
+            uow_actualizacion = UnidadTrabajoHibrida()
+            repositorio_actualizacion = RepositorioReservas()
+            with uow_actualizacion:
+                repositorio_actualizacion.actualizar(reserva)
+                uow_actualizacion.commit()
+
+            refund_amount = preview["refund"]["expectedRefundAmount"]
+            processing_time_label = preview["refund"]["processingTimeLabel"] if refund_amount > 0 else None
+
+            # En Bloque 3 este es el punto para emitir el comando PMS de cancelacion.
+            return jsonify({
+                "reservationId": str(reserva.id),
+                "reservationStatus": "CANCELACION_EN_PROCESO",
+                "cancellationReference": _cancellation_reference(str(reserva.id)),
+                "refundAmount": refund_amount,
+                "refundStatus": preview["refund"]["refundStatus"],
+                "processingTimeLabel": processing_time_label,
+                "pmsStatus": "PENDING",
+                "mensaje": "Cancelacion iniciada correctamente",
+            }), 200
+
         comando = CancelarReservaLocalCmd(id_reserva=uuid.UUID(id_reserva))
 
         uow = UnidadTrabajoHibrida()
@@ -592,6 +656,8 @@ def cancelar_reserva(id_reserva):
 
         return jsonify({"mensaje": "Reserva marcada como CANCELADA"}), 200
 
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 502
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:

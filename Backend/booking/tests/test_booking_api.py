@@ -361,10 +361,154 @@ def test_cancelar_reserva_handler_value_error_returns_400(client, monkeypatch):
     assert "cancelar" in response.json["error"].lower()
 
 
+def test_cancelar_reserva_con_accepted_terms_inicia_cancelacion_controlada(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=50)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True, "reason": "Cambio de planes"},
+    )
+
+    assert response.status_code == 200
+    body = response.json
+    assert body["reservationId"] == str(reserva.id)
+    assert body["reservationStatus"] == "CANCELACION_EN_PROCESO"
+    assert body["cancellationReference"] == f"CXL-{str(reserva.id)[:8].upper()}"
+    assert body["refundAmount"] == 500
+    assert body["refundStatus"] == "PENDING"
+    assert body["processingTimeLabel"] == "5 a 10 dias habiles"
+    assert body["pmsStatus"] == "PENDING"
+    assert body["mensaje"] == "Cancelacion iniciada correctamente"
+    assert reserva.estado.value == "CANCELACION_EN_PROCESO"
+
+
+def test_cancelar_reserva_con_reason_vacio_lo_acepta_como_no_informado(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=0)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True, "reason": "   "},
+    )
+
+    assert response.status_code == 200
+    assert response.json["reservationStatus"] == "CANCELACION_EN_PROCESO"
+
+
+def test_cancelar_reserva_sin_reembolso_devuelve_processing_time_null(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=100)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True},
+    )
+
+    assert response.status_code == 200
+    assert response.json["refundAmount"] == 0
+    assert response.json["refundStatus"] == "NOT_APPLICABLE"
+    assert response.json["processingTimeLabel"] is None
+
+
+@pytest.mark.parametrize("payload", [{"acceptedTerms": False}, {"acceptedTerms": None}, {}])
+def test_cancelar_reserva_con_accepted_terms_invalido_returns_400(client, payload):
+    response = client.post(f'/api/reserva/{uuid.uuid4()}/cancelar', json=payload)
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert "terminos" in response.json["error"]
+
+
+def test_cancelar_reserva_hu_web_11_not_found_returns_404(client, monkeypatch):
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, _reserva_id):
+            return None
+
+    monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+
+    response = client.post(
+        f'/api/reserva/{uuid.uuid4()}/cancelar',
+        json={"acceptedTerms": True},
+    )
+
+    assert response.status_code == 404
+    assert response.is_json
+    assert "No se encontro la reserva" in response.json["error"]
+
+
+@pytest.mark.parametrize("estado", ["HOLD", "CANCELADA", "EXPIRADA", "PENDIENTE", "CANCELACION_EN_PROCESO"])
+def test_cancelar_reserva_hu_web_11_estado_no_cancelable_returns_400(client, monkeypatch, estado):
+    reserva = _fake_reserva_preview(estado=estado)
+    _setup_cancelacion_preview(monkeypatch, reserva)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True},
+    )
+
+    assert response.status_code == 400
+    assert response.is_json
+    assert response.json["reservationId"] == str(reserva.id)
+    assert response.json["reservationStatus"] == estado
+    assert response.json["cancellationReference"] == f"CXL-{str(reserva.id)[:8].upper()}"
+    assert "error" in response.json
+
+
+def test_cancelar_reserva_hu_web_11_no_invoca_pms_ni_refund_payment(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    payment_calls = []
+
+    class DummyHandler:
+        def __init__(self, repositorio, uow):
+            self.repositorio = repositorio
+            self.uow = uow
+
+        def handle(self, _reserva_id):
+            return reserva
+
+    class DummyCatalogClient:
+        def get_category_by_id(self, _id_categoria):
+            return {
+                "politica_cancelacion": {
+                    "dias_anticipacion": 2,
+                    "porcentaje_penalidad": 50,
+                },
+            }
+
+        def get_property_by_category_id(self, _id_categoria):
+            return {"nombre": "Hotel Andino"}
+
+    class ReadOnlyPaymentClient:
+        def get_payment_for_reserva(self, id_reserva):
+            payment_calls.append(id_reserva)
+            return {"estado": "APPROVED", "monto": 1000, "moneda": "COP"}
+
+    monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', DummyCatalogClient)
+    monkeypatch.setattr(reserva_api_mod, 'PaymentServiceClient', ReadOnlyPaymentClient)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True},
+    )
+
+    assert response.status_code == 200
+    assert payment_calls == [str(reserva.id)]
+
+
 def _fake_reserva_preview(estado='CONFIRMADA', check_in_days=10):
     reserva_id = uuid.uuid4()
     id_categoria = uuid.uuid4()
-    return SimpleNamespace(
+    reserva = SimpleNamespace(
         id=reserva_id,
         id_categoria=id_categoria,
         codigo_confirmacion_ota='BK-001',
@@ -374,6 +518,14 @@ def _fake_reserva_preview(estado='CONFIRMADA', check_in_days=10):
         fecha_check_out=datetime.date.today() + datetime.timedelta(days=check_in_days + 3),
         ocupacion=SimpleNamespace(adultos=2, ninos=1, infantes=0),
     )
+
+    def iniciar_cancelacion():
+        if reserva.estado.value != "CONFIRMADA":
+            raise ValueError("La reserva debe estar en CONFIRMADA para iniciar cancelacion")
+        reserva.estado = SimpleNamespace(value="CANCELACION_EN_PROCESO")
+
+    reserva.iniciar_cancelacion = iniciar_cancelacion
+    return reserva
 
 
 def _setup_cancelacion_preview(

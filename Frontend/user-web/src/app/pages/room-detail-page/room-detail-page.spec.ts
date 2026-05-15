@@ -167,6 +167,12 @@ describe('RoomDetailPage', () => {
     fixture.detectChanges();
   }
 
+  function flushPendingViewDetail(body: RoomDetailResponse = mockRoomDetail): void {
+    const reqs = httpTesting.match(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url));
+    reqs.forEach(req => req.flush(body));
+    fixture.detectChanges();
+  }
+
   function flushViewDetailError(status = 500): void {
     const req = httpTesting.expectOne(r => CATALOG_VIEW_DETAIL_URL_PATTERN.test(r.url));
     req.flush({ message: 'Server error' }, { status, statusText: 'Error' });
@@ -239,6 +245,8 @@ describe('RoomDetailPage', () => {
 
     TestBed.inject(I18nService).setLanguage('en');
     fixture.detectChanges();
+    flushPendingViewDetail(fincaRoomDetail);
+    fixture.detectChanges();
 
     const title = fixture.nativeElement.querySelector('[data-testid="room-detail-title"]');
     expect(title.textContent.trim()).toBe('Country house');
@@ -288,6 +296,8 @@ describe('RoomDetailPage', () => {
     flushViewDetail();
 
     TestBed.inject(I18nService).setLanguage('en');
+    fixture.detectChanges();
+    flushPendingViewDetail();
     fixture.detectChanges();
 
     const reviewsCount = fixture.nativeElement.querySelector('.reviews-header__count');

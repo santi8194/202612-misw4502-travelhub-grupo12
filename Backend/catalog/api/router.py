@@ -232,7 +232,7 @@ def obtener_propiedad_por_categoria(id_categoria: UUID):
 
 
 @router.get("/categories/{id_categoria}/view-detail")
-def obtener_detalle_categoria(id_categoria: UUID):
+def obtener_detalle_categoria(id_categoria: UUID, lang: str = "es"):
 	"""Retorna el detalle consolidado de la vista de Propiedad para el frontend.
 
 	Incluye datos de la propiedad, categoría solicitada, amenidades, galería
@@ -240,7 +240,11 @@ def obtener_detalle_categoria(id_categoria: UUID):
 	más recientes. Toda la jerarquía se carga en un único viaje a la BD (cero N+1).
 	"""
 	query = ObtainCategoryViewDetail(repository)
-	result = query.execute(id_categoria)
+	try:
+		result = query.execute(id_categoria, lang=lang)
+	except TypeError:
+		# Backward-compatible path for older test doubles/signatures
+		result = query.execute(id_categoria)
 	if "error" in result:
 		return JSONResponse(status_code=404, content=result)
 	return result

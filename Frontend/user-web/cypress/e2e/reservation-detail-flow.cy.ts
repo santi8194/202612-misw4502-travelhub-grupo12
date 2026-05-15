@@ -83,7 +83,7 @@ function mockReservationDetailApi(
   reservationId = String(booking.id_reserva)
 ) {
   cy.intercept('GET', `**/reserva/${reservationId}`, booking).as(`getReservationDetail-${reservationId}`);
-  cy.intercept('GET', `**/categories/${CATEGORY_ID}/view-detail`, buildCatalogDetail(images)).as('getCatalogDetail');
+  cy.intercept('GET', `**/categories/${CATEGORY_ID}/view-detail*`, buildCatalogDetail(images)).as('getCatalogDetail');
   cy.intercept('GET', `**/payments/by-reserva/${reservationId}`, {
     id_pago: 'pay-001',
     id_reserva: reservationId,

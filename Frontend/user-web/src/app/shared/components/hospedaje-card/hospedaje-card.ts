@@ -41,16 +41,35 @@ export class HospedajeCardComponent {
     Math.max(0, this.hospedaje().amenidades_destacadas.length - MAX_AMENIDADES_VISIBLES)
   );
 
-  readonly translatedPropertyName = computed(() => this.translateBackendLabel(this.hospedaje().propiedad_nombre));
-  readonly translatedCategoryName = computed(() => this.translateBackendLabel(this.hospedaje().categoria_nombre));
+  readonly translatedPropertyName = computed(() => {
+    this.i18n.language();
+    return this.translateBackendLabel(this.hospedaje().propiedad_nombre);
+  });
+
+  readonly translatedCategoryName = computed(() => {
+    this.i18n.language();
+    return this.translateBackendLabel(this.hospedaje().categoria_nombre);
+  });
 
   private translateBackendLabel(value: string): string {
     const normalized = value.trim().toLowerCase();
     const key = this.backendLabelKeyMap[normalized];
-    if (!key) {
-      return value;
+    if (key) {
+      return this.i18n.translate(key);
     }
-    return this.i18n.translate(key);
+
+    let translated = value;
+    for (const [token, tokenKey] of Object.entries(this.backendLabelKeyMap)) {
+      const localized = this.i18n.translate(tokenKey);
+      const regex = new RegExp(`\\b${this.escapeRegex(token)}\\b`, 'gi');
+      translated = translated.replace(regex, localized);
+    }
+
+    return translated;
+  }
+
+  private escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   private readonly backendLabelKeyMap: Record<string, string> = {

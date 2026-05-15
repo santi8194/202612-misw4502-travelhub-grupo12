@@ -17,6 +17,9 @@ export class TranslatePipe implements PipeTransform {
       return '';
     }
 
+    // Ensure templates track language changes even in zoneless change detection.
+    this.i18n.language();
+
     return this.i18n.translate(key, params);
   }
 }

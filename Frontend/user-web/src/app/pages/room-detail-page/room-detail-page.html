@@ -81,9 +81,9 @@
           <!-- Description -->
           <div class="room-description" data-testid="room-description">
             <p class="room-description__text">
-              {{ descriptionExpanded() ? roomDetail()!.categoria.descripcion : shortDescription() }}
+              {{ descriptionExpanded() ? localizedDescription() : shortDescription() }}
             </p>
-            @if (roomDetail()!.categoria.descripcion.length > 240) {
+            @if (localizedDescription().length > 240) {
               <button class="room-description__toggle" (click)="toggleDescription()">
                 {{ descriptionExpanded() ? ('room.showLess' | translate) : ('room.showMore' | translate) }}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-chevron" [class.icon-chevron--up]="descriptionExpanded()">

@@ -55,6 +55,7 @@ class CategoriaHabitacionModel(Base):
 	codigo_mapeo_pms = Column(String, nullable=False, unique=True)
 	nombre_comercial = Column(String, nullable=False)
 	descripcion = Column(String, nullable=False)
+	descripcion_en = Column(String, nullable=True)
 	precio_base_monto = Column(Numeric(12, 2), nullable=False)
 	precio_base_moneda = Column(String(3), nullable=False)
 	precio_base_cargo_servicio = Column(Numeric(12, 2), nullable=False, default=0)

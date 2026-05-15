@@ -2,7 +2,7 @@ from uuid import UUID
 from decimal import Decimal
 from datetime import date
 
-from sqlalchemy import String, cast
+from sqlalchemy import String, cast, or_
 from sqlalchemy.orm import Session, joinedload, selectinload
 from .database import IS_SQLITE, SessionLocal
 from .models import (
@@ -52,6 +52,7 @@ class PropertyRepository:
 		categoria_model.codigo_mapeo_pms = categoria.codigo_mapeo_pms
 		categoria_model.nombre_comercial = categoria.nombre_comercial
 		categoria_model.descripcion = categoria.descripcion
+		categoria_model.descripcion_en = categoria.descripcion_en
 		categoria_model.precio_base_monto = categoria.precio_base.monto
 		categoria_model.precio_base_moneda = categoria.precio_base.moneda
 		categoria_model.precio_base_cargo_servicio = categoria.precio_base.cargo_servicio
@@ -125,7 +126,10 @@ class PropertyRepository:
 	def _id_filter(column, identifier: UUID | str):
 		"""Construye filtro compatible con UUID en SQLite y PostgreSQL."""
 		if IS_SQLITE:
-			return cast(column, String) == str(identifier)
+			identifier_text = str(identifier)
+			identifier_hex = identifier_text.replace("-", "")
+			column_text = cast(column, String)
+			return or_(column_text == identifier_text, column_text == identifier_hex)
 		return column == identifier
 
 	def _populate_category_relations_sqlite(self, db: Session, categoria_model: CategoriaHabitacionModel) -> None:
@@ -583,6 +587,7 @@ class PropertyRepository:
 			codigo_mapeo_pms=cat_model.codigo_mapeo_pms,
 			nombre_comercial=cat_model.nombre_comercial,
 			descripcion=cat_model.descripcion,
+			descripcion_en=cat_model.descripcion_en,
 			precio_base=precio_base,
 			capacidad_pax=cat_model.capacidad_pax,
 			politica_cancelacion=politica,

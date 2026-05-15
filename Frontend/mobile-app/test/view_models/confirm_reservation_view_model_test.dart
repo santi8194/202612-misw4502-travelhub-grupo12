@@ -348,8 +348,8 @@ void main() {
     final firstAttempt = viewModel.confirmReservation();
 
     expect(viewModel.isConfirming, true);
-    expect(await viewModel.confirmReservation(), false);
-    expect(await firstAttempt, true);
+    expect(await viewModel.confirmReservation(), isNot(isA<String>()));
+    expect(await firstAttempt, isA<String>());
     expect(viewModel.isConfirming, false);
   });
 
@@ -377,6 +377,80 @@ void main() {
         viewModel.errorMessage,
         contains('No fue posible calcular el precio'),
       );
+    },
+  );
+
+  test('confirmReservation returns reservation ID on success', () async {
+    final viewModel = ConfirmReservationViewModel(
+      location: 'Cartagena, Colombia',
+      categoryId: 'cat-1',
+      selectedDateRange: DateTimeRange(
+        start: DateTime(2026, 4, 22),
+        end: DateTime(2026, 4, 24),
+      ),
+      guests: 2,
+      catalogService: FakeCatalogService(
+        onGetCategoria: (_) async => _sampleCategory,
+      ),
+    );
+
+    await Future.delayed(Duration.zero);
+    final result = await viewModel.confirmReservation();
+    expect(result, 'RES-123456');
+  });
+
+  test(
+    'computePriceBreakdown handles different currencies and tax configs',
+    () async {
+      final viewModel = ConfirmReservationViewModel(
+        location: 'Bogotá, Colombia',
+        categoryId: 'cat-1',
+        selectedDateRange: DateTimeRange(
+          start: DateTime(2026, 4, 22),
+          end: DateTime(2026, 4, 24),
+        ),
+        guests: 2,
+        catalogService: FakeCatalogService(
+          onGetCategoria: (_) async => _sampleCategory,
+          onCalculateRoomPrice: (_, _, _, _) async {
+            return const RoomPriceCalculation(
+              pricePerNight: 100,
+              nights: 2,
+              subtotal: 200,
+              taxesAndCharges: 20,
+              total: 220,
+              currency: 'USD',
+              currencySymbol: r'$',
+              tariffType: 'BASE',
+              taxName: 'Tax',
+            );
+          },
+        ),
+      );
+
+      await Future.delayed(Duration.zero);
+
+      final breakdown = viewModel.computePriceBreakdown(
+        nights: 2,
+        country: 'USA',
+        taxConfig: {
+          'USA': const CountryTax(
+            currency: 'USD',
+            currencySymbol: r'$',
+            locale: 'en_US',
+            decimals: 2,
+            usdRate: 1.0,
+            tax: TaxInfo(name: 'Tax', rate: 0.1, note: {'en': 'Note'}),
+          ),
+        },
+        fallbackCurrency: 'USD',
+        localeLanguageCode: 'en',
+      );
+
+      expect(breakdown, isNotNull);
+      // The breakdown will likely be the one from the mock calculateRoomPrice
+      // or the one derived from the tax config if fetched correctly.
+      expect(breakdown!.currencyTag, 'USD');
     },
   );
 }

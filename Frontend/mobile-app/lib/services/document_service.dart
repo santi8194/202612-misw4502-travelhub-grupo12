@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -6,9 +8,7 @@ import 'package:printing/printing.dart';
 import '../models/reservation.dart';
 
 class DocumentService {
-  Future<void> generateAndDownloadReservationPdf(
-    Reservation reservation,
-  ) async {
+  Future<Uint8List> generateReservationPdfBytes(Reservation reservation) async {
     final pdf = pw.Document();
     final dateFormatter = DateFormat('dd/MM/yyyy');
 
@@ -226,8 +226,15 @@ class DocumentService {
       ),
     );
 
+    return pdf.save();
+  }
+
+  Future<void> generateAndDownloadReservationPdf(
+    Reservation reservation,
+  ) async {
     await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
+      onLayout: (PdfPageFormat format) =>
+          generateReservationPdfBytes(reservation),
       name: 'Reserva_${reservation.confirmationCode}.pdf',
     );
   }

@@ -4,10 +4,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/reservation.dart';
 import '../services/booking_service.dart';
+import '../services/document_service.dart';
 
 class ReservationDetailViewModel extends ChangeNotifier {
   final String reservationId;
   final BookingService _bookingService;
+  final DocumentService _documentService;
 
   Reservation? _reservation;
   bool _isLoading = false;
@@ -16,8 +18,10 @@ class ReservationDetailViewModel extends ChangeNotifier {
   ReservationDetailViewModel({
     required this.reservationId,
     BookingService? bookingService,
+    DocumentService? documentService,
     Reservation? initialReservation,
   }) : _bookingService = bookingService ?? BookingService(),
+       _documentService = documentService ?? DocumentService(),
        _reservation = initialReservation {
     if (_reservation == null) {
       loadReservation();
@@ -77,5 +81,22 @@ class ReservationDetailViewModel extends ChangeNotifier {
         'Dirección: ${res.hotelAddress}';
 
     await Share.share(text);
+  }
+
+  Future<void> downloadReservationPdf() async {
+    final res = _reservation;
+    if (res == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _documentService.generateAndDownloadReservationPdf(res);
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

@@ -7,13 +7,19 @@ import '../view_models/reservation_detail_view_model.dart';
 
 class ReservationDetailView extends StatelessWidget {
   final String reservationId;
+  final ReservationDetailViewModel? viewModel;
 
-  const ReservationDetailView({super.key, required this.reservationId});
+  const ReservationDetailView({
+    super.key,
+    required this.reservationId,
+    this.viewModel,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ReservationDetailViewModel(reservationId: reservationId),
+      create: (_) =>
+          viewModel ?? ReservationDetailViewModel(reservationId: reservationId),
       child: Consumer<ReservationDetailViewModel>(
         builder: (context, viewModel, child) {
           final l10n = AppLocalizations.of(context)!;
@@ -252,9 +258,7 @@ class ReservationDetailView extends StatelessWidget {
                   _buildFullWidthButton(
                     icon: Icons.file_download_outlined,
                     label: l10n.downloadPdf,
-                    onTap: () {
-                      // Action to be implemented
-                    },
+                    onTap: viewModel.downloadReservationPdf,
                     isPrimary: true,
                   ),
 

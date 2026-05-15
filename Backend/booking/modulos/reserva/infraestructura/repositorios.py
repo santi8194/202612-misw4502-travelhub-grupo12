@@ -2,7 +2,7 @@ from modulos.reserva.infraestructura.mapeadores_dto import MapeadorReservaDTO
 from seedwork.dominio.repositorios import Repositorio
 from modulos.reserva.dominio.entidades import Reserva, Usuario, CategoriaHabitacion
 from modulos.reserva.dominio.objetos_valor import EstadoReserva, Pax
-from modulos.reserva.infraestructura.dto import ReservaDTO
+from modulos.reserva.infraestructura.dto import AuditoriaCancelacionReservaDTO, ReservaDTO
 from config.db import db
 import logging
 import uuid
@@ -96,3 +96,125 @@ class RepositorioReservas(Repositorio):
             return None
 
         return self._mapeador.dto_a_entidad(reserva_dto)
+
+
+class RepositorioAuditoriaCancelacionReserva:
+    def agregar(self, auditoria: AuditoriaCancelacionReservaDTO):
+        db.session.add(auditoria)
+
+    def obtener_ultima_por_reserva(self, id_reserva: str) -> AuditoriaCancelacionReservaDTO | None:
+        return (
+            db.session.query(AuditoriaCancelacionReservaDTO)
+            .filter_by(id_reserva=str(id_reserva))
+            .order_by(AuditoriaCancelacionReservaDTO.created_at.desc())
+            .first()
+        )
+
+    def obtener_por_reserva_referencia_y_estado(
+        self,
+        id_reserva: str,
+        cancellation_reference: str,
+        estado_nuevo: str,
+    ) -> AuditoriaCancelacionReservaDTO | None:
+        return (
+            db.session.query(AuditoriaCancelacionReservaDTO)
+            .filter_by(
+                id_reserva=str(id_reserva),
+                cancellation_reference=cancellation_reference,
+                estado_nuevo=estado_nuevo,
+            )
+            .order_by(AuditoriaCancelacionReservaDTO.created_at.desc())
+            .first()
+        )
+
+    def registrar_inicio_cancelacion(
+        self,
+        *,
+        id_reserva: str,
+        id_usuario: str | None,
+        ip_origen: str | None,
+        motivo: str | None,
+        estado_anterior: str,
+        estado_nuevo: str,
+        politica_tipo: str | None,
+        dias_anticipacion: int | None,
+        porcentaje_penalidad: float | None,
+        monto_pagado: float | None,
+        monto_reembolso: float | None,
+        refund_status: str | None,
+        pms_status: str | None,
+        cancellation_reference: str,
+        origen: str = "HU_WEB_11",
+    ) -> AuditoriaCancelacionReservaDTO:
+        existente = self.obtener_por_reserva_referencia_y_estado(
+            id_reserva=id_reserva,
+            cancellation_reference=cancellation_reference,
+            estado_nuevo=estado_nuevo,
+        )
+        if existente:
+            return existente
+
+        auditoria = AuditoriaCancelacionReservaDTO(
+            id=str(uuid.uuid4()),
+            id_reserva=str(id_reserva),
+            id_usuario=str(id_usuario) if id_usuario else None,
+            ip_origen=ip_origen,
+            motivo=motivo,
+            estado_anterior=estado_anterior,
+            estado_nuevo=estado_nuevo,
+            politica_tipo=politica_tipo,
+            dias_anticipacion=dias_anticipacion,
+            porcentaje_penalidad=porcentaje_penalidad,
+            monto_pagado=monto_pagado,
+            monto_reembolso=monto_reembolso,
+            refund_status=refund_status,
+            pms_status=pms_status,
+            cancellation_reference=cancellation_reference,
+            origen=origen,
+            created_at=datetime.datetime.now(),
+        )
+        self.agregar(auditoria)
+        return auditoria
+
+    def registrar_confirmacion_pms(
+        self,
+        *,
+        id_reserva: str,
+        cancellation_reference: str | None = None,
+    ) -> AuditoriaCancelacionReservaDTO:
+        auditoria_base = self.obtener_ultima_por_reserva(str(id_reserva))
+        referencia = cancellation_reference or (
+            auditoria_base.cancellation_reference
+            if auditoria_base
+            else f"CXL-{str(id_reserva)[:8].upper()}"
+        )
+
+        existente_final = self.obtener_por_reserva_referencia_y_estado(
+            id_reserva=str(id_reserva),
+            cancellation_reference=referencia,
+            estado_nuevo="CANCELADA",
+        )
+        if existente_final:
+            return existente_final
+
+        auditoria = AuditoriaCancelacionReservaDTO(
+            id=str(uuid.uuid4()),
+            id_reserva=str(id_reserva),
+            id_usuario=auditoria_base.id_usuario if auditoria_base else None,
+            ip_origen=auditoria_base.ip_origen if auditoria_base else None,
+            motivo=auditoria_base.motivo if auditoria_base else None,
+            estado_anterior="CANCELACION_EN_PROCESO",
+            estado_nuevo="CANCELADA",
+            politica_tipo=auditoria_base.politica_tipo if auditoria_base else None,
+            dias_anticipacion=auditoria_base.dias_anticipacion if auditoria_base else None,
+            porcentaje_penalidad=auditoria_base.porcentaje_penalidad if auditoria_base else None,
+            monto_pagado=auditoria_base.monto_pagado if auditoria_base else None,
+            monto_reembolso=auditoria_base.monto_reembolso if auditoria_base else None,
+            refund_status=auditoria_base.refund_status if auditoria_base else None,
+            pms_status="CONFIRMED",
+            cancellation_reference=referencia,
+            origen="PMS_CANCELLATION_CONFIRMED",
+            created_at=datetime.datetime.now(),
+        )
+        self.agregar(auditoria)
+        return auditoria

@@ -293,18 +293,24 @@ def test_cancelar_handler_no_libera_inventario_si_ya_estaba_cancelada():
 def test_confirmar_cancelacion_pms_handler_actualiza_reserva_en_proceso():
 	repositorio = MagicMock()
 	uow = _uow_mock()
+	repositorio_auditoria = MagicMock()
 	reserva = _reserva_en_hold()
 	reserva.formalizar_y_pagar()
 	reserva.confirmar_reserva()
 	reserva.iniciar_cancelacion()
 	repositorio.obtener_por_id.return_value = reserva
-	handler = ConfirmarCancelacionPmsLocalHandler(repositorio=repositorio, uow=uow)
+	handler = ConfirmarCancelacionPmsLocalHandler(
+		repositorio=repositorio,
+		uow=uow,
+		repositorio_auditoria=repositorio_auditoria,
+	)
 
 	ok = handler.handle(ConfirmarCancelacionPmsLocalCmd(id_reserva=uuid.UUID(reserva.id)))
 
 	assert ok is True
 	assert reserva.estado == EstadoReserva.CANCELADA
 	repositorio.actualizar.assert_called_once_with(reserva)
+	repositorio_auditoria.registrar_confirmacion_pms.assert_called_once_with(id_reserva=str(reserva.id))
 	uow.commit.assert_called_once()
 
 
@@ -321,6 +327,25 @@ def test_confirmar_cancelacion_pms_handler_duplicado_no_actualiza():
 	assert ok is False
 	repositorio.actualizar.assert_not_called()
 	uow.commit.assert_not_called()
+
+
+def test_confirmar_cancelacion_pms_handler_duplicado_no_audita():
+	repositorio = MagicMock()
+	uow = _uow_mock()
+	repositorio_auditoria = MagicMock()
+	reserva = _reserva_en_hold()
+	reserva.estado = EstadoReserva.CANCELADA
+	repositorio.obtener_por_id.return_value = reserva
+	handler = ConfirmarCancelacionPmsLocalHandler(
+		repositorio=repositorio,
+		uow=uow,
+		repositorio_auditoria=repositorio_auditoria,
+	)
+
+	ok = handler.handle(ConfirmarCancelacionPmsLocalCmd(id_reserva=uuid.UUID(reserva.id)))
+
+	assert ok is False
+	repositorio_auditoria.registrar_confirmacion_pms.assert_not_called()
 
 
 def test_confirmar_cancelacion_pms_handler_estado_invalido_no_actualiza():

@@ -13,7 +13,7 @@ from modulos.reserva.dominio.eventos import (
     ReservaConfirmadaEvt, FallaActualizacionLocalEvt
 )
 from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
-from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+from modulos.reserva.infraestructura.repositorios import RepositorioAuditoriaCancelacionReserva, RepositorioReservas
 from config.uow import UnidadTrabajoHibrida
 import uuid
 import datetime
@@ -219,9 +219,15 @@ class CancelarReservaLocalHandler(Handler):
 
 
 class ConfirmarCancelacionPmsLocalHandler(Handler):
-    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
+    def __init__(
+        self,
+        repositorio: RepositorioReservas,
+        uow: UnidadTrabajoHibrida,
+        repositorio_auditoria: RepositorioAuditoriaCancelacionReserva | None = None,
+    ):
         self.repositorio = repositorio
         self.uow = uow
+        self.repositorio_auditoria = repositorio_auditoria or RepositorioAuditoriaCancelacionReserva()
 
     def handle(self, comando: ConfirmarCancelacionPmsLocalCmd) -> bool:
         with self.uow:
@@ -252,6 +258,7 @@ class ConfirmarCancelacionPmsLocalHandler(Handler):
 
             self.uow.agregar_eventos(reserva.eventos)
             self.repositorio.actualizar(reserva)
+            self.repositorio_auditoria.registrar_confirmacion_pms(id_reserva=str(reserva.id))
             self.uow.commit()
             logger.info("Reserva %s marcada como CANCELADA por confirmacion PMS.", reserva.id)
             return True

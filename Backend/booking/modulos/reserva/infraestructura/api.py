@@ -5,7 +5,7 @@ from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
 from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
 from modulos.reserva.infraestructura.auth_client import AuthServiceClient
 from modulos.reserva.infraestructura.payment_client import PaymentServiceClient
-from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+from modulos.reserva.infraestructura.repositorios import RepositorioAuditoriaCancelacionReserva, RepositorioReservas
 from modulos.saga_reservas.dominio.comandos import CancelarReservaPmsCmd
 from modulos.saga_reservas.infraestructura.repositorios import RepositorioSagas
 from config.uow import UnidadTrabajoHibrida
@@ -302,6 +302,12 @@ def _build_cancellation_preview(reserva, category_info: dict, property_info: dic
         "currency": currency,
         "canCancel": can_cancel,
         "nonCancelableReason": non_cancelable_reason,
+        "pmsStatus": "PENDING" if estado == "CANCELACION_EN_PROCESO" else None,
+        "mensaje": (
+            "La cancelacion esta en proceso y espera confirmacion del PMS."
+            if estado == "CANCELACION_EN_PROCESO"
+            else None
+        ),
         "cancellationPolicy": {
             "type": policy_type,
             "label": policy_label,
@@ -345,6 +351,33 @@ def _cancellation_reference(id_reserva: str) -> str:
     return f"CXL-{id_reserva[:8].upper()}"
 
 
+def _request_ip_or_none() -> str | None:
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip() or None
+    return request.remote_addr
+
+
+def _request_user_id_or_none() -> str | None:
+    user_id = request.headers.get("X-User-Id")
+    return user_id.strip() if isinstance(user_id, str) and user_id.strip() else None
+
+
+def _ownership_error_for_reserva(reserva):
+    request_user_id = _request_user_id_or_none()
+    reserva_user_id = (
+        str(reserva.usuario.id)
+        if getattr(reserva, "usuario", None) and getattr(reserva.usuario, "id", None)
+        else None
+    )
+
+    if not request_user_id:
+        return jsonify({"error": "No se pudo identificar al usuario autenticado"}), 401
+    if not reserva_user_id or request_user_id != reserva_user_id:
+        return jsonify({"error": "No tiene permiso para acceder a esta reserva"}), 403
+    return None
+
+
 @reserva_api.route('/reserva/<id_reserva>/cancelacion-preview', methods=['GET'])
 def obtener_cancelacion_preview(id_reserva):
     try:
@@ -356,6 +389,10 @@ def obtener_cancelacion_preview(id_reserva):
 
         if not reserva:
             return jsonify({"error": f"No se encontro la reserva con ID: {id_reserva}"}), 404
+
+        ownership_error = _ownership_error_for_reserva(reserva)
+        if ownership_error:
+            return ownership_error
 
         preview = _build_cancellation_preview_for_reserva(reserva)
 
@@ -592,76 +629,86 @@ def expirar_reserva(id_reserva):
 def cancelar_reserva(id_reserva):
     try:
         data = request.get_json(silent=True)
+        if data is None:
+            return jsonify({"error": "Debe aceptar los terminos de cancelacion para continuar"}), 400
 
-        if data is not None:
-            accepted_terms = data.get("acceptedTerms")
-            if accepted_terms is not True:
-                return jsonify({"error": "Debe aceptar los terminos de cancelacion para continuar"}), 400
+        accepted_terms = data.get("acceptedTerms")
+        if accepted_terms is not True:
+            return jsonify({"error": "Debe aceptar los terminos de cancelacion para continuar"}), 400
 
-            reason = data.get("reason")
-            reason = reason.strip() if isinstance(reason, str) and reason.strip() else None
+        reason = data.get("reason")
+        reason = reason.strip() if isinstance(reason, str) and reason.strip() else None
 
-            reserva_id = uuid.UUID(id_reserva)
-            uow_consulta = UnidadTrabajoHibrida()
-            repositorio_consulta = RepositorioReservas()
-            handler = ObtenerReservaPorIdHandler(repositorio=repositorio_consulta, uow=uow_consulta)
-            reserva = handler.handle(reserva_id)
+        reserva_id = uuid.UUID(id_reserva)
+        uow_consulta = UnidadTrabajoHibrida()
+        repositorio_consulta = RepositorioReservas()
+        handler = ObtenerReservaPorIdHandler(repositorio=repositorio_consulta, uow=uow_consulta)
+        reserva = handler.handle(reserva_id)
 
-            if not reserva:
-                return jsonify({"error": f"No se encontro la reserva con ID: {id_reserva}"}), 404
+        if not reserva:
+            return jsonify({"error": f"No se encontro la reserva con ID: {id_reserva}"}), 404
 
-            preview = _build_cancellation_preview_for_reserva(reserva)
-            if not preview["canCancel"]:
-                return jsonify({
-                    "error": preview["nonCancelableReason"] or "La reserva no se puede cancelar",
-                    "reservationId": str(reserva.id),
-                    "reservationStatus": preview["currentStatus"],
-                    "cancellationReference": _cancellation_reference(str(reserva.id)),
-                }), 400
+        ownership_error = _ownership_error_for_reserva(reserva)
+        if ownership_error:
+            return ownership_error
 
-            reserva.iniciar_cancelacion()
-
-            uow_actualizacion = UnidadTrabajoHibrida()
-            repositorio_actualizacion = RepositorioReservas()
-            with uow_actualizacion:
-                repositorio_actualizacion.actualizar(reserva)
-                uow_actualizacion.agregar_eventos([
-                    CancelarReservaPmsCmd(
-                        id_reserva=reserva.id,
-                        id_habitacion=reserva.id_categoria,
-                    )
-                ])
-                uow_actualizacion.commit()
-
-            refund_amount = preview["refund"]["expectedRefundAmount"]
-            processing_time_label = preview["refund"]["processingTimeLabel"] if refund_amount > 0 else None
-
-            # En Bloque 3 este es el punto para emitir el comando PMS de cancelacion.
+        preview = _build_cancellation_preview_for_reserva(reserva)
+        if not preview["canCancel"]:
             return jsonify({
+                "error": preview["nonCancelableReason"] or "La reserva no se puede cancelar",
                 "reservationId": str(reserva.id),
-                "reservationStatus": "CANCELACION_EN_PROCESO",
+                "reservationStatus": preview["currentStatus"],
                 "cancellationReference": _cancellation_reference(str(reserva.id)),
-                "refundAmount": refund_amount,
-                "refundStatus": preview["refund"]["refundStatus"],
-                "processingTimeLabel": processing_time_label,
-                "pmsStatus": "PENDING",
-                "mensaje": "Cancelacion iniciada correctamente",
-            }), 200
+            }), 400
 
-        comando = CancelarReservaLocalCmd(id_reserva=uuid.UUID(id_reserva))
+        estado_anterior = preview["currentStatus"]
+        cancellation_reference = _cancellation_reference(str(reserva.id))
+        refund_amount = preview["refund"]["expectedRefundAmount"]
+        refund_status = preview["refund"]["refundStatus"]
+        reserva.iniciar_cancelacion()
 
-        uow = UnidadTrabajoHibrida()
-        repositorio = RepositorioReservas()
-        catalog_client = CatalogServiceClient()
-        handler = CancelarReservaLocalHandler(
-            repositorio=repositorio,
-            uow=uow,
-            catalog_client=catalog_client,
-        )
+        uow_actualizacion = UnidadTrabajoHibrida()
+        repositorio_actualizacion = RepositorioReservas()
+        repositorio_auditoria = RepositorioAuditoriaCancelacionReserva()
+        with uow_actualizacion:
+            repositorio_actualizacion.actualizar(reserva)
+            repositorio_auditoria.registrar_inicio_cancelacion(
+                id_reserva=str(reserva.id),
+                id_usuario=str(reserva.usuario.id) if getattr(reserva, "usuario", None) and reserva.usuario.id else None,
+                ip_origen=_request_ip_or_none(),
+                motivo=reason,
+                estado_anterior=estado_anterior,
+                estado_nuevo="CANCELACION_EN_PROCESO",
+                politica_tipo=preview["cancellationPolicy"]["type"],
+                dias_anticipacion=preview["cancellationPolicy"]["diasAnticipacion"],
+                porcentaje_penalidad=preview["cancellationPolicy"]["porcentajePenalidad"],
+                monto_pagado=preview["refund"]["paidAmount"],
+                monto_reembolso=refund_amount,
+                refund_status=refund_status,
+                pms_status="PENDING",
+                cancellation_reference=cancellation_reference,
+                origen="HU_WEB_11",
+            )
+            uow_actualizacion.agregar_eventos([
+                CancelarReservaPmsCmd(
+                    id_reserva=reserva.id,
+                    id_habitacion=reserva.id_categoria,
+                )
+            ])
+            uow_actualizacion.commit()
 
-        handler.handle(comando)
+        processing_time_label = preview["refund"]["processingTimeLabel"] if refund_amount > 0 else None
 
-        return jsonify({"mensaje": "Reserva marcada como CANCELADA"}), 200
+        return jsonify({
+            "reservationId": str(reserva.id),
+            "reservationStatus": "CANCELACION_EN_PROCESO",
+            "cancellationReference": cancellation_reference,
+            "refundAmount": refund_amount,
+            "refundStatus": refund_status,
+            "processingTimeLabel": processing_time_label,
+            "pmsStatus": "PENDING",
+            "mensaje": "Cancelacion iniciada correctamente",
+        }), 200
 
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 502

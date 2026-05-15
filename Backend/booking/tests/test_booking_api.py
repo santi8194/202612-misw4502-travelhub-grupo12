@@ -307,67 +307,42 @@ def test_expirar_reserva_handler_value_error_returns_400(client, monkeypatch):
     assert "EXPIRADA" in response.json["error"]
 
 
-def test_cancelar_reserva_returns_200_when_handler_ok(client, monkeypatch):
-    class DummyHandler:
-        def __init__(self, repositorio, uow, catalog_client):
-            self.repositorio = repositorio
-            self.uow = uow
-            self.catalog_client = catalog_client
-
-        def handle(self, comando):
-            return True
-
-    monkeypatch.setattr(reserva_api_mod, 'CancelarReservaLocalHandler', DummyHandler)
-    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
-    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
-    monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', lambda: MagicMock())
-
+def test_cancelar_reserva_sin_body_rechaza_bypass_legacy(client):
     id_reserva = str(uuid.uuid4())
     response = client.post(f'/api/reserva/{id_reserva}/cancelar')
 
-    assert response.status_code == 200
+    assert response.status_code == 400
     assert response.is_json
-    assert response.json["mensaje"] == "Reserva marcada como CANCELADA"
+    assert "terminos" in response.json["error"]
 
 
 def test_cancelar_reserva_invalid_uuid_returns_400(client):
-    response = client.post('/api/reserva/uuid-invalido/cancelar')
+    response = client.post(
+        '/api/reserva/uuid-invalido/cancelar',
+        json={"acceptedTerms": True},
+        headers={"X-User-Id": str(uuid.uuid4())},
+    )
 
     assert response.status_code == 400
     assert response.is_json
     assert "badly formed hexadecimal UUID" in response.json["error"]
 
 
-def test_cancelar_reserva_handler_value_error_returns_400(client, monkeypatch):
-    class DummyHandler:
-        def __init__(self, repositorio, uow, catalog_client):
-            self.repositorio = repositorio
-            self.uow = uow
-            self.catalog_client = catalog_client
-
-        def handle(self, comando):
-            raise ValueError("La reserva no se puede cancelar en su estado actual")
-
-    monkeypatch.setattr(reserva_api_mod, 'CancelarReservaLocalHandler', DummyHandler)
-    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
-    monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
-    monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', lambda: MagicMock())
-
-    id_reserva = str(uuid.uuid4())
-    response = client.post(f'/api/reserva/{id_reserva}/cancelar')
-
-    assert response.status_code == 400
-    assert response.is_json
-    assert "cancelar" in response.json["error"].lower()
-
-
 def test_cancelar_reserva_con_accepted_terms_inicia_cancelacion_controlada(client, monkeypatch):
     reserva = _fake_reserva_preview()
+    auditorias = []
+
+    class DummyAuditRepo:
+        def registrar_inicio_cancelacion(self, **kwargs):
+            auditorias.append(kwargs)
+
     _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=50)
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioAuditoriaCancelacionReserva', DummyAuditRepo)
 
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
         json={"acceptedTerms": True, "reason": "Cambio de planes"},
+        headers=_owner_headers(reserva),
     )
 
     assert response.status_code == 200
@@ -381,6 +356,22 @@ def test_cancelar_reserva_con_accepted_terms_inicia_cancelacion_controlada(clien
     assert body["pmsStatus"] == "PENDING"
     assert body["mensaje"] == "Cancelacion iniciada correctamente"
     assert reserva.estado.value == "CANCELACION_EN_PROCESO"
+    assert len(auditorias) == 1
+    auditoria = auditorias[0]
+    assert auditoria["id_reserva"] == str(reserva.id)
+    assert auditoria["id_usuario"] == str(reserva.usuario.id)
+    assert auditoria["motivo"] == "Cambio de planes"
+    assert auditoria["estado_anterior"] == "CONFIRMADA"
+    assert auditoria["estado_nuevo"] == "CANCELACION_EN_PROCESO"
+    assert auditoria["politica_tipo"] == "PARTIAL_REFUND"
+    assert auditoria["dias_anticipacion"] == 2
+    assert auditoria["porcentaje_penalidad"] == 50
+    assert auditoria["monto_pagado"] == 1000
+    assert auditoria["monto_reembolso"] == 500
+    assert auditoria["refund_status"] == "PENDING"
+    assert auditoria["pms_status"] == "PENDING"
+    assert auditoria["cancellation_reference"] == body["cancellationReference"]
+    assert auditoria["origen"] == "HU_WEB_11"
 
 
 def test_cancelar_reserva_con_accepted_terms_emite_comando_pms(client, monkeypatch):
@@ -400,6 +391,7 @@ def test_cancelar_reserva_con_accepted_terms_emite_comando_pms(client, monkeypat
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
         json={"acceptedTerms": True},
+        headers=_owner_headers(reserva),
     )
 
     assert response.status_code == 200
@@ -417,15 +409,24 @@ def test_cancelar_reserva_con_accepted_terms_emite_comando_pms(client, monkeypat
 
 def test_cancelar_reserva_con_reason_vacio_lo_acepta_como_no_informado(client, monkeypatch):
     reserva = _fake_reserva_preview()
+    auditorias = []
+
+    class DummyAuditRepo:
+        def registrar_inicio_cancelacion(self, **kwargs):
+            auditorias.append(kwargs)
+
     _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=0)
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioAuditoriaCancelacionReserva', DummyAuditRepo)
 
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
         json={"acceptedTerms": True, "reason": "   "},
+        headers=_owner_headers(reserva),
     )
 
     assert response.status_code == 200
     assert response.json["reservationStatus"] == "CANCELACION_EN_PROCESO"
+    assert auditorias[0]["motivo"] is None
 
 
 def test_cancelar_reserva_sin_reembolso_devuelve_processing_time_null(client, monkeypatch):
@@ -435,6 +436,7 @@ def test_cancelar_reserva_sin_reembolso_devuelve_processing_time_null(client, mo
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
         json={"acceptedTerms": True},
+        headers=_owner_headers(reserva),
     )
 
     assert response.status_code == 200
@@ -452,7 +454,63 @@ def test_cancelar_reserva_con_accepted_terms_invalido_returns_400(client, payloa
     assert "terminos" in response.json["error"]
 
 
+def test_cancelar_reserva_con_accepted_terms_invalido_no_crea_auditoria(client, monkeypatch):
+    auditorias = []
+
+    class DummyAuditRepo:
+        def registrar_inicio_cancelacion(self, **kwargs):
+            auditorias.append(kwargs)
+
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioAuditoriaCancelacionReserva', DummyAuditRepo)
+
+    response = client.post(
+        f'/api/reserva/{uuid.uuid4()}/cancelar',
+        json={"acceptedTerms": False},
+    )
+
+    assert response.status_code == 400
+    assert auditorias == []
+
+
+def test_cancelar_reserva_rechaza_usuario_no_dueno_sin_pms_ni_auditoria(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    uows = []
+    auditorias = []
+
+    class DummyAuditRepo:
+        def registrar_inicio_cancelacion(self, **kwargs):
+            auditorias.append(kwargs)
+
+    def uow_factory():
+        uow = MagicMock()
+        uow.__enter__ = MagicMock(return_value=uow)
+        uow.__exit__ = MagicMock(return_value=None)
+        uows.append(uow)
+        return uow
+
+    _setup_cancelacion_preview(monkeypatch, reserva)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', uow_factory)
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioAuditoriaCancelacionReserva', DummyAuditRepo)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True},
+        headers={"X-User-Id": str(uuid.uuid4())},
+    )
+
+    assert response.status_code == 403
+    assert "permiso" in response.json["error"]
+    assert all(not uow.agregar_eventos.called for uow in uows)
+    assert auditorias == []
+
+
 def test_cancelar_reserva_hu_web_11_not_found_returns_404(client, monkeypatch):
+    auditorias = []
+
+    class DummyAuditRepo:
+        def registrar_inicio_cancelacion(self, **kwargs):
+            auditorias.append(kwargs)
+
     class DummyHandler:
         def __init__(self, repositorio, uow):
             self.repositorio = repositorio
@@ -464,15 +522,18 @@ def test_cancelar_reserva_hu_web_11_not_found_returns_404(client, monkeypatch):
     monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
     monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
     monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioAuditoriaCancelacionReserva', DummyAuditRepo)
 
     response = client.post(
         f'/api/reserva/{uuid.uuid4()}/cancelar',
         json={"acceptedTerms": True},
+        headers={"X-User-Id": str(uuid.uuid4())},
     )
 
     assert response.status_code == 404
     assert response.is_json
     assert "No se encontro la reserva" in response.json["error"]
+    assert auditorias == []
 
 
 @pytest.mark.parametrize("estado", ["HOLD", "CANCELADA", "EXPIRADA", "PENDIENTE", "CANCELACION_EN_PROCESO"])
@@ -483,6 +544,7 @@ def test_cancelar_reserva_hu_web_11_estado_no_cancelable_returns_400(client, mon
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
         json={"acceptedTerms": True},
+        headers=_owner_headers(reserva),
     )
 
     assert response.status_code == 400
@@ -496,6 +558,11 @@ def test_cancelar_reserva_hu_web_11_estado_no_cancelable_returns_400(client, mon
 def test_cancelar_reserva_hu_web_11_no_emite_pms_si_no_es_cancelable(client, monkeypatch):
     reserva = _fake_reserva_preview(estado="CANCELADA")
     uows = []
+    auditorias = []
+
+    class DummyAuditRepo:
+        def registrar_inicio_cancelacion(self, **kwargs):
+            auditorias.append(kwargs)
 
     def uow_factory():
         uow = MagicMock()
@@ -506,14 +573,49 @@ def test_cancelar_reserva_hu_web_11_no_emite_pms_si_no_es_cancelable(client, mon
 
     _setup_cancelacion_preview(monkeypatch, reserva)
     monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', uow_factory)
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioAuditoriaCancelacionReserva', DummyAuditRepo)
 
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
         json={"acceptedTerms": True},
+        headers=_owner_headers(reserva),
     )
 
     assert response.status_code == 400
     assert all(not uow.agregar_eventos.called for uow in uows)
+    assert auditorias == []
+
+
+def test_cancelar_reserva_en_proceso_no_duplica_pms_ni_auditoria(client, monkeypatch):
+    reserva = _fake_reserva_preview(estado="CANCELACION_EN_PROCESO")
+    uows = []
+    auditorias = []
+
+    class DummyAuditRepo:
+        def registrar_inicio_cancelacion(self, **kwargs):
+            auditorias.append(kwargs)
+
+    def uow_factory():
+        uow = MagicMock()
+        uow.__enter__ = MagicMock(return_value=uow)
+        uow.__exit__ = MagicMock(return_value=None)
+        uows.append(uow)
+        return uow
+
+    _setup_cancelacion_preview(monkeypatch, reserva)
+    monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', uow_factory)
+    monkeypatch.setattr(reserva_api_mod, 'RepositorioAuditoriaCancelacionReserva', DummyAuditRepo)
+
+    response = client.post(
+        f'/api/reserva/{reserva.id}/cancelar',
+        json={"acceptedTerms": True},
+        headers=_owner_headers(reserva),
+    )
+
+    assert response.status_code == 400
+    assert response.json["reservationStatus"] == "CANCELACION_EN_PROCESO"
+    assert all(not uow.agregar_eventos.called for uow in uows)
+    assert auditorias == []
 
 
 def test_cancelar_reserva_hu_web_11_no_invoca_refund_payment(client, monkeypatch):
@@ -554,6 +656,7 @@ def test_cancelar_reserva_hu_web_11_no_invoca_refund_payment(client, monkeypatch
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
         json={"acceptedTerms": True},
+        headers=_owner_headers(reserva),
     )
 
     assert response.status_code == 200
@@ -565,6 +668,7 @@ def _fake_reserva_preview(estado='CONFIRMADA', check_in_days=10):
     id_categoria = uuid.uuid4()
     reserva = SimpleNamespace(
         id=reserva_id,
+        usuario=SimpleNamespace(id=uuid.uuid4()),
         id_categoria=id_categoria,
         codigo_confirmacion_ota='BK-001',
         codigo_localizador_pms=None,
@@ -581,6 +685,10 @@ def _fake_reserva_preview(estado='CONFIRMADA', check_in_days=10):
 
     reserva.iniciar_cancelacion = iniciar_cancelacion
     return reserva
+
+
+def _owner_headers(reserva) -> dict:
+    return {"X-User-Id": str(reserva.usuario.id)}
 
 
 def _setup_cancelacion_preview(
@@ -634,7 +742,7 @@ def test_cancelacion_preview_confirmada_returns_200(client, monkeypatch):
     reserva = _fake_reserva_preview()
     _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=50)
 
-    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview', headers=_owner_headers(reserva))
 
     assert response.status_code == 200
     body = response.json
@@ -652,6 +760,19 @@ def test_cancelacion_preview_confirmada_returns_200(client, monkeypatch):
     assert body["nonCancelableReason"] is None
 
 
+def test_cancelacion_preview_rechaza_usuario_no_dueno(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(monkeypatch, reserva)
+
+    response = client.get(
+        f'/api/reserva/{reserva.id}/cancelacion-preview',
+        headers={"X-User-Id": str(uuid.uuid4())},
+    )
+
+    assert response.status_code == 403
+    assert "permiso" in response.json["error"]
+
+
 def test_cancelacion_preview_not_found_returns_404(client, monkeypatch):
     class DummyHandler:
         def __init__(self, repositorio, uow):
@@ -665,7 +786,10 @@ def test_cancelacion_preview_not_found_returns_404(client, monkeypatch):
     monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
     monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
 
-    response = client.get(f'/api/reserva/{uuid.uuid4()}/cancelacion-preview')
+    response = client.get(
+        f'/api/reserva/{uuid.uuid4()}/cancelacion-preview',
+        headers={"X-User-Id": str(uuid.uuid4())},
+    )
 
     assert response.status_code == 404
     assert response.is_json
@@ -679,13 +803,14 @@ def test_cancelacion_preview_not_found_returns_404(client, monkeypatch):
         ("EXPIRADA", "expirada"),
         ("HOLD", "HOLD"),
         ("PENDIENTE", "pendiente"),
+        ("CANCELACION_EN_PROCESO", "proceso"),
     ],
 )
 def test_cancelacion_preview_estados_no_cancelables(client, monkeypatch, estado, reason_fragment):
     reserva = _fake_reserva_preview(estado=estado)
     _setup_cancelacion_preview(monkeypatch, reserva)
 
-    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview', headers=_owner_headers(reserva))
 
     assert response.status_code == 200
     body = response.json
@@ -694,6 +819,9 @@ def test_cancelacion_preview_estados_no_cancelables(client, monkeypatch, estado,
     assert reason_fragment in body["nonCancelableReason"]
     assert body["refund"]["expectedRefundAmount"] == 0
     assert body["refund"]["refundStatus"] == "NOT_APPLICABLE"
+    if estado == "CANCELACION_EN_PROCESO":
+        assert body["pmsStatus"] == "PENDING"
+        assert "proceso" in body["mensaje"]
 
 
 @pytest.mark.parametrize(
@@ -715,7 +843,7 @@ def test_cancelacion_preview_politica_y_reembolso(
     reserva = _fake_reserva_preview()
     _setup_cancelacion_preview(monkeypatch, reserva, porcentaje_penalidad=porcentaje_penalidad)
 
-    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview', headers=_owner_headers(reserva))
 
     assert response.status_code == 200
     body = response.json
@@ -730,7 +858,7 @@ def test_cancelacion_preview_fuera_de_ventana_no_cancelable(client, monkeypatch)
     reserva = _fake_reserva_preview(check_in_days=1)
     _setup_cancelacion_preview(monkeypatch, reserva, dias_anticipacion=2)
 
-    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview', headers=_owner_headers(reserva))
 
     assert response.status_code == 200
     body = response.json
@@ -748,7 +876,7 @@ def test_cancelacion_preview_sin_pago_aprobado_no_cancelable(client, monkeypatch
         payment={"estado": "PENDING", "monto": 1000, "moneda": "COP"},
     )
 
-    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview', headers=_owner_headers(reserva))
 
     assert response.status_code == 200
     body = response.json
@@ -793,7 +921,7 @@ def test_cancelacion_preview_no_invoca_pms_ni_refund_payment(client, monkeypatch
     monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', DummyCatalogClient)
     monkeypatch.setattr(reserva_api_mod, 'PaymentServiceClient', ReadOnlyPaymentClient)
 
-    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview', headers=_owner_headers(reserva))
 
     assert response.status_code == 200
     assert payment_calls == [str(reserva.id)]

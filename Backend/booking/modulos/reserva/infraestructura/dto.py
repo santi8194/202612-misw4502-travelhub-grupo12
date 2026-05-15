@@ -15,3 +15,25 @@ class ReservaDTO(db.Model):
     ocupacion_infantes = db.Column(db.Integer, nullable=True)
     fecha_creacion = db.Column(db.DateTime, nullable=False)
     fecha_actualizacion = db.Column(db.DateTime, nullable=False)
+
+
+class AuditoriaCancelacionReservaDTO(db.Model):
+    __tablename__ = "auditoria_cancelacion_reserva"
+
+    id = db.Column(db.String(40), primary_key=True)
+    id_reserva = db.Column(db.String(40), nullable=False, index=True)
+    id_usuario = db.Column(db.String(40), nullable=True)
+    ip_origen = db.Column(db.String(45), nullable=True)
+    motivo = db.Column(db.Text, nullable=True)
+    estado_anterior = db.Column(db.String(30), nullable=False)
+    estado_nuevo = db.Column(db.String(30), nullable=False)
+    politica_tipo = db.Column(db.String(40), nullable=True)
+    dias_anticipacion = db.Column(db.Integer, nullable=True)
+    porcentaje_penalidad = db.Column(db.Float, nullable=True)
+    monto_pagado = db.Column(db.Float, nullable=True)
+    monto_reembolso = db.Column(db.Float, nullable=True)
+    refund_status = db.Column(db.String(30), nullable=True)
+    pms_status = db.Column(db.String(30), nullable=True)
+    cancellation_reference = db.Column(db.String(80), nullable=False, index=True)
+    origen = db.Column(db.String(40), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False)

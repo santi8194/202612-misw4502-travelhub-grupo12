@@ -3,10 +3,10 @@ Propósito del archivo: Integración con la base de datos de usuarios.
 Rol dentro del microservicio: Sirve de intermediario para obtener los registros y contraseñas (hasheadas) de un usuario desde PostgreSQL.
 """
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
-from data.user import UserInDB
+from schemas.user import UserInDB
 from infrastructure.database import SessionLocal
 from infrastructure.models import Role, User
 import logging
@@ -108,6 +108,9 @@ class UserService:
         try:
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
+                # Fallback: the client may pass the Cognito sub, which is stored as username
+                user = db.query(User).filter(User.username == str(user_id)).first()
+            if not user:
                 logger.warning(f"Usuario no encontrado por id: {user_id}")
                 return None
 
@@ -161,7 +164,7 @@ class UserService:
                 user.is_active = "true" if active else "false"
                 if not user.password_hash:
                     user.password_hash = "COGNITO_MANAGED"
-                user.updated_at = datetime.now(UTC)
+                user.updated_at = datetime.now(timezone.utc)
 
             role_user = db.query(Role).filter(Role.name == "USER").first()
             if role_user and role_user not in user.roles:
@@ -189,7 +192,7 @@ class UserService:
                 return False
 
             user.is_active = "true"
-            user.updated_at = datetime.now(UTC)
+            user.updated_at = datetime.now(timezone.utc)
             db.commit()
             return True
         except Exception as e:

@@ -15,6 +15,7 @@
       <section class="state-card state-card--error" data-testid="room-detail-error">
         <p>{{ error() }}</p>
         <a routerLink="/resultados" class="back-link">← {{ 'room.backToResults' | translate }}</a>
+        <a routerLink="/resultados" class="back-link">← {{ 'room.backToResults' | translate }}</a>
       </section>
     } @else if (roomDetail()) {
 
@@ -201,6 +202,7 @@
             } @else if (roomPrice()) {
               <div class="booking-box__breakdown" data-testid="room-price-breakdown">
                 <div class="booking-box__breakdown-row">
+                  <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ roomPrice()!.noches }} {{ 'room.nights' | translate }}</span>
                   <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ roomPrice()!.noches }} {{ 'room.nights' | translate }}</span>
                   <span>{{ currencySymbol() }} {{ formatCurrency(subtotal()) }}</span>
                 </div>

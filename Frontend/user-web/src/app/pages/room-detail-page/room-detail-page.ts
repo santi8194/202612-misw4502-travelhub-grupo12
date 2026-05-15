@@ -173,6 +173,7 @@ export class RoomDetailPage {
 
   formatDate(isoDate: string): string {
     return this.i18n.formatMonthYear(isoDate);
+    return this.i18n.formatMonthYear(isoDate);
   }
 
   formatCurrency(amount: number): string {

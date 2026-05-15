@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import threading
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
@@ -10,6 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers.search import router
+from app.infrastructure.rabbitmq_consumer import RabbitMQConsumer
+from app.infrastructure.event_handlers import handle_event
 
 
 @asynccontextmanager
@@ -17,6 +21,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Initialize the repositories required by the service."""
     os_client = None
     pg_pool = None
+
+    # Capturar el loop principal para ejecutar corutinas desde el hilo del consumer
+    main_loop = asyncio.get_running_loop()
 
     if settings.use_postgres_database:
         import asyncpg
@@ -86,6 +93,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 client=os_client,
                 index_name=settings.opensearch_index,
             )
+    
+    if settings.enable_events:
+        def event_handler_wrapper(data, routing_key):
+            handle_event(data, routing_key, pg_pool, main_loop)
+        
+        consumer = RabbitMQConsumer(event_handler_wrapper)
+        consumer_thread = threading.Thread(target=consumer.start, daemon=True)
+        consumer_thread.start()
+        app.state.rabbitmq_consumer = consumer
+        print("[SEARCH] RabbitMQ consumer iniciado en thread daemon")
 
     yield
 
@@ -93,6 +110,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await os_client.close()
     if pg_pool:
         await pg_pool.close()
+    if settings.enable_events and hasattr(app.state, 'rabbitmq_consumer'):
+        app.state.rabbitmq_consumer.stop()
 
 
 app = FastAPI(

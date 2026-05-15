@@ -155,6 +155,22 @@
 				},
 				{
 					"name": "3. Get Current User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const data = pm.response.json();",
+									"    if (data && data.id_usuario) {",
+									"        pm.collectionVariables.set(\"user_id\", data.id_usuario);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [
@@ -171,6 +187,30 @@
 							"path": [
 								"auth",
 								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.1 Get User By Id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/users/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"users",
+								"{{user_id}}"
 							]
 						}
 					},
@@ -225,6 +265,11 @@
 		{
 			"key": "email",
 			"value": "admin@hotel.com",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
 			"type": "string"
 		},
 		{

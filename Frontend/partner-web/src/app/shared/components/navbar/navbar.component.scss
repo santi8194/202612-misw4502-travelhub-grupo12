@@ -207,6 +207,19 @@
                         background-color: #f7f7f7;
                     }
                 }
+
+                .dropdown-divider {
+                    height: 1px;
+                    background-color: #ebebeb;
+                    margin: 0.5rem 0;
+                }
+
+                .version-info {
+                    padding: 0.25rem 1rem;
+                    font-size: 0.75rem;
+                    color: #717171;
+                    text-align: right;
+                }
             }
         }
     }

@@ -219,6 +219,7 @@ class CategoriaHabitacion:
 	media: list[Media] = field(default_factory=list)
 	amenidades: list[Amenidad] = field(default_factory=list)
 	inventario: list[Inventario] = field(default_factory=list)
+	descripcion_en: str | None = None
 	# Tarifas diferenciadas (opcionales; None = no configurada)
 	tarifa_fin_de_semana: VODinero | None = None
 	tarifa_temporada_alta: VODinero | None = None

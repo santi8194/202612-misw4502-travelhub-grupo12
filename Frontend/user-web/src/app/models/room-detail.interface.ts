@@ -25,6 +25,7 @@ export interface RoomCategoryInfo {
   id_categoria: string;
   nombre_comercial: string;
   descripcion: string;
+  descripcion_en?: string;
   precio_base: {
     monto: string;
     moneda: string;

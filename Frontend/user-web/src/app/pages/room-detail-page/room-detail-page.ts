@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -8,7 +8,7 @@ import { CatalogService } from '../../core/services/catalog';
 import { AuthService } from '../../core/services/auth';
 import { BookingStore } from '../../core/store/booking-store';
 import { NotificationService } from '../../core/services/notification';
-import { I18nService } from '../../core/i18n/i18n.service';
+import { I18nService, LanguageCode } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
@@ -49,6 +49,7 @@ export class RoomDetailPage {
   readonly checkInInput = signal('');
   readonly checkOutInput = signal('');
   readonly guestsInput = signal(1);
+  private lastLoadedLanguage: LanguageCode | null = null;
 
   // ── Computados ──
   readonly categoryId = computed(() => this.route.snapshot.paramMap.get('category_id') ?? '');
@@ -110,8 +111,21 @@ export class RoomDetailPage {
   });
 
   readonly shortDescription = computed(() => {
-    const desc = this.roomDetail()?.categoria?.descripcion ?? '';
+    const desc = this.localizedDescription();
     return desc.length > 240 ? desc.slice(0, 240) + '...' : desc;
+  });
+
+  readonly localizedDescription = computed(() => {
+    const categoria = this.roomDetail()?.categoria;
+    if (!categoria) {
+      return '';
+    }
+
+    if (this.i18n.language() === 'en' && categoria.descripcion_en?.trim()) {
+      return categoria.descripcion_en;
+    }
+
+    return this.translatePatternDescription(categoria.descripcion);
   });
 
   readonly amenityIconSvg: Record<string, string> = {
@@ -128,12 +142,94 @@ export class RoomDetailPage {
     return this.amenityIconSvg[icono] ?? this.amenityIconSvg['default'];
   }
 
+  getAmenityDisplayName(name: string): string {
+    const normalized = name.trim().toLowerCase();
+    const key = this.amenityTranslationKeyMap[normalized];
+    return key ? this.i18n.translate(key) : name;
+  }
+
+  getTaxDisplayName(name: string): string {
+    const normalized = name.trim().toLowerCase();
+    const key = this.taxTranslationKeyMap[normalized];
+    return key ? this.i18n.translate(key) : name;
+  }
+
+  getPropertyTypeDisplayName(name: string): string {
+    const normalized = name.trim().toLowerCase();
+    const key = this.propertyTypeTranslationKeyMap[normalized];
+    if (key) {
+      return this.i18n.translate(key);
+    }
+
+    let translated = name;
+    for (const [token, tokenKey] of Object.entries(this.propertyTypeTranslationKeyMap)) {
+      const localized = this.i18n.translate(tokenKey);
+      const regex = new RegExp(`\\b${this.escapeRegex(token)}\\b`, 'gi');
+      translated = translated.replace(regex, localized);
+    }
+
+    return translated;
+  }
+
   formatDate(isoDate: string): string {
+    return this.i18n.formatMonthYear(isoDate);
     return this.i18n.formatMonthYear(isoDate);
   }
 
   formatCurrency(amount: number): string {
     return this.i18n.formatNumber(amount);
+  }
+
+  private translatePatternDescription(description: string): string {
+    if (!description) {
+      return '';
+    }
+
+    const pattern = /^Alojamiento\s+tipo\s+(.+?)\s+en\s+(.+?)[\.,]\s*(\d+)\s+estrellas?\.?$/i;
+    const match = description.trim().match(pattern);
+
+    if (!match) {
+      return description;
+    }
+
+    const rawType = match[1]?.trim() ?? '';
+    const city = match[2]?.trim() ?? '';
+    const stars = Number(match[3]);
+
+    return this.i18n.translate('propertyDetail.descriptionTemplate', {
+      type: this.getPropertyTypeDisplayName(rawType),
+      city,
+      stars,
+    });
+  }
+
+  private readonly amenityTranslationKeyMap: Record<string, string> = {
+    piscina: 'room.amenity.pool',
+    spa: 'room.amenity.spa',
+    cocina: 'room.amenity.kitchen',
+    gimnasio: 'room.amenity.gym',
+    restaurante: 'room.amenity.restaurant',
+    'aire acondicionado': 'room.amenity.ac',
+  };
+
+  private readonly taxTranslationKeyMap: Record<string, string> = {
+    iva: 'room.taxName.vat',
+    vat: 'room.taxName.vat',
+  };
+
+  private readonly propertyTypeTranslationKeyMap: Record<string, string> = {
+    finca: 'propertyType.finca',
+    hotel: 'propertyType.hotel',
+    hostal: 'propertyType.hostal',
+    apartamento: 'propertyType.apartment',
+    apartahotel: 'propertyType.aparthotel',
+    casa: 'propertyType.house',
+    cabaña: 'propertyType.cabin',
+    cabana: 'propertyType.cabin',
+  };
+
+  private escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   constructor() {
@@ -144,10 +240,18 @@ export class RoomDetailPage {
       next: (data) => this.paisUsuario.set(data.pais),
       error: () => console.warn('[RoomDetailPage] Could not load user-locale.json, using default'),
     });
-    this.loadRoomDetail();
+
+    effect(() => {
+      const language = this.i18n.language();
+      if (this.lastLoadedLanguage === language) {
+        return;
+      }
+      this.lastLoadedLanguage = language;
+      this.loadRoomDetail(language);
+    });
   }
 
-  private loadRoomDetail(): void {
+  private loadRoomDetail(language: 'es' | 'en'): void {
     const categoryId = this.categoryId();
     if (!categoryId) {
       this.error.set(this.i18n.translate('reservationDetail.notFoundBody'));
@@ -156,9 +260,12 @@ export class RoomDetailPage {
       return;
     }
 
+    this.loading.set(true);
+    this.error.set(null);
+
     console.info('[RoomDetailPage] Loading room detail', { categoryId });
 
-    this.catalogService.getCategoryViewDetail(categoryId).pipe(
+    this.catalogService.getCategoryViewDetail(categoryId, language).pipe(
       catchError((err) => {
         console.error('[RoomDetailPage] getCategoryViewDetail failed', { categoryId, err });
         this.error.set(this.i18n.translate('room.loadError'));

@@ -11,6 +11,14 @@ describe('CompactSearchBarComponent', () => {
   let router: Router;
   let searchState: SearchStateService;
 
+  beforeEach(() => {
+    localStorage.removeItem('th_language');
+  });
+
+  afterEach(() => {
+    localStorage.removeItem('th_language');
+  });
+
   async function setup(params: Record<string, string> = {}): Promise<void> {
     TestBed.resetTestingModule();
 
@@ -114,5 +122,18 @@ describe('CompactSearchBarComponent', () => {
 
     expect(searchState.set).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('should translate guest label when language is en', async () => {
+    localStorage.setItem('th_language', 'en');
+
+    await setup({
+      ciudad: 'Bogota',
+      fecha_inicio: '2026-03-30',
+      fecha_fin: '2026-04-02',
+      huespedes: '2',
+    });
+
+    expect(component.guestsLabel()).toBe('2 guests');
   });
 });

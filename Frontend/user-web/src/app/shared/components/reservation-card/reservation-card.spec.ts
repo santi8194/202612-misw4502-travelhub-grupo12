@@ -23,6 +23,14 @@ function makeReservation(overrides: Partial<ReservationViewModel> = {}): Reserva
 describe('ReservationCardComponent', () => {
   let fixture: ComponentFixture<ReservationCardComponent>;
 
+  beforeEach(() => {
+    localStorage.removeItem('th_language');
+  });
+
+  afterEach(() => {
+    localStorage.removeItem('th_language');
+  });
+
   async function setup(reservation: ReservationViewModel) {
     await TestBed.configureTestingModule({
       imports: [ReservationCardComponent],
@@ -58,14 +66,14 @@ describe('ReservationCardComponent', () => {
   it('should display status badge for PENDIENTE_PAGO', async () => {
     await setup(makeReservation({ estado: 'PENDIENTE_PAGO' }));
     const badge = fixture.nativeElement.querySelector('[data-testid="reservation-status-badge"]');
-    expect(badge.textContent.trim()).toBe('Pendiente Pago');
+    expect(badge.textContent.trim()).toBe('Pendiente de pago');
     expect(badge.classList).toContain('badge--pendiente-pago');
   });
 
   it('should display status badge for PENDIENTE_CONFIRMACION_HOTEL', async () => {
     await setup(makeReservation({ estado: 'PENDIENTE_CONFIRMACION_HOTEL' }));
     const badge = fixture.nativeElement.querySelector('[data-testid="reservation-status-badge"]');
-    expect(badge.textContent.trim()).toBe('Pendiente Confirmación');
+    expect(badge.textContent.trim()).toBe('Pendiente por confirmación');
     expect(badge.classList).toContain('badge--pendiente-hotel');
   });
 

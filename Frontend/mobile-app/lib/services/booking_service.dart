@@ -130,8 +130,8 @@ class BookingService {
       _getPaymentInfo(reservationId),
     ]);
 
-    final category = results[0] as Map<String, dynamic>?;
-    final payment = results[1] as Map<String, dynamic>?;
+    final category = results[0];
+    final payment = results[1];
 
     final paymentStatus = payment?['estado'] as String?;
     double? price = (payment?['monto'] as num?)?.toDouble();

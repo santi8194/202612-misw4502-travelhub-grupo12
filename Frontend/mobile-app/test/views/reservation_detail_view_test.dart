@@ -6,26 +6,21 @@ import 'package:travel_hub/l10n/app_localizations.dart';
 import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/models/reservation.dart';
 import 'package:travel_hub/services/booking_service.dart';
-import 'package:travel_hub/services/document_service.dart';
 import 'package:travel_hub/view_models/reservation_detail_view_model.dart';
 import 'package:travel_hub/views/reservation_detail_view.dart';
 
 class MockBookingService extends Mock implements BookingService {}
-
-class MockDocumentService extends Mock implements DocumentService {}
 
 class MockReservationDetailViewModel extends Mock
     implements ReservationDetailViewModel {}
 
 void main() {
   late MockBookingService mockBookingService;
-  late MockDocumentService mockDocumentService;
   late MockReservationDetailViewModel mockVM;
   late Reservation testReservation;
 
   setUp(() {
     mockBookingService = MockBookingService();
-    mockDocumentService = MockDocumentService();
     mockVM = MockReservationDetailViewModel();
     testReservation = Reservation(
       id: 'res-123',

@@ -21,7 +21,7 @@ class ReservationCardSkeleton extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -101,7 +101,7 @@ class ReservationCardSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF4F5F9),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: const Row(
         children: [

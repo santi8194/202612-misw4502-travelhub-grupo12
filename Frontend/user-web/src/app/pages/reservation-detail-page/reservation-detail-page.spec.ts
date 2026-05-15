@@ -100,6 +100,7 @@ describe('ReservationDetailPage', () => {
     localStorage.setItem('th_token_type', 'Bearer');
     localStorage.setItem('th_user_email', 'traveler@example.com');
     localStorage.setItem('th_user_id', USER_ID);
+    localStorage.setItem('th_currency', 'USD');
 
     await TestBed.configureTestingModule({
       imports: [ReservationDetailPage],

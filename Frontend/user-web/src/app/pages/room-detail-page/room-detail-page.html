@@ -118,7 +118,7 @@
             <div class="booking-box__header">
               <div class="booking-box__price">
                 <span class="booking-box__price-amount">
-                  {{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }}
+                  {{ currency.format(pricePerNight(), sourceCurrency()) }}
                 </span>
                 <span class="booking-box__price-label">{{ 'room.perNight' | translate }}</span>
               </div>
@@ -202,26 +202,25 @@
             } @else if (roomPrice()) {
               <div class="booking-box__breakdown" data-testid="room-price-breakdown">
                 <div class="booking-box__breakdown-row">
-                  <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ roomPrice()!.noches }} {{ 'room.nights' | translate }}</span>
-                  <span>{{ currencySymbol() }} {{ formatCurrency(pricePerNight()) }} × {{ roomPrice()!.noches }} {{ 'room.nights' | translate }}</span>
-                  <span>{{ currencySymbol() }} {{ formatCurrency(subtotal()) }}</span>
+                  <span>{{ currency.format(pricePerNight(), sourceCurrency()) }} × {{ roomPrice()!.noches }} {{ 'room.nights' | translate }}</span>
+                  <span>{{ currency.format(subtotal(), sourceCurrency()) }}</span>
                 </div>
                 @if (impuestos() > 0) {
                   <div class="booking-box__breakdown-row" data-testid="room-impuestos-row">
                     <span>{{ 'room.tax' | translate:{ name: getTaxDisplayName(impuestoNombre()) } }}</span>
-                    <span>{{ currencySymbol() }} {{ formatCurrency(impuestos()) }}</span>
+                    <span>{{ currency.format(impuestos(), sourceCurrency()) }}</span>
                   </div>
                 }
                 @if (cargoServicio() > 0) {
                   <div class="booking-box__breakdown-row" data-testid="room-cargo-servicio-row">
                     <span>{{ 'room.serviceFee' | translate }}</span>
-                    <span>{{ currencySymbol() }} {{ formatCurrency(cargoServicio()) }}</span>
+                    <span>{{ currency.format(cargoServicio(), sourceCurrency()) }}</span>
                   </div>
                 }
                 <hr class="booking-box__breakdown-divider" />
                 <div class="booking-box__breakdown-row booking-box__breakdown-row--total">
                   <span>{{ 'room.total' | translate }}</span>
-                  <span>{{ currencySymbol() }} {{ formatCurrency(total()) }}</span>
+                  <span>{{ currency.format(total(), sourceCurrency()) }}</span>
                 </div>
               </div>
             }

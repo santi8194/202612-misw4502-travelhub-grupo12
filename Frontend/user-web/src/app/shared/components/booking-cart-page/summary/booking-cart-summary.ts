@@ -1,8 +1,8 @@
 import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookingSummaryData } from '../../../../models/booking-summary.interface';
-import { I18nService } from '../../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
+import { CurrencyService } from '../../../../core/services/currency.service';
 
 @Component({
   selector: 'app-booking-cart-summary',
@@ -12,12 +12,12 @@ import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
   styleUrl: './booking-cart-summary.css'
 })
 export class BookingCartSummaryComponent {
-  private readonly i18n = inject(I18nService);
+  protected readonly currency = inject(CurrencyService);
   @Input({ required: true }) data: BookingSummaryData | null = null;
   @Input() isLoading = false;
 
   formatPrice(value: number): string {
     const currency = this.data?.currency || 'COP';
-    return this.i18n.formatCurrency(value, currency);
+    return this.currency.format(value, currency);
   }
 }

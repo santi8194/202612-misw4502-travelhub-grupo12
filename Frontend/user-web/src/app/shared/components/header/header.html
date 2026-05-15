@@ -31,13 +31,25 @@
 				}
 			</div>
 
-			<button class="action-text" type="button">
-				<svg viewBox="0 0 24 24">
-					<path d="M12 4v16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-					<path d="M16.4 8.2c0-1.8-1.9-3.2-4.4-3.2s-4.4 1.4-4.4 3.2 1.6 2.7 4.4 3.3c2.8.6 4.4 1.5 4.4 3.3s-1.9 3.2-4.4 3.2-4.4-1.4-4.4-3.2" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-				</svg>
-				<span>USD</span>
-			</button>
+			<div class="language-wrapper">
+				<button class="action-text" type="button" (click)="toggleCurrencyMenu($event)" [attr.aria-expanded]="currencyMenuOpen()" aria-haspopup="true">
+					<svg viewBox="0 0 24 24">
+						<path d="M12 4v16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+						<path d="M16.4 8.2c0-1.8-1.9-3.2-4.4-3.2s-4.4 1.4-4.4 3.2 1.6 2.7 4.4 3.3c2.8.6 4.4 1.5 4.4 3.3s-1.9 3.2-4.4 3.2-4.4-1.4-4.4-3.2" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+					</svg>
+					<span>{{ currency.activeCurrency() }}</span>
+				</button>
+
+				@if (currencyMenuOpen()) {
+					<div class="profile-dropdown language-dropdown" role="menu" [attr.aria-label]="'header.currency.label' | translate">
+						@for (option of supportedCurrencies; track option.code) {
+							<button class="dropdown-item dropdown-item--button" type="button" (click)="setActiveCurrency(option.code)">
+								{{ option.label }}
+							</button>
+						}
+					</div>
+				}
+			</div>
 			<div class="profile-wrapper">
 				<button
 					class="user-menu"

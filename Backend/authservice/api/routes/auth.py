@@ -128,7 +128,8 @@ def read_user_by_id(
         )
 
     # Restriccion de acceso: un usuario autenticado solo puede consultar su propia cuenta.
-    if user.id_usuario != current_user.id_usuario:
+    # si el que esta autenticado es partner,  puede consultar datos de otros usuarios.
+    if user.id_usuario != current_user.id_usuario and current_user.rol != "ADMIN_HOTEL":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para consultar este usuario",

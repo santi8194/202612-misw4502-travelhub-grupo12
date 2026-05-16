@@ -1,5 +1,5 @@
 const CATEGORY_ID = 'CAT-123';
-const API_URL = '**/catalog/categories/*/view-detail';
+const API_URL = '**/catalog/categories/*/view-detail*';
 const BOOKING_URL = '**/api/reserva';
 
 export { };

@@ -7,11 +7,12 @@ import { SearchForm } from '../../../models/search-form.interface';
 import { SearchService } from '../../../core/services/search';
 import { SearchStateService } from '../../../core/services/search-state';
 import { DestinationItem } from '../../../models/destination.interface';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-hero-search-form',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './hero-search-form.html',
   styleUrl: './hero-search-form.css',
 })

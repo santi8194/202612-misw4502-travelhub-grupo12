@@ -43,6 +43,10 @@
 	justify-self: end;
 }
 
+.language-wrapper {
+	position: relative;
+}
+
 /* TEXT BUTTONS (idioma / moneda) */
 .action-text {
 	display: flex;
@@ -129,6 +133,10 @@
 	background: #fff;
 	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
 	z-index: 20;
+}
+
+.language-dropdown {
+	min-width: 150px;
 }
 
 .dropdown-item {

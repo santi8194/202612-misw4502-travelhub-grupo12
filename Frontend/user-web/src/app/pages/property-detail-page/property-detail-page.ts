@@ -7,6 +7,8 @@ import { BookingService } from '../../core/services/booking';
 import { BookingStore } from '../../core/store/booking-store';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 interface PropertyLocation {
   ciudad?: string;
@@ -64,7 +66,7 @@ interface CategoryCardData {
 @Component({
   selector: 'app-property-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './property-detail-page.html',
   styleUrl: './property-detail-page.css',
 })
@@ -74,6 +76,7 @@ export class PropertyDetailPage {
   private readonly authService = inject(AuthService);
   private readonly bookingService = inject(BookingService);
   private readonly store = inject(BookingStore);
+  private readonly i18n = inject(I18nService);
 
   readonly loading = signal(true);
   readonly creatingBooking = signal(false);
@@ -99,6 +102,11 @@ export class PropertyDetailPage {
     return !!this.selectedCategoryId() && !!checkIn && !!checkOut && checkOut > checkIn && guests > 0;
   });
 
+  readonly translatedPropertyDescription = computed(() => {
+    const description = this.property()?.descripcion ?? '';
+    return this.translateBackendDescription(description);
+  });
+
   constructor() {
     this.checkInInput.set(this.route.snapshot.queryParamMap.get('fecha_inicio') ?? '');
     this.checkOutInput.set(this.route.snapshot.queryParamMap.get('fecha_fin') ?? '');
@@ -109,7 +117,7 @@ export class PropertyDetailPage {
   private loadPropertyDetail(): void {
     const propertyId = this.propertyId();
     if (!propertyId) {
-      this.error.set('No se encontró el identificador de la propiedad.');
+      this.error.set(this.i18n.translate('reservationDetail.notFoundBody'));
       this.loading.set(false);
       console.warn('[PropertyDetailPage] Missing property_id route param');
       return;
@@ -125,7 +133,7 @@ export class PropertyDetailPage {
     this.bookingService.getPropertyById(propertyId).pipe(
       catchError((error) => {
         console.error('[PropertyDetailPage] getPropertyById failed', { propertyId, error });
-        this.error.set('No fue posible cargar el detalle de la propiedad.');
+        this.error.set(this.i18n.translate('reservationDetail.errorTitle'));
         return of(null);
       }),
       finalize(() => this.loading.set(false))
@@ -180,7 +188,7 @@ export class PropertyDetailPage {
     this.bookingService.getPropertyCategories(propertyId).pipe(
       catchError((error) => {
         console.error('[PropertyDetailPage] getPropertyCategories failed', { propertyId, error });
-        this.categoriesError.set('No fue posible cargar las categorias de esta propiedad.');
+        this.categoriesError.set(this.i18n.translate('reservationDetail.errorTitle'));
         return of([]);
       }),
       finalize(() => this.loadingCategories.set(false))
@@ -245,6 +253,48 @@ export class PropertyDetailPage {
     return moneda === 'USD' ? '$' : moneda;
   }
 
+  translatedCategoryName(value: string): string {
+    const normalized = value.trim().toLowerCase();
+    const key = this.propertyTypeTranslationMap[normalized];
+    return key ? this.i18n.translate(key) : value;
+  }
+
+  translatedGuestsLabel(count: number): string {
+    return this.i18n.translate(count === 1 ? 'propertyDetail.guestSingular' : 'propertyDetail.guestPlural', { count });
+  }
+
+  private translateBackendDescription(description: string): string {
+    if (!description) return '';
+
+    const pattern = /^Alojamiento tipo\s+(.+?)\s+en\s+(.+?)\.\s*(\d+)\s+estrellas?\.?$/i;
+    const match = description.trim().match(pattern);
+
+    if (!match) {
+      return description;
+    }
+
+    const rawType = match[1]?.trim() ?? '';
+    const city = match[2]?.trim() ?? '';
+    const stars = Number(match[3]);
+
+    return this.i18n.translate('propertyDetail.descriptionTemplate', {
+      type: this.translatedCategoryName(rawType),
+      city,
+      stars,
+    });
+  }
+
+  private readonly propertyTypeTranslationMap: Record<string, string> = {
+    finca: 'propertyType.finca',
+    hotel: 'propertyType.hotel',
+    hostal: 'propertyType.hostal',
+    apartamento: 'propertyType.apartment',
+    apartahotel: 'propertyType.aparthotel',
+    casa: 'propertyType.house',
+    cabaña: 'propertyType.cabin',
+    cabana: 'propertyType.cabin',
+  };
+
   private ensureSelectedCategory(): void {
     if (this.selectedCategoryId() && this.categories().some((c) => c.id_categoria === this.selectedCategoryId())) {
       return;
@@ -289,7 +339,7 @@ export class PropertyDetailPage {
         checkOut,
         guests,
       });
-      this.error.set('Faltan datos para crear la reserva. Regresa al listado y selecciona de nuevo.');
+      this.error.set(this.i18n.translate('bookingCart.invalidReservation'));
       return;
     }
 
@@ -314,7 +364,7 @@ export class PropertyDetailPage {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
       this.creatingBooking.set(false);
-      this.error.set('Tu sesión no está activa. Inicia sesión para crear una reserva.');
+      this.error.set(this.i18n.translate('auth.login.error'));
       return;
     }
 

@@ -4,23 +4,23 @@
   <main class="payment-content">
     <section class="payment-card" data-testid="payment-page">
       @if (payment()) {
-        <p class="payment-eyebrow">Pago seguro con Wompi</p>
-        <h1 class="payment-title">Finaliza tu reserva</h1>
+        <p class="payment-eyebrow">{{ 'payment.safeWithWompi' | translate }}</p>
+        <h1 class="payment-title">{{ 'payment.finishReservation' | translate }}</h1>
         <p class="payment-message">
-          Revisa el valor y continua con Wompi para pagar con tarjeta.
+          {{ 'payment.reviewAndContinue' | translate }}
         </p>
         @if (error()) {
           <p class="payment-error" data-testid="payment-error">{{ error() }}</p>
         }
         <div class="payment-amount" data-testid="payment-amount">{{ amountLabel() }}</div>
         @if (!isWidgetReady() && !error()) {
-          <p class="payment-widget-status" data-testid="wompi-widget-status">Cargando Wompi...</p>
+          <p class="payment-widget-status" data-testid="wompi-widget-status">{{ 'payment.loadingWidget' | translate }}</p>
         }
         <form #wompiWidgetForm class="wompi-widget-form" data-testid="wompi-widget-form"></form>
       } @else {
-        <h1 class="payment-title">No fue posible iniciar el pago</h1>
+        <h1 class="payment-title">{{ 'payment.noPaymentStart' | translate }}</h1>
         <p class="payment-message" data-testid="payment-error">{{ error() }}</p>
-        <a class="payment-action" [routerLink]="['/booking', reservationId]">Volver al carrito</a>
+        <a class="payment-action" [routerLink]="['/booking', reservationId]">{{ 'payment.backToCart' | translate }}</a>
       }
     </section>
   </main>

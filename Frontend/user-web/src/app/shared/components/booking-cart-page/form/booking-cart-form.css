@@ -49,6 +49,38 @@
   box-sizing: border-box;
 }
 
+.field-input::placeholder,
+.field-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.field-input:focus,
+.field-textarea:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px #dbeafe;
+}
+
+.field-input--error,
+.field-textarea--error {
+  border-color: #ef4444;
+  background-color: #fff;
+}
+
+.field-input--error:focus,
+.field-textarea--error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px #fee2e2;
+}
+
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .field-textarea {
   min-height: 132px;
   resize: vertical;

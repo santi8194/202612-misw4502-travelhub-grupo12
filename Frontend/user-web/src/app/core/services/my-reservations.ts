@@ -1,8 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, finalize, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   BookingReservation,
@@ -16,6 +15,7 @@ import {
   UserLocale,
 } from '../../models/reservation.interface';
 import { resolveReservationStatus, getStatusLabel } from './reservation-status.resolver';
+import { AuthService } from './auth';
 
 @Injectable({ providedIn: 'root' })
 export class MyReservationsService {
@@ -23,10 +23,12 @@ export class MyReservationsService {
   private readonly bookingApiUrl = environment.bookingApiUrl;
   private readonly catalogApiUrl = environment.catalogApiUrl;
   private readonly paymentApiUrl = environment.paymentApiUrl;
+  private readonly authService = inject(AuthService);
 
-  readonly reservations = toSignal(this.loadReservations$(), { initialValue: [] });
-
+  readonly reservations = signal<ReservationViewModel[]>([]);
+  readonly isLoading = signal(false);
   readonly activeFilter = signal<ReservationFilter>('TODAS');
+  private loadVersion = 0;
 
   readonly filteredReservations = computed(() => {
     const filter = this.activeFilter();
@@ -63,11 +65,35 @@ export class MyReservationsService {
 
   readonly getStatusLabel = getStatusLabel;
 
+  loadCurrentUserReservations(): void {
+    const version = ++this.loadVersion;
+    this.activeFilter.set('TODAS');
+    this.reservations.set([]);
+    this.isLoading.set(true);
+
+    this.loadReservations$()
+      .pipe(finalize(() => {
+        if (version === this.loadVersion) {
+          this.isLoading.set(false);
+        }
+      }))
+      .subscribe(reservations => {
+        if (version === this.loadVersion) {
+          this.reservations.set(reservations);
+        }
+      });
+  }
+
   private loadReservations$(): Observable<ReservationViewModel[]> {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      return of([]);
+    }
+
     return this.http.get<UserLocale>('assets/data/user-locale.json').pipe(
-      switchMap(locale =>
-        this.http.get<BookingReservation[]>(
-          `${this.bookingApiUrl}/usuario/${locale.id_usuario}`
+      switchMap(locale => {
+        return this.http.get<BookingReservation[]>(
+          `${this.bookingApiUrl}/usuario/${userId}`
         ).pipe(
           switchMap(bookings =>
             bookings.length === 0
@@ -78,8 +104,8 @@ export class MyReservationsService {
                   )
                 )
           )
-        )
-      ),
+        );
+      }),
       catchError(() => of([]))
     );
   }

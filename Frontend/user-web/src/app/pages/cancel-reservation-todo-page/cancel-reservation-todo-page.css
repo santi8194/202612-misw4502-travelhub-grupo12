@@ -1,0 +1,55 @@
+.cancel-todo-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  font-family: Inter, sans-serif;
+}
+
+.cancel-todo-main {
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  box-sizing: border-box;
+}
+
+.back-link {
+  margin: 0 0 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font: inherit;
+}
+
+.todo-card {
+  padding: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.todo-card h1 {
+  margin: 0 0 10px;
+  color: #0f172a;
+  font-size: 32px;
+}
+
+.todo-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 16px;
+}
+
+@media (max-width: 640px) {
+  .cancel-todo-main {
+    padding: 24px 16px;
+  }
+
+  .todo-card {
+    padding: 24px;
+  }
+}

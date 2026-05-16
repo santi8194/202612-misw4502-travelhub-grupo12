@@ -1,4 +1,19 @@
 describe('My Reservations Flow', () => {
+  const USER_ID = 'cc912e74-927e-4166-802b-3ba6a3615ebf';
+
+  function visitMyReservations() {
+    cy.visit('/mis-reservas', {
+      onBeforeLoad(window) {
+        window.localStorage.setItem('th_access_token', 'fake-access-token');
+        window.localStorage.setItem('th_refresh_token', 'fake-refresh-token');
+        window.localStorage.setItem('th_token_type', 'Bearer');
+        window.localStorage.setItem('th_user_email', 'traveler@example.com');
+        window.localStorage.setItem('th_user_id', USER_ID);
+        window.localStorage.setItem('th_user_name', 'Traveler');
+      },
+    });
+  }
+
   // Los interceptores usan comodines (**) para ser agnósticos del environment.
   // Así funcionan sin importar si environment.ts apunta a localhost o a una IP.
 
@@ -9,6 +24,16 @@ describe('My Reservations Flow', () => {
 
       // Intercept Booking
       cy.intercept('GET', `**/usuario/${mockData.locale.id_usuario}`, mockData.bookings).as('getBookings');
+
+      // Intercept User Profile
+      cy.intercept('GET', `**/users/${mockData.locale.id_usuario}`, {
+        id_usuario: mockData.locale.id_usuario,
+        nombre_completo: 'Test User',
+        first_name: 'Test',
+        last_name: 'User',
+        email: 'test@example.com',
+        username: 'test.user'
+      }).as('getUserProfile');
 
       // Intercept Catalog Categories
       cy.intercept('GET', `**/categories/*`, (req) => {
@@ -37,7 +62,7 @@ describe('My Reservations Flow', () => {
 
   describe('Scenario 1: Initial Render and Happy Path', () => {
     it('should fetch data and render all reservation cards correctly', () => {
-      cy.visit('/mis-reservas');
+      visitMyReservations();
 
       cy.wait('@getLocale');
       cy.wait('@getBookings');
@@ -57,15 +82,18 @@ describe('My Reservations Flow', () => {
       cy.get('[data-testid="reservation-card"]').eq(0).within(() => {
         cy.get('[data-testid="reservation-name"]').should('contain.text', 'Suite Deluxe');
         cy.get('[data-testid="reservation-status-badge"]').should('contain.text', 'Confirmada');
-        cy.get('[data-testid="reservation-price"]').should('contain.text', '$580');
-        cy.get('[data-testid="reservation-confirmation"]').should('contain.text', 'TH-001');
+        cy.get('[data-testid="reservation-price"]').should('contain.text', '580').and('contain.text', 'US$');
+        cy.get('[data-testid="reservation-id"]')
+          .should('contain.text', 'Código confirmación')
+          .and('contain.text', 'RES001');
+        cy.get('[data-testid="reservation-confirmation"]').should('not.exist');
       });
     });
   });
 
   describe('Scenario 2: Navigation and Filters', () => {
     it('should filter cards based on the selected status', () => {
-      cy.visit('/mis-reservas');
+      visitMyReservations();
       cy.wait('@getBookings');
 
       // Filter: Confirmadas
@@ -76,7 +104,7 @@ describe('My Reservations Flow', () => {
       // Filter: Pendientes
       cy.get('[data-testid="filter-pendientes"]').click();
       cy.get('[data-testid="reservation-card"]').should('have.length', 1);
-      cy.get('[data-testid="reservation-status-badge"]').should('contain.text', 'Pendiente Confirmación');
+      cy.get('[data-testid="reservation-status-badge"]').should('contain.text', 'Pendiente por confirmación');
       // Should show the "Cancelar Reserva" button (PENDIENTE_CONFIRMACION_HOTEL)
       cy.get('[data-testid="btn-cancelar-reserva"]').should('exist').and('be.visible');
 
@@ -92,7 +120,7 @@ describe('My Reservations Flow', () => {
         cy.intercept('GET', `**/usuario/${mockData.locale.id_usuario}`, noCancelledBookings).as('getBookingsEmptyCancel');
       });
 
-      cy.visit('/mis-reservas');
+      visitMyReservations();
       cy.wait('@getBookingsEmptyCancel');
 
       // Check counter is 0
@@ -110,7 +138,7 @@ describe('My Reservations Flow', () => {
   describe('Scenario 3: Price Fallback (Payment 404/Empty)', () => {
     it('should fetch and display calculated price from catalog when payment is not available', () => {
       // The 3rd reservation (res-003, CANCELADA) has no payments in the mock.
-      cy.visit('/mis-reservas');
+      visitMyReservations();
       cy.wait('@getBookings');
 
       // Wait for calculatePrice fallback call
@@ -129,7 +157,7 @@ describe('My Reservations Flow', () => {
 
       // Validate that it shows the price from calculate-room-price (COP 1,500)
       cy.get('[data-testid="reservation-card"]').within(() => {
-        cy.get('[data-testid="reservation-price"]').should('contain.text', 'COP').and('contain.text', '1,500');
+        cy.get('[data-testid="reservation-price"]').should('contain.text', '1500').and('contain.text', 'COP');
       });
     });
   });
@@ -144,7 +172,7 @@ describe('My Reservations Flow', () => {
         }).as('getBookings500');
       });
 
-      cy.visit('/mis-reservas');
+      visitMyReservations();
       cy.wait('@getBookings500');
 
       // The page should survive: counters at 0 and empty state visible

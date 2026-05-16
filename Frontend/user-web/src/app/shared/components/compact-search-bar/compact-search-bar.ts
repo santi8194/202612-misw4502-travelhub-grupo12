@@ -2,11 +2,13 @@ import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SearchStateService } from '../../../core/services/search-state';
+import { I18nService } from '../../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-compact-search-bar',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './compact-search-bar.html',
   styleUrl: './compact-search-bar.css',
 })
@@ -14,6 +16,7 @@ export class CompactSearchBarComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly searchStateService = inject(SearchStateService);
+  protected readonly i18n = inject(I18nService);
 
   private readonly params = toSignal(this.route.queryParams, { requireSync: true });
 
@@ -27,7 +30,8 @@ export class CompactSearchBarComponent {
 
   readonly guestsLabel = computed(() => {
     const g = Number(this.params()['huespedes']) || 1;
-    return `${g} huésped${g !== 1 ? 'es' : ''}`;
+    const key = g === 1 ? 'compactSearch.guestSingular' : 'compactSearch.guestPlural';
+    return this.i18n.translate(key, { count: g });
   });
 
   onEditSearch(): void {
@@ -48,14 +52,15 @@ export class CompactSearchBarComponent {
   }
 
   private formatDateRange(checkIn: string, checkOut: string): string {
-    const fmt = new Intl.DateTimeFormat('es', { month: 'short', day: 'numeric' });
+    const locale = this.i18n.language() === 'es' ? 'es-ES' : 'en-US';
+    const fmt = new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' });
     const start = new Date(checkIn + 'T00:00:00');
     const end = new Date(checkOut + 'T00:00:00');
     const startStr = fmt.format(start);
     if (start.getMonth() === end.getMonth()) {
       return `${startStr}-${end.getDate()}`;
     }
-    const endStr = new Intl.DateTimeFormat('es', { month: 'short', day: 'numeric' }).format(end);
+    const endStr = new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(end);
     return `${startStr} - ${endStr}`;
   }
 }

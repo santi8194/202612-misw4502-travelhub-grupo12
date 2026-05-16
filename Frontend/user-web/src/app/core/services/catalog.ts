@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
@@ -10,10 +10,11 @@ export class CatalogService {
   private readonly http = inject(HttpClient);
   private readonly catalogUrl = environment.catalogApiUrl;
 
-  getCategoryViewDetail(categoryId: string): Observable<RoomDetailResponse> {
+  getCategoryViewDetail(categoryId: string, lang: 'es' | 'en' = 'es'): Observable<RoomDetailResponse> {
     const url = `${this.catalogUrl}/categories/${categoryId}/view-detail`;
     console.info('[CatalogService] GET', url);
-    return this.http.get<RoomDetailResponse>(url).pipe(
+    const params = new HttpParams().set('lang', lang);
+    return this.http.get<RoomDetailResponse>(url, { params }).pipe(
       tap(response => console.info('[CatalogService] getCategoryViewDetail success', response)),
       catchError(error => {
         console.error('[CatalogService] getCategoryViewDetail error', { categoryId, error });

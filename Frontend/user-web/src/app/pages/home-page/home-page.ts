@@ -3,12 +3,13 @@ import { Router } from '@angular/router';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeroSearchFormComponent } from '../../shared/components/hero-search-form/hero-search-form';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import { SearchForm } from '../../models/search-form.interface';
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent, HeroSearchFormComponent],
+  imports: [HeaderComponent, FooterComponent, HeroSearchFormComponent, TranslatePipe],
   templateUrl: './home-page.html',
   styleUrl: './home-page.css',
 })

@@ -5,43 +5,45 @@
     <div class="auth-wrapper">
       <div class="brand">
         <h1>TravelHub</h1>
-        <p>Bienvenido de nuevo a tu compañero de viajes</p>
+        <p>{{ 'auth.login.brand' | translate }}</p>
       </div>
 
       <article class="auth-card">
-        <h2 class="card-title">Iniciar Sesión</h2>
+        <h2 class="card-title">{{ 'auth.login.title' | translate }}</h2>
 
         <p class="subtitle">
-          Ingresa tus credenciales para acceder a tu cuenta
+          {{ 'auth.login.subtitle' | translate }}
         </p>
 
         <form class="auth-form" (ngSubmit)="onSubmit()">
           <label>
-            Correo Electrónico
+            {{ 'auth.login.email' | translate }}
 
-            <div class="input-wrapper">
+            <div class="input-wrapper" [class.input-wrapper--error]="errors().email">
               <input
                 type="email"
                 [value]="form().email"
                 (input)="updateField('email', $any($event.target).value)"
-                placeholder="tu@ejemplo.com"
+                (blur)="markTouched('email')"
+                [placeholder]="'auth.login.emailPlaceholder' | translate"
               />
             </div>
 
             @if (errors().email) {
-              <small>Ingresa un correo válido.</small>
+              <small class="field-error">{{ errorMessages().email }}</small>
             }
           </label>
 
           <label>
-            Contraseña
+            {{ 'auth.login.password' | translate }}
 
-            <div class="input-wrapper password-input">
+            <div class="input-wrapper password-input" [class.input-wrapper--error]="errors().password">
               <input
                 [type]="showPassword() ? 'text' : 'password'"
                 [value]="form().password"
                 (input)="updateField('password', $any($event.target).value)"
-                placeholder="Ingresa tu contraseña"
+                (blur)="markTouched('password')"
+                [placeholder]="'auth.login.passwordPlaceholder' | translate"
               />
 
               <button
@@ -72,37 +74,37 @@
             </div>
 
             @if (errors().password) {
-              <small>La contraseña es obligatoria.</small>
+              <small class="field-error">{{ errorMessages().password }}</small>
             }
           </label>
 
           <div class="options-row">
             <label class="remember">
-              <input type="checkbox" />
-              Recordarme
+              <input type="checkbox" (change)="onRememberMe()" />
+              {{ 'auth.login.rememberMe' | translate }}
             </label>
 
-            <a class="forgot-password" routerLink="/auth/forgot-password">
-              ¿Olvidaste tu contraseña?
+            <a class="forgot-password" (click)="onForgotPassword(); $event.preventDefault()">
+              {{ 'auth.login.forgotPassword' | translate }}
             </a>
           </div>
 
           <button class="primary" type="submit" [disabled]="loading()">
-            {{ loading() ? 'Ingresando...' : '→ Iniciar Sesión' }}
+            {{ loading() ? ('auth.login.submitLoading' | translate) : ('auth.login.submit' | translate) }}
           </button>
 
           <div class="divider">
-            <span>O continuar con</span>
+            <span>{{ 'auth.login.googleDivider' | translate }}</span>
           </div>
 
-          <button type="button" class="google-btn">
-            Continuar con Google
+          <button type="button" class="google-btn" (click)="onGoogleSignIn()">
+            {{ 'auth.login.google' | translate }}
           </button>
         </form>
 
         <p class="hint">
-          ¿No tienes una cuenta?
-          <a routerLink="/auth/registro">Regístrate →</a>
+          {{ 'auth.login.signupHint' | translate }}
+          <a routerLink="/auth/registro">{{ 'auth.login.signupLink' | translate }}</a>
         </p>
       </article>
     </div>

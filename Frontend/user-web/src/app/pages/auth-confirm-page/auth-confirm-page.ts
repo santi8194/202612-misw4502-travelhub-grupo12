@@ -5,6 +5,7 @@ import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { AuthService } from '../../core/services/auth';
 import { NotificationService } from '../../core/services/notification';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 @Component({
   selector: 'app-auth-confirm-page',
@@ -16,6 +17,7 @@ import { NotificationService } from '../../core/services/notification';
 export class AuthConfirmPage {
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly i18n = inject(I18nService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -65,12 +67,12 @@ export class AuthConfirmPage {
       })
       .subscribe({
         next: () => {
-          this.notificationService.showSuccess('Correo confirmado. Ahora puedes iniciar sesión.');
+          this.notificationService.showSuccess(this.i18n.translate('authConfirm.success'));
           this.router.navigate(['/auth/login'], { queryParams: { email: f.email.trim() } });
         },
         error: () => {
           this.notificationService.showError(
-            'No se pudo confirmar el código. Verifica e intenta nuevamente.'
+            this.i18n.translate('authConfirm.error')
           );
           this.loading.set(false);
         },

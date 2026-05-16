@@ -1,5 +1,5 @@
-<label class="search-shell" aria-label="Busqueda">
-    <input class="search-input" type="text" placeholder="Comienza tu busqueda" />
+<label class="search-shell" [attr.aria-label]="'searchBar.label' | translate">
+    <input class="search-input" type="text" [placeholder]="'searchBar.placeholder' | translate" />
 	<svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
 		<path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
 		<circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.7" fill="none"/>

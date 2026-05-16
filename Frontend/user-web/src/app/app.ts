@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NotificationComponent } from './shared/components/notification/notification';
+import { I18nService } from './core/i18n/i18n.service';
 
 @Component({
   selector: 'app-root',
@@ -9,5 +10,6 @@ import { NotificationComponent } from './shared/components/notification/notifica
   styleUrl: './app.css'
 })
 export class App {
+  private readonly i18n = inject(I18nService);
   protected readonly title = signal('user-web');
 }

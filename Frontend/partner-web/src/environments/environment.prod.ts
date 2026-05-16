@@ -4,4 +4,5 @@ export const environment = {
   apiBaseUrl: 'https://api.tu-backend.com/auth', // Cambia esta URL para producción
   catalogApiUrl: 'https://api.tu-backend.com/catalog',
   bookingApiUrl: 'https://api.tu-backend.com/booking/api',
+  partnerManagementApiUrl: 'https://api.tu-backend.com/partner-management',
 };

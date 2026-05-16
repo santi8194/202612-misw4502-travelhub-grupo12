@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { NgIf } from '@angular/common';
@@ -8,7 +8,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-login',
-    imports: [ReactiveFormsModule, RouterLink, NgIf, TranslateModule],
+    imports: [ReactiveFormsModule, NgIf, TranslateModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss'
 })

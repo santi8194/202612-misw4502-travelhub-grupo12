@@ -4,8 +4,9 @@ Rol dentro del microservicio: Provee la capa de transferencia de datos (DTOs) pa
 """
 
 from typing import Optional
+from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, UUID4
+from pydantic import BaseModel, EmailStr
 
 
 class UserBase(BaseModel):
@@ -17,7 +18,7 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     rol: str
-    partner_id: Optional[UUID4] = None
+    partner_id: Optional[UUID] = None
 
 
 class UserInDB(UserBase):
@@ -27,7 +28,7 @@ class UserInDB(UserBase):
     El password_hash es opcional tras la migración a Cognito.
     """
 
-    id_usuario: UUID4
+    id_usuario: UUID
     password_hash: str | None = None
 
 
@@ -37,4 +38,4 @@ class UserResponse(UserBase):
     Filtra la información para exponerla; estrictamente sin incluir contraseñas.
     """
 
-    id_usuario: UUID4
+    id_usuario: UUID

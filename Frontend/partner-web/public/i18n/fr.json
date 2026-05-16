@@ -148,5 +148,44 @@
     "PAYMENT_PAGO": "Payé",
     "PAYMENT_REEMBOLSO": "Remboursé",
     "PAYMENT_PENDIENTE": "En attente"
+  },
+  "REPORTS": {
+    "TITLE": "Rapport de revenus",
+    "SUBTITLE": "Analyse détaillée des revenus mensuels et tendances",
+    "EXPORT": "Exporter le rapport",
+    "CHART_TREND": "Tendance des revenus mensuels",
+    "CHART_BOOKINGS_OCC": "Réservations et occupation",
+    "TABLE_TITLE": "Tableau détaillé des revenus mensuels",
+    "LEGEND_BOOKINGS": "Réservations",
+    "LEGEND_OCC": "Occupation %",
+    "CARDS": {
+      "ANNUAL_REVENUE": "Revenus totaux annuels",
+      "TOTAL_BOOKINGS": "Total des réservations",
+      "AVG_OCCUPANCY": "Occupation moyenne",
+      "AVG_RATE_NIGHT": "Tarif moyen/nuit"
+    },
+    "TABLE": {
+      "MONTH": "Mois",
+      "TOTAL_REVENUE": "Revenus totaux",
+      "ROOMS": "Chambres",
+      "SERVICES": "Services",
+      "TAXES": "Impôts",
+      "BOOKINGS": "Réservations",
+      "TOTAL": "TOTAL"
+    },
+    "MONTHS": {
+      "JAN": "Janvier",
+      "FEB": "Février",
+      "MAR": "Mars",
+      "APR": "Avril",
+      "MAY": "Mai",
+      "JUN": "Juin",
+      "JUL": "Juillet",
+      "AUG": "Août",
+      "SEP": "Septembre",
+      "OCT": "Octobre",
+      "NOV": "Novembre",
+      "DEC": "Décembre"
+    }
   }
 }

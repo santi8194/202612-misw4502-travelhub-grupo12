@@ -61,6 +61,22 @@ describe('BookingStore', () => {
     expect(store.getHold('')).toBeNull();
   });
 
+  it('should ignore null, undefined and blank reservation ids', () => {
+    const hold: HoldResponse = { id: 'hold-blank', expiresAt: Date.now() + 60000 };
+
+    store.setHold(null, hold);
+    store.setHold(undefined, hold);
+    store.setHold('   ', hold);
+    store.clear(null);
+    store.clear(undefined);
+    store.clear('   ');
+
+    expect(store.getHold(null)).toBeNull();
+    expect(store.getHold(undefined)).toBeNull();
+    expect(store.getHold('   ')).toBeNull();
+    expect(localStorage.length).toBe(0);
+  });
+
   it('should store and retrieve a booking session by signature', () => {
     const session: BookingSession = {
       reservationId: reservationA,
@@ -84,5 +100,25 @@ describe('BookingStore', () => {
     store.clearBookingSession(session.signature);
 
     expect(store.getBookingSession(session.signature)).toBeNull();
+  });
+
+  it('should ignore blank booking session signatures', () => {
+    const session: BookingSession = {
+      reservationId: reservationA,
+      signature: '   ',
+      expiresAt: Date.now() + 60000,
+    };
+
+    store.setBookingSession(null, session);
+    store.setBookingSession(undefined, session);
+    store.setBookingSession('   ', session);
+    store.clearBookingSession(null);
+    store.clearBookingSession(undefined);
+    store.clearBookingSession('   ');
+
+    expect(store.getBookingSession(null)).toBeNull();
+    expect(store.getBookingSession(undefined)).toBeNull();
+    expect(store.getBookingSession('   ')).toBeNull();
+    expect(localStorage.length).toBe(0);
   });
 });

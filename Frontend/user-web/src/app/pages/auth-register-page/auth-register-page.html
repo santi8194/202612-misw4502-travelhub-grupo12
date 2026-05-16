@@ -5,81 +5,87 @@
         <div class="auth-wrapper">
             <div class="brand">
                 <h1>TravelHub</h1>
-                <p>Comienza tu viaje con TravelHub</p>
+                <p>{{ 'auth.register.brand' | translate }}</p>
             </div>
 
             <article class="auth-card">
-                <h2 class="card-title">Crear Cuenta</h2>
+                <h2 class="card-title">{{ 'auth.register.title' | translate }}</h2>
 
                 <p class="subtitle">
-                    Completa tus datos para crear tu cuenta
+                    {{ 'auth.register.subtitle' | translate }}
                 </p>
 
                 <form class="auth-form" (ngSubmit)="onSubmit()">
                     <div class="row two-cols">
                         <label>
-                            Nombre
+                            {{ 'auth.register.firstName' | translate }}
 
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" [class.input-wrapper--error]="errors().firstName">
                                 <input type="text" [value]="form().firstName"
-                                    (input)="updateField('firstName', $any($event.target).value)" placeholder="Juan" />
+                                    (input)="updateField('firstName', $any($event.target).value)"
+                                    (blur)="markTouched('firstName')"
+                                    [placeholder]="'auth.register.firstName' | translate" />
                             </div>
 
                             @if (errors().firstName) {
-                            <small>Ingresa tu nombre.</small>
+                            <small class="field-error">{{ errorMessages().firstName }}</small>
                             }
                         </label>
 
                         <label>
-                            Apellido
+                            {{ 'auth.register.lastName' | translate }}
 
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" [class.input-wrapper--error]="errors().lastName">
                                 <input type="text" [value]="form().lastName"
-                                    (input)="updateField('lastName', $any($event.target).value)" placeholder="Pérez" />
+                                    (input)="updateField('lastName', $any($event.target).value)"
+                                    (blur)="markTouched('lastName')"
+                                    [placeholder]="'auth.register.lastName' | translate" />
                             </div>
 
                             @if (errors().lastName) {
-                            <small>Ingresa tu apellido.</small>
+                            <small class="field-error">{{ errorMessages().lastName }}</small>
                             }
                         </label>
                     </div>
 
                     <label>
-                        Correo Electrónico
+                        {{ 'auth.register.email' | translate }}
 
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" [class.input-wrapper--error]="errors().email">
                             <input type="email" [value]="form().email"
                                 (input)="updateField('email', $any($event.target).value)"
-                                placeholder="tu@ejemplo.com" />
+                                (blur)="markTouched('email')"
+                                [placeholder]="'auth.login.emailPlaceholder' | translate" />
                         </div>
 
                         @if (errors().email) {
-                        <small>Ingresa un correo válido.</small>
+                        <small class="field-error">{{ errorMessages().email }}</small>
                         }
                     </label>
 
                     <label>
-                        Número de Teléfono
-                        <span class="optional">(Opcional)</span>
+                        {{ 'auth.register.phone' | translate }}
 
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" [class.input-wrapper--error]="errors().phone">
                             <input type="tel" [value]="form().phone"
                                 (input)="updateField('phone', $any($event.target).value)"
-                                placeholder="+57 300 111 2233" />
+                                (blur)="markTouched('phone')"
+                                placeholder="+573001112233" />
                         </div>
 
                         @if (errors().phone) {
-                        <small>Usa formato internacional.</small>
+                        <small class="field-error">{{ errorMessages().phone }}</small>
                         }
                     </label>
 
                     <label>
-                        Contraseña
+                        {{ 'auth.register.password' | translate }}
 
-                        <div class="input-wrapper password-input">
+                        <div class="input-wrapper password-input" [class.input-wrapper--error]="errors().password">
                             <input [type]="showPassword() ? 'text' : 'password'" [value]="form().password"
                                 (input)="updateField('password', $any($event.target).value)"
-                                placeholder="Crea una contraseña segura" />
+                                (blur)="markTouched('password')"
+                                [placeholder]="'auth.register.password' | translate" />
 
                             <button type="button" class="password-toggle" (click)="togglePassword()">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -94,20 +100,29 @@
                             </button>
                         </div>
 
+                        @if (form().password) {
+                        <ul class="password-requirements">
+                            <li [class.req-met]="hasMinPasswordLength()">{{ 'auth.register.passwordInvalid' | translate }}</li>
+                            <li [class.req-met]="hasPasswordLowercase()">{{ 'auth.register.passwordInvalid' | translate }}</li>
+                            <li [class.req-met]="hasPasswordUppercase()">{{ 'auth.register.passwordInvalid' | translate }}</li>
+                            <li [class.req-met]="hasPasswordNumber()">{{ 'auth.register.passwordInvalid' | translate }}</li>
+                            <li [class.req-met]="hasPasswordSpecialChar()">{{ 'auth.register.passwordInvalid' | translate }}</li>
+                        </ul>
+                        }
+
                         @if (errors().password) {
-                        <small>
-                            Debe incluir mayúscula, minúscula, número y símbolo.
-                        </small>
+                        <small class="field-error">{{ errorMessages().password }}</small>
                         }
                     </label>
 
                     <label>
-                        Confirmar Contraseña
+                        {{ 'auth.register.confirmPassword' | translate }}
 
-                        <div class="input-wrapper password-input">
+                        <div class="input-wrapper password-input" [class.input-wrapper--error]="errors().confirmPassword">
                             <input [type]="showConfirmPassword() ? 'text' : 'password'" [value]="form().confirmPassword"
                                 (input)="updateField('confirmPassword', $any($event.target).value)"
-                                placeholder="Vuelve a ingresar tu contraseña" />
+                                (blur)="markTouched('confirmPassword')"
+                                [placeholder]="'auth.register.confirmPassword' | translate" />
 
                             <button type="button" class="password-toggle" (click)="toggleConfirmPassword()">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -123,37 +138,33 @@
                         </div>
 
                         @if (errors().confirmPassword) {
-                        <small>Confirma tu contraseña.</small>
-                        }
-
-                        @if (errors().passwordMismatch) {
-                        <small>Las contraseñas no coinciden.</small>
+                        <small class="field-error">{{ errorMessages().confirmPassword }}</small>
                         }
                     </label>
 
                     <p class="terms">
-                        Acepto los
+                        {{ 'auth.login.signupHint' | translate }}
                         <a href="#">Términos de Servicio</a>
                         y la
                         <a href="#">Política de Privacidad</a>
                     </p>
 
                     <button class="primary" type="submit" [disabled]="loading()">
-                        {{ loading() ? 'Creando cuenta...' : 'Crear Cuenta →' }}
+                        {{ loading() ? ('auth.register.submitLoading' | translate) : ('auth.register.submit' | translate) }}
                     </button>
 
                     <div class="divider">
-                        <span>O regístrate con</span>
+                        <span>{{ 'auth.register.googleDivider' | translate }}</span>
                     </div>
 
-                    <button type="button" class="google-btn">
-                        Registrarse con Google
+                    <button type="button" class="google-btn" (click)="onGoogleSignUp()">
+                        {{ 'auth.register.google' | translate }}
                     </button>
                 </form>
 
                 <p class="login-link">
-                    ¿Ya tienes una cuenta?
-                    <a routerLink="/auth/login">Inicia sesión →</a>
+                    {{ 'auth.register.loginHint' | translate }}
+                    <a routerLink="/auth/login">{{ 'auth.register.loginLink' | translate }}</a>
                 </p>
             </article>
         </div>

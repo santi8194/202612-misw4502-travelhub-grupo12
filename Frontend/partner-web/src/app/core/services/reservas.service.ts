@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 export interface ReservaPorPropiedadApi {
     id_reserva: string;
     id_usuario: string | null;
+    nombre_usuario: string | null;
     id_propiedad: string;
     id_categoria: string | null;
     habitacion: string | null;

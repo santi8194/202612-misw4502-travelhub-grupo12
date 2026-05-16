@@ -3,20 +3,20 @@
 
   <main class="existing-session-content">
     <section class="existing-session-card" data-testid="existing-session-redirect-card">
-      <h1 class="existing-session-title">Ya tienes una reserva activa con estos datos</h1>
+      <h1 class="existing-session-title">{{ 'existingSession.title' | translate }}</h1>
       <p class="existing-session-text">
-        Detectamos una sesión de reserva activa para las mismas fechas, categoría y número de huéspedes.
+        {{ 'existingSession.description' | translate }}
       </p>
       <p class="existing-session-text">
         {{ statusMessage() }}
       </p>
 
       @if (!targetReservationId || hasResolutionError()) {
-        <p class="existing-session-error">No encontramos una sesión activa para redirigirte.</p>
+        <p class="existing-session-error">{{ 'existingSession.error' | translate }}</p>
         @if (targetReservationId) {
-          <button class="existing-session-btn" type="button" (click)="goToActiveSession()">Abrir mi reserva de todos modos</button>
+          <button class="existing-session-btn" type="button" (click)="goToActiveSession()">{{ 'existingSession.openAnyway' | translate }}</button>
         } @else {
-          <a class="existing-session-btn" routerLink="/resultados">Volver a resultados</a>
+          <a class="existing-session-btn" routerLink="/resultados">{{ 'existingSession.backToResults' | translate }}</a>
         }
       } @else {
         <button class="existing-session-btn" type="button" (click)="goToActiveSession()">{{ actionLabel() }}</button>

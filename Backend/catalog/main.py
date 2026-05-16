@@ -52,6 +52,12 @@ def _ensure_legacy_schema_compatibility() -> None:
     property_columns = {column["name"] for column in inspector.get_columns("propiedades")}
     has_estado_provincia = "estado_provincia" in property_columns
 
+    category_columns: set[str] = set()
+    if "categorias_habitacion" in tables:
+        category_columns = {
+            column["name"] for column in inspector.get_columns("categorias_habitacion")
+        }
+
     with engine.begin() as connection:
         if not has_estado_provincia:
             print("[CATALOG] Legacy schema detected (missing propiedades.estado_provincia), applying compatibility fix...")
@@ -71,6 +77,12 @@ def _ensure_legacy_schema_compatibility() -> None:
                 "WHERE estado_provincia IS NULL OR estado_provincia = ''"
             )
         )
+
+        if "categorias_habitacion" in tables and "descripcion_en" not in category_columns:
+            print("[CATALOG] Legacy schema detected (missing categorias_habitacion.descripcion_en), applying compatibility fix...")
+            connection.execute(
+                text("ALTER TABLE categorias_habitacion ADD COLUMN descripcion_en VARCHAR")
+            )
 
 # Crear tablas locales solo cuando se usa SQLite de desarrollo.
 # Se omite durante pytest para evitar que PgUUID falle al compilar en SQLite.

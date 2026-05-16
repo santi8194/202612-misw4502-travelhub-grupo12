@@ -39,7 +39,7 @@ describe('Búsqueda de Hospedaje (HU-Web-01)', () => {
 
     // 7. Validar la redirección y la renderización de resultados
     cy.url().should('include', '/resultados?ciudad=Bordeaux');
-    cy.get('[data-testid="results-title"]').should('contain.text', 'Stays in Bordeaux');
+    cy.get('[data-testid="results-title"]').should('contain.text', 'Estancias en Bordeaux');
     
     // Verificar que se renderizaron exactamente las 2 cards indicadas en el fixture
     cy.get('[data-testid="hospedaje-card"]').should('have.length', 2);

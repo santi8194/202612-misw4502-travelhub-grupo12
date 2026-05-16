@@ -8,11 +8,12 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 import { HospedajeCardComponent } from '../../shared/components/hospedaje-card/hospedaje-card';
 import { Hospedaje } from '../../models/hospedaje.interface';
 import { SearchService } from '../../core/services/search';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-search-results-page',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent, HospedajeCardComponent, RouterLink],
+  imports: [HeaderComponent, FooterComponent, HospedajeCardComponent, RouterLink, TranslatePipe],
   templateUrl: './search-results-page.html',
   styleUrl: './search-results-page.css',
 })

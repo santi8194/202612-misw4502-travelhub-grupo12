@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import {
   AuthTokenResponse,
   ConfirmRegistrationRequest,
@@ -8,6 +8,14 @@ import {
   RegisterRequest,
 } from '../../models/auth.interface';
 import { environment } from '../../../environments/environment';
+
+export interface UserProfile {
+  id_usuario?: string;
+  full_name?: string;
+  email?: string;
+  rol?: string;
+  partner_id?: string;
+}
 
 interface AuthSession {
   accessToken: string;
@@ -31,13 +39,15 @@ export class AuthService {
     userId: 'th_user_id',
     userName: 'th_user_name',
     expiresAt: 'th_access_token_expires_at',
+    lastActivityAt: 'th_last_activity_at',
   } as const;
+  private readonly INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 
   private readonly sessionState = signal<AuthSession | null>(null);
   readonly session = computed(() => this.sessionState());
 
   constructor() {
-    this.refreshSessionState();
+    this.refreshSessionState(false);
   }
 
   register(payload: RegisterRequest): Observable<unknown> {
@@ -80,6 +90,8 @@ export class AuthService {
       userName,
       expiresAt,
     });
+
+    this.touchActivity();
   }
 
   clearSession(): void {
@@ -90,17 +102,18 @@ export class AuthService {
     localStorage.removeItem(this.SESSION_KEYS.userId);
     localStorage.removeItem(this.SESSION_KEYS.userName);
     localStorage.removeItem(this.SESSION_KEYS.expiresAt);
+    localStorage.removeItem(this.SESSION_KEYS.lastActivityAt);
     localStorage.removeItem('user_id');
     this.sessionState.set(null);
   }
 
   isLoggedIn(): boolean {
-    this.refreshSessionState();
+    this.refreshSessionState(true);
     return !!this.sessionState();
   }
 
   getCurrentSession(): AuthSession | null {
-    this.refreshSessionState();
+    this.refreshSessionState(true);
     return this.sessionState();
   }
 
@@ -108,7 +121,11 @@ export class AuthService {
     return this.getCurrentSession()?.userId ?? null;
   }
 
-  private refreshSessionState(): void {
+  getUserProfile(userId: string): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.authBaseUrl}/users/${userId}`);
+  }
+
+  private refreshSessionState(updateActivity: boolean): void {
     const accessToken = localStorage.getItem(this.SESSION_KEYS.accessToken);
     const refreshToken = localStorage.getItem(this.SESSION_KEYS.refreshToken);
     const tokenType = localStorage.getItem(this.SESSION_KEYS.tokenType);
@@ -116,6 +133,12 @@ export class AuthService {
 
     if (!accessToken || !refreshToken || !tokenType || !email) {
       this.sessionState.set(null);
+      return;
+    }
+
+    const lastActivityAt = this.resolveLastActivityAt();
+    if (lastActivityAt && Date.now() - lastActivityAt >= this.INACTIVITY_TIMEOUT_MS) {
+      this.clearSession();
       return;
     }
 
@@ -148,6 +171,26 @@ export class AuthService {
       userName,
       expiresAt,
     });
+
+    if (updateActivity) {
+      this.touchActivity();
+    } else if (!lastActivityAt) {
+      this.touchActivity();
+    }
+  }
+
+  private touchActivity(): void {
+    localStorage.setItem(this.SESSION_KEYS.lastActivityAt, String(Date.now()));
+  }
+
+  private resolveLastActivityAt(): number | null {
+    const stored = localStorage.getItem(this.SESSION_KEYS.lastActivityAt);
+    if (!stored) {
+      return null;
+    }
+
+    const parsed = Number(stored);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private resolveUserId(tokens: Partial<AuthTokenResponse>, claims: Record<string, unknown>): string {

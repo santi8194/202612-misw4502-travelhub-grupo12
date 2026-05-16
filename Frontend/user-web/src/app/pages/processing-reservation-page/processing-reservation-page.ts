@@ -4,6 +4,8 @@ import { finalize } from 'rxjs';
 import { BookingService } from '../../core/services/booking';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { FooterComponent } from '../../shared/components/footer/footer';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 interface BookingStatusResponse {
   estado?: string;
@@ -16,7 +18,7 @@ interface BookingStatusResponse {
 @Component({
   selector: 'app-processing-reservation-page',
   standalone: true,
-  imports: [RouterLink, HeaderComponent, FooterComponent],
+  imports: [RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './processing-reservation-page.html',
   styleUrl: './processing-reservation-page.css',
 })
@@ -26,6 +28,7 @@ export class ProcessingReservationPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookingService = inject(BookingService);
+  private readonly i18n = inject(I18nService);
 
   private pollingId: ReturnType<typeof setInterval> | null = null;
   private isRequestInFlight = false;
@@ -47,13 +50,13 @@ export class ProcessingReservationPage implements OnDestroy {
       return this.sanitizeUserMessage(this.initialReason);
     }
 
-    return 'Tu reserva está en proceso. Estamos confirmando el resultado con hoteles y pagos.';
+    return this.i18n.translate('processing.message');
   });
 
   constructor() {
     if (!this.reservationId) {
       this.isPolling.set(false);
-      this.pollingError.set('No se encontró el identificador de reserva para consultar el estado.');
+      this.pollingError.set(this.i18n.translate('processing.noReservationId'));
       return;
     }
 
@@ -78,7 +81,7 @@ export class ProcessingReservationPage implements OnDestroy {
     ).subscribe({
       next: (response: BookingStatusResponse) => this.handleStatusResponse(response),
       error: () => {
-        this.pollingError.set('No pudimos consultar el estado de la reserva. Reintentando...');
+        this.pollingError.set(this.i18n.translate('processing.retrying'));
       },
     });
   }
@@ -90,7 +93,7 @@ export class ProcessingReservationPage implements OnDestroy {
     }
 
     if (normalizedStatus === 'CONFIRMADA') {
-      this.resolveAndNavigate('confirmed', 'Reserva confirmada exitosamente.');
+      this.resolveAndNavigate('confirmed', this.i18n.translate('processing.confirmed'));
       return;
     }
 
@@ -99,7 +102,7 @@ export class ProcessingReservationPage implements OnDestroy {
         ?? response?.mensaje
         ?? response?.detail
         ?? response?.error
-        ?? 'La reserva no pudo ser confirmada.';
+        ?? this.i18n.translate('processing.cancelled');
       const reason = this.buildCancellationReason(rawReason);
       this.resolveAndNavigate('rejected', reason);
       return;
@@ -128,7 +131,7 @@ export class ProcessingReservationPage implements OnDestroy {
   private buildCancellationReason(rawReason: string): string {
     const trimmed = rawReason.trim();
     if (!trimmed) {
-      return 'No fue posible confirmar tu reserva porque la validación con hoteles o pagos no se completó correctamente. Te recomendamos volver al carrito e intentarlo nuevamente con otra opción.';
+      return this.i18n.translate('processing.rejectedReason');
     }
 
     const sanitized = this.sanitizeUserMessage(trimmed);
@@ -139,7 +142,7 @@ export class ProcessingReservationPage implements OnDestroy {
       .toLowerCase();
 
     if (normalized.includes('cancelada durante el procesamiento de la saga')) {
-      return 'No pudimos confirmar tu reserva porque una de las validaciones de hoteles o pagos fue rechazada durante el proceso. Puedes volver al carrito para intentarlo de nuevo o elegir otra opción de reserva.';
+      return this.i18n.translate('processing.rejectedSaga');
     }
 
     return sanitized;
@@ -153,10 +156,10 @@ export class ProcessingReservationPage implements OnDestroy {
 
     if (normalized.includes('saga')) {
       if (normalized.includes('iniciando')) {
-        return 'Tu reserva fue formalizada. Estamos confirmando la disponibilidad y el pago.';
+        return this.i18n.translate('processing.sagaStarting');
       }
 
-      return 'Estamos procesando tu reserva. En breve te mostraremos el resultado.';
+      return this.i18n.translate('processing.sagaProcessing');
     }
 
     return message;

@@ -4,7 +4,7 @@
 
   <section class="hero" data-testid="hero-section">
     <div class="hero-overlay">
-      <h1 class="hero-title" data-testid="hero-title">¿A dónde quieres ir hoy?</h1>
+      <h1 class="hero-title" data-testid="hero-title">{{ 'hero.title' | translate }}</h1>
       <app-hero-search-form (search)="onSearch($event)"></app-hero-search-form>
     </div>
   </section>

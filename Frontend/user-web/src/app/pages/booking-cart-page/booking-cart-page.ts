@@ -12,6 +12,8 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 import { BookingCartFormComponent } from '../../shared/components/booking-cart-page/form/booking-cart-form';
 import { BookingCartSummaryComponent } from '../../shared/components/booking-cart-page/summary/booking-cart-summary';
 import { BookingCartStepperComponent } from '../../shared/components/booking-cart-page/stepper/booking-cart-stepper';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import { GuestForm } from '../../models/guest.interface';
 import { HoldRequest } from '../../models/hold.interface';
 import { BookingSummaryData } from '../../models/booking-summary.interface';
@@ -71,6 +73,7 @@ interface PropertyData {
     BookingCartStepperComponent,
     BookingCartFormComponent,
     BookingCartSummaryComponent,
+    TranslatePipe,
   ],
   templateUrl: './booking-cart-page.html',
   styleUrl: './booking-cart-page.css'
@@ -86,6 +89,7 @@ export class BookingCartPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
+  private readonly i18n = inject(I18nService);
   private hasSentExpireRequest = false;
   private readonly reservationId = this.route.snapshot.paramMap.get('id_reserva');
 
@@ -340,7 +344,9 @@ export class BookingCartPage implements OnDestroy {
         total: roomPrice.total ?? (roomPrice.subtotal ?? 0) + taxesAndFees,
         currency: roomPrice.moneda ?? 'COP',
         currencySymbol: roomPrice.simbolo_moneda ?? '$',
-        taxesAndFeesLabel: roomPrice.impuesto_nombre ? `${roomPrice.impuesto_nombre} y cargos` : 'Impuestos y cargos',
+        taxesAndFeesLabel: roomPrice.impuesto_nombre
+          ? this.i18n.translate('bookingCart.taxesNamed', { name: roomPrice.impuesto_nombre })
+          : this.i18n.translate('bookingCart.taxes'),
       };
     }
 
@@ -361,7 +367,7 @@ export class BookingCartPage implements OnDestroy {
       total: subtotal + taxesAndFees,
       currency: 'COP',
       currencySymbol: '$',
-      taxesAndFeesLabel: 'Impuestos y cargos',
+      taxesAndFeesLabel: this.i18n.translate('bookingCart.taxes'),
     };
   }
 
@@ -396,14 +402,14 @@ export class BookingCartPage implements OnDestroy {
 
   createHold(): void {
     if (!this.isGuestFormComplete()) {
-      this.holdError.set('Completa la información del huésped principal (nombre, apellido, email válido y celular) para continuar.');
+      this.holdError.set(this.i18n.translate('bookingCart.formError'));
       return;
     }
 
     if (!this.timerActive()) {
-      this.holdError.set('El tiempo de hold expiró. Debes volver a seleccionar la reserva.');
+      this.holdError.set(this.i18n.translate('bookingCart.expiredError'));
       console.warn('[BookingCartPage] createHold blocked because optimistic hold has expired');
-      alert('El tiempo de hold expiró. Debes volver a seleccionar la reserva.');
+      alert(this.i18n.translate('bookingCart.expiredAlert'));
       return;
     }
 
@@ -412,16 +418,16 @@ export class BookingCartPage implements OnDestroy {
     }
 
     if (!this.reservationId) {
-      this.holdError.set('No se encontró el identificador de la reserva. Regresa y crea una nueva reserva.');
+      this.holdError.set(this.i18n.translate('bookingCart.missingReservation'));
       console.warn('[BookingCartPage] createHold blocked because reservation id is missing');
       return;
     }
 
     const booking = this.bookingData();
     if (!booking) {
-      this.holdError.set('No se pudo cargar la reserva desde backend. Vuelve a intentarlo más tarde.');
+      this.holdError.set(this.i18n.translate('bookingCart.backendLoadError'));
       console.warn('[BookingCartPage] createHold blocked because booking data is missing');
-      alert('No se pudo cargar la reserva desde backend');
+      alert(this.i18n.translate('bookingCart.backendLoadError'));
       return;
     }
 
@@ -438,8 +444,8 @@ export class BookingCartPage implements OnDestroy {
         guests,
         booking,
       });
-      this.holdError.set('La reserva no tiene todos los datos necesarios para continuar con el pago.');
-      alert('La reserva no tiene todos los datos necesarios para crear el hold');
+      this.holdError.set(this.i18n.translate('bookingCart.invalidReservation'));
+      alert(this.i18n.translate('bookingCart.invalidReservation'));
       return;
     }
 
@@ -475,7 +481,7 @@ export class BookingCartPage implements OnDestroy {
 
     const total = Number(this.summary()?.total);
     if (!Number.isFinite(total) || total <= 0) {
-      this.holdError.set('No fue posible calcular el valor total de la reserva para iniciar el pago.');
+      this.holdError.set(this.i18n.translate('bookingCart.totalError'));
       return;
     }
 
@@ -489,7 +495,7 @@ export class BookingCartPage implements OnDestroy {
       finalize(() => this.isSubmittingPayment.set(false))
     ).subscribe({
       next: (response) => {
-        const reason = response?.mensaje?.trim() || 'Tu reserva está siendo procesada por la saga.';
+        const reason = response?.mensaje?.trim() || this.i18n.translate('bookingCart.sagaProcessing');
         if (response.pago?.checkout) {
           sessionStorage.setItem(
             `${PAYMENT_STORAGE_PREFIX}${this.reservationId}`,
@@ -499,7 +505,7 @@ export class BookingCartPage implements OnDestroy {
           return;
         }
 
-        this.holdError.set('La reserva fue formalizada, pero el backend no devolvió una intención de pago para Wompi. Intenta nuevamente o valida el payload de formalización.');
+        this.holdError.set(this.i18n.translate('bookingCart.formalizationError'));
         console.error('[BookingCartPage] formalizeBookingById response without Wompi checkout', {
           reservationId: this.reservationId,
           response,
@@ -509,7 +515,7 @@ export class BookingCartPage implements OnDestroy {
       error: (error) => {
         const reason = this.bookingService.getReservationErrorMessage(
           error,
-          'No fue posible formalizar la reserva. Intenta nuevamente.'
+          this.i18n.translate('bookingCart.formalizationFallback')
         );
         this.holdError.set(reason);
         this.router.navigate(['/booking', this.reservationId, 'confirm-reservation'], {

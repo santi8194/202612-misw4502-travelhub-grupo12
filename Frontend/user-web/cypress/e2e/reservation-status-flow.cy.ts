@@ -1,4 +1,5 @@
 const RESERVATION_ID = 'reserva-status-e2e-001';
+const CONFIRMATION_CODE = RESERVATION_ID.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
 const CATEGORY_ID = 'categoria-e2e-001';
 const PROPERTY_ID = 'propiedad-e2e-001';
 
@@ -65,7 +66,7 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
       .should('contain.text', 'Tu reserva ha sido confirmada. Se ha enviado un correo con los detalles.');
 
     cy.contains('Número de confirmación').should('be.visible');
-    cy.contains(RESERVATION_ID).should('be.visible');
+    cy.contains(CONFIRMATION_CODE).should('be.visible');
 
     cy.get('[data-testid="booking-summary"]')
       .should('be.visible')
@@ -116,8 +117,8 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
     cy.wait('@getPendingBooking');
 
     cy.get('[data-testid="existing-session-redirect-card"]').should('be.visible');
-    cy.contains('Tu reserva esta siendo procesada').should('be.visible');
-    cy.contains('Abrir seguimiento de reserva').click();
+    cy.contains('Tu reserva está en proceso').should('be.visible');
+    cy.contains('Ir a la reserva activa').click();
 
     cy.location('pathname').should('eq', `/booking/${RESERVATION_ID}/processing-reservation`);
     cy.get('[data-testid="processing-reservation-card"]').should('be.visible');

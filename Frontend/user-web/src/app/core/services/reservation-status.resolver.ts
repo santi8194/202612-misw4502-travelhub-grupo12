@@ -40,3 +40,13 @@ export function getStatusLabel(status: ReservationStatus): string {
   };
   return labels[status];
 }
+
+export function getStatusTranslationKey(status: ReservationStatus): string {
+  const labels: Record<ReservationStatus, string> = {
+    PENDIENTE_PAGO: 'reservationStatus.pendingPayment',
+    PENDIENTE_CONFIRMACION_HOTEL: 'reservationStatus.pendingHotelConfirmation',
+    CONFIRMADA: 'reservationStatus.confirmed',
+    CANCELADA: 'reservationStatus.cancelled',
+  };
+  return labels[status];
+}

@@ -9,7 +9,7 @@ const guestForm = {
   name: 'Maria',
   lastName: 'Diaz',
   email: 'maria@example.com',
-  phone: '3001234567',
+  phone: '+573001234567',
   request: 'Necesito check-in temprano.',
 };
 
@@ -29,6 +29,21 @@ function seedAuthSession(window: Window) {
   window.localStorage.setItem('th_token_type', 'Bearer');
   window.localStorage.setItem('th_user_email', 'e2e@travelhub.com');
   window.localStorage.setItem('th_user_id', 'user-e2e-001');
+  window.localStorage.setItem('th_user_name', 'e2e.user');
+}
+
+function mockUserProfileRequest() {
+  cy.intercept('GET', '**/users/user-e2e-001', {
+    statusCode: 200,
+    body: {
+      id_usuario: 'user-e2e-001',
+      nombre_completo: 'E2E Test User',
+      first_name: 'E2E',
+      last_name: 'Test User',
+      email: 'e2e@travelhub.com',
+      username: 'e2e.user'
+    }
+  }).as('getUserProfile');
 }
 
 function mockBookingCartRequests(reservationId = BOOKING_ID) {
@@ -41,6 +56,7 @@ function mockBookingCartRequests(reservationId = BOOKING_ID) {
 
 function visitBookingCart(reservationId = BOOKING_ID) {
   mockBookingCartRequests(reservationId);
+  mockUserProfileRequest();
 
   cy.visit(`/booking/${reservationId}`, {
     onBeforeLoad(window) {

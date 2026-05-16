@@ -1,4 +1,5 @@
 from uuid import UUID
+import re
 
 from modules.catalog.domain.entities import TipoMedia
 
@@ -14,7 +15,7 @@ class ObtainCategoryViewDetail:
 		# Repositorio de propiedades (puerto de salida)
 		self.repository = repository
 
-	def execute(self, id_categoria: UUID) -> dict:
+	def execute(self, id_categoria: UUID, lang: str = "es") -> dict:
 		"""Ejecuta la consulta de detalle consolidado de la categoría.
 
 		Retorna un payload con la propiedad, la categoría solicitada, sus
@@ -48,6 +49,16 @@ class ObtainCategoryViewDetail:
 			reverse=True,
 		)[:10]
 
+		descripcion_en = categoria.descripcion_en or self._localize_description(
+			categoria.descripcion,
+			"en",
+		)
+		descripcion_localizada = (
+			descripcion_en
+			if (lang or "es").lower() == "en"
+			else categoria.descripcion
+		)
+
 		return {
 			"propiedad": {
 				# Serializar UUID a str en la respuesta
@@ -69,7 +80,8 @@ class ObtainCategoryViewDetail:
 				# Serializar UUID a str en la respuesta
 				"id_categoria": str(categoria.id_categoria),
 				"nombre_comercial": categoria.nombre_comercial,
-				"descripcion": categoria.descripcion,
+				"descripcion": descripcion_localizada,
+				"descripcion_en": descripcion_en,
 				"precio_base": {
 					"monto": str(categoria.precio_base.monto),
 					"moneda": categoria.precio_base.moneda,
@@ -113,6 +125,46 @@ class ObtainCategoryViewDetail:
 				for r in resenas_recientes
 			],
 		}
+
+	def _localize_description(self, description: str, lang: str) -> str:
+		"""Localiza descripciones patrón para la vista de detalle.
+
+		Soporta traducción del patrón:
+		"Alojamiento tipo {type} en {city}. {stars} estrellas."
+		"""
+		if not description or (lang or "es").lower() == "es":
+			return description
+
+		pattern = r"^Alojamiento\s+tipo\s+(.+?)\s+en\s+(.+?)[\.,]\s*(\d+)\s+estrellas?\.?$"
+		match = re.match(pattern, description.strip(), re.IGNORECASE)
+		if not match:
+			return description
+
+		type_name = self._translate_property_type(match.group(1).strip(), lang)
+		city = match.group(2).strip()
+		stars = match.group(3)
+
+		if (lang or "es").lower() == "en":
+			return f"{type_name} accommodation in {city}. {stars} stars."
+
+		return description
+
+	def _translate_property_type(self, value: str, lang: str) -> str:
+		if (lang or "es").lower() != "en":
+			return value
+
+		key = value.lower()
+		mapping = {
+			"finca": "Country house",
+			"hotel": "Hotel",
+			"hostal": "Hostel",
+			"apartamento": "Apartment",
+			"apartahotel": "Aparthotel",
+			"casa": "House",
+			"cabaña": "Cabin",
+			"cabana": "Cabin",
+		}
+		return mapping.get(key, value)
 
 	def _construir_galeria(self, media: list) -> list[dict]:
 		"""Construye la galería ordenada para la vista de detalle.

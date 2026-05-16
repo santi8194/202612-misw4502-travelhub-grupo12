@@ -1,0 +1,180 @@
+<div class="reservation-detail-page" data-testid="reservation-detail-page">
+  <app-header mode="compact" />
+
+  <main class="reservation-detail-main">
+    <button class="back-link" type="button" (click)="goBack()" data-testid="reservation-detail-back">
+      <svg class="back-link-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span>{{ 'reservationDetail.back' | translate }}</span>
+    </button>
+
+    <section class="page-heading" data-testid="reservation-detail-heading">
+      <h1 class="page-title">{{ 'reservationDetail.title' | translate }}</h1>
+      <p class="page-subtitle">{{ 'reservationDetail.subtitle' | translate }}</p>
+    </section>
+
+    <section class="detail-shell" aria-label="Detalle de reserva">
+      @if (loading()) {
+        <div class="detail-skeleton" data-testid="reservation-detail-loading" aria-label="Cargando detalle de la reserva">
+          <div class="skeleton-block skeleton-block--hero"></div>
+          <p>{{ 'reservationDetail.loading' | translate }}</p>
+        </div>
+      } @else if (unauthorized()) {
+        <div class="state-message state-message--warning" data-testid="reservation-detail-unauthorized">
+          <h2>{{ 'reservationDetail.unauthorizedTitle' | translate }}</h2>
+          <p>{{ 'reservationDetail.unauthorizedBody' | translate }}</p>
+          <button class="state-action" type="button" (click)="goBack()">{{ 'reservationDetail.back' | translate }}</button>
+        </div>
+      } @else if (notFound()) {
+        <div class="state-message" data-testid="reservation-detail-not-found">
+          <h2>{{ 'reservationDetail.notFoundTitle' | translate }}</h2>
+          <p>{{ 'reservationDetail.notFoundBody' | translate }}</p>
+          <div class="state-actions">
+            <button class="state-action" type="button" (click)="retry()">{{ 'reservationDetail.retry' | translate }}</button>
+            <button class="state-action state-action--secondary" type="button" (click)="goBack()">{{ 'reservationDetail.back' | translate }}</button>
+          </div>
+        </div>
+      } @else if (error()) {
+        <div class="state-message state-message--error" data-testid="reservation-detail-error">
+          <h2>{{ 'reservationDetail.errorTitle' | translate }}</h2>
+          <p>{{ error() }}</p>
+          <div class="state-actions">
+            <button class="state-action" type="button" (click)="retry()">{{ 'reservationDetail.retry' | translate }}</button>
+            <button class="state-action state-action--secondary" type="button" (click)="goBack()">{{ 'reservationDetail.back' | translate }}</button>
+          </div>
+        </div>
+      } @else if (detail()) {
+        <div class="detail-content" data-testid="reservation-detail-success">
+          <div class="hero-image" data-testid="reservation-detail-image">
+            @if (currentImageUrl() && !imageLoadFailed()) {
+              <img
+                [src]="currentImageUrl()"
+                [alt]="detail()!.hotelName"
+                (error)="onImageError()"
+                data-testid="reservation-detail-current-image"
+              />
+            } @else {
+              <div class="hero-image__placeholder" aria-hidden="true" data-testid="reservation-detail-image-fallback">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+              </div>
+            }
+
+            @if (detail()!.images.length > 1) {
+              <button
+                class="gallery-control gallery-control--prev"
+                type="button"
+                aria-label="Imagen anterior"
+                (click)="previousImage()"
+                data-testid="gallery-prev"
+              >
+                &lsaquo;
+              </button>
+              <button
+                class="gallery-control gallery-control--next"
+                type="button"
+                aria-label="Imagen siguiente"
+                (click)="nextImage()"
+                data-testid="gallery-next"
+              >
+                &rsaquo;
+              </button>
+
+              <div class="gallery-indicators" aria-label="Imágenes del hotel">
+                @for (image of detail()!.images; track image; let index = $index) {
+                  <button
+                    type="button"
+                    class="gallery-indicator"
+                    [class.gallery-indicator--active]="currentImageIndex() === index"
+                    [attr.aria-label]="'Ver imagen ' + (index + 1)"
+                    (click)="goToImage(index)"
+                    data-testid="gallery-indicator"
+                  ></button>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="detail-header">
+            <div>
+              <h2 data-testid="reservation-detail-hotel">{{ detail()!.hotelName }}</h2>
+              <p class="detail-location" data-testid="reservation-detail-location">
+                {{ detail()!.location.city }}, {{ detail()!.location.country }}
+              </p>
+            </div>
+
+            <span
+              [class]="'status-badge ' + getStatusClass(detail()!.status)"
+              data-testid="reservation-detail-status"
+            >
+              {{ getStatusLabel(detail()!.status) }}
+            </span>
+          </div>
+
+          <div class="info-grid" data-testid="reservation-detail-info">
+            <div class="info-row">
+              <span>{{ 'reservationDetail.arrival' | translate }}</span>
+              <strong data-testid="reservation-detail-check-in">{{ formatDate(detail()!.checkInDate) }}</strong>
+            </div>
+            <div class="info-row">
+              <span>{{ 'reservationDetail.departure' | translate }}</span>
+              <strong data-testid="reservation-detail-check-out">{{ formatDate(detail()!.checkOutDate) }}</strong>
+            </div>
+            <div class="info-row">
+              <span>{{ 'reservationDetail.guests' | translate }}</span>
+              <strong data-testid="reservation-detail-guests">{{ detail()!.guests }}</strong>
+            </div>
+            <div class="info-row">
+              <span>{{ 'reservationDetail.confirmation' | translate }}</span>
+              <strong class="confirmation-code" data-testid="reservation-detail-confirmation">
+                {{ detail()!.confirmationNumber || ('reservationDetail.confirmationUnavailable' | translate) }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="total-panel" data-testid="reservation-detail-total">
+            <span>{{ 'reservationDetail.total' | translate }}</span>
+            @if (totalLoading()) {
+              <strong>{{ 'reservationDetail.consultingTotal' | translate }}</strong>
+            } @else if (detail()!.totalAmount !== null) {
+              <strong>{{ formatCurrency(detail()!.totalAmount, detail()!.currency) }}</strong>
+            } @else {
+              <div class="total-panel__unavailable" data-testid="reservation-detail-total-unavailable">
+                <strong>{{ 'reservationDetail.totalUnavailable' | translate }}</strong>
+                <small>{{ 'reservationDetail.totalUnavailableHelp' | translate }}</small>
+              </div>
+            }
+          </div>
+
+          <section class="actions-panel" aria-label="Acciones disponibles" data-testid="reservation-detail-actions">
+            <div>
+              <h3>{{ 'reservationDetail.actionsTitle' | translate }}</h3>
+              <p>
+                @if (detail()!.canCancel) {
+                  {{ 'reservationDetail.cancelPromptAllowed' | translate }}
+                } @else {
+                  {{ detail()!.cancellationReason }}
+                }
+              </p>
+            </div>
+            <button
+              class="btn-danger"
+              type="button"
+              [disabled]="!detail()!.canCancel"
+              (click)="startCancellation()"
+              data-testid="reservation-detail-cancel"
+            >
+              {{ 'reservationDetail.cancelButton' | translate }}
+            </button>
+          </section>
+        </div>
+      }
+    </section>
+  </main>
+
+  <app-footer />
+</div>

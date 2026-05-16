@@ -1,0 +1,642 @@
+import { Injectable, effect, signal } from '@angular/core';
+
+export type LanguageCode = 'es' | 'en';
+
+export interface LanguageOption {
+  code: LanguageCode;
+  label: string;
+  shortLabel: string;
+}
+
+type TranslationMap = Record<string, string>;
+
+const LANGUAGE_STORAGE_KEY = 'th_language';
+
+const TRANSLATIONS: Record<LanguageCode, TranslationMap> = {
+  es: {
+    'header.language.label': 'Idioma',
+    'header.language.es': 'Español',
+    'header.language.en': 'Inglés',
+    'header.currency.label': 'Moneda',
+    'header.profile.menu': 'Menú de usuario',
+    'header.profile.myReservations': 'Mis Reservas',
+    'header.profile.logout': 'Cerrar sesión',
+    'header.profile.register': 'Registrarse',
+    'header.profile.login': 'Iniciar Sesión',
+    'header.profile.open': 'Abrir menú de perfil',
+    'header.profile.auth': 'Preferencias de usuario',
+    'searchBar.label': 'Búsqueda',
+    'searchBar.placeholder': 'Comienza tu búsqueda',
+    'auth.login.logoutSuccess': 'Tu sesión ha sido cerrada exitosamente.',
+    'footer.support': 'Soporte',
+    'footer.helpCenter': 'Centro de Ayuda',
+    'footer.contactUs': 'Contáctanos',
+    'footer.legal': 'Legal',
+    'footer.cancellationPolicy': 'Política de Cancelación y Reembolsos',
+    'footer.copyright': '© 2026 TravelHub. Todos los derechos reservados.',
+    'common.loading': 'Cargando...',
+    'search.location': 'Ubicación',
+    'search.locationPlaceholder': '¿A dónde vamos?',
+    'hero.title': '¿A dónde quieres ir hoy?',
+    'search.locationRequired': 'Introduce un destino',
+    'search.checkIn': 'Ingreso',
+    'search.checkInRequired': 'Selecciona ingreso',
+    'search.checkOut': 'Salida',
+    'search.checkOutRequired': 'Selecciona salida',
+    'search.guests': 'Huéspedes',
+    'search.minGuests': 'Mínimo 1 huésped',
+    'search.submit': 'Buscar',
+    'stepper.guests': 'Huéspedes',
+    'stepper.payment': 'Pago',
+    'stepper.confirmation': 'Confirmación',
+    'hospedaje.more': '+{count} más',
+    'hospedaje.reviews': '{count} reseñas',
+    'hospedaje.perNight': 'por noche',
+    'search.results.title': 'Estancias en {city}',
+    'search.results.subtitle': '{count}+ estancias en {city}',
+    'search.results.empty': 'No se encontraron hospedajes para las fechas seleccionadas.',
+    'search.results.back': 'Volver a TravelHub',
+    'compactSearch.guestSingular': '{count} huésped',
+    'compactSearch.guestPlural': '{count} huéspedes',
+    'compactSearch.editSearch': 'Editar búsqueda',
+    'propertyType.finca': 'Finca',
+    'propertyType.hotel': 'Hotel',
+    'propertyType.hostal': 'Hostal',
+    'propertyType.apartment': 'Apartamento',
+    'propertyType.aparthotel': 'Apartahotel',
+    'propertyType.house': 'Casa',
+    'propertyType.cabin': 'Cabaña',
+    'propertyDetail.notAvailable': 'N/A',
+    'propertyDetail.field.stars': 'Estrellas',
+    'propertyDetail.field.tax': 'Impuesto',
+    'propertyDetail.field.categories': 'Categorías',
+    'propertyDetail.field.checkIn': 'Check-in',
+    'propertyDetail.field.checkOut': 'Check-out',
+    'propertyDetail.field.guests': 'Huéspedes',
+    'propertyDetail.bookingConfigTitle': 'Configura tu reserva',
+    'propertyDetail.availableCategories': 'Categorías disponibles',
+    'propertyDetail.noCategories': 'No hay categorías disponibles para los filtros seleccionados.',
+    'propertyDetail.categoryPmsCode': 'Código PMS',
+    'propertyDetail.categoryCapacity': 'Capacidad',
+    'propertyDetail.perNight': '/ noche',
+    'propertyDetail.guestSingular': '{count} huésped',
+    'propertyDetail.guestPlural': '{count} huéspedes',
+    'propertyDetail.reserve': 'Reservar',
+    'propertyDetail.reserving': 'Reservando...',
+    'propertyDetail.descriptionTemplate': 'Alojamiento tipo {type} en {city}. {stars} estrellas.',
+    'reservationStatus.pendingPayment': 'Pendiente de pago',
+    'reservationStatus.pendingHotelConfirmation': 'Pendiente por confirmación',
+    'reservationStatus.confirmed': 'Confirmada',
+    'reservationStatus.cancelled': 'Cancelada',
+    'reservationCard.confirmationCode': 'Código confirmación: {code}',
+    'reservationCard.total': 'Total',
+    'reservationCard.arrival': 'Llegada',
+    'reservationCard.departure': 'Salida',
+    'reservationCard.guests': 'Huéspedes',
+    'reservationCard.details': 'Ver detalles',
+    'reservationCard.completePayment': 'Completar Pago',
+    'reservationCard.cancelReservation': 'Cancelar Reserva',
+    'reservationCard.moreOptions': 'Más opciones',
+    'myReservations.title': 'Mis Reservaciones',
+    'myReservations.subtitle': 'Gestiona y realiza el seguimiento de todas tus reservas',
+    'myReservations.loading': 'Cargando tus reservas...',
+    'myReservations.total': 'Reservas totales',
+    'myReservations.confirmed': 'Confirmadas',
+    'myReservations.pending': 'Pendientes',
+    'myReservations.cancelled': 'Canceladas',
+    'myReservations.empty': 'No tienes reservas en esta categoría.',
+    'reservationDetail.back': 'Volver',
+    'reservationDetail.title': 'Detalles de la Reserva',
+    'reservationDetail.subtitle': 'Consulta la información principal de tu hospedaje.',
+    'reservationDetail.loading': 'Cargando detalle de la reserva...',
+    'reservationDetail.unauthorizedTitle': 'Reserva no disponible',
+    'reservationDetail.unauthorizedBody': 'No podemos mostrar información de una reserva que no pertenece a tu cuenta.',
+    'reservationDetail.notFoundTitle': 'Reserva no encontrada',
+    'reservationDetail.notFoundBody': 'La reserva solicitada no existe o ya no está disponible.',
+    'reservationDetail.errorTitle': 'No pudimos cargar el detalle',
+    'reservationDetail.retry': 'Reintentar',
+    'reservationDetail.arrival': 'Fecha de llegada',
+    'reservationDetail.departure': 'Fecha de salida',
+    'reservationDetail.guests': 'Número de huéspedes',
+    'reservationDetail.confirmation': 'Número de confirmación',
+    'reservationDetail.confirmationUnavailable': 'No disponible',
+    'reservationDetail.total': 'Valor total',
+    'reservationDetail.consultingTotal': 'Consultando valor...',
+    'reservationDetail.totalUnavailable': 'Valor no disponible',
+    'reservationDetail.totalUnavailableHelp': 'Vuelve a consultar en un rato.',
+    'reservationDetail.actionsTitle': '¿Necesitas hacer cambios?',
+    'reservationDetail.cancelPromptAllowed': 'Puedes iniciar la solicitud de cancelación de esta reserva.',
+    'reservationDetail.cancelPromptDenied': 'Esta reserva no se puede cancelar por su estado actual.',
+    'reservationDetail.cancelButton': 'Cancelar Reserva',
+    'room.backToResults': 'Volver a resultados',
+    'room.loading': 'Cargando detalle de la habitación...',
+    'room.loadError': 'No fue posible cargar el detalle de la habitación.',
+    'room.reviews': 'reseñas',
+    'room.guests': 'huéspedes',
+    'room.showMore': 'Ver más',
+    'room.showLess': 'Ver menos',
+    'room.amenities': 'Amenidades',
+    'room.perNight': '/ noche',
+    'room.checkIn': 'ENTRADA',
+    'room.checkOut': 'SALIDA',
+    'room.guestsLabel': 'HUÉSPEDES',
+    'room.reserve': 'Reservar',
+    'room.reserving': 'Reservando...',
+    'room.noChargeYet': 'Aún no se te cobrará',
+    'room.nights': 'noches',
+    'room.tax': 'Impuesto {name}',
+    'room.serviceFee': 'Tarifa del servicio',
+    'room.priceBreakdown': 'Desglose de precios',
+    'room.total': 'Total',
+    'room.noImage': 'Habitación',
+    'room.reviewCount': '{count} reseñas',
+    'room.mustKnow': 'Debes saber',
+    'room.cancellationPolicy.title': 'Política de cancelación',
+    'room.cancellationPolicy.freeCancellation': 'Cancelación gratuita con {days} días de anticipación.',
+    'room.cancellationPolicy.penalty': 'Penalidad del {percentage}% si se cancela después del plazo.',
+    'room.amenity.pool': 'Piscina',
+    'room.amenity.spa': 'Spa',
+    'room.amenity.kitchen': 'Cocina',
+    'room.amenity.gym': 'Gimnasio',
+    'room.amenity.restaurant': 'Restaurante',
+    'room.amenity.ac': 'Aire acondicionado',
+    'room.taxName.vat': 'IVA',
+    'bookingCart.back': 'Volver',
+    'bookingCart.holdExpiresIn': 'Tu hold expira en',
+    'bookingCart.holdExpired': 'El tiempo de hold expiró. Ya no puedes continuar con el pago.',
+    'bookingCart.formError': 'Completa la información del huésped principal (nombre, apellido, email válido y celular) para continuar.',
+    'bookingCart.expiredError': 'El tiempo de hold expiró. Debes volver a seleccionar la reserva.',
+    'bookingCart.expiredAlert': 'El tiempo de hold expiró. Debes volver a seleccionar la reserva.',
+    'bookingCart.missingReservation': 'No se encontró el identificador de la reserva. Regresa y crea una nueva reserva.',
+    'bookingCart.backendLoadError': 'No se pudo cargar la reserva desde backend. Vuelve a intentarlo más tarde.',
+    'bookingCart.invalidReservation': 'La reserva no tiene todos los datos necesarios para continuar con el pago.',
+    'bookingCart.totalError': 'No fue posible calcular el valor total de la reserva para iniciar el pago.',
+    'bookingCart.formalizationError': 'La reserva fue formalizada, pero el backend no devolvió una intención de pago para Wompi. Intenta nuevamente o valida el payload de formalización.',
+    'bookingCart.formalizationFallback': 'No fue posible formalizar la reserva. Intenta nuevamente.',
+    'bookingCart.sagaProcessing': 'Tu reserva está siendo procesada por la saga.',
+    'bookingCart.summaryLoadError': 'No se pudo cargar la reserva desde el backend.',
+    'bookingCart.summaryTitle': 'Resumen de Reserva',
+    'bookingCart.arrival': 'Llegada',
+    'bookingCart.departure': 'Salida',
+    'bookingCart.guests': 'Huéspedes',
+    'bookingCart.nights': 'Noches',
+    'bookingCart.total': 'Total',
+    'bookingCart.taxes': 'Impuestos y cargos',
+    'bookingCart.taxesNamed': '{name} y cargos',
+    'bookingCart.currency': 'COP',
+    'bookingCart.loadingSummary': 'Cargando tu reserva...',
+    'existingSession.title': 'Ya tienes una reserva activa con estos datos',
+    'existingSession.description': 'Detectamos una sesión de reserva activa para las mismas fechas, categoría y número de huéspedes.',
+    'existingSession.error': 'No encontramos una sesión activa para redirigirte.',
+    'existingSession.openAnyway': 'Abrir mi reserva de todos modos',
+    'existingSession.backToResults': 'Volver a resultados',
+    'existingSession.goToActive': 'Ir a la reserva activa',
+    'payment.safeWithWompi': 'Pago seguro con Wompi',
+    'payment.finishReservation': 'Finaliza tu reserva',
+    'payment.reviewAndContinue': 'Revisa el valor y continua con Wompi para pagar con tarjeta.',
+    'payment.loadingWidget': 'Cargando Wompi...',
+    'payment.noPaymentStart': 'No fue posible iniciar el pago',
+    'payment.backToCart': 'Volver al carrito',
+    'payment.identifyReservationMissing': 'No se encontro el identificador de la reserva.',
+    'payment.activeIntentMissing': 'No se encontro una intencion de pago activa para esta reserva.',
+    'payment.checkoutMissing': 'La intencion de pago no contiene datos de checkout.',
+    'payment.readError': 'No fue posible leer la intencion de pago.',
+    'payment.widgetLoadError': 'No fue posible cargar el widget de Wompi. Verifica la conexion e intenta nuevamente.',
+    'payment.widgetPrepareError': 'No fue posible preparar el widget de Wompi. Intenta nuevamente.',
+    'processing.title': 'Estamos procesando tu reserva',
+    'processing.message': 'Tu reserva está en proceso. Estamos confirmando el resultado con hoteles y pagos.',
+    'processing.status': 'Estado actual:',
+    'processing.backToCart': 'Volver al carrito',
+    'processing.noReservationId': 'No se encontró el identificador de reserva para consultar el estado.',
+    'processing.retrying': 'No pudimos consultar el estado de la reserva. Reintentando...',
+    'processing.confirmed': 'Reserva confirmada exitosamente.',
+    'processing.cancelled': 'La reserva no pudo ser confirmada.',
+    'processing.rejectedReason': 'No fue posible confirmar tu reserva porque la validación con hoteles o pagos no se completó correctamente. Te recomendamos volver al carrito e intentarlo nuevamente con otra opción.',
+    'processing.rejectedSaga': 'No pudimos confirmar tu reserva porque una de las validaciones de hoteles o pagos fue rechazada durante el proceso. Puedes volver al carrito para intentarlo de nuevo o elegir otra opción de reserva.',
+    'processing.sagaStarting': 'Tu reserva fue formalizada. Estamos confirmando la disponibilidad y el pago.',
+    'processing.sagaProcessing': 'Estamos procesando tu reserva. En breve te mostraremos el resultado.',
+    'authConfirm.success': 'Correo confirmado. Ahora puedes iniciar sesión.',
+    'authConfirm.error': 'No se pudo confirmar el código. Verifica e intenta nuevamente.',
+    'auth.login.title': 'Iniciar Sesión',
+    'auth.login.subtitle': 'Ingresa tus credenciales para acceder a tu cuenta',
+    'auth.login.email': 'Correo Electrónico',
+    'auth.login.password': 'Contraseña',
+    'auth.login.emailPlaceholder': 'tu@ejemplo.com',
+    'auth.login.passwordPlaceholder': 'Ingresa tu contraseña',
+    'auth.login.rememberMe': 'Recordarme',
+    'auth.login.forgotPassword': '¿Olvidaste tu contraseña?',
+    'auth.login.submit': '→ Iniciar Sesión',
+    'auth.login.submitLoading': 'Ingresando...',
+    'auth.login.googleDivider': 'O continuar con',
+    'auth.login.google': 'Continuar con Google',
+    'auth.login.signupHint': '¿No tienes una cuenta?',
+    'auth.login.signupLink': 'Regístrate →',
+    'auth.login.brand': 'Bienvenido de nuevo a tu compañero de viajes',
+    'auth.login.googleUnavailable': 'La autenticación con Google no está disponible en este momento. Por favor, usa el formulario de inicio de sesión.',
+    'auth.login.rememberUnavailable': 'La funcionalidad de "Recuérdame" no está disponible en este momento.',
+    'auth.login.forgotUnavailable': 'La funcionalidad de recuperación de contraseña no está disponible en este momento.',
+    'auth.login.emailRequired': 'El correo es obligatorio.',
+    'auth.login.emailInvalid': 'Ingresa un correo válido (ej: tu@ejemplo.com).',
+    'auth.login.passwordRequired': 'La contraseña es obligatoria.',
+    'auth.login.success': 'Inicio de sesión exitoso. Bienvenido a TravelHub.',
+    'auth.login.error': 'No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.',
+    'auth.register.title': 'Crear Cuenta',
+    'auth.register.subtitle': 'Completa tus datos para crear tu cuenta',
+    'auth.register.brand': 'Comienza tu viaje con TravelHub',
+    'auth.register.firstName': 'Nombre',
+    'auth.register.lastName': 'Apellido',
+    'auth.register.email': 'Correo Electrónico',
+    'auth.register.phone': 'Número de Teléfono',
+    'auth.register.password': 'Contraseña',
+    'auth.register.confirmPassword': 'Confirmar Contraseña',
+    'auth.register.submit': 'Crear Cuenta →',
+    'auth.register.submitLoading': 'Creando cuenta...',
+    'auth.register.googleDivider': 'O regístrate con',
+    'auth.register.google': 'Registrarse con Google',
+    'auth.register.loginHint': '¿Ya tienes una cuenta?',
+    'auth.register.loginLink': 'Inicia sesión →',
+    'auth.register.googleUnavailable': 'El registro con Google no está disponible en este momento. Por favor, usa el formulario de registro.',
+    'auth.register.firstNameRequired': 'El nombre es obligatorio.',
+    'auth.register.lastNameRequired': 'El apellido es obligatorio.',
+    'auth.register.nameInvalid': 'Solo letras, espacios y guiones (máx. 50 caracteres).',
+    'auth.register.phoneRequired': 'El teléfono es obligatorio.',
+    'auth.register.phoneInvalid': 'Debe incluir el código de país (ej: +573001112233).',
+    'auth.register.passwordRequired': 'La contraseña es obligatoria.',
+    'auth.register.passwordInvalid': 'Debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.',
+    'auth.register.confirmRequired': 'Confirma tu contraseña.',
+    'auth.register.passwordMismatch': 'Las contraseñas no coinciden.',
+    'auth.register.success': 'Te enviamos un código de verificación. Revisa tu correo para confirmar tu cuenta.',
+    'auth.register.error': 'No fue posible registrar la cuenta. Verifica los datos e intenta nuevamente.',
+  },
+  en: {
+    'header.language.label': 'Language',
+    'header.language.es': 'Spanish',
+    'header.language.en': 'English',
+    'header.currency.label': 'Currency',
+    'header.profile.menu': 'User menu',
+    'header.profile.myReservations': 'My Reservations',
+    'header.profile.logout': 'Sign out',
+    'header.profile.register': 'Sign up',
+    'header.profile.login': 'Sign in',
+    'header.profile.open': 'Open profile menu',
+    'header.profile.auth': 'User preferences',
+    'searchBar.label': 'Search',
+    'searchBar.placeholder': 'Start your search',
+    'auth.login.logoutSuccess': 'Your session has been closed successfully.',
+    'footer.support': 'Support',
+    'footer.helpCenter': 'Help Center',
+    'footer.contactUs': 'Contact us',
+    'footer.legal': 'Legal',
+    'footer.cancellationPolicy': 'Cancellation and Refund Policy',
+    'footer.copyright': '© 2026 TravelHub. All rights reserved.',
+    'common.loading': 'Loading...',
+    'search.location': 'Location',
+    'search.locationPlaceholder': 'Where are we going?',
+    'hero.title': 'Where do you want to go today?',
+    'search.locationRequired': 'Enter a destination',
+    'search.checkIn': 'Check-in',
+    'search.checkInRequired': 'Select check-in',
+    'search.checkOut': 'Check-out',
+    'search.checkOutRequired': 'Select check-out',
+    'search.guests': 'Guests',
+    'search.minGuests': 'Minimum 1 guest',
+    'search.submit': 'Search',
+    'stepper.guests': 'Guests',
+    'stepper.payment': 'Payment',
+    'stepper.confirmation': 'Confirmation',
+    'hospedaje.more': '+{count} more',
+    'hospedaje.reviews': '{count} reviews',
+    'hospedaje.perNight': 'per night',
+    'search.results.title': 'Stays in {city}',
+    'search.results.subtitle': '{count}+ stays in {city}',
+    'search.results.empty': 'No stays were found for the selected dates.',
+    'search.results.back': 'Back to TravelHub',
+    'compactSearch.guestSingular': '{count} guest',
+    'compactSearch.guestPlural': '{count} guests',
+    'compactSearch.editSearch': 'Edit search',
+    'propertyType.finca': 'Country house',
+    'propertyType.hotel': 'Hotel',
+    'propertyType.hostal': 'Hostel',
+    'propertyType.apartment': 'Apartment',
+    'propertyType.aparthotel': 'Aparthotel',
+    'propertyType.house': 'House',
+    'propertyType.cabin': 'Cabin',
+    'propertyDetail.notAvailable': 'N/A',
+    'propertyDetail.field.stars': 'Stars',
+    'propertyDetail.field.tax': 'Tax',
+    'propertyDetail.field.categories': 'Categories',
+    'propertyDetail.field.checkIn': 'Check-in',
+    'propertyDetail.field.checkOut': 'Check-out',
+    'propertyDetail.field.guests': 'Guests',
+    'propertyDetail.bookingConfigTitle': 'Set up your booking',
+    'propertyDetail.availableCategories': 'Available categories',
+    'propertyDetail.noCategories': 'No categories are available for the selected filters.',
+    'propertyDetail.categoryPmsCode': 'PMS code',
+    'propertyDetail.categoryCapacity': 'Capacity',
+    'propertyDetail.perNight': '/ night',
+    'propertyDetail.guestSingular': '{count} guest',
+    'propertyDetail.guestPlural': '{count} guests',
+    'propertyDetail.reserve': 'Reserve',
+    'propertyDetail.reserving': 'Reserving...',
+    'propertyDetail.descriptionTemplate': '{type} accommodation in {city}. {stars} stars.',
+    'reservationStatus.pendingPayment': 'Pending payment',
+    'reservationStatus.pendingHotelConfirmation': 'Pending confirmation',
+    'reservationStatus.confirmed': 'Confirmed',
+    'reservationStatus.cancelled': 'Cancelled',
+    'reservationCard.confirmationCode': 'Confirmation code: {code}',
+    'reservationCard.total': 'Total',
+    'reservationCard.arrival': 'Arrival',
+    'reservationCard.departure': 'Departure',
+    'reservationCard.guests': 'Guests',
+    'reservationCard.details': 'View details',
+    'reservationCard.completePayment': 'Complete payment',
+    'reservationCard.cancelReservation': 'Cancel reservation',
+    'reservationCard.moreOptions': 'More options',
+    'myReservations.title': 'My Reservations',
+    'myReservations.subtitle': 'Manage and track all your bookings',
+    'myReservations.loading': 'Loading your reservations...',
+    'myReservations.total': 'Total bookings',
+    'myReservations.confirmed': 'Confirmed',
+    'myReservations.pending': 'Pending',
+    'myReservations.cancelled': 'Cancelled',
+    'myReservations.empty': 'You do not have bookings in this category.',
+    'reservationDetail.back': 'Back',
+    'reservationDetail.title': 'Reservation details',
+    'reservationDetail.subtitle': 'Review the main information for your stay.',
+    'reservationDetail.loading': 'Loading reservation details...',
+    'reservationDetail.unauthorizedTitle': 'Reservation unavailable',
+    'reservationDetail.unauthorizedBody': 'We cannot show information for a booking that does not belong to your account.',
+    'reservationDetail.notFoundTitle': 'Reservation not found',
+    'reservationDetail.notFoundBody': 'The requested booking does not exist or is no longer available.',
+    'reservationDetail.errorTitle': 'We could not load the details',
+    'reservationDetail.retry': 'Retry',
+    'reservationDetail.arrival': 'Arrival date',
+    'reservationDetail.departure': 'Departure date',
+    'reservationDetail.guests': 'Guest count',
+    'reservationDetail.confirmation': 'Confirmation number',
+    'reservationDetail.confirmationUnavailable': 'Unavailable',
+    'reservationDetail.total': 'Total amount',
+    'reservationDetail.consultingTotal': 'Looking up total...',
+    'reservationDetail.totalUnavailable': 'Total unavailable',
+    'reservationDetail.totalUnavailableHelp': 'Please check again later.',
+    'reservationDetail.actionsTitle': 'Need to make changes?',
+    'reservationDetail.cancelPromptAllowed': 'You can start the cancellation request for this booking.',
+    'reservationDetail.cancelPromptDenied': 'This reservation cannot be cancelled in its current status.',
+    'reservationDetail.cancelButton': 'Cancel reservation',
+    'room.backToResults': 'Back to results',
+    'room.loading': 'Loading room details...',
+    'room.loadError': 'Could not load room details.',
+    'room.reviews': 'reviews',
+    'room.guests': 'guests',
+    'room.showMore': 'Show more',
+    'room.showLess': 'Show less',
+    'room.amenities': 'Amenities',
+    'room.perNight': '/ night',
+    'room.checkIn': 'CHECK-IN',
+    'room.checkOut': 'CHECK-OUT',
+    'room.guestsLabel': 'GUESTS',
+    'room.reserve': 'Reserve',
+    'room.reserving': 'Reserving...',
+    'room.noChargeYet': 'You will not be charged yet',
+    'room.nights': 'nights',
+    'room.tax': 'Tax {name}',
+    'room.serviceFee': 'Service fee',
+    'room.priceBreakdown': 'Price breakdown',
+    'room.total': 'Total',
+    'room.noImage': 'Room',
+    'room.reviewCount': '{count} reviews',
+    'room.mustKnow': 'Good to know',
+    'room.cancellationPolicy.title': 'Cancellation policy',
+    'room.cancellationPolicy.freeCancellation': 'Free cancellation with {days} days in advance.',
+    'room.cancellationPolicy.penalty': '{percentage}% penalty if canceled after the deadline.',
+    'room.amenity.pool': 'Pool',
+    'room.amenity.spa': 'Spa',
+    'room.amenity.kitchen': 'Kitchen',
+    'room.amenity.gym': 'Gym',
+    'room.amenity.restaurant': 'Restaurant',
+    'room.amenity.ac': 'Air conditioning',
+    'room.taxName.vat': 'VAT',
+    'bookingCart.back': 'Back',
+    'bookingCart.holdExpiresIn': 'Your hold expires in',
+    'bookingCart.holdExpired': 'The hold has expired. You can no longer continue to payment.',
+    'bookingCart.formError': 'Fill in the primary guest information (first name, last name, valid email and phone) to continue.',
+    'bookingCart.expiredError': 'The hold has expired. You must reselect the booking.',
+    'bookingCart.expiredAlert': 'The hold has expired. You must reselect the booking.',
+    'bookingCart.missingReservation': 'The reservation identifier was not found. Go back and create a new booking.',
+    'bookingCart.backendLoadError': 'We could not load the booking from the backend. Please try again later.',
+    'bookingCart.invalidReservation': 'The booking does not contain all the required data to continue with payment.',
+    'bookingCart.totalError': 'We could not calculate the total amount to start payment.',
+    'bookingCart.formalizationError': 'The reservation was formalized, but the backend did not return a Wompi payment intent. Try again or validate the formalization payload.',
+    'bookingCart.formalizationFallback': 'We could not formalize the booking. Please try again.',
+    'bookingCart.sagaProcessing': 'Your reservation is being processed by the saga.',
+    'bookingCart.summaryLoadError': 'We could not load the booking from the backend.',
+    'bookingCart.summaryTitle': 'Reservation summary',
+    'bookingCart.arrival': 'Arrival',
+    'bookingCart.departure': 'Departure',
+    'bookingCart.guests': 'Guests',
+    'bookingCart.nights': 'Nights',
+    'bookingCart.total': 'Total',
+    'bookingCart.taxes': 'Taxes and fees',
+    'bookingCart.taxesNamed': '{name} and fees',
+    'bookingCart.currency': 'COP',
+    'bookingCart.loadingSummary': 'Loading your booking...',
+    'existingSession.title': 'You already have an active booking with this data',
+    'existingSession.description': 'We detected an active booking session for the same dates, category and guest count.',
+    'existingSession.error': 'We could not find an active session to redirect you to.',
+    'existingSession.openAnyway': 'Open my booking anyway',
+    'existingSession.backToResults': 'Back to results',
+    'existingSession.goToActive': 'Go to active booking',
+    'payment.safeWithWompi': 'Secure payment with Wompi',
+    'payment.finishReservation': 'Finish your booking',
+    'payment.reviewAndContinue': 'Review the amount and continue with Wompi to pay by card.',
+    'payment.loadingWidget': 'Loading Wompi...',
+    'payment.noPaymentStart': 'Could not start payment',
+    'payment.backToCart': 'Back to cart',
+    'payment.identifyReservationMissing': 'Could not find the reservation identifier.',
+    'payment.activeIntentMissing': 'No active payment intent was found for this reservation.',
+    'payment.checkoutMissing': 'The payment intent does not contain checkout data.',
+    'payment.readError': 'Could not read the payment intent.',
+    'payment.widgetLoadError': 'Could not load the Wompi widget. Check your connection and try again.',
+    'payment.widgetPrepareError': 'Could not prepare the Wompi widget. Please try again.',
+    'processing.title': 'We are processing your booking',
+    'processing.message': 'Your reservation is in progress. We are confirming the result with hotels and payments.',
+    'processing.status': 'Current status:',
+    'processing.backToCart': 'Back to cart',
+    'processing.noReservationId': 'Could not find the reservation identifier to check its status.',
+    'processing.retrying': 'We could not check the reservation status. Retrying...',
+    'processing.confirmed': 'Reservation confirmed successfully.',
+    'processing.cancelled': 'The booking could not be confirmed.',
+    'processing.rejectedReason': 'We could not confirm your booking because validation with hotels or payments did not complete correctly. We recommend returning to the cart and trying again with another option.',
+    'processing.rejectedSaga': 'We could not confirm your booking because one of the hotel or payment validations was rejected during the process. You can return to the cart and try again or choose another booking option.',
+    'processing.sagaStarting': 'Your booking was formalized. We are confirming availability and payment.',
+    'processing.sagaProcessing': 'We are processing your booking. We will show the result shortly.',
+    'authConfirm.success': 'Email confirmed. You can now sign in.',
+    'authConfirm.error': 'Could not confirm the code. Please verify and try again.',
+    'auth.login.title': 'Sign in',
+    'auth.login.subtitle': 'Enter your credentials to access your account',
+    'auth.login.email': 'Email',
+    'auth.login.password': 'Password',
+    'auth.login.emailPlaceholder': 'you@example.com',
+    'auth.login.passwordPlaceholder': 'Enter your password',
+    'auth.login.rememberMe': 'Remember me',
+    'auth.login.forgotPassword': 'Forgot your password?',
+    'auth.login.submit': '→ Sign in',
+    'auth.login.submitLoading': 'Signing in...',
+    'auth.login.googleDivider': 'Or continue with',
+    'auth.login.google': 'Continue with Google',
+    'auth.login.signupHint': 'Don\'t have an account?',
+    'auth.login.signupLink': 'Sign up →',
+    'auth.login.brand': 'Welcome back to your travel companion',
+    'auth.login.googleUnavailable': 'Google authentication is not available right now. Please use the sign-in form.',
+    'auth.login.rememberUnavailable': 'The "Remember me" feature is not available right now.',
+    'auth.login.forgotUnavailable': 'Password recovery is not available right now.',
+    'auth.login.emailRequired': 'Email is required.',
+    'auth.login.emailInvalid': 'Enter a valid email (e.g. you@example.com).',
+    'auth.login.passwordRequired': 'Password is required.',
+    'auth.login.success': 'Sign in successful. Welcome to TravelHub.',
+    'auth.login.error': 'Could not sign in. Check your credentials and try again.',
+    'auth.register.title': 'Create account',
+    'auth.register.subtitle': 'Complete your data to create your account',
+    'auth.register.brand': 'Start your journey with TravelHub',
+    'auth.register.firstName': 'First name',
+    'auth.register.lastName': 'Last name',
+    'auth.register.email': 'Email',
+    'auth.register.phone': 'Phone number',
+    'auth.register.password': 'Password',
+    'auth.register.confirmPassword': 'Confirm password',
+    'auth.register.submit': 'Create account →',
+    'auth.register.submitLoading': 'Creating account...',
+    'auth.register.googleDivider': 'Or sign up with',
+    'auth.register.google': 'Sign up with Google',
+    'auth.register.loginHint': 'Already have an account?',
+    'auth.register.loginLink': 'Sign in →',
+    'auth.register.googleUnavailable': 'Google sign-up is not available right now. Please use the registration form.',
+    'auth.register.firstNameRequired': 'First name is required.',
+    'auth.register.lastNameRequired': 'Last name is required.',
+    'auth.register.nameInvalid': 'Only letters, spaces and hyphens (max. 50 characters).',
+    'auth.register.phoneRequired': 'Phone number is required.',
+    'auth.register.phoneInvalid': 'It must include the country code (e.g. +573001112233).',
+    'auth.register.passwordRequired': 'Password is required.',
+    'auth.register.passwordInvalid': 'It must have at least 8 characters, one uppercase, one lowercase, one number and one symbol.',
+    'auth.register.confirmRequired': 'Confirm your password.',
+    'auth.register.passwordMismatch': 'Passwords do not match.',
+    'auth.register.success': 'We sent you a verification code. Check your email to confirm your account.',
+    'auth.register.error': 'Could not register the account. Check the data and try again.',
+  },
+};
+
+@Injectable({ providedIn: 'root' })
+export class I18nService {
+  private readonly supported: LanguageOption[] = [
+    { code: 'es', label: 'Español', shortLabel: 'ES' },
+    { code: 'en', label: 'English', shortLabel: 'EN' },
+  ];
+
+  readonly language = signal<LanguageCode>(this.resolveInitialLanguage());
+
+  constructor() {
+    effect(() => {
+      const language = this.language();
+
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = language;
+      }
+
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+      }
+    });
+  }
+
+  get supportedLanguages(): LanguageOption[] {
+    return this.supported;
+  }
+
+  get activeLanguageLabel(): string {
+    return this.getLanguageLabel(this.language());
+  }
+
+  setLanguage(language: LanguageCode): void {
+    this.language.set(language);
+  }
+
+  translate(key: string, params?: Record<string, string | number | undefined | null>): string {
+    const language = this.language();
+    const fallback = TRANSLATIONS.es[key] ?? key;
+    const template = TRANSLATIONS[language][key] ?? fallback;
+
+    if (!params) {
+      return template;
+    }
+
+    return template.replace(/\{(\w+)\}/g, (_match, token: string) => {
+      const value = params[token];
+      return value === undefined || value === null ? '' : String(value);
+    });
+  }
+
+  formatDate(value: string, options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' }): string {
+    if (!value) {
+      return '';
+    }
+
+    const date = this.parseDate(value);
+    if (!date) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat(this.language() === 'es' ? 'es-ES' : 'en-US', options).format(date);
+  }
+
+  formatMonthYear(value: string): string {
+    return this.formatDate(value, { month: 'long', year: 'numeric' });
+  }
+
+  formatCurrency(amount: number | null | undefined, currency = 'COP', maximumFractionDigits = 0): string {
+    if (amount === null || amount === undefined || Number.isNaN(Number(amount))) {
+      return '';
+    }
+
+    const locale = this.language() === 'es' ? 'es-ES' : 'en-US';
+
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        maximumFractionDigits,
+      }).format(Number(amount));
+    } catch {
+      return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(Number(amount));
+    }
+  }
+
+  formatNumber(value: number | null | undefined, maximumFractionDigits = 0): string {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return '';
+    }
+
+    const locale = this.language() === 'es' ? 'es-ES' : 'en-US';
+    return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(Number(value));
+  }
+
+  private getLanguageLabel(language: LanguageCode): string {
+    return this.supported.find(option => option.code === language)?.label ?? language;
+  }
+
+  private resolveInitialLanguage(): LanguageCode {
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (stored === 'es' || stored === 'en') {
+        return stored;
+      }
+    }
+
+    return 'es';
+  }
+
+  private parseDate(value: string): Date | null {
+    const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value;
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+}

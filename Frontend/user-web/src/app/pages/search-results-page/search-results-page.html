@@ -7,10 +7,10 @@
     <!-- Encabezado de resultados -->
     <section class="results-header" data-testid="results-header">
       <h1 class="results-title" data-testid="results-title">
-        Stays in {{ ciudadBusqueda() }}
+        {{ 'search.results.title' | translate:{ city: ciudadBusqueda() } }}
       </h1>
       <p class="results-subtitle" data-testid="results-subtitle">
-        {{ totalResultados() }}+ stays in {{ ciudadBusqueda() }}
+        {{ 'search.results.subtitle' | translate:{ count: totalResultados(), city: ciudadBusqueda() } }}
       </p>
     </section>
 
@@ -26,10 +26,10 @@
     } @else if (!loading()) {
       <section class="results-empty" data-testid="results-empty">
         <p class="results-empty__message" data-testid="results-empty-message">
-          No se encontraron hospedajes para las fechas seleccionadas.
+          {{ 'search.results.empty' | translate }}
         </p>
         <a routerLink="/" class="results-empty__link" data-testid="results-empty-link">
-          Volver a TravelHub
+          {{ 'search.results.back' | translate }}
         </a>
       </section>
     }

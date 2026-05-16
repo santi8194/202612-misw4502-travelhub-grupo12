@@ -7,17 +7,20 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 
 import { AuthService } from '../../core/services/auth';
 import { NotificationService } from '../../core/services/notification';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-auth-login-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [FormsModule, RouterLink, HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './auth-login-page.html',
   styleUrl: './auth-login-page.css',
 })
 export class AuthLoginPage {
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly i18n = inject(I18nService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -34,29 +37,72 @@ export class AuthLoginPage {
     password: false,
   });
 
+  errorMessages = signal({
+    email: '',
+    password: '',
+  });
+
+  private touched = signal({
+    email: false,
+    password: false,
+  });
+
   togglePassword(): void {
     this.showPassword.update(value => !value);
   }
 
-  updateField(field: 'email' | 'password', value: string): void {
-    this.form.update(current => ({
-      ...current,
-      [field]: value,
-    }));
+  onGoogleSignIn(): void {
+    alert(this.i18n.translate('auth.login.googleUnavailable'));
+  }
 
-    this.errors.update(current => ({
-      ...current,
-      [field]: false,
-    }));
+  onRememberMe(): void {
+    alert(this.i18n.translate('auth.login.rememberUnavailable'));
+  }
+
+  onForgotPassword(): void {
+    alert(this.i18n.translate('auth.login.forgotUnavailable'));
+  }
+
+  updateField(field: 'email' | 'password', value: string): void {
+    this.form.update(current => ({ ...current, [field]: value }));
+    if (this.touched()[field]) {
+      this.validateSingleField(field, value);
+    }
+  }
+
+  markTouched(field: 'email' | 'password'): void {
+    this.touched.update(t => ({ ...t, [field]: true }));
+    this.validateSingleField(field, this.form()[field]);
+  }
+
+  private validateSingleField(field: 'email' | 'password', value: string): void {
+    let hasError = false;
+    let message = '';
+
+    if (field === 'email') {
+      if (!value.trim()) {
+        hasError = true;
+          message = this.i18n.translate('auth.login.emailRequired');
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+        hasError = true;
+          message = this.i18n.translate('auth.login.emailInvalid');
+      }
+    } else if (field === 'password') {
+      if (!value.trim()) {
+        hasError = true;
+          message = this.i18n.translate('auth.login.passwordRequired');
+      }
+    }
+
+    this.errors.update(e => ({ ...e, [field]: hasError }));
+    this.errorMessages.update(m => ({ ...m, [field]: message }));
   }
 
   private validateForm(): boolean {
     const f = this.form();
+    this.touched.set({ email: true, password: true });
 
-    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      f.email.trim()
-    );
-
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim());
     const passwordValid = !!f.password.trim();
 
     const nextErrors = {
@@ -65,6 +111,10 @@ export class AuthLoginPage {
     };
 
     this.errors.set(nextErrors);
+    this.errorMessages.set({
+      email: !emailValid ? (!f.email.trim() ? this.i18n.translate('auth.login.emailRequired') : this.i18n.translate('auth.login.emailInvalid')) : '',
+      password: !passwordValid ? this.i18n.translate('auth.login.passwordRequired') : '',
+    });
 
     return !Object.values(nextErrors).some(Boolean);
   }
@@ -91,7 +141,7 @@ export class AuthLoginPage {
           this.authService.saveSession(response, f.email.trim());
 
           this.notificationService.showSuccess(
-            'Inicio de sesión exitoso. Bienvenido a TravelHub.'
+            this.i18n.translate('auth.login.success')
           );
 
           this.router.navigateByUrl(redirectTarget);
@@ -99,7 +149,7 @@ export class AuthLoginPage {
 
         error: () => {
           this.notificationService.showError(
-            'No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.'
+            this.i18n.translate('auth.login.error')
           );
 
           this.loading.set(false);

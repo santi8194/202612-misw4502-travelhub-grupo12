@@ -70,13 +70,20 @@ def publish_reserva_aprobada(id_reserva: str, id_usuario_admin: str = ""):
         },
     )
 
-def publish_reserva_rechazada(id_reserva: str, motivo: str):
+def publish_reserva_rechazada(id_reserva: str, motivo: str, id_usuario_admin: str = ""):
     """
-    Publica el evento de fallo indicando que la reserva fue rechazada.
+    Publica el evento indicando que la reserva fue rechazada manualmente.
+    Formato CloudEvents 1.0.
     """
+    now = datetime.now(timezone.utc).isoformat()
     publish_event(
         # Regla 2: Formato de eventos: evt.<dominio>.<resultado>
-        routing_key="evt.partnermanagement.reserva-rechazada",
+        routing_key="evt.reserva.rechazada",
         event_type="ReservaRechazadaManualEvt",
-        data={"id_reserva": id_reserva, "motivo": motivo}
+        data={
+            "id_reserva": id_reserva,
+            "motivo": motivo,
+            "id_usuario_admin": id_usuario_admin,
+            "fecha_rechazo": now,
+        },
     )

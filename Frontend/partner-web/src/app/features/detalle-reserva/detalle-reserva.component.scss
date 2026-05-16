@@ -216,6 +216,81 @@
 /* ── Acciones de Reserva ── */
 .acciones-card { gap: 16px; }
 
+.acciones-feedback {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+
+    &-ok {
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #6ee7b7;
+    }
+
+    &-error {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+}
+
+.acciones-notice {
+    font-size: 13px;
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 0;
+
+    strong { color: #374151; }
+}
+
+.acciones-motivo-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.acciones-motivo-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.motivo-hint {
+    font-weight: 400;
+    color: #9ca3af;
+}
+
+.acciones-motivo-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #111827;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.15s;
+
+    &:focus {
+        outline: none;
+        border-color: #1e3a5f;
+    }
+
+    &:disabled {
+        background: #f3f4f6;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+}
+
 .acciones-botones {
     display: flex;
     flex-direction: column;
@@ -223,7 +298,7 @@
 }
 
 .btn-confirmar,
-.btn-cancelar {
+.btn-rechazar {
     width: 100%;
     padding: 14px 20px;
     border-radius: 10px;
@@ -253,13 +328,15 @@
     &:not(:disabled):hover { background: #14294a; border-color: #14294a; }
 }
 
-.btn-cancelar {
+.btn-rechazar {
     background: #fff;
     color: #ef4444;
     border: 2px solid #ef4444;
 
     &:not(:disabled):hover { background: #fef2f2; }
 }
+
+.btn-spinner { margin-right: 4px; }
 
 /* ── Información de Pago ── */
 .pago-estado-row {

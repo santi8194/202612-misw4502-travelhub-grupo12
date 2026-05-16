@@ -85,4 +85,9 @@ export class ReservasService {
         const url = `${environment.partnerManagementApiUrl}/partner/reserva/${encodeURIComponent(idReserva)}/aprobar`;
         return this.http.post(url, { id_usuario_admin: idUsuarioAdmin });
     }
+
+    rechazarReserva(idReserva: string, motivo: string, idUsuarioAdmin: string): Observable<unknown> {
+        const url = `${environment.partnerManagementApiUrl}/partner/reserva/${encodeURIComponent(idReserva)}/rechazar`;
+        return this.http.post(url, { motivo, id_usuario_admin: idUsuarioAdmin });
+    }
 }

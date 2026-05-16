@@ -93,6 +93,11 @@ export class DetalleReservaComponent implements OnChanges {
     ];
     lineasDeTiempo: EventoLinea[] = [...this.lineasDeTiempoFallback];
 
+    accionEnCurso = false;
+    accionMensaje: 'ok' | 'error' | null = null;
+    accionMensajeTexto = '';
+    motivoRechazo = 'Lamentamos informarle que su reserva no puede ser procesada en este momento debido a indisponibilidad de la habitación solicitada. Le invitamos a contactarnos para evaluar fechas alternativas o explorar otras opciones disponibles. Agradecemos su comprensión.';
+
     constructor(
         private reservasService: ReservasService,
         private authService: AuthService,
@@ -306,32 +311,6 @@ export class DetalleReservaComponent implements OnChanges {
         return 'Pendiente';
     }
 
-    accionEnCurso = false;
-    accionMensaje: 'ok' | 'error' | null = null;
-    accionMensajeTexto = '';
-
-    confirmarReserva(): void {
-        if (this.accionEnCurso) return;
-
-        const idAdmin = this.authService.getPartnerIdSync() ?? 'admin';
-        this.accionEnCurso = true;
-        this.accionMensaje = null;
-
-        this.reservasService.aprobarReserva(this.reserva.id, idAdmin).subscribe({
-            next: () => {
-                this.reserva = { ...this.reserva, estado: 'Confirmada' };
-                this.accionMensaje = 'ok';
-                this.accionMensajeTexto = 'La reserva fue aprobada y el evento fue publicado exitosamente.';
-                this.accionEnCurso = false;
-            },
-            error: () => {
-                this.accionMensaje = 'error';
-                this.accionMensajeTexto = 'No se pudo publicar el evento. Verifica la conexión con el servicio.';
-                this.accionEnCurso = false;
-            },
-        });
-    }
-
     volverAReservas(): void {
         if (this.onVolver) {
             this.onVolver();
@@ -355,5 +334,51 @@ export class DetalleReservaComponent implements OnChanges {
             case 'Reembolso': return 'badge-reembolso';
             default:          return 'badge-pendiente-pago';
         }
+    }
+
+    confirmarReserva(): void {
+        if (this.reserva.estado !== 'Pendiente' || this.accionEnCurso) return;
+        const idAdmin = this.authService.getPartnerIdSync() ?? 'admin';
+        this.accionEnCurso = true;
+        this.accionMensaje = null;
+        this.reservasService.aprobarReserva(this.reserva.id, idAdmin).subscribe({
+            next: () => {
+                this.reserva = { ...this.reserva, estado: 'Confirmada' };
+                this.accionMensaje = 'ok';
+                this.accionMensajeTexto = 'Reserva confirmada exitosamente.';
+                this.accionEnCurso = false;
+            },
+            error: () => {
+                this.accionMensaje = 'error';
+                this.accionMensajeTexto = 'No se pudo confirmar la reserva. Intente nuevamente.';
+                this.accionEnCurso = false;
+            },
+        });
+    }
+
+    rechazarReserva(): void {
+        if (this.reserva.estado !== 'Pendiente' || this.accionEnCurso) return;
+        if (!this.motivoRechazo.trim()) {
+            this.accionMensaje = 'error';
+            this.accionMensajeTexto = 'Debe ingresar un motivo para rechazar la reserva.';
+            return;
+        }
+        const idAdmin = this.authService.getPartnerIdSync() ?? 'admin';
+        this.accionEnCurso = true;
+        this.accionMensaje = null;
+        this.reservasService.rechazarReserva(this.reserva.id, this.motivoRechazo.trim(), idAdmin).subscribe({
+            next: () => {
+                this.reserva = { ...this.reserva, estado: 'Cancelada' };
+                this.accionMensaje = 'ok';
+                this.accionMensajeTexto = 'Reserva rechazada. Evento publicado.';
+                this.motivoRechazo = '';
+                this.accionEnCurso = false;
+            },
+            error: () => {
+                this.accionMensaje = 'error';
+                this.accionMensajeTexto = 'No se pudo rechazar la reserva. Intente nuevamente.';
+                this.accionEnCurso = false;
+            },
+        });
     }
 }

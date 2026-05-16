@@ -72,7 +72,7 @@ export class DetalleReservaComponent implements OnChanges {
         checkOut: new Date('2026-03-07'),
         totalNoches: 3,
         solicitudesEspeciales: 'Check-in temprano solicitado, habitación para no fumadores',
-        estado: 'Confirmada',
+        estado: 'Pendiente',
         pago: 'Pago',
         reservadoEl: new Date('2026-02-14'),
         tarifaPorNoche: 150,
@@ -304,6 +304,32 @@ export class DetalleReservaComponent implements OnChanges {
             return 'Cancelada';
         }
         return 'Pendiente';
+    }
+
+    accionEnCurso = false;
+    accionMensaje: 'ok' | 'error' | null = null;
+    accionMensajeTexto = '';
+
+    confirmarReserva(): void {
+        if (this.accionEnCurso) return;
+
+        const idAdmin = this.authService.getPartnerIdSync() ?? 'admin';
+        this.accionEnCurso = true;
+        this.accionMensaje = null;
+
+        this.reservasService.aprobarReserva(this.reserva.id, idAdmin).subscribe({
+            next: () => {
+                this.reserva = { ...this.reserva, estado: 'Confirmada' };
+                this.accionMensaje = 'ok';
+                this.accionMensajeTexto = 'La reserva fue aprobada y el evento fue publicado exitosamente.';
+                this.accionEnCurso = false;
+            },
+            error: () => {
+                this.accionMensaje = 'error';
+                this.accionMensajeTexto = 'No se pudo publicar el evento. Verifica la conexión con el servicio.';
+                this.accionEnCurso = false;
+            },
+        });
     }
 
     volverAReservas(): void {

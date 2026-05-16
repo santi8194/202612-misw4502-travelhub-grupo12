@@ -165,5 +165,37 @@
             </div>
         </div>
 
+        <!-- Acciones de Reserva -->
+        <div class="card acciones-card">
+            <h2 class="card-title">Acciones de Reserva</h2>
+
+            <div class="acciones-feedback acciones-feedback-ok" *ngIf="accionMensaje === 'ok'">
+                ✔ {{ accionMensajeTexto }}
+            </div>
+            <div class="acciones-feedback acciones-feedback-error" *ngIf="accionMensaje === 'error'">
+                ✖ {{ accionMensajeTexto }}
+            </div>
+
+            <div class="acciones-botones">
+                <button
+                    type="button"
+                    class="btn-confirmar"
+                    [disabled]="reserva.estado === 'Confirmada' || accionEnCurso"
+                    (click)="confirmarReserva()"
+                >
+                    <span *ngIf="accionEnCurso" class="btn-spinner">⏳</span>
+                    {{ accionEnCurso ? 'Publicando evento...' : 'Confirmar Reserva' }}
+                </button>
+
+                <button
+                    type="button"
+                    class="btn-cancelar"
+                    [disabled]="true"
+                >
+                    Cancelar Reserva
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>

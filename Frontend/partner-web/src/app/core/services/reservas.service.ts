@@ -80,4 +80,9 @@ export class ReservasService {
             `${this.base}/reserva/${encodeURIComponent(idReserva)}/timeline`
         );
     }
+
+    aprobarReserva(idReserva: string, idUsuarioAdmin: string): Observable<unknown> {
+        const url = `${environment.partnerManagementApiUrl}/partner/reserva/${encodeURIComponent(idReserva)}/aprobar`;
+        return this.http.post(url, { id_usuario_admin: idUsuarioAdmin });
+    }
 }

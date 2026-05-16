@@ -25,10 +25,12 @@ describe('ReservationCardComponent', () => {
 
   beforeEach(() => {
     localStorage.removeItem('th_language');
+    localStorage.removeItem('th_currency');
   });
 
   afterEach(() => {
     localStorage.removeItem('th_language');
+    localStorage.removeItem('th_currency');
   });
 
   async function setup(reservation: ReservationViewModel) {
@@ -120,6 +122,7 @@ describe('ReservationCardComponent', () => {
   });
 
   it('should display formatted price when monto_total is set', async () => {
+    localStorage.setItem('th_currency', 'USD');
     await setup(makeReservation({ monto_total: 1500, moneda: 'USD' }));
     const el = fixture.nativeElement.querySelector('[data-testid="reservation-price"]');
     expect(el.textContent).toContain('1500');

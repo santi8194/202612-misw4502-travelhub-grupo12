@@ -7,6 +7,7 @@ import { PaymentIntentResponse } from '../../core/services/booking';
 import { PAYMENT_STORAGE_PREFIX } from '../../core/storage/payment-storage';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { CurrencyService } from '../../core/services/currency.service';
 
 @Component({
   selector: 'app-payment-page',
@@ -18,6 +19,7 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 export class PaymentPage implements OnInit, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   private readonly i18n = inject(I18nService);
+  protected readonly currency = inject(CurrencyService);
 
   @ViewChild('wompiWidgetForm') private readonly wompiWidgetForm?: ElementRef<HTMLFormElement>;
 
@@ -41,7 +43,7 @@ export class PaymentPage implements OnInit, AfterViewInit {
       return '';
     }
 
-    return this.i18n.formatCurrency(Math.round(current.monto), current.moneda);
+    return this.currency.format(Math.round(current.monto), current.moneda);
   };
 
   private loadPayment(): void {

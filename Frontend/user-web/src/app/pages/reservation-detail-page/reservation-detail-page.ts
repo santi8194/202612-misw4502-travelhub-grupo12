@@ -11,6 +11,7 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { CurrencyService } from '../../core/services/currency.service';
 import type { BookingReservation, PaymentInfo, ReservationStatus } from '../../models/reservation.interface';
 import type { RoomDetailResponse } from '../../models/room-detail.interface';
 
@@ -51,6 +52,7 @@ export class ReservationDetailPage {
   private readonly catalogService = inject(CatalogService);
   private readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
+  protected readonly currency = inject(CurrencyService);
   private readonly paymentApiUrl = environment.paymentApiUrl;
 
   readonly loading = signal(true);
@@ -307,7 +309,7 @@ export class ReservationDetailPage {
 
   protected formatCurrency(amount: number | null, currency: string): string {
     if (amount === null) return '';
-    return this.i18n.formatCurrency(amount, currency);
+    return this.currency.format(amount, currency);
   }
 
   protected getStatusLabel(status: ReservationStatus): string {

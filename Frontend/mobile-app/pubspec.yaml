@@ -45,6 +45,8 @@ dependencies:
   package_info_plus: ^8.2.1
   url_launcher: ^6.3.1
   share_plus: ^10.1.4
+  pdf: ^3.11.1
+  printing: ^5.13.2
 
 dev_dependencies:
   flutter_test:
@@ -59,6 +61,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   mocktail: ^1.0.4
+  network_image_mock: ^2.1.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

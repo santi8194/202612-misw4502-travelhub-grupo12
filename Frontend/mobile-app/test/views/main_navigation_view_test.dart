@@ -5,11 +5,15 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
 import 'package:travel_hub/services/connectivity_service.dart';
+import 'package:travel_hub/view_models/reservations_list_view_model.dart';
 import 'package:travel_hub/view_models/search_view_model.dart';
 import 'package:travel_hub/view_models/user_preferences_view_model.dart';
 import 'package:travel_hub/views/main_navigation_view.dart';
 
 class MockSearchViewModel extends Mock implements SearchViewModel {}
+
+class MockReservationsListViewModel extends Mock
+    implements ReservationsListViewModel {}
 
 class MockConnectivityService extends Mock implements ConnectivityService {}
 
@@ -22,6 +26,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final mockSearchVM = MockSearchViewModel();
+    final mockReservationsVM = MockReservationsListViewModel();
     final mockConnectivity = MockConnectivityService();
 
     when(() => mockSearchVM.destinationQuery).thenReturn('');
@@ -34,6 +39,15 @@ void main() {
     when(() => mockSearchVM.isDestinationError).thenReturn(false);
     when(() => mockSearchVM.isOffline).thenReturn(false);
 
+    when(() => mockReservationsVM.isLoading).thenReturn(false);
+    when(() => mockReservationsVM.upcomingReservations).thenReturn([]);
+    when(() => mockReservationsVM.pastReservations).thenReturn([]);
+    when(() => mockReservationsVM.errorMessage).thenReturn(null);
+    when(() => mockReservationsVM.isOffline).thenReturn(false);
+    when(
+      () => mockReservationsVM.loadReservations(any()),
+    ).thenAnswer((_) async => {});
+
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -41,6 +55,9 @@ void main() {
             value: mockConnectivity,
           ),
           ChangeNotifierProvider<SearchViewModel>.value(value: mockSearchVM),
+          ChangeNotifierProvider<ReservationsListViewModel>.value(
+            value: mockReservationsVM,
+          ),
           ChangeNotifierProvider<UserPreferencesViewModel>(
             create: (_) => UserPreferencesViewModel(),
           ),

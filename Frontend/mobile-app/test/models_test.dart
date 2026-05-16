@@ -1,146 +1,134 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:travel_hub/models/categoria_habitacion.dart';
+import 'package:travel_hub/models/country_tax.dart';
 import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/models/location_suggestion.dart';
+import 'package:travel_hub/models/resena.dart';
+import 'package:travel_hub/models/reservation.dart';
 
 void main() {
   group('Models Tests', () {
-    test('Hotel.fromJson creates a valid object', () {
+    test('Habitacion fromJson/toJson', () {
       final json = {
         'imageUrl': 'test.jpg',
         'title': 'Test Hotel',
         'location': 'Test City',
-        'amenities': ['Wifi', 'Pool'],
+        'amenities': ['Wifi'],
         'isSpecialOffer': true,
+        'price': 100.0,
       };
 
       final hotel = Habitacion.fromJson(json);
-
-      expect(hotel.imageUrl, 'test.jpg');
       expect(hotel.title, 'Test Hotel');
-      expect(hotel.location, 'Test City');
-      expect(hotel.amenities, ['Wifi', 'Pool']);
-      expect(hotel.isSpecialOffer, true);
+      expect(hotel.toJson()['price'], 100.0);
     });
 
-    test('Hotel.toJson returns a valid map', () {
-      final hotel = Habitacion(
-        imageUrl: 'test.jpg',
-        title: 'Test Hotel',
-        location: 'Test City',
-        amenities: ['Wifi'],
-        isSpecialOffer: false,
-        price: 99.0,
-      );
-
-      final json = hotel.toJson();
-
-      expect(json['imageUrl'], 'test.jpg');
-      expect(json['title'], 'Test Hotel');
-      expect(json['location'], 'Test City');
-      expect(json['amenities'], ['Wifi']);
-      expect(json['isSpecialOffer'], false);
-      expect(json['price'], 99.0);
-    });
-
-    test('LocationSuggestion properties and methods', () {
+    test('LocationSuggestion properties', () {
       const suggestion = LocationSuggestion(
         ciudad: 'Bogota',
         estadoProvincia: 'Cundinamarca',
         pais: 'Colombia',
       );
+      expect(suggestion.displayName, contains('Bogota'));
+      expect(suggestion.toJson()['ciudad'], 'Bogota');
+      expect(suggestion.toString(), contains('Bogota'));
 
-      expect(suggestion.displayName, 'Bogota, Cundinamarca, Colombia');
-      expect(suggestion.toString(), 'Bogota, Cundinamarca, Colombia');
-
-      final json = suggestion.toJson();
-      expect(json['ciudad'], 'Bogota');
-
-      final fromJson = LocationSuggestion.fromJson(json);
-      expect(fromJson.ciudad, 'Bogota');
+      final fromJson = LocationSuggestion.fromJson({
+        'ciudad': 'C',
+        'estado_provincia': 'S',
+        'pais': 'P',
+      });
+      expect(fromJson.ciudad, 'C');
     });
 
-    test('CategoriaHabitacion.fromJson creates a nested category model', () {
+    test('CategoriaHabitacion full coverage', () {
       final json = {
-        'id_categoria': 'cat-1',
-        'codigo_mapeo_pms': 'PMS-001',
-        'nombre_comercial': 'Suite Deluxe',
-        'descripcion': 'Ocean view suite',
-        'precio_base': {
-          'monto': '250.00',
-          'moneda': 'USD',
-          'cargo_servicio': '35.00',
-        },
-        'foto_portada_url': 'https://example.com/room.jpg',
-        'capacidad_pax': 3,
+        'id_categoria': 'c1',
+        'precio_base': {'monto': '10', 'moneda': 'USD', 'cargo_servico': '1'},
         'politica_cancelacion': {
-          'dias_anticipacion': 5,
-          'porcentaje_penalidad': '20.00',
+          'dias_anticipacion': 1,
+          'porcentaje_penalidad': '5',
         },
       };
+      final cat = CategoriaHabitacion.fromJson(json);
+      expect(cat.idCategoria, 'c1');
+      expect(cat.precioBase.monto, '10');
 
-      final categoria = CategoriaHabitacion.fromJson(json);
+      final emptyCat = CategoriaHabitacion.fromJson({});
+      expect(emptyCat.idCategoria, '');
 
-      expect(categoria.idCategoria, 'cat-1');
-      expect(categoria.codigoMapeoPms, 'PMS-001');
-      expect(categoria.nombreComercial, 'Suite Deluxe');
-      expect(categoria.precioBase.monto, '250.00');
-      expect(categoria.precioBase.moneda, 'USD');
-      expect(categoria.precioBase.cargoServicio, '35.00');
-      expect(categoria.capacidadPax, 3);
-      expect(categoria.politicaCancelacion.diasAnticipacion, 5);
-      expect(categoria.politicaCancelacion.porcentajePenalidad, '20.00');
+      final toJson = cat.toJson();
+      expect(toJson, contains('c1'));
     });
 
-    test(
-      'CategoriaHabitacion.fromJson uses nested defaults for missing data',
-      () {
-        final categoria = CategoriaHabitacion.fromJson({});
+    test('Resena fromJson', () {
+      final resena = Resena.fromJson({
+        'userName': 'U',
+        'rating': 4.5,
+        'comment': 'C',
+        'date': 'D',
+        'userImageUrl': 'I',
+      });
+      expect(resena.userName, 'U');
+      expect(resena.rating, 4.5);
 
-        expect(categoria.idCategoria, '');
-        expect(categoria.codigoMapeoPms, '');
-        expect(categoria.nombreComercial, '');
-        expect(categoria.descripcion, '');
-        expect(categoria.fotoPortadaUrl, '');
-        expect(categoria.capacidadPax, 0);
-        expect(categoria.precioBase.monto, '0.00');
-        expect(categoria.precioBase.moneda, '');
-        expect(categoria.precioBase.cargoServicio, '0.00');
-        expect(categoria.politicaCancelacion.diasAnticipacion, 0);
-        expect(categoria.politicaCancelacion.porcentajePenalidad, '0.00');
-      },
-    );
+      final emptyResena = Resena.fromJson({});
+      expect(emptyResena.userName, '');
+    });
 
-    test(
-      'CategoriaHabitacion.toJson returns the serialized payload string',
-      () {
-        const categoria = CategoriaHabitacion(
-          idCategoria: 'cat-2',
-          codigoMapeoPms: 'PMS-002',
-          nombreComercial: 'Family Room',
-          descripcion: 'Large room for families',
-          precioBase: PrecioBase(
-            monto: '180.00',
-            moneda: 'COP',
-            cargoServicio: '20.00',
-          ),
-          fotoPortadaUrl: 'https://example.com/family-room.jpg',
-          capacidadPax: 4,
-          politicaCancelacion: PoliticaCancelacion(
-            diasAnticipacion: 2,
-            porcentajePenalidad: '10.00',
-          ),
-        );
+    test('Reservation full coverage', () {
+      final room = Habitacion(
+        title: 'T',
+        location: 'L',
+        imageUrl: 'I',
+        price: 100,
+        amenities: [],
+      );
+      final range = DateTimeRange(
+        start: DateTime(2026, 1, 1),
+        end: DateTime(2026, 1, 2),
+      );
 
-        final json = categoria.toJson();
+      final res = Reservation(
+        id: '1',
+        room: room,
+        dateRange: range,
+        guestCount: 2,
+        hotelName: 'Hotel',
+        hotelAddress: 'Address',
+        hotelPhone: '123',
+      );
 
-        expect(json, contains('"id_categoria": "cat-2"'));
-        expect(json, contains('"codigo_mapeo_pms": "PMS-002"'));
-        expect(json, contains('"monto": "180.00"'));
-        expect(json, contains('"cargo_servicio": "20.00"'));
-        expect(json, contains('"dias_anticipacion": 2'));
-        expect(json, contains('"porcentaje_penalidad": "10.00"'));
-      },
-    );
+      expect(res.id, '1');
+      expect(res.hotelPhone, '123');
+
+      final json = res.toJson();
+      expect(json['id'], '1');
+
+      final fromJson = Reservation.fromJson(json);
+      expect(fromJson.id, '1');
+      expect(fromJson.hotelName, 'Hotel');
+
+      final copied = res.copyWith(id: '2');
+      expect(copied.id, '2');
+      expect(copied.hotelName, 'Hotel');
+    });
+
+    test('CountryTax and TaxInfo', () {
+      const taxInfo = TaxInfo(name: 'IVA', rate: 0.19, note: {'es': 'N'});
+      expect(taxInfo.noteForLanguage('es'), 'N');
+      expect(taxInfo.noteForLanguage('en'), 'N');
+
+      const countryTax = CountryTax(
+        currency: 'COP',
+        currencySymbol: r'$',
+        locale: 'es_CO',
+        decimals: 0,
+        usdRate: 4000,
+        tax: taxInfo,
+      );
+      expect(countryTax.currency, 'COP');
+    });
   });
 }

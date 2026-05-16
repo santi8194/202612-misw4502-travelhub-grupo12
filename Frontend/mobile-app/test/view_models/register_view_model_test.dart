@@ -14,18 +14,19 @@ void main() {
     test('Initial state is correct', () {
       expect(viewModel.email, '');
       expect(viewModel.password, '');
+      expect(viewModel.fullName, '');
       expect(viewModel.confirmPassword, '');
       expect(viewModel.isLoading, false);
     });
 
     test('setEmail updates value', () {
-      viewModel.setEmail('test@reg.com');
-      expect(viewModel.email, 'test@reg.com');
+      viewModel.setEmail('test@example.com');
+      expect(viewModel.email, 'test@example.com');
     });
 
     test('setPassword updates value', () {
-      viewModel.setPassword('secret');
-      expect(viewModel.password, 'secret');
+      viewModel.setPassword('password123');
+      expect(viewModel.password, 'password123');
     });
 
     test('setFullName updates value', () {
@@ -34,23 +35,20 @@ void main() {
     });
 
     test('setConfirmPassword updates value', () {
-      viewModel.setConfirmPassword('secret');
-      expect(viewModel.confirmPassword, 'secret');
-    });
-
-    test('register validation fails with empty fields', () async {
-      final result = await viewModel.register();
-      expect(result, false);
-      expect(viewModel.isLoading, false);
+      viewModel.setConfirmPassword('password123');
+      expect(viewModel.confirmPassword, 'password123');
     });
 
     test('register fails when passwords do not match', () async {
       viewModel.setPassword('pass1');
       viewModel.setConfirmPassword('pass2');
-      // register() calls formKey.currentState?.validate()
-      // Since formKey is a real GlobalKey and not attached to a Form widget here,
-      // validate() will likely return null/false, but we can't easily mock it in a pure unit test.
-      // However, we can test the password mismatch logic if we can get past the validate() call.
+      final result = await viewModel.register();
+      expect(result, false);
+    });
+
+    test('register returns false on initial empty state', () async {
+      final result = await viewModel.register();
+      expect(result, false);
     });
   });
 }

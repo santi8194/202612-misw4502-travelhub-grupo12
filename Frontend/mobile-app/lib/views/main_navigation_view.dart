@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../l10n/app_localizations.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import 'busqueda_view.dart';
 import 'profile_view.dart';
@@ -25,8 +24,6 @@ class _MainNavigationViewState extends State<MainNavigationView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     final List<Widget> pages = [
       const BusquedaView(),
       const ReservationsListView(),

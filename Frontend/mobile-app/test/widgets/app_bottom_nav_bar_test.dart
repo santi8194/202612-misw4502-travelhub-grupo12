@@ -1,24 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
+import 'package:travel_hub/view_models/reservations_list_view_model.dart';
 import 'package:travel_hub/view_models/search_view_model.dart';
 import 'package:travel_hub/view_models/user_preferences_view_model.dart';
 import 'package:travel_hub/widgets/app_bottom_nav_bar.dart';
+
+class MockSearchViewModel extends Mock implements SearchViewModel {}
+
+class MockReservationsListViewModel extends Mock
+    implements ReservationsListViewModel {}
 
 Widget _buildTestApp({
   required Widget child,
   NavigatorObserver? navigatorObserver,
 }) {
+  final mockSearchVM = MockSearchViewModel();
+  final mockReservationsVM = MockReservationsListViewModel();
+
+  when(() => mockSearchVM.destinationQuery).thenReturn('');
+  when(() => mockSearchVM.isSearching).thenReturn(false);
+  when(() => mockSearchVM.isOffline).thenReturn(false);
+
+  when(() => mockReservationsVM.isLoading).thenReturn(false);
+  when(() => mockReservationsVM.upcomingReservations).thenReturn([]);
+  when(() => mockReservationsVM.pastReservations).thenReturn([]);
+  when(() => mockReservationsVM.errorMessage).thenReturn(null);
+  when(() => mockReservationsVM.isOffline).thenReturn(false);
+  when(
+    () => mockReservationsVM.loadReservations(any()),
+  ).thenAnswer((_) async => {});
+
   return MultiProvider(
     providers: [
-      ChangeNotifierProvider(create: (_) => SearchViewModel()),
+      ChangeNotifierProvider<SearchViewModel>.value(value: mockSearchVM),
+      ChangeNotifierProvider<ReservationsListViewModel>.value(
+        value: mockReservationsVM,
+      ),
       ChangeNotifierProvider(create: (_) => UserPreferencesViewModel()),
     ],
     child: MaterialApp(
       locale: const Locale('en'),
-      navigatorObservers: navigatorObserver == null ? const [] : [navigatorObserver],
+      navigatorObservers: navigatorObserver == null
+          ? const []
+          : [navigatorObserver],
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -36,9 +64,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      _buildTestApp(
-        child: const AppBottomNavBar(currentIndex: 1),
-      ),
+      _buildTestApp(child: const AppBottomNavBar(currentIndex: 1)),
     );
 
     expect(find.text('Search'), findsOneWidget);
@@ -75,9 +101,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      _buildTestApp(
-        child: const AppBottomNavBar(currentIndex: 0),
-      ),
+      _buildTestApp(child: const AppBottomNavBar(currentIndex: 0)),
     );
 
     await tester.tap(find.text('Bookings'));

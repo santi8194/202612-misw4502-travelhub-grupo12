@@ -32,8 +32,7 @@ class SyncInventory:
             dto: DTO con los datos normalizados del cambio de inventario
         """
         event = PMSInventoryUpdated(
-            id_propiedad=dto.id_propiedad,
-            id_categoria=dto.id_categoria,
+            codigo_mapeo_pms=dto.codigo_mapeo_pms,
             fecha=dto.fecha,
             cupos_totales=dto.cupos_totales,
             cupos_disponibles=dto.cupos_disponibles,
@@ -46,4 +45,4 @@ class SyncInventory:
             payload=event.to_dict()
         )
         
-        print(f"[SYNC] Publicado PMSInventoryUpdated: {dto.id_categoria} @ {dto.fecha} -> {dto.cupos_disponibles} cupos")
+        print(f"[SYNC] Publicado PMSInventoryUpdated: {dto.codigo_mapeo_pms} @ {dto.fecha} -> {dto.cupos_disponibles} cupos")

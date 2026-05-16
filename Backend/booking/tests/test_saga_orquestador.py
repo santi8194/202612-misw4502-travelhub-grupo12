@@ -221,6 +221,31 @@ def test_manejar_evento_respuesta_no_procesa_si_saga_no_existe():
     repositorio_mock.actualizar.assert_not_called()
 
 
+def test_manejar_evento_respuesta_confirmacion_pms_cancelada_delega_handler_local():
+    id_reserva = uuid.uuid4()
+    repositorio_mock = MagicMock()
+    uow_mock = MagicMock()
+    handler_cancelacion = MagicMock()
+
+    orquestador = OrquestadorSagaReservas(
+        repositorio=repositorio_mock,
+        uow=uow_mock,
+        handler_confirmar_cancelacion_pms_local=handler_cancelacion,
+    )
+
+    orquestador.manejar_evento_respuesta(
+        id_reserva=id_reserva,
+        evento_recibido="ConfirmacionPmsCanceladaEvt",
+        payload_recibido={"id_reserva": str(id_reserva)},
+    )
+
+    handler_cancelacion.handle.assert_called_once()
+    comando = handler_cancelacion.handle.call_args.args[0]
+    assert comando.__class__.__name__ == "ConfirmarCancelacionPmsLocalCmd"
+    assert comando.id_reserva == id_reserva
+    repositorio_mock.buscar_por_reserva.assert_not_called()
+
+
 def test_manejar_evento_respuesta_no_procesa_si_saga_completada():
     """Verifica que manejar_evento_respuesta no procesa si la saga está completada."""
     id_reserva = uuid.uuid4()

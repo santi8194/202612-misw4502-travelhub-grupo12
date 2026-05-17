@@ -51,7 +51,4 @@ export class ReservationCardComponent {
     return estado === 'PENDIENTE_PAGO';
   }
 
-  protected showCancelarReserva(estado: ReservationStatus): boolean {
-    return estado === 'CONFIRMADA' || estado === 'PENDIENTE_CONFIRMACION_HOTEL';
-  }
 }

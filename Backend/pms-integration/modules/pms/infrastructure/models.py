@@ -7,12 +7,14 @@ class ReservationModel(Base):
 
     id = Column(String, primary_key=True)
     reservation_id = Column(String)
-    room_id = Column(String)
-    room_type = Column(String)
-    guest_name = Column(String)
+    id_categoria = Column(String)
+    id_usuario = Column(String)
+    hotel_code = Column(String)
+    room_type_code = Column(String)
     state = Column(String)
     hotel_id = Column(String)
-    fecha_reserva = Column(String)
+    fecha_check_in = Column(String)
+    fecha_check_out = Column(String)
     version = Column(Integer, nullable=False, default=1)
 
     # -----------------------------------------------------------------------
@@ -29,9 +31,10 @@ class ReservationModel(Base):
     # -----------------------------------------------------------------------
     __table_args__ = (
         Index(
-            'idx_room_date_active',
-            'room_id',
-            'fecha_reserva',
+            'idx_categoria_range_active',
+            'id_categoria',
+            'fecha_check_in',
+            'fecha_check_out',
             unique=True,
             postgresql_where=(Column('state') != 'CANCELLED')
         ),

@@ -17,6 +17,7 @@ export type BookingEstado =
   | 'HOLD'
   | 'PENDIENTE'
   | 'CONFIRMADA'
+  | 'CANCELACION_EN_PROCESO'
   | 'CANCELADA'
   | 'EXPIRADA';
 
@@ -99,4 +100,69 @@ export type ReservationFilter = 'TODAS' | 'CONFIRMADA' | 'PENDIENTE' | 'CANCELAD
 export interface UserLocale {
   pais: string;
   id_usuario: string;
+}
+
+// Cancellation flow contracts returned by Booking for HU-Web-11.
+export type CancellationPolicyType =
+  | 'FREE_CANCELLATION'
+  | 'PARTIAL_REFUND'
+  | 'NON_REFUNDABLE';
+
+export type RefundStatus =
+  | 'PENDING'
+  | 'NOT_APPLICABLE';
+
+export type PmsStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'NOT_APPLICABLE';
+
+export interface CancellationPolicy {
+  type: CancellationPolicyType;
+  label: string;
+  description: string;
+  diasAnticipacion: number;
+  porcentajePenalidad: number;
+}
+
+export interface CancellationRefund {
+  paidAmount: number;
+  expectedRefundAmount: number;
+  refundStatus: RefundStatus;
+  processingTimeLabel: string;
+}
+
+export interface CancellationPreview {
+  reservationId: string;
+  reservationNumber: string;
+  hotelName: string | null;
+  location: string | null;
+  checkInDate: string | null;
+  checkOutDate: string | null;
+  guests: number;
+  currentStatus: BookingEstado;
+  totalPaid: number;
+  currency: string;
+  canCancel: boolean;
+  nonCancelableReason: string | null;
+  pmsStatus: PmsStatus | null;
+  mensaje: string | null;
+  cancellationPolicy: CancellationPolicy;
+  refund: CancellationRefund;
+}
+
+export interface CancelReservationRequest {
+  acceptedTerms: boolean;
+  reason?: string;
+}
+
+export interface CancellationResult {
+  reservationId: string;
+  reservationStatus: BookingEstado;
+  cancellationReference: string;
+  refundAmount: number;
+  refundStatus: RefundStatus;
+  processingTimeLabel: string | null;
+  pmsStatus: PmsStatus;
+  mensaje: string;
 }

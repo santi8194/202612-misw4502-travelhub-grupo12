@@ -1,13 +1,59 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpErrorResponse } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { BookingService } from './booking';
 import { HoldRequest } from '../../models/hold.interface';
 import { environment } from '../../../environments/environment';
+import { authInterceptor } from '../interceptors/auth.interceptor';
+import {
+  CancellationPreview,
+  CancellationResult,
+} from '../../models/reservation.interface';
 
 const BOOKING_URL = environment.bookingApiUrl;
+
+const CANCELLATION_PREVIEW: CancellationPreview = {
+  reservationId: 'reserva-123',
+  reservationNumber: 'BK-001',
+  hotelName: 'Hotel Andino',
+  location: 'Bogota, Colombia',
+  checkInDate: '2026-06-20',
+  checkOutDate: '2026-06-23',
+  guests: 3,
+  currentStatus: 'CONFIRMADA',
+  totalPaid: 1000,
+  currency: 'COP',
+  canCancel: true,
+  nonCancelableReason: null,
+  pmsStatus: null,
+  mensaje: null,
+  cancellationPolicy: {
+    type: 'PARTIAL_REFUND',
+    label: 'Reembolso parcial',
+    description: 'La reserva puede cancelarse dentro de la ventana permitida con penalidad parcial.',
+    diasAnticipacion: 2,
+    porcentajePenalidad: 50,
+  },
+  refund: {
+    paidAmount: 1000,
+    expectedRefundAmount: 500,
+    refundStatus: 'PENDING',
+    processingTimeLabel: '5 a 10 dias habiles',
+  },
+};
+
+const CANCELLATION_RESULT: CancellationResult = {
+  reservationId: 'reserva-123',
+  reservationStatus: 'CANCELACION_EN_PROCESO',
+  cancellationReference: 'CXL-RESERVA1',
+  refundAmount: 500,
+  refundStatus: 'PENDING',
+  processingTimeLabel: '5 a 10 dias habiles',
+  pmsStatus: 'PENDING',
+  mensaje: 'Cancelacion iniciada correctamente',
+};
 
 describe('BookingService', () => {
   let service: BookingService;
@@ -18,7 +64,7 @@ describe('BookingService', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        provideHttpClient(),
+        provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting()
       ],
     });
@@ -227,6 +273,152 @@ describe('BookingService', () => {
 
     const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/expirar`);
     req.flush({ message: 'No expirable' }, { status: 409, statusText: 'Conflict' });
+  });
+
+  it('should request the cancellation preview without adding X-User-Id manually', () => {
+    service.getCancellationPreview('reserva-123').subscribe((response) => {
+      expect(response).toEqual(CANCELLATION_PREVIEW);
+      expect(response.canCancel).toBeTrue();
+      expect(response.refund.expectedRefundAmount).toBe(500);
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/cancelacion-preview`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer acc-token-xyz');
+    expect(req.request.headers.has('X-User-Id')).toBeFalse();
+    req.flush(CANCELLATION_PREVIEW);
+  });
+
+  it('should preserve nullable cancellation preview fields from backend', () => {
+    service.getCancellationPreview('reserva-123').subscribe((response) => {
+      expect(response.hotelName).toBeNull();
+      expect(response.location).toBeNull();
+      expect(response.checkInDate).toBeNull();
+      expect(response.checkOutDate).toBeNull();
+      expect(response.nonCancelableReason).toBeNull();
+      expect(response.pmsStatus).toBeNull();
+      expect(response.mensaje).toBeNull();
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/cancelacion-preview`);
+    req.flush({
+      ...CANCELLATION_PREVIEW,
+      hotelName: null,
+      location: null,
+      checkInDate: null,
+      checkOutDate: null,
+    });
+  });
+
+  [
+    { status: 400, statusText: 'Bad Request' },
+    { status: 401, statusText: 'Unauthorized' },
+    { status: 403, statusText: 'Forbidden' },
+    { status: 404, statusText: 'Not Found' },
+    { status: 500, statusText: 'Server Error' },
+  ].forEach(({ status, statusText }) => {
+    it(`should propagate cancellation preview errors with status ${status}`, () => {
+      service.getCancellationPreview('reserva-123').subscribe({
+        next: () => fail('Expected getCancellationPreview to fail'),
+        error: (error: HttpErrorResponse) => expect(error.status).toBe(status),
+      });
+
+      const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/cancelacion-preview`);
+      req.flush({ error: 'fail' }, { status, statusText });
+    });
+  });
+
+  it('should keep non-cancelable preview data exactly as returned by backend', () => {
+    service.getCancellationPreview('reserva-123').subscribe((response) => {
+      expect(response.canCancel).toBeFalse();
+      expect(response.nonCancelableReason).toBe('La reserva ya tiene una cancelacion en proceso.');
+      expect(response.currentStatus).toBe('CANCELACION_EN_PROCESO');
+      expect(response.pmsStatus).toBe('PENDING');
+      expect(response.refund.expectedRefundAmount).toBe(0);
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/cancelacion-preview`);
+    req.flush({
+      ...CANCELLATION_PREVIEW,
+      currentStatus: 'CANCELACION_EN_PROCESO',
+      canCancel: false,
+      nonCancelableReason: 'La reserva ya tiene una cancelacion en proceso.',
+      pmsStatus: 'PENDING',
+      mensaje: 'La cancelacion esta en proceso y espera confirmacion del PMS.',
+      refund: {
+        ...CANCELLATION_PREVIEW.refund,
+        expectedRefundAmount: 0,
+        refundStatus: 'NOT_APPLICABLE',
+      },
+    });
+  });
+
+  it('should send a typed cancellation request and preserve the backend result', () => {
+    service.cancelReservation('reserva-123', {
+      acceptedTerms: true,
+      reason: 'Cambio de planes',
+    }).subscribe((response) => {
+      expect(response).toEqual(CANCELLATION_RESULT);
+      expect(response.cancellationReference).toBe('CXL-RESERVA1');
+      expect(response.refundAmount).toBe(500);
+      expect(response.reservationStatus).toBe('CANCELACION_EN_PROCESO');
+      expect(response.pmsStatus).toBe('PENDING');
+    });
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/cancelar`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      acceptedTerms: true,
+      reason: 'Cambio de planes',
+    });
+    expect(req.request.headers.get('Authorization')).toBe('Bearer acc-token-xyz');
+    expect(req.request.headers.has('X-User-Id')).toBeFalse();
+    req.flush(CANCELLATION_RESULT);
+  });
+
+  it('should trim a cancellation reason before sending it', () => {
+    service.cancelReservation('reserva-123', {
+      acceptedTerms: true,
+      reason: '  Cambio de planes  ',
+    }).subscribe();
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/cancelar`);
+    expect(req.request.body).toEqual({
+      acceptedTerms: true,
+      reason: 'Cambio de planes',
+    });
+    req.flush(CANCELLATION_RESULT);
+  });
+
+  it('should omit an empty cancellation reason before sending it', () => {
+    service.cancelReservation('reserva-123', {
+      acceptedTerms: true,
+      reason: '   ',
+    }).subscribe();
+
+    const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/cancelar`);
+    expect(req.request.body).toEqual({ acceptedTerms: true });
+    req.flush({
+      ...CANCELLATION_RESULT,
+      refundAmount: 0,
+      refundStatus: 'NOT_APPLICABLE',
+      processingTimeLabel: null,
+    });
+  });
+
+  [400, 403].forEach((status) => {
+    it(`should propagate cancellation submission errors with status ${status}`, () => {
+      service.cancelReservation('reserva-123', { acceptedTerms: true }).subscribe({
+        next: () => fail('Expected cancelReservation to fail'),
+        error: (error: HttpErrorResponse) => expect(error.status).toBe(status),
+      });
+
+      const req = httpTesting.expectOne(`${BOOKING_URL}/reserva-123/cancelar`);
+      req.flush(
+        { error: 'fail' },
+        { status, statusText: status === 400 ? 'Bad Request' : 'Forbidden' }
+      );
+    });
   });
 
   it('should read catalog, category and categories endpoints', () => {

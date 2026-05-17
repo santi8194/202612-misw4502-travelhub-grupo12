@@ -18,6 +18,7 @@ def test_get_current_user_success_access_token(monkeypatch, sample_user):
 
     assert current.email == sample_user.email
     assert current.rol == sample_user.rol
+    assert current.username == sample_user.username
 
 
 def test_get_current_user_success_id_token(monkeypatch, sample_user):

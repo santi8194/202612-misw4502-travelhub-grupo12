@@ -7,7 +7,6 @@ import { of } from 'rxjs';
 import { HeaderComponent } from './header';
 import { AuthService } from '../../../core/services/auth';
 import { NotificationService } from '../../../core/services/notification';
-import { BookingService } from '../../../core/services/booking';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -15,7 +14,6 @@ describe('HeaderComponent', () => {
   let router: Router;
   let authService: AuthService;
   let notificationService: NotificationService;
-  let bookingService: BookingService;
 
   beforeEach(async () => {
     localStorage.clear();
@@ -31,12 +29,18 @@ describe('HeaderComponent', () => {
     router = TestBed.inject(Router);
     authService = TestBed.inject(AuthService);
     notificationService = TestBed.inject(NotificationService);
-    bookingService = TestBed.inject(BookingService);
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should link the TravelHub brand to the home search view', () => {
+    const brand = fixture.nativeElement.querySelector('.brand') as HTMLAnchorElement;
+
+    expect(brand).toBeTruthy();
+    expect(brand.getAttribute('href')).toBe('/');
   });
 
   it('should show login and register options when there is no active session', () => {
@@ -176,7 +180,7 @@ describe('HeaderComponent', () => {
     expect(sessionStorage.getItem('hold:reservation-123')).toBeNull();
   });
 
-  it('should cancel active reservation before redirecting to home on logout', () => {
+  it('should not cancel active reservations when redirecting to home on logout', () => {
     localStorage.setItem('th_access_token', 'acc-token-xyz');
     localStorage.setItem('th_refresh_token', 'ref-token-xyz');
     localStorage.setItem('th_token_type', 'Bearer');
@@ -184,13 +188,11 @@ describe('HeaderComponent', () => {
     localStorage.setItem('th_user_id', 'user-123');
     localStorage.setItem('th_user_name', 'a.perez');
 
-    const cancelSpy = spyOn(bookingService, 'cancelBookingById').and.returnValue(of({}));
     const navigateSpy = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
     spyOnProperty(router, 'url', 'get').and.returnValue('/booking/reserva-123');
 
     component.logout();
 
-    expect(cancelSpy).toHaveBeenCalledWith('reserva-123');
     expect(navigateSpy).toHaveBeenCalledWith(['/'], { replaceUrl: true });
   });
 });

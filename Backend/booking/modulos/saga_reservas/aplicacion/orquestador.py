@@ -154,13 +154,21 @@ class OrquestadorSagaReservas:
                 # Hack temporal para la prueba de concepto y el routing slip:
                 # Si el comando requiere datos que no fluyeron nativamente en el evento anterior (ej. Pago -> PMS)
                 # los inyectamos rescatándolos del contexto inicial o como mock si están ausentes:
-                if 'id_habitacion' in parametros_validos and 'id_habitacion' not in kwargs_filtrados:
-                    habitacion_ctx = None
+                if 'id_categoria' in parametros_validos and 'id_categoria' not in kwargs_filtrados:
+                    categoria_ctx = None
                     if saga.historial:
-                        habitacion_ctx = saga.historial[0].payload_snapshot.get('id_habitacion')
-                    if not habitacion_ctx:
-                        raise ValueError(f"Falta 'id_habitacion' en la historia de la saga para el comando {comando_nombre}")
-                    kwargs_filtrados['id_habitacion'] = uuid.UUID(str(habitacion_ctx)) if isinstance(habitacion_ctx, str) else habitacion_ctx
+                        categoria_ctx = saga.historial[0].payload_snapshot.get('id_categoria')
+                    if not categoria_ctx:
+                        raise ValueError(f"Falta 'id_categoria' en la historia de la saga para el comando {comando_nombre}")
+                    kwargs_filtrados['id_categoria'] = uuid.UUID(str(categoria_ctx)) if isinstance(categoria_ctx, str) else categoria_ctx
+
+                if 'id_usuario' in parametros_validos and 'id_usuario' not in kwargs_filtrados:
+                    usuario_ctx = None
+                    if saga.historial:
+                        usuario_ctx = saga.historial[0].payload_snapshot.get('id_usuario')
+                    if not usuario_ctx:
+                        raise ValueError(f"Falta 'id_usuario' en la historia de la saga para el comando {comando_nombre}")
+                    kwargs_filtrados['id_usuario'] = uuid.UUID(str(usuario_ctx)) if isinstance(usuario_ctx, str) else usuario_ctx
                     
                 if 'monto' in parametros_validos and 'monto' not in kwargs_filtrados:
                     monto_ctx = None
@@ -170,19 +178,31 @@ class OrquestadorSagaReservas:
                         raise ValueError(f"Falta 'monto' en la historia de la saga for the command {comando_nombre}")
                     kwargs_filtrados['monto'] = float(monto_ctx)
 
-                if 'fecha_reserva' in parametros_validos and 'fecha_reserva' not in kwargs_filtrados:
-                    # Intentar buscar en TODO el historial de la saga empezando por el evento inicial (ReservaCreada)
-                    fecha_ctx = None
+                if 'fecha_check_in' in parametros_validos and 'fecha_check_in' not in kwargs_filtrados:
+                    fecha_check_in_ctx = None
                     if saga.historial:
                         for log in saga.historial:
-                            if log.payload_snapshot and log.payload_snapshot.get('fecha_reserva'):
-                                fecha_ctx = log.payload_snapshot.get('fecha_reserva')
+                            if log.payload_snapshot and log.payload_snapshot.get('fecha_check_in'):
+                                fecha_check_in_ctx = log.payload_snapshot.get('fecha_check_in')
                                 break
 
-                    if not fecha_ctx:
-                        raise ValueError(f"Falta 'fecha_reserva' en la historia de la saga para el comando {comando_nombre}")
+                    if not fecha_check_in_ctx:
+                        raise ValueError(f"Falta 'fecha_check_in' en la historia de la saga para el comando {comando_nombre}")
                     
-                    kwargs_filtrados['fecha_reserva'] = fecha_ctx
+                    kwargs_filtrados['fecha_check_in'] = fecha_check_in_ctx
+
+                if 'fecha_check_out' in parametros_validos and 'fecha_check_out' not in kwargs_filtrados:
+                    fecha_check_out_ctx = None
+                    if saga.historial:
+                        for log in saga.historial:
+                            if log.payload_snapshot and log.payload_snapshot.get('fecha_check_out'):
+                                fecha_check_out_ctx = log.payload_snapshot.get('fecha_check_out')
+                                break
+
+                    if not fecha_check_out_ctx:
+                        raise ValueError(f"Falta 'fecha_check_out' en la historia de la saga para el comando {comando_nombre}")
+
+                    kwargs_filtrados['fecha_check_out'] = fecha_check_out_ctx
                         
                 # Registrar el comando emitido CON los parametros correctos inyectados
                 payload_final_log = kwargs_filtrados.copy()
@@ -207,15 +227,13 @@ class OrquestadorSagaReservas:
         id_reserva: uuid.UUID,
         id_usuario: uuid.UUID,
         monto: float = 0.0,
-        id_habitacion: uuid.UUID = None,
         id_categoria: uuid.UUID = None,
-        fecha_reserva: str = None,
+        fecha_check_in: str = None,
+        fecha_check_out: str = None,
     ):
         """Invocado cuando la reserva inicial pasa a PENDIENTE"""
         try:
             with self.uow:
-                id_habitacion = id_habitacion or id_categoria
-
                 definicion = self.repositorio.obtener_definicion_saga_activa("RESERVA_ESTANDAR")
                 if not definicion:
                     logger.info("[Orquestador] No se encontró definición de saga activa para RESERVA_ESTANDAR")
@@ -240,9 +258,10 @@ class OrquestadorSagaReservas:
                 payload_inicial = {
                     "id_reserva": str(id_reserva), 
                     "id_usuario": str(id_usuario),
-                    "id_habitacion": str(id_habitacion) if id_habitacion else None,
+                    "id_categoria": str(id_categoria) if id_categoria else None,
                     "monto": float(monto), 
-                    "fecha_reserva": fecha_reserva,
+                    "fecha_check_in": fecha_check_in,
+                    "fecha_check_out": fecha_check_out,
                     "estado": "PENDIENTE",
                     "fecha_creacion": str(saga.fecha_creacion)
                 }
@@ -398,14 +417,14 @@ class OrquestadorSagaReservas:
                             comandos_compensatorios.append(cmd)
                             kwargs_log["monto"] = float(monto_reversa)
                         elif ClaseCompensacion == CancelarReservaPmsCmd:
-                            habitacion = log.payload_snapshot.get('id_habitacion')
-                            if not habitacion and saga.historial:
-                                habitacion = saga.historial[0].payload_snapshot.get('id_habitacion')
-                            if not habitacion:
-                                raise ValueError("Falta 'id_habitacion' en la saga para compensar CancelarReservaPmsCmd")
-                            cmd = CancelarReservaPmsCmd(id_reserva=id_reserva, id_habitacion=uuid.UUID(str(habitacion)))
+                            categoria = log.payload_snapshot.get('id_categoria')
+                            if not categoria and saga.historial:
+                                categoria = saga.historial[0].payload_snapshot.get('id_categoria')
+                            if not categoria:
+                                raise ValueError("Falta 'id_categoria' en la saga para compensar CancelarReservaPmsCmd")
+                            cmd = CancelarReservaPmsCmd(id_reserva=id_reserva, id_categoria=uuid.UUID(str(categoria)))
                             comandos_compensatorios.append(cmd)
-                            kwargs_log["id_habitacion"] = str(habitacion)
+                            kwargs_log["id_categoria"] = str(categoria)
                         elif ClaseCompensacion == CancelarReservaLocalCmd:
                             logger.info(f"[Orquestador-Fallo] Delegando compensación local al handler inyectado: CancelarReservaLocalCmd")
                             try:

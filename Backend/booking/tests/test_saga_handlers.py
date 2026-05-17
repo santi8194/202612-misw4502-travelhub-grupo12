@@ -36,6 +36,8 @@ def test_iniciar_saga_handler_llama_orquestador_iniciar_saga():
         id_reserva=id_reserva,
         id_usuario=id_usuario,
         id_categoria=id_categoria,
+        fecha_check_in=None,
+        fecha_check_out=None,
     )
 
 

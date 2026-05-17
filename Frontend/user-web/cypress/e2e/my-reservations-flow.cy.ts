@@ -105,8 +105,8 @@ describe('My Reservations Flow', () => {
       cy.get('[data-testid="filter-pendientes"]').click();
       cy.get('[data-testid="reservation-card"]').should('have.length', 1);
       cy.get('[data-testid="reservation-status-badge"]').should('contain.text', 'Pendiente por confirmación');
-      // Should show the "Cancelar Reserva" button (PENDIENTE_CONFIRMACION_HOTEL)
-      cy.get('[data-testid="btn-cancelar-reserva"]').should('exist').and('be.visible');
+      // Cancellation starts from reservation detail, not directly from the card.
+      cy.get('[data-testid="btn-cancelar-reserva"]').should('not.exist');
 
       // Filter: Todas
       cy.get('[data-testid="filter-todas"]').click();

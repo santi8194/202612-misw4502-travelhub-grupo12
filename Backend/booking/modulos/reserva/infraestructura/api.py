@@ -358,23 +358,32 @@ def _request_ip_or_none() -> str | None:
     return request.remote_addr
 
 
-def _request_user_id_or_none() -> str | None:
+def _request_user_identifiers() -> set[str]:
     current_user = AuthServiceClient().get_current_user(request.headers.get("Authorization"))
-    user_id = current_user.get("id_usuario") if isinstance(current_user, dict) else None
-    return str(user_id).strip() if user_id else None
+    if not isinstance(current_user, dict):
+        return set()
+
+    return {
+        str(value).strip()
+        for value in (
+            current_user.get("id_usuario"),
+            current_user.get("username"),
+        )
+        if value
+    }
 
 
 def _ownership_error_for_reserva(reserva):
-    request_user_id = _request_user_id_or_none()
+    request_user_identifiers = _request_user_identifiers()
     reserva_user_id = (
         str(reserva.usuario.id)
         if getattr(reserva, "usuario", None) and getattr(reserva.usuario, "id", None)
         else None
     )
 
-    if not request_user_id:
+    if not request_user_identifiers:
         return jsonify({"error": "No se pudo identificar al usuario autenticado"}), 401
-    if not reserva_user_id or request_user_id != reserva_user_id:
+    if not reserva_user_id or reserva_user_id not in request_user_identifiers:
         return jsonify({"error": "No tiene permiso para acceder a esta reserva"}), 403
     return None
 
@@ -693,7 +702,7 @@ def cancelar_reserva(id_reserva):
             uow_actualizacion.agregar_eventos([
                 CancelarReservaPmsCmd(
                     id_reserva=reserva.id,
-                    id_habitacion=reserva.id_categoria,
+                    id_categoria=reserva.id_categoria,
                 )
             ])
             uow_actualizacion.commit()

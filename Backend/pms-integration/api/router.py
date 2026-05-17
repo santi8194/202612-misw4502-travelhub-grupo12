@@ -15,8 +15,10 @@ event_bus = EventBus()
 
 class ReservationRequest(BaseModel):
     id_reserva: str
-    id_habitacion: str
-    fecha_reserva: str
+    id_categoria: str
+    id_usuario: str
+    fecha_check_in: str
+    fecha_check_out: str
 
 
 class CancelRequest(BaseModel):
@@ -30,8 +32,10 @@ def confirm_reservation(request: ReservationRequest):
 
     return command.execute(
         request.id_reserva,
-        request.id_habitacion,
-        request.fecha_reserva,
+        request.id_categoria,
+        request.id_usuario,
+        request.fecha_check_in,
+        request.fecha_check_out,
     )
 
 

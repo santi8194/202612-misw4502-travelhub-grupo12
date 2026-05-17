@@ -19,6 +19,7 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
     rol: str
     partner_id: Optional[UUID] = None
+    username: Optional[str] = None
 
 
 class UserInDB(UserBase):

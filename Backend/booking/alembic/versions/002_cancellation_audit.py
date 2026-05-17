@@ -18,7 +18,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(length=40), nullable=False),
         sa.Column("id_reserva", sa.String(length=40), nullable=False),
         sa.Column("id_usuario", sa.String(length=40), nullable=True),
-        sa.Column("ip_origen", sa.String(length=100), nullable=True),
+        sa.Column("ip_origen", sa.String(length=45), nullable=True),
         sa.Column("motivo", sa.Text(), nullable=True),
         sa.Column("estado_anterior", sa.String(length=30), nullable=False),
         sa.Column("estado_nuevo", sa.String(length=30), nullable=False),
@@ -34,7 +34,25 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_index(
+        "ix_auditoria_cancelacion_reserva_id_reserva",
+        "auditoria_cancelacion_reserva",
+        ["id_reserva"],
+    )
+    op.create_index(
+        "ix_auditoria_cancelacion_reserva_cancellation_reference",
+        "auditoria_cancelacion_reserva",
+        ["cancellation_reference"],
+    )
 
 
 def downgrade() -> None:
+    op.drop_index(
+        "ix_auditoria_cancelacion_reserva_cancellation_reference",
+        table_name="auditoria_cancelacion_reserva",
+    )
+    op.drop_index(
+        "ix_auditoria_cancelacion_reserva_id_reserva",
+        table_name="auditoria_cancelacion_reserva",
+    )
     op.drop_table("auditoria_cancelacion_reserva")

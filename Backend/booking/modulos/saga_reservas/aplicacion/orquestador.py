@@ -29,12 +29,14 @@ DIR_COMANDOS = {
 
 class OrquestadorSagaReservas:
     def __init__(self, repositorio: RepositorioSagas, uow: UnidadTrabajoHibrida,
-                 handler_confirmar_local=None, handler_cancelar_local=None):
+                 handler_confirmar_local=None, handler_cancelar_local=None,
+                 handler_confirmar_cancelacion_pms_local=None):
         self.repositorio = repositorio
         self.uow = uow
         # Handlers locales inyectados para evitar construcción inline de objetos de otro Bounded Context
         self._handler_confirmar_local = handler_confirmar_local
         self._handler_cancelar_local = handler_cancelar_local
+        self._handler_confirmar_cancelacion_pms_local = handler_confirmar_cancelacion_pms_local
 
     def _payment_mode(self) -> str:
         return os.getenv("PAYMENT_MODE", "wompi").strip().lower()
@@ -58,6 +60,16 @@ class OrquestadorSagaReservas:
                 repositorio=RepositorioReservas(), uow=self.uow
             )
         return self._handler_cancelar_local
+
+    def _get_handler_confirmar_cancelacion_pms_local(self):
+        """Lazy-init: actualiza la reserva local cuando PMS confirma una cancelacion de usuario."""
+        if not self._handler_confirmar_cancelacion_pms_local:
+            from modulos.reserva.aplicacion.handlers import ConfirmarCancelacionPmsLocalHandler
+            from modulos.reserva.infraestructura.repositorios import RepositorioReservas
+            self._handler_confirmar_cancelacion_pms_local = ConfirmarCancelacionPmsLocalHandler(
+                repositorio=RepositorioReservas(), uow=self.uow
+            )
+        return self._handler_confirmar_cancelacion_pms_local
 
     def _obtener_paso_actual(self, id_flujo: str, version: int, evento_disparador: str):
         pasos = self.repositorio.obtener_pasos_saga(id_flujo, version)
@@ -267,7 +279,18 @@ class OrquestadorSagaReservas:
     def manejar_evento_respuesta(self, id_reserva: uuid.UUID, evento_recibido: str, payload_recibido: dict = None):
         """Manejador agnóstico de eventos. Escucha cualquier evento de compensación o avance y determina el próximo paso consultando la DB del Routing Slip."""
         payload_recibido = payload_recibido or {}
-        
+
+        if evento_recibido == "ConfirmacionPmsCanceladaEvt":
+            from modulos.reserva.aplicacion.comandos import ConfirmarCancelacionPmsLocalCmd
+            logger.info(
+                "[Orquestador] Confirmacion PMS de cancelacion recibida para reserva %s",
+                id_reserva,
+            )
+            self._get_handler_confirmar_cancelacion_pms_local().handle(
+                ConfirmarCancelacionPmsLocalCmd(id_reserva=id_reserva)
+            )
+            return
+
         with self.uow:
             saga = self.repositorio.buscar_por_reserva(str(id_reserva))
             if not saga or saga.estado_global not in [EstadoSaga.EN_PROCESO, EstadoSaga.PAUSADA_ESPERANDO_HOTEL]:

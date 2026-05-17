@@ -185,4 +185,40 @@ describe('HospedajeCardComponent', () => {
     expect(badge.textContent.trim()).toContain('Country house');
     expect(title.textContent.trim()).toBe('Suite en Country house boutique');
   });
+
+  it('should translate backend property type labels when language is en', async () => {
+    TestBed.inject(I18nService).setLanguage('en');
+
+    const backendLabelHospedaje: Hospedaje = {
+      ...mockHospedaje,
+      propiedad_nombre: 'Finca',
+      categoria_nombre: 'Finca',
+    };
+
+    fixture.componentRef.setInput('hospedaje', backendLabelHospedaje);
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('[data-testid="card-badge"]');
+    const title = fixture.nativeElement.querySelector('[data-testid="card-title"]');
+    expect(badge.textContent.trim()).toBe('Country house');
+    expect(title.textContent.trim()).toBe('Country house');
+  });
+
+  it('should translate property type tokens inside composed labels when language is en', () => {
+    TestBed.inject(I18nService).setLanguage('en');
+
+    const composedLabelHospedaje: Hospedaje = {
+      ...mockHospedaje,
+      propiedad_nombre: 'Alojamiento tipo Finca en Medellín',
+      categoria_nombre: 'Suite en Finca boutique',
+    };
+
+    fixture.componentRef.setInput('hospedaje', composedLabelHospedaje);
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('[data-testid="card-badge"]');
+    const title = fixture.nativeElement.querySelector('[data-testid="card-title"]');
+    expect(badge.textContent.trim()).toContain('Country house');
+    expect(title.textContent.trim()).toBe('Suite en Country house boutique');
+  });
 });

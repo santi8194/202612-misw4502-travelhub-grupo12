@@ -105,13 +105,27 @@ class UserService:
         - Optional[UserInDB]: Esquema con datos completos del usuario, o None si no existe.
         """
         db = SessionLocal()
+
+        logger.warning(f"UIDD = {user_id}: Iniciando consulta de usuario por id.")
+
         try:
-            user = db.query(User).filter(User.id == user_id).first()
+            # Búsqueda primaria por id local
+            user = None
+            try:
+                user = db.query(User).filter(User.id == user_id).first()
+            except Exception as e:
+                logger.warning(f"UIDD = {user_id}: Búsqueda por id local falló: {e}")
+
+            logger.warning(f"UIDD = {user_id}: User = {user}")
+
             if not user:
-                # Fallback: the client may pass the Cognito sub, which is stored as username
+                # Fallback: el cliente puede enviar el sub de Cognito, almacenado en username
                 user = db.query(User).filter(User.username == str(user_id)).first()
+                if user:
+                    logger.debug(f"Usuario encontrado por username (Cognito sub): {user_id}")
+
             if not user:
-                logger.warning(f"Usuario no encontrado por id: {user_id}")
+                logger.warning(f"Usuario no encontrado por id ni username: {user_id}")
                 return None
 
             rol = "USER"
@@ -120,7 +134,7 @@ class UserService:
 
             return UserService._map_user_to_schema(user, rol)
         except Exception as e:
-            logger.error(f"Error al consultar usuario por id {user_id}: {str(e)}")
+            logger.error(f"Error al consultar usuario por id {user_id}: {str(e)}", exc_info=True)
             return None
         finally:
             db.close()

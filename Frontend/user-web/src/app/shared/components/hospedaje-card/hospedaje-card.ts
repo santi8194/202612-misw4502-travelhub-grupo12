@@ -6,6 +6,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { CurrencyService } from '../../../core/services/currency.service';
 
+
 const MAX_AMENIDADES_VISIBLES = 3;
 
 @Component({

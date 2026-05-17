@@ -160,6 +160,23 @@ class Reserva(AgregacionRaiz):
             fecha_actualizacion=self.fecha_actualizacion
         ))
 
+    def iniciar_cancelacion(self):
+        if self.estado != EstadoReserva.CONFIRMADA:
+            raise ValueError("La reserva debe estar en CONFIRMADA para iniciar cancelacion")
+
+        self.estado = EstadoReserva.CANCELACION_EN_PROCESO
+        self.fecha_actualizacion = datetime.datetime.now()
+
+    def confirmar_cancelacion_pms(self):
+        if self.estado == EstadoReserva.CANCELADA:
+            return False
+
+        if self.estado != EstadoReserva.CANCELACION_EN_PROCESO:
+            raise ValueError("La reserva debe estar en CANCELACION_EN_PROCESO para confirmar cancelacion PMS")
+
+        self.cancelar_reserva()
+        return True
+
     def expirar_reserva(self):
         if self.estado != EstadoReserva.HOLD:
             raise ValueError("La reserva debe estar en HOLD para marcarse como EXPIRADA")

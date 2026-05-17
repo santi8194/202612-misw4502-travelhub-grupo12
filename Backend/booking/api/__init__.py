@@ -13,7 +13,7 @@ def create_app(config_name=None):
         app,
         resources={r"/api/*": {"origins": ["*"]}},
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization"],
+        allow_headers=["Content-Type", "Authorization", "X-User-Id"],
     )
 
     # Configuración básica

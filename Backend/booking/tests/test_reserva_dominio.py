@@ -87,6 +87,66 @@ def test_cancelar_reserva_cambia_estado_y_emite_evento():
 	assert isinstance(reserva.eventos[-1], ReservaCancelada)
 
 
+def test_iniciar_cancelacion_desde_confirmada_pasa_a_cancelacion_en_proceso():
+	reserva = crear_reserva_en_hold()
+	reserva.formalizar_y_pagar()
+	reserva.confirmar_reserva()
+
+	reserva.iniciar_cancelacion()
+
+	assert reserva.estado == EstadoReserva.CANCELACION_EN_PROCESO
+
+
+def test_confirmar_cancelacion_pms_desde_en_proceso_pasa_a_cancelada():
+	reserva = crear_reserva_en_hold()
+	reserva.formalizar_y_pagar()
+	reserva.confirmar_reserva()
+	reserva.iniciar_cancelacion()
+
+	changed = reserva.confirmar_cancelacion_pms()
+
+	assert changed is True
+	assert reserva.estado == EstadoReserva.CANCELADA
+	assert isinstance(reserva.eventos[-1], ReservaCancelada)
+
+
+def test_confirmar_cancelacion_pms_duplicada_es_idempotente():
+	reserva = crear_reserva_en_hold()
+	reserva.cancelar_reserva()
+
+	changed = reserva.confirmar_cancelacion_pms()
+
+	assert changed is False
+	assert reserva.estado == EstadoReserva.CANCELADA
+
+
+@pytest.mark.parametrize("estado", [EstadoReserva.HOLD, EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA, EstadoReserva.EXPIRADA])
+def test_confirmar_cancelacion_pms_fuera_de_en_proceso_lanza_error(estado):
+	reserva = crear_reserva_en_hold()
+	reserva.estado = estado
+
+	with pytest.raises(ValueError, match="CANCELACION_EN_PROCESO"):
+		reserva.confirmar_cancelacion_pms()
+
+
+@pytest.mark.parametrize(
+	"estado",
+	[
+		EstadoReserva.HOLD,
+		EstadoReserva.PENDIENTE,
+		EstadoReserva.CANCELADA,
+		EstadoReserva.EXPIRADA,
+		EstadoReserva.CANCELACION_EN_PROCESO,
+	],
+)
+def test_iniciar_cancelacion_fuera_de_confirmada_lanza_error(estado):
+	reserva = crear_reserva_en_hold()
+	reserva.estado = estado
+
+	with pytest.raises(ValueError, match="CONFIRMADA"):
+		reserva.iniciar_cancelacion()
+
+
 def test_expirar_reserva_desde_hold_cambia_estado_y_emite_evento():
 	reserva = crear_reserva_en_hold()
 

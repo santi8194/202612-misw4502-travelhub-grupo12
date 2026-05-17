@@ -12,7 +12,7 @@
         {{ 'processing.status' | translate }} <strong>{{ status() }}</strong>
       </p>
 
-      @if (!isPolling()) {
+      @if (!isPolling() && status() === 'CONFIRMADA') {
         <a class="processing-action" [routerLink]="['/booking', reservationId]">{{ 'processing.backToCart' | translate }}</a>
       }
     </section>

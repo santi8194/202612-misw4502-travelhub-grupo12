@@ -411,6 +411,7 @@ describe('RoomDetailPage', () => {
     expect(bookingReq.request.body.fecha_check_out).toBe('2026-06-03');
     expect(bookingReq.request.body.ocupacion.adultos).toBe(2);
     expect(bookingReq.request.body.id_usuario).toBe('test-user-uuid');
+    expect(bookingReq.request.body.usuario_email).toBe('juan@ejemplo.com');
 
     bookingReq.flush({ id_reserva: 'reserva-test-001' });
   });
@@ -453,8 +454,8 @@ describe('RoomDetailPage', () => {
     fixture.detectChanges();
 
     httpTesting.expectNone(r => BOOKING_URL_PATTERN.test(r.url));
-    expect(component.error()).toBe('No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.');
-    expect(notificationSpy).toHaveBeenCalledWith('No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.');
+    expect(component.error()).toBe('Debes iniciar sesión para poder reservar.');
+    expect(notificationSpy).toHaveBeenCalledWith('Debes iniciar sesión para poder reservar.');
     expect(navigateSpy).toHaveBeenCalledWith(['/auth/login'], {
       queryParams: { redirect: '/' },
     });

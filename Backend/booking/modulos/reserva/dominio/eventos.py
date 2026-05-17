@@ -41,6 +41,26 @@ class ReservaExpirada(EventoDominio):
 class ReservaConfirmadaEvt(EventoDominio):
     id_reserva: uuid.UUID = None
     fecha_actualizacion: datetime = None
+    emailCliente: str = None
+    codigo_reserva: str = None
+    categoria: str = None
+    fecha_check_in: str = None
+    fecha_check_out: str = None
+    huespedes: int = None
+    moneda: str = None
+
+@dataclass
+class ReservaCanceladaEvt(EventoDominio):
+    id_reserva: uuid.UUID = None
+    fecha_actualizacion: datetime = None
+    emailCliente: str = None
+    codigo_reserva: str = None
+    categoria: str = None
+    fecha_check_in: str = None
+    fecha_check_out: str = None
+    huespedes: int = None
+    moneda: str = None
+    motivo_cancelacion: str = None
 
 @dataclass
 class FallaActualizacionLocalEvt(EventoDominio):

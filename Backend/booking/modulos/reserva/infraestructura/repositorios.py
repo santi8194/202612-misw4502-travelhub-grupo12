@@ -23,6 +23,8 @@ class RepositorioReservas(Repositorio):
         reserva_dto = db.session.query(ReservaDTO).filter_by(id=str(entidad.id)).first()
         if reserva_dto:
             reserva_dto.usuario = str(entidad.usuario.id) if entidad.usuario and entidad.usuario.id else reserva_dto.usuario
+            if entidad.usuario and entidad.usuario.email is not None:
+                reserva_dto.usuario_email = entidad.usuario.email
             reserva_dto.id_categoria = str(entidad.id_categoria) if entidad.id_categoria else None
             reserva_dto.codigo_confirmacion_ota = entidad.codigo_confirmacion_ota
             reserva_dto.codigo_localizador_pms = entidad.codigo_localizador_pms

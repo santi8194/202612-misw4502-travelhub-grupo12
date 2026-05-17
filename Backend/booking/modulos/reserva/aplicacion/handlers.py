@@ -10,13 +10,36 @@ from modulos.reserva.aplicacion.comandos import (
 from modulos.reserva.dominio.entidades import Reserva, Usuario, CategoriaHabitacion
 from modulos.reserva.dominio.objetos_valor import EstadoReserva, Pax
 from modulos.reserva.dominio.eventos import (
-    ReservaConfirmadaEvt, FallaActualizacionLocalEvt
+    ReservaConfirmadaEvt, ReservaCanceladaEvt, FallaActualizacionLocalEvt
 )
 from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
 from modulos.reserva.infraestructura.repositorios import RepositorioAuditoriaCancelacionReserva, RepositorioReservas
 from config.uow import UnidadTrabajoHibrida
 import uuid
 import datetime
+
+
+def _resolver_nombre_categoria(catalog_client: CatalogServiceClient | None, id_categoria: str | uuid.UUID | None) -> str | None:
+    if not id_categoria:
+        return None
+
+    if catalog_client is None:
+        return str(id_categoria)
+
+    try:
+        category_info = catalog_client.get_category_by_id(str(id_categoria))
+    except Exception:
+        return str(id_categoria)
+
+    if isinstance(category_info, dict):
+        return (
+            category_info.get("nombre_comercial")
+            or category_info.get("nombre")
+            or category_info.get("name")
+            or str(id_categoria)
+        )
+
+    return str(id_categoria)
 
 class CrearReservaHoldHandler(Handler):
     def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida, catalog_client: CatalogServiceClient | None = None):
@@ -152,9 +175,10 @@ class ExpirarReservaHandler(Handler):
         return True
 
 class ConfirmarReservaLocalHandler(Handler):
-    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida):
+    def __init__(self, repositorio: RepositorioReservas, uow: UnidadTrabajoHibrida, catalog_client: CatalogServiceClient | None = None):
         self.repositorio = repositorio
         self.uow = uow
+        self.catalog_client = catalog_client
     
     def handle(self, comando: ConfirmarReservaLocalCmd) -> ReservaConfirmadaEvt:
         with self.uow:
@@ -165,9 +189,24 @@ class ConfirmarReservaLocalHandler(Handler):
             reserva.confirmar_reserva()
             
             reserva.eventos.clear() 
+            total_huespedes = None
+            if reserva.ocupacion:
+                total_huespedes = (
+                    int(getattr(reserva.ocupacion, "adultos", 0) or 0)
+                    + int(getattr(reserva.ocupacion, "ninos", 0) or 0)
+                    + int(getattr(reserva.ocupacion, "infantes", 0) or 0)
+                )
+            nombre_categoria = _resolver_nombre_categoria(self.catalog_client, reserva.id_categoria)
             evento_local = ReservaConfirmadaEvt(
                 id_reserva=reserva.id, 
-                fecha_actualizacion=datetime.datetime.now()
+                fecha_actualizacion=datetime.datetime.now(),
+                emailCliente=(reserva.usuario.email if reserva.usuario else None),
+                codigo_reserva=(reserva.codigo_confirmacion_ota or reserva.codigo_localizador_pms),
+                categoria=nombre_categoria,
+                fecha_check_in=(reserva.fecha_check_in.isoformat() if reserva.fecha_check_in else None),
+                fecha_check_out=(reserva.fecha_check_out.isoformat() if reserva.fecha_check_out else None),
+                huespedes=total_huespedes,
+                moneda="COP",
             )
             reserva.agregar_evento(evento_local)
             
@@ -205,10 +244,31 @@ class CancelarReservaLocalHandler(Handler):
             reserva.cancelar_reserva()
             
             reserva.eventos.clear()
+            total_huespedes = None
+            if reserva.ocupacion:
+                total_huespedes = (
+                    int(getattr(reserva.ocupacion, "adultos", 0) or 0)
+                    + int(getattr(reserva.ocupacion, "ninos", 0) or 0)
+                    + int(getattr(reserva.ocupacion, "infantes", 0) or 0)
+                )
+            nombre_categoria = _resolver_nombre_categoria(self.catalog_client, reserva.id_categoria)
+            evento_cancelacion = ReservaCanceladaEvt(
+                id_reserva=reserva.id,
+                fecha_actualizacion=datetime.datetime.now(),
+                emailCliente=(reserva.usuario.email if reserva.usuario else None),
+                codigo_reserva=(reserva.codigo_confirmacion_ota or reserva.codigo_localizador_pms),
+                categoria=nombre_categoria,
+                fecha_check_in=(reserva.fecha_check_in.isoformat() if reserva.fecha_check_in else None),
+                fecha_check_out=(reserva.fecha_check_out.isoformat() if reserva.fecha_check_out else None),
+                huespedes=total_huespedes,
+                moneda="COP",
+                motivo_cancelacion="Cancelacion por compensacion de saga",
+            )
             evento_falla = FallaActualizacionLocalEvt(
                 id_reserva=reserva.id, 
                 fecha_actualizacion=datetime.datetime.now()
             )
+            reserva.agregar_evento(evento_cancelacion)
             reserva.agregar_evento(evento_falla)
             
             self.uow.agregar_eventos(reserva.eventos)

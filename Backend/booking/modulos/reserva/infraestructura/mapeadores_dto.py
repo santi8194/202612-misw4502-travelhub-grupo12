@@ -20,6 +20,7 @@ class MapeadorReservaDTO(Mapeador):
         return ReservaDTO(
             id=str(entidad.id),
             usuario=str(entidad.usuario.id) if entidad.usuario else None,
+            usuario_email=entidad.usuario.email if entidad.usuario else None,
             id_categoria=str(entidad.id_categoria),
             codigo_confirmacion_ota=entidad.codigo_confirmacion_ota,
             codigo_localizador_pms=entidad.codigo_localizador_pms,
@@ -47,7 +48,7 @@ class MapeadorReservaDTO(Mapeador):
                 ninos=dto.ocupacion_ninos or 0,
                 infantes=dto.ocupacion_infantes or 0
             ) if any([dto.ocupacion_adultos, dto.ocupacion_ninos, dto.ocupacion_infantes]) else None,
-            usuario=Usuario(id=dto.usuario) if dto.usuario else None,
+            usuario=Usuario(id=dto.usuario, email=dto.usuario_email) if dto.usuario else None,
             fecha_creacion=dto.fecha_creacion,
             fecha_actualizacion=dto.fecha_actualizacion
         )

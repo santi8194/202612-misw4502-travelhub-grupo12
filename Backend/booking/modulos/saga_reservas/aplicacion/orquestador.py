@@ -13,6 +13,7 @@ from modulos.saga_reservas.dominio.comandos import (
     SolicitarAprobacionManualCmd, MarcarSagaEsperandoVoucherCmd
 )
 from modulos.reserva.aplicacion.comandos import CancelarReservaLocalCmd
+from modulos.reserva.infraestructura.catalog_client import CatalogServiceClient
 import uuid
 import inspect
 
@@ -47,7 +48,7 @@ class OrquestadorSagaReservas:
             from modulos.reserva.aplicacion.handlers import ConfirmarReservaLocalHandler
             from modulos.reserva.infraestructura.repositorios import RepositorioReservas
             self._handler_confirmar_local = ConfirmarReservaLocalHandler(
-                repositorio=RepositorioReservas(), uow=self.uow
+                repositorio=RepositorioReservas(), uow=self.uow, catalog_client=CatalogServiceClient()
             )
         return self._handler_confirmar_local
 

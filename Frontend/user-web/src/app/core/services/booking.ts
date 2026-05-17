@@ -10,6 +10,7 @@ interface CreateBookingRequest {
   id_categoria: string;
   fecha_check_in: string;
   fecha_check_out: string;
+  usuario_email?: string;
   ocupacion: {
     adultos: number;
     ninos: number;
@@ -113,6 +114,7 @@ export class BookingService {
       id_categoria: String(request.categoryId),
       fecha_check_in: request.checkIn,
       fecha_check_out: request.checkOut,
+      usuario_email: this.authService.getCurrentSession()?.email,
       ocupacion: {
         adultos: request.guests,
         ninos: 0,

@@ -80,6 +80,14 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+      SMTP_HOST: ${NOTIFICATION_SMTP_HOST:-}
+      SMTP_PORT: ${NOTIFICATION_SMTP_PORT:-587}
+      SMTP_USER: ${NOTIFICATION_SMTP_USER:-}
+      SMTP_PASS: ${NOTIFICATION_SMTP_PASS:-}
+      SMTP_FROM: ${NOTIFICATION_SMTP_FROM:-}
+      SMTP_USE_TLS: ${NOTIFICATION_SMTP_USE_TLS:-true}
+      SMTP_USE_SSL: ${NOTIFICATION_SMTP_USE_SSL:-false}
+      SMTP_TIMEOUT: ${NOTIFICATION_SMTP_TIMEOUT:-20}
       PAYMENT_SERVICE_URL: http://payment:8002
       PAYMENT_MODE: ${PAYMENT_MODE:-wompi}
       BOOKING_INSTANCE_PATH: /src/instance
@@ -134,11 +142,8 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
       MOCK_PMS_URL: http://mock-pms:8080
-      MOCK_PMS_URL: http://mock-pms:8080
     depends_on:
       rabbitmq-broker:
-        condition: service_healthy
-      mock-pms:
         condition: service_healthy
       mock-pms:
         condition: service_healthy

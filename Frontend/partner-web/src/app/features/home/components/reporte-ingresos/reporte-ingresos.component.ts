@@ -182,17 +182,70 @@ export class ReporteIngresosComponent implements OnChanges {
     readonly groupGap       = 18;
     readonly barChartWidth  = 560;
 
-    get maxReservas(): number {
-        return Math.max(...this.datosMensuales.map(d => d.reservas));
+    get reservasMensualesPropiedad(): number[] {
+        const monthly = new Array(12).fill(0);
+        for (const r of this.reservasPropiedad) {
+            if (r.fecha_check_in) {
+                const mes = new Date(r.fecha_check_in).getMonth();
+                monthly[mes]++;
+            }
+        }
+        return monthly;
     }
 
-    get maxOcupacion(): number { return 100; }
+    get confirmadasMensualesPropiedad(): number[] {
+        const monthly = new Array(12).fill(0);
+        for (const r of this.reservasPropiedad) {
+            if (r.fecha_check_in && r.estado === 'CONFIRMADA') {
+                const mes = new Date(r.fecha_check_in).getMonth();
+                monthly[mes]++;
+            }
+        }
+        return monthly;
+    }
+
+    get canceladasMensualesPropiedad(): number[] {
+        const monthly = new Array(12).fill(0);
+        for (const r of this.reservasPropiedad) {
+            if (r.fecha_check_in && r.estado === 'CANCELADA') {
+                const mes = new Date(r.fecha_check_in).getMonth();
+                monthly[mes]++;
+            }
+        }
+        return monthly;
+    }
+
+    get huespedesMensualesPropiedad(): number[] {
+        const monthly = new Array(12).fill(0);
+        for (const r of this.reservasPropiedad) {
+            if (r.fecha_check_in) {
+                const mes = new Date(r.fecha_check_in).getMonth();
+                monthly[mes] += r.huespedes ?? 0;
+            }
+        }
+        return monthly;
+    }
+
+    get totalCanceladasPropiedad(): number {
+        return this.reservasPropiedad.filter(r => r.estado === 'CANCELADA').length;
+    }
+
+    get totalHuespedesPropiedad(): number {
+        return this.reservasPropiedad.reduce((sum, r) => sum + (r.huespedes ?? 0), 0);
+    }
+
+    get barIndices(): number[] {
+        return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    }
+
+    get maxReservas(): number {
+        const max = Math.max(...this.reservasMensualesPropiedad);
+        return max > 0 ? max : 1;
+    }
 
     getBarX(index: number, isSecond: boolean): number {
-        const groupWidth = this.barWidth * 2 + this.barGap + this.groupGap;
         const usable = this.barChartWidth - 2 * this.barChartPadX;
-        const totalGroups = this.datosMensuales.length;
-        const step = usable / totalGroups;
+        const step = usable / 12;
         const groupStart = this.barChartPadX + index * step + (step - (this.barWidth * 2 + this.barGap)) / 2;
         return isSecond ? groupStart + this.barWidth + this.barGap : groupStart;
     }
@@ -206,10 +259,6 @@ export class ReporteIngresosComponent implements OnChanges {
         return this.barChartHeight - this.barChartPadY - this.getBarHeight(value, max);
     }
 
-    getOcupacion(mes: FilaReporteMensual): number {
-        // Simulated occupancy derived from reservas ratio
-        return Math.min(100, Math.round((mes.reservas / 365) * 100 * 3));
-    }
 
     exportarReporte(): void {
         // Mock export — in production this would trigger a PDF/CSV download

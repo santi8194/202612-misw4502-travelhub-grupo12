@@ -98,19 +98,19 @@
                       [attr.y2]="barChartHeight - barChartPadY - y * (barChartHeight - 2 * barChartPadY)"
                       class="grid-line"/>
 
-                <!-- Bars: reservas (green) & occupancy (blue) -->
-                <ng-container *ngFor="let d of datosMensuales; let i = index">
-                    <!-- Reservas bar -->
+                <!-- Bars: total reservas (green) & confirmadas (blue) -->
+                <ng-container *ngFor="let i of barIndices">
+                    <!-- Total reservas bar -->
                     <rect [attr.x]="getBarX(i, false)"
-                          [attr.y]="getBarY(d.reservas, maxReservas)"
+                          [attr.y]="getBarY(reservasMensualesPropiedad[i], maxReservas)"
                           [attr.width]="barWidth"
-                          [attr.height]="getBarHeight(d.reservas, maxReservas)"
+                          [attr.height]="getBarHeight(reservasMensualesPropiedad[i], maxReservas)"
                           class="bar-reservas"/>
-                    <!-- Ocupacion bar -->
+                    <!-- Confirmadas bar -->
                     <rect [attr.x]="getBarX(i, true)"
-                          [attr.y]="getBarY(getOcupacion(d), maxOcupacion)"
+                          [attr.y]="getBarY(confirmadasMensualesPropiedad[i], maxReservas)"
                           [attr.width]="barWidth"
-                          [attr.height]="getBarHeight(getOcupacion(d), maxOcupacion)"
+                          [attr.height]="getBarHeight(confirmadasMensualesPropiedad[i], maxReservas)"
                           class="bar-ocupacion"/>
                 </ng-container>
             </svg>
@@ -137,30 +137,30 @@
                     <tr>
                         <th>{{ 'REPORTS.TABLE.MONTH' | translate }}</th>
                         <th class="col-highlight">{{ 'REPORTS.TABLE.TOTAL_REVENUE' | translate }}</th>
-                        <th>{{ 'REPORTS.TABLE.ROOMS' | translate }}</th>
-                        <th>{{ 'REPORTS.TABLE.SERVICES' | translate }}</th>
-                        <th>{{ 'REPORTS.TABLE.TAXES' | translate }}</th>
                         <th>{{ 'REPORTS.TABLE.BOOKINGS' | translate }}</th>
+                        <th>{{ 'REPORTS.TABLE.CONFIRMED' | translate }}</th>
+                        <th>{{ 'REPORTS.TABLE.CANCELLED' | translate }}</th>
+                        <th>{{ 'REPORTS.TABLE.GUESTS' | translate }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let fila of datosMensuales">
-                        <td>{{ fila.mes | translate }}</td>
-                        <td class="col-highlight">${{ fila.ingresosTotales | number:'1.0-0' }}</td>
-                        <td>${{ fila.habitaciones | number:'1.0-0' }}</td>
-                        <td>${{ fila.servicios | number:'1.0-0' }}</td>
-                        <td>${{ fila.impuestos | number:'1.0-0' }}</td>
-                        <td>{{ fila.reservas }}</td>
+                    <tr *ngFor="let i of barIndices">
+                        <td>{{ lineChartLabels[i] | translate }}</td>
+                        <td class="col-highlight">${{ ingresosMensualesPropiedad[i] | number:'1.0-0' }}</td>
+                        <td>{{ reservasMensualesPropiedad[i] }}</td>
+                        <td>{{ confirmadasMensualesPropiedad[i] }}</td>
+                        <td>{{ canceladasMensualesPropiedad[i] }}</td>
+                        <td>{{ huespedesMensualesPropiedad[i] }}</td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr class="total-row">
                         <td>{{ 'REPORTS.TABLE.TOTAL' | translate }}</td>
-                        <td class="col-highlight">${{ totalAnual | number:'1.0-0' }}</td>
-                        <td>${{ totalHabitaciones | number:'1.0-0' }}</td>
-                        <td>${{ totalServicios | number:'1.0-0' }}</td>
-                        <td>${{ totalImpuestos | number:'1.0-0' }}</td>
-                        <td>{{ totalReservas }}</td>
+                        <td class="col-highlight">${{ totalIngresosPropiedad | number:'1.0-0' }}</td>
+                        <td>{{ totalReservasPropiedad }}</td>
+                        <td>{{ reservasConfirmadasPropiedad }}</td>
+                        <td>{{ totalCanceladasPropiedad }}</td>
+                        <td>{{ totalHuespedesPropiedad }}</td>
                     </tr>
                 </tfoot>
             </table>

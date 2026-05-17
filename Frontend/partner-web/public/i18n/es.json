@@ -156,8 +156,8 @@
     "CHART_TREND": "Tendencia de Ingresos Mensuales",
     "CHART_BOOKINGS_OCC": "Reservas y Ocupación",
     "TABLE_TITLE": "Tabla Detallada de Ingresos Mensuales",
-    "LEGEND_BOOKINGS": "Reservas",
-    "LEGEND_OCC": "Ocupación %",
+    "LEGEND_BOOKINGS": "Total Reservas",
+    "LEGEND_OCC": "Confirmadas",
     "CARDS": {
       "ANNUAL_REVENUE": "Ingresos Totales Anuales",
       "TOTAL_BOOKINGS": "Total de Reservas",
@@ -167,10 +167,10 @@
     "TABLE": {
       "MONTH": "Mes",
       "TOTAL_REVENUE": "Ingresos Totales",
-      "ROOMS": "Habitaciones",
-      "SERVICES": "Servicios",
-      "TAXES": "Impuestos",
       "BOOKINGS": "Reservas",
+      "CONFIRMED": "Confirmadas",
+      "CANCELLED": "Canceladas",
+      "GUESTS": "Huéspedes",
       "TOTAL": "TOTAL"
     },
     "MONTHS": {

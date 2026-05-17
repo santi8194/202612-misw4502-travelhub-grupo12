@@ -156,8 +156,8 @@
     "CHART_TREND": "Monthly Revenue Trend",
     "CHART_BOOKINGS_OCC": "Bookings & Occupancy",
     "TABLE_TITLE": "Monthly Revenue Detail Table",
-    "LEGEND_BOOKINGS": "Bookings",
-    "LEGEND_OCC": "Occupancy %",
+    "LEGEND_BOOKINGS": "Total Bookings",
+    "LEGEND_OCC": "Confirmed",
     "CARDS": {
       "ANNUAL_REVENUE": "Annual Total Revenue",
       "TOTAL_BOOKINGS": "Total Bookings",
@@ -167,10 +167,10 @@
     "TABLE": {
       "MONTH": "Month",
       "TOTAL_REVENUE": "Total Revenue",
-      "ROOMS": "Rooms",
-      "SERVICES": "Services",
-      "TAXES": "Taxes",
       "BOOKINGS": "Bookings",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED": "Cancelled",
+      "GUESTS": "Guests",
       "TOTAL": "TOTAL"
     },
     "MONTHS": {

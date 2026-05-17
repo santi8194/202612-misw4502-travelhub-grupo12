@@ -1,4 +1,7 @@
 import json
+import uuid
+from datetime import datetime, timezone
+
 import pika
 from config.rabbitmq import create_connection
 
@@ -26,8 +29,12 @@ def publish_event(routing_key: str, event_type: str, data: dict):
         )
 
         message = {
+            "specversion": "1.0",
             "type": event_type,
-            **data
+            "source": "travelhub.portal.hotel",
+            "id": str(uuid.uuid4()),
+            "time": datetime.now(timezone.utc).isoformat(),
+            "data": data,
         }
 
         channel.basic_publish(
@@ -41,28 +48,42 @@ def publish_event(routing_key: str, event_type: str, data: dict):
         print(f"[{event_type}] Publicado a {routing_key} sobre {EVENTS_EXCHANGE}")
     except Exception as e:
         print(f"Error publicando evento {event_type}:", e)
+        raise
     finally:
         if connection and connection.is_open:
             connection.close()
 
-def publish_reserva_aprobada(id_reserva: str):
+def publish_reserva_aprobada(id_reserva: str, id_usuario_admin: str = ""):
     """
-    Publica el evento de éxito indicando que la reserva fue aprobada.
+    Publica el evento de éxito indicando que la reserva fue aprobada manualmente.
+    Formato CloudEvents 1.0.
     """
+    now = datetime.now(timezone.utc).isoformat()
     publish_event(
         # Regla 2: Formato de eventos: evt.<dominio>.<resultado>
-        routing_key="evt.partnermanagement.reserva-aprobada",
+        routing_key="evt.reserva.aprobada",
         event_type="ReservaAprobadaManualEvt",
-        data={"id_reserva": id_reserva}
+        data={
+            "id_reserva": id_reserva,
+            "id_usuario_admin": id_usuario_admin,
+            "fecha_aprobacion": now,
+        },
     )
 
-def publish_reserva_rechazada(id_reserva: str, motivo: str):
+def publish_reserva_rechazada(id_reserva: str, motivo: str, id_usuario_admin: str = ""):
     """
-    Publica el evento de fallo indicando que la reserva fue rechazada.
+    Publica el evento indicando que la reserva fue rechazada manualmente.
+    Formato CloudEvents 1.0.
     """
+    now = datetime.now(timezone.utc).isoformat()
     publish_event(
         # Regla 2: Formato de eventos: evt.<dominio>.<resultado>
-        routing_key="evt.partnermanagement.reserva-rechazada",
+        routing_key="evt.reserva.rechazada",
         event_type="ReservaRechazadaManualEvt",
-        data={"id_reserva": id_reserva, "motivo": motivo}
+        data={
+            "id_reserva": id_reserva,
+            "motivo": motivo,
+            "id_usuario_admin": id_usuario_admin,
+            "fecha_rechazo": now,
+        },
     )

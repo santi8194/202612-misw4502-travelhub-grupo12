@@ -15,7 +15,9 @@ import { CurrencyService } from '../../../core/services/currency.service';
 })
 export class ReservationCardComponent {
   private readonly i18n = inject(I18nService);
+
   protected readonly currency = inject(CurrencyService);
+
   reservation = input.required<ReservationViewModel>();
 
   protected formatDate(dateStr: string): string {
@@ -24,7 +26,7 @@ export class ReservationCardComponent {
 
   protected formatCurrency(amount: number | null, moneda: string): string {
     if (amount === null) return '—';
-    return this.currency.format(amount, moneda);
+    return this.i18n.formatCurrency(amount, moneda);
   }
 
   protected getStatusClass(estado: ReservationStatus): string {

@@ -1,226 +1,113 @@
-# 202611-MISW4501-proyecto-final-grupo12
+# Infraestructura y tipos de despliegue
 
+Este directorio contiene la infraestructura activa del proyecto y las rutas de despliegue disponibles hoy.
 
-# Infraestructura con Terraform (AWS)
+## Mapa rapido
 
-Este proyecto utiliza Terraform para gestionar la infraestructura en AWS de forma automatizada (Infrastructure as Code).
-Se implementa un backend remoto en S3 para almacenar el estado de Terraform, permitiendo:
+| Tipo de despliegue | Uso principal | Entrada recomendada |
+| --- | --- | --- |
+| Docker Compose local con SQLite | Desarrollo local aislado, sin depender de AWS | [`docker/README.md`](./docker/README.md) |
+| Docker Compose local con RDS | Desarrollo local contra las bases reales de dev | [`docker/README.md`](./docker/README.md) |
+| Docker Compose local con ngrok | Pruebas locales de Wompi con webhook y retorno publico | [`scripts/run-local-ngrok.ps1`](./scripts/run-local-ngrok.ps1) |
+| Minikube local | Pruebas del backend sobre Kubernetes local | [`scripts/run-minikube-stack.ps1`](./scripts/run-minikube-stack.ps1) |
+| Minikube usando RDS de AWS | Kubernetes local con credenciales de RDS sincronizadas desde Secrets Manager | [`scripts/sync-minikube-rds-secrets.ps1`](./scripts/sync-minikube-rds-secrets.ps1) |
+| AWS dev | Infraestructura y despliegue remoto por Terraform + workflows de GitHub Actions | [`terraform/`](./terraform/) y [`.github/workflows`](../.github/workflows) |
 
-Trabajo en equipo sin conflictos
-Persistencia del estado
-Versionado de infraestructura
+## 1. Docker Compose local
 
-## Backend remoto (S3)
+Los archivos activos son:
 
-Se creó un bucket en AWS S3 para almacenar el archivo terraform.tfstate.
+- [`docker/docker-compose.yml`](./docker/docker-compose.yml): contrato base reutilizado por CD.
+- [`docker/docker-compose.local.yml`](./docker/docker-compose.local.yml): overlay local con builds desde fuente, frontends, RabbitMQ, Redis y ngrok.
+- [`docker/.env.local.sqlite.dev`](./docker/.env.local.sqlite.dev): ejemplo local con SQLite.
+- `docker/.env.local.rds.dev`: archivo local no versionado con credenciales reales de RDS/dev.
 
-## Bucket
+Usa esta ruta cuando quieras levantar todo el stack en Docker, incluyendo `user-web`, `partner-web` y el gateway local en `http://localhost:5001`.
 
-*travelhub-tfstate-dev-us-east-1*
+La guia operativa completa vive en [`docker/README.md`](./docker/README.md).
 
-El nombre del bucket debe ser único a nivel global en AWS.
+## 2. Docker Compose local con ngrok
 
-Comando: aws s3api create-bucket --bucket travelhub-tfstate-dev-us-east-1 --region us-east-1 --debug
+Esta variante existe para probar integraciones que necesitan una URL publica, especialmente:
 
-# Despliegue del Stack: Container Registry (ECR)
+- webhook de Wompi;
+- retorno del widget de Wompi hacia la vista de procesamiento de reserva.
 
-Este stack permite la creación de un repositorio en Amazon ECR usando Terraform, incluyendo una política de ciclo de vida para el manejo automático de imágenes.
+Cada integrante debe configurar su propio token en su archivo local:
 
-Se utiliza una arquitectura basada en:
+```env
+NGROK_AUTHTOKEN=...
+```
 
-- modules/ → lógica reutilizable (ECR)
-- stacks/ → definición del despliegue
-- environments/ → configuración por ambiente
+Luego puede ejecutar desde la raiz del repo:
 
-## Inicialización
+```powershell
+.\Infraestructura\scripts\run-local-ngrok.ps1
+```
 
-Inicializa Terraform y configura el backend remoto en S3:
+El script levanta el stack, obtiene la URL publica de ngrok y recompila `user-web` con esa URL para el retorno del widget.
 
-terraform -chdir="$PWD\terraform\stacks\container_registry" init -backend-config="$PWD\terraform\environments\dev\container_registry\backend.tfvars"
+## 3. Minikube local
 
-## Planificación
+Para desplegar el backend en Kubernetes local:
 
-Muestra los cambios que se van a aplicar en la infraestructura:
+```powershell
+.\Infraestructura\scripts\run-minikube-stack.ps1
+```
 
-terraform -chdir="$PWD\terraform\stacks\container_registry" plan -var-file="$PWD\terraform\environments\dev\container_registry\terraform.tfvars"
+Ese script:
 
-## Despliegue
+- inicia Minikube;
+- construye las imagenes locales del backend;
+- aplica secretos, Postgres y manifiestos de `k8s/minikube`;
+- deja el ingress accesible mediante port-forward local.
 
-Aplica los cambios y crea los recursos en AWS:
+Despues del despliegue:
 
-terraform -chdir="$PWD\terraform\stacks\container_registry" apply -var-file="$PWD\terraform\environments\dev\container_registry\terraform.tfvars"
+```powershell
+kubectl -n ingress-nginx port-forward service/ingress-nginx-controller 8080:80
+```
 
+La URL local esperada es:
 
-## Eliminación de recursos
+```text
+http://127.0.0.1:8080
+```
 
-Destruye los recursos creados por el stack:
+## 4. Minikube usando RDS de AWS
 
-terraform -chdir="$PWD\terraform\stacks\container_registry" destroy -var-file="$PWD\terraform\environments\dev\container_registry\terraform.tfvars"
+Si necesitas que Minikube use credenciales reales de RDS dev para `authservice`, `booking`, `catalog` y `search`, ejecuta:
 
+```powershell
+.\Infraestructura\scripts\sync-minikube-rds-secrets.ps1
+```
 
-# Consideraciones
+Ese script lee Secrets Manager, actualiza los secrets de Kubernetes y reinicia los deployments respaldados por base de datos.
 
-- El estado se almacena en un bucket S3 remoto.
-- Cada ambiente usa su propio archivo backend.tfvars para aislar el estado.
-- Las variables del entorno se definen en terraform.tfvars.
-- Se recomienda no subir archivos .tfstate al repositorio.
+## 5. AWS dev
 
-# CLUSTER EKS
+La infraestructura remota se define con Terraform en [`terraform/`](./terraform/):
 
-terraform -chdir="$PWD\terraform\stacks\eks" init -backend-config="$PWD\terraform\environments\dev\eks\backend.tfvars"
-terraform -chdir="$PWD\terraform\stacks\eks" plan -var-file="$PWD\terraform\environments\dev\eks\terraform.tfvars"
-terraform -chdir="$PWD\terraform\stacks\eks" apply -var-file="$PWD\terraform\environments\dev\eks\terraform.tfvars"
+- `container_registry`
+- `database`
+- `ec2`
+- `eks`
+- `frontends`
+- `ingress`
 
-## Destry para que no genere cobros
+Los workflows activos de GitHub Actions gestionan:
 
-terraform -chdir="$PWD\terraform\stacks\eks" destroy -var-file="$PWD\terraform\environments\dev\eks\terraform.tfvars"
-
-### CloudWatch Logs del control plane
-
-El log group `/aws/eks/grupo12-travelhub-eks/cluster` es persistente por diseno.
-No se destruye como parte del stack de EKS y puede permanecer despues de `terraform destroy`.
-Ese comportamiento es esperado: evita conflictos en futuros redeploys cuando AWS recrea el log group fuera de Terraform.
-El pipeline de CD reconcilia su retencion y tags despues de desplegar el cluster.
-El principal AWS usado por GitHub Actions necesita `logs:DescribeLogGroups`, `logs:PutRetentionPolicy` y `logs:TagResource`.
-
-
-# Imagen Booking
-Repo: aws ecr create-repository --repository-name booking
-Img:
-docker build --no-cache -t booking:1.0.3 ./Backend/booking
-Tag:
-docker tag booking:1.0.2 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.3
-Push
-docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/booking:1.0.3
-
-# Imagen Notification
-Repo: aws ecr create-repository --repository-name notification
-Img:
-docker build --no-cache -t notification:1.0.0 ./src/Notification
-Tag:
-docker tag notification:1.0.0 962273458546.dkr.ecr.us-east-1.amazonaws.com/notification:1.0.0
-Push
-docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/notification:1.0.0
-
-# Imagen Payment
-Repo: aws ecr create-repository --repository-name payment
-docker build --no-cache -t payment:1.0.4 ./src/Payment
-docker tag payment:1.0.4 962273458546.dkr.ecr.us-east-1.amazonaws.com/payment:1.0.4
-docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/payment:1.0.4
-
-# Imagen pmsintegration
-Repo: aws ecr create-repository --repository-name pmsintegration
-docker build -t pmsintegration:1.0.4 ./src/PMSintegration
-docker tag pmsintegration:1.0.4 962273458546.dkr.ecr.us-east-1.amazonaws.com/pmsintegration:1.0.4
-docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/pmsintegration:1.0.4
-
-
-# Imagen PartnerManagement
-Repo: aws ecr create-repository --repository-name partnermanagement
-docker build --no-cache -t partnermanagement:1.0.1 ./src/PartnerManagement
-docker tag partnermanagement:1.0.1 962273458546.dkr.ecr.us-east-1.amazonaws.com/partnermanagement:1.0.1
-docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/partnermanagement:1.0.1
-
-
-# Imagen Catalog
-Repo: aws ecr create-repository --repository-name catalog
-docker build --no-cache -t catalog:1.0.1 ./Backend/catalog
-docker tag catalog:1.0.1 962273458546.dkr.ecr.us-east-1.amazonaws.com/catalog:1.0.1
-docker push 962273458546.dkr.ecr.us-east-1.amazonaws.com/catalog:1.0.1
-
-
-# Imagen AuthService
-Repo: aws ecr create-repository --repository-name authservice
-docker build --no-cache -t authservice:1.0.0 ./Backend/authservice
-docker tag authservice:1.0.0 392789866980.dkr.ecr.us-east-1.amazonaws.com/authservice:1.0.0
-docker push 392789866980.dkr.ecr.us-east-1.amazonaws.com/authservice:1.0.0
-
-
-
-# Coenctar y Actualizar kubeconfig
-
-aws eks update-kubeconfig --region us-east-1 --name grupo12-travelhub-eks
-
-
-## Desplegar Booking
-kubectl apply -f ./k8s/aws/booking-deployment.yaml
-kubectl apply -f ./k8s/aws/booking-service.yaml
-kubectl rollout restart deployment booking-deployment
-
-## Desplegar Notification
-kubectl apply -f ./k8s/aws/notification-deployment.yaml
-kubectl apply -f ./k8s/aws/notification-service.yaml
-
-
-## Desplegar payment
-kubectl apply -f ./k8s/aws/payment-deployment.yaml
-kubectl apply -f ./k8s/aws/payment-service.yaml
-
-## Desplegar pmsintegration
-kubectl apply -f ./k8s/aws/pmsintegration-deployment.yaml
-kubectl apply -f ./k8s/aws/pmsintegration-service.yaml
-kubectl rollout restart deployment pmsintegration-deployment
-
-
-## Desplegar PartnerManagement
-
-kubectl apply -f ./k8s/aws/partnermanagement-deployment.yaml
-kubectl apply -f ./k8s/aws/partnermanagement-service.yaml
-kubectl rollout restart deployment partnermanagement-deployment
-
-## Desplegar authService
-
-kubectl apply -f ./k8s/aws/authservice-deployment.yaml
-kubectl apply -f ./k8s/aws/authservice-service.yaml
-kubectl rollout restart deployment authservice
-
-
-# Vuelve a loguear
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 962273458546.dkr.ecr.us-east-1.amazonaws.com
-
-
-# Ingress
-Se configuró un Ingress Controller (NGINX) en el cluster EKS para exponer todos los microservicios mediante una sola URL pública.
-
-Los microservicios backend quedan expuestos internamente como `ClusterIP` y el unico `LoadBalancer` externo debe ser el del controller `ingress-nginx`.
-
-Nota: `authservice` se mantiene en `authservice-ingress.yaml` y no en `backend-ingress.yaml` porque sus rutas ya viven internamente bajo el prefijo `/auth`. Como `backend-ingress.yaml` aplica `rewrite-target`, incluirlo allí rompería rutas como `/auth/login`.
-
-kubectl apply -f ./k8s/aws/backend-ingress.yaml
-kubectl apply -f ./k8s/aws/authservice-ingress.yaml
-kubectl get svc -n ingress-nginx ingress-nginx-controller -w
-
-URL: http://a27afd6e0e6414ee490e57d925fab93e-408326643.us-east-1.elb.amazonaws.com
-
-kubectl get pods -n ingress-nginx
-
-Probar:
-/pmsintegration/health
-/payment/health
-/notification/health
-/booking/health
-/search/health
-/auth/login
-
-# RDS
-
-## Inicialice su stack ejecutando
-
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" init  -backend-config="$PWD\Infraestructura\terraform\environments\dev\database\backend.tfvars"
-
-Cree el plan de despliegue para el stack de la base de datos.
-
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" plan -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars" -var-file="$PWD\Infraestructura\terraform\stacks\database\database.secrets.tfvars"
-
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" apply -var-file="$PWD\Infraestructura\terraform\environments\dev\database\terraform.tfvars" -var-file="$PWD\Infraestructura\terraform\stacks\database\database.secrets.tfvars"
-
-El stack usa `cyrilgdn/postgresql` para reconciliar roles, bases logicas y esquemas adicionales dentro de la instancia RDS.
-`authservice_db` sigue siendo la base inicial creada por `aws_db_instance`; `booking_db`, `catalog_db` y `search_db` se crean desde el provider PostgreSQL.
-
-Obtenga los datos de conexion y el nombre del secreto desde Terraform:
-
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_address
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_db_name
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_engine
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output rds_port
-terraform -chdir="$PWD\Infraestructura\terraform\stacks\database" output secrets_manager_secret_name
+- CD de backend hacia EC2/EKS;
+- despliegue de frontends a S3 + CloudFront;
+- validaciones de Terraform.
+
+Los manifiestos de backend para AWS viven en [`k8s/aws/`](./k8s/aws/).
+
+## Inconsistencias resueltas
+
+- La documentacion antigua mezclaba comandos manuales historicos con el flujo actual de Terraform y GitHub Actions.
+- El README de Docker queda como fuente operativa para Compose; este archivo funciona como indice de alto nivel.
+- Los scripts locales activos quedan nombrados por responsabilidad:
+  - `run-local-ngrok.ps1`
+  - `run-minikube-stack.ps1`
+  - `sync-minikube-rds-secrets.ps1`

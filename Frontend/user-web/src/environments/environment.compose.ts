@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   version: 'local',
-  publicAppBaseUrl: 'https://implicit-destiny-hacking.ngrok-free.dev',
+  publicAppBaseUrl: '__PUBLIC_APP_BASE_URL__',
   searchApiUrl: 'http://localhost:5001/search/api',
   bookingApiUrl: 'http://localhost:5001/booking/api/reserva',
   catalogApiUrl: 'http://localhost:5001/catalog',

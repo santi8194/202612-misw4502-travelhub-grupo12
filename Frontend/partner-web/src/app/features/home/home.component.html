@@ -212,6 +212,10 @@
             <app-reservas [idPropiedad]="user?.partner_id ?? null" (verDetalleReserva)="abrirDetalleReserva($event)"></app-reservas>
         </section>
 
+        <section class="section-content" *ngIf="activeSection === 'reportes'">
+            <app-reporte-ingresos [idPropiedad]="user?.partner_id ?? null"></app-reporte-ingresos>
+        </section>
+
         <section class="section-content" *ngIf="activeSection === 'detalle-reserva'">
             <ng-container *ngComponentOutlet="detalleReservaComponent; inputs: { reservaId: reservaSeleccionadaId, habitacionNombre: habitacionSeleccionada, onVolver: volverDetalleHandler }"></ng-container>
         </section>
@@ -223,7 +227,7 @@
             </section>
         </ng-template>
 
-        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected() && activeSection !== 'reservas' && activeSection !== 'detalle-reserva'">
+        <ng-container *ngIf="!isDashboardSelected() && !isPricingSelected() && activeSection !== 'reservas' && activeSection !== 'detalle-reserva' && activeSection !== 'reportes'">
             <ng-container *ngTemplateOutlet="sectionPlaceholder"></ng-container>
         </ng-container>
     </main>

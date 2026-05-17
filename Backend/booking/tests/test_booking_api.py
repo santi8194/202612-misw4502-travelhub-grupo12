@@ -320,7 +320,7 @@ def test_cancelar_reserva_invalid_uuid_returns_400(client):
     response = client.post(
         '/api/reserva/uuid-invalido/cancelar',
         json={"acceptedTerms": True},
-        headers={"X-User-Id": str(uuid.uuid4())},
+        headers={"Authorization": f"Bearer user:{uuid.uuid4()}"},
     )
 
     assert response.status_code == 400
@@ -495,7 +495,7 @@ def test_cancelar_reserva_rechaza_usuario_no_dueno_sin_pms_ni_auditoria(client, 
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
         json={"acceptedTerms": True},
-        headers={"X-User-Id": str(uuid.uuid4())},
+        headers={"Authorization": f"Bearer user:{uuid.uuid4()}"},
     )
 
     assert response.status_code == 403
@@ -527,7 +527,7 @@ def test_cancelar_reserva_hu_web_11_not_found_returns_404(client, monkeypatch):
     response = client.post(
         f'/api/reserva/{uuid.uuid4()}/cancelar',
         json={"acceptedTerms": True},
-        headers={"X-User-Id": str(uuid.uuid4())},
+        headers={"Authorization": f"Bearer user:{uuid.uuid4()}"},
     )
 
     assert response.status_code == 404
@@ -647,11 +647,16 @@ def test_cancelar_reserva_hu_web_11_no_invoca_refund_payment(client, monkeypatch
             payment_calls.append(id_reserva)
             return {"estado": "APPROVED", "monto": 1000, "moneda": "COP"}
 
+    class DummyAuthClient:
+        def get_current_user(self, _authorization_header):
+            return {"id_usuario": str(reserva.usuario.id)}
+
     monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
     monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
     monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
     monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', DummyCatalogClient)
     monkeypatch.setattr(reserva_api_mod, 'PaymentServiceClient', ReadOnlyPaymentClient)
+    monkeypatch.setattr(reserva_api_mod, 'AuthServiceClient', DummyAuthClient)
 
     response = client.post(
         f'/api/reserva/{reserva.id}/cancelar',
@@ -688,7 +693,7 @@ def _fake_reserva_preview(estado='CONFIRMADA', check_in_days=10):
 
 
 def _owner_headers(reserva) -> dict:
-    return {"X-User-Id": str(reserva.usuario.id)}
+    return {"Authorization": f"Bearer user:{reserva.usuario.id}"}
 
 
 def _setup_cancelacion_preview(
@@ -731,11 +736,18 @@ def _setup_cancelacion_preview(
             assert id_reserva == str(reserva.id)
             return payment or {"estado": "APPROVED", "monto": 1000, "moneda": "COP"}
 
+    class DummyAuthClient:
+        def get_current_user(self, authorization_header):
+            if not authorization_header or not authorization_header.startswith("Bearer user:"):
+                return None
+            return {"id_usuario": authorization_header.removeprefix("Bearer user:")}
+
     monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
     monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
     monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
     monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', DummyCatalogClient)
     monkeypatch.setattr(reserva_api_mod, 'PaymentServiceClient', DummyPaymentClient)
+    monkeypatch.setattr(reserva_api_mod, 'AuthServiceClient', DummyAuthClient)
 
 
 def test_cancelacion_preview_confirmada_returns_200(client, monkeypatch):
@@ -766,11 +778,21 @@ def test_cancelacion_preview_rechaza_usuario_no_dueno(client, monkeypatch):
 
     response = client.get(
         f'/api/reserva/{reserva.id}/cancelacion-preview',
-        headers={"X-User-Id": str(uuid.uuid4())},
+        headers={"Authorization": f"Bearer user:{uuid.uuid4()}"},
     )
 
     assert response.status_code == 403
     assert "permiso" in response.json["error"]
+
+
+def test_cancelacion_preview_rechaza_solicitud_sin_sesion_autenticada(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(monkeypatch, reserva)
+
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview')
+
+    assert response.status_code == 401
+    assert "usuario autenticado" in response.json["error"]
 
 
 def test_cancelacion_preview_not_found_returns_404(client, monkeypatch):
@@ -788,7 +810,7 @@ def test_cancelacion_preview_not_found_returns_404(client, monkeypatch):
 
     response = client.get(
         f'/api/reserva/{uuid.uuid4()}/cancelacion-preview',
-        headers={"X-User-Id": str(uuid.uuid4())},
+        headers={"Authorization": f"Bearer user:{uuid.uuid4()}"},
     )
 
     assert response.status_code == 404
@@ -915,11 +937,16 @@ def test_cancelacion_preview_no_invoca_pms_ni_refund_payment(client, monkeypatch
             payment_calls.append(id_reserva)
             return {"estado": "APPROVED", "monto": 1000, "moneda": "COP"}
 
+    class DummyAuthClient:
+        def get_current_user(self, _authorization_header):
+            return {"id_usuario": str(reserva.usuario.id)}
+
     monkeypatch.setattr(reserva_api_mod, 'ObtenerReservaPorIdHandler', DummyHandler)
     monkeypatch.setattr(reserva_api_mod, 'UnidadTrabajoHibrida', lambda: MagicMock())
     monkeypatch.setattr(reserva_api_mod, 'RepositorioReservas', lambda: MagicMock())
     monkeypatch.setattr(reserva_api_mod, 'CatalogServiceClient', DummyCatalogClient)
     monkeypatch.setattr(reserva_api_mod, 'PaymentServiceClient', ReadOnlyPaymentClient)
+    monkeypatch.setattr(reserva_api_mod, 'AuthServiceClient', DummyAuthClient)
 
     response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview', headers=_owner_headers(reserva))
 

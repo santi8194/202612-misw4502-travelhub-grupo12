@@ -65,6 +65,33 @@ Para apagar el stack local:
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml down
 ```
 
+## Docker Compose local con ngrok
+
+Cada integrante debe configurar su propio token de ngrok en su archivo local no versionado:
+
+```env
+NGROK_AUTHTOKEN=tu_token_personal_de_ngrok
+```
+
+Para levantar el stack local con RDS, ngrok y el `user-web` recompilado con la URL publica del tunel:
+
+```powershell
+cd D:\Code\MISW\202612-misw4502-travelhub-grupo12
+.\Infraestructura\scripts\run-local-ngrok.ps1
+```
+
+El script:
+
+- valida que existan las variables Wompi y `NGROK_AUTHTOKEN`;
+- levanta Docker Compose local, incluyendo el servicio `ngrok`;
+- obtiene la URL publica HTTPS desde el inspector local de ngrok;
+- reconstruye `user-web` con esa URL para el retorno del widget de Wompi;
+- imprime la URL exacta de webhook que se debe registrar en Wompi Sandbox.
+
+El servicio `ngrok` vive dentro de Docker Compose, por lo que no es necesario instalar el binario de ngrok en cada maquina del equipo. Cada persona solo necesita su token propio en el archivo `.env.local.rds.dev` o en el archivo local que use para el entorno RDS.
+
+La configuracion del inspector local de ngrok se define en `ngrok.yml`, que expone la interfaz del agente en `0.0.0.0:4040` dentro del contenedor para poder consultarla desde `http://localhost:4040`.
+
 ## Copiar bases de datos locales (SQLite)
 
 Si estas ejecutando el entorno local con Docker Compose (overlay local), puedes copiar las bases SQLite de cada microservicio para abrirlas en DBeaver.

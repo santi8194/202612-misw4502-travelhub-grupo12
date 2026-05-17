@@ -7,12 +7,13 @@ import { PreciosPorHabitacionComponent } from './components/precios-por-habitaci
 import { AjustesTemporadaComponent } from './components/ajustes-temporada/ajustes-temporada.component';
 import { ReservasComponent, Reserva } from './components/reservas/reservas.component';
 import { DetalleReservaComponent } from '../detalle-reserva/detalle-reserva.component';
+import { ReporteIngresosComponent } from './components/reporte-ingresos/reporte-ingresos.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent, ReservasComponent],
+    imports: [CommonModule, TranslateModule, PreciosPorHabitacionComponent, AjustesTemporadaComponent, ReservasComponent, ReporteIngresosComponent],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss'
 })

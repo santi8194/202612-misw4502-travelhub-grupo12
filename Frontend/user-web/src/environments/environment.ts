@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
   version: 'local',
+  publicAppBaseUrl: undefined as string | undefined,
   searchApiUrl: 'http://127.0.0.1:8080/search/api',
   bookingApiUrl: 'http://127.0.0.1:8080/booking/api/reserva',
   catalogApiUrl: 'http://127.0.0.1:8080/catalog',

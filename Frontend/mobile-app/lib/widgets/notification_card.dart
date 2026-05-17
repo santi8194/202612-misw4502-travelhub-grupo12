@@ -79,7 +79,7 @@ class NotificationCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -91,7 +91,7 @@ class NotificationCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _getColorForType().withOpacity(0.1),
+                color: _getColorForType().withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(

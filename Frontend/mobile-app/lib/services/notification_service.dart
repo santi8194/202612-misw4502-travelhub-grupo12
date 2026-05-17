@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -29,10 +30,17 @@ class NotificationService {
         body: jsonEncode({'user_id': userId, 'token': token}),
       );
       if (response.statusCode != 200) {
-        print('Error registering device token: ${response.body}');
+        developer.log(
+          'Error registering device token: ${response.body}',
+          name: 'NotificationService',
+        );
       }
     } catch (e) {
-      print('Exception registering device token: $e');
+      developer.log(
+        'Exception registering device token',
+        error: e,
+        name: 'NotificationService',
+      );
     }
   }
 
@@ -48,7 +56,11 @@ class NotificationService {
         return data.map((json) => NotificationModel.fromJson(json)).toList();
       }
     } catch (e) {
-      print('Error fetching notifications: $e');
+      developer.log(
+        'Error fetching notifications',
+        error: e,
+        name: 'NotificationService',
+      );
     }
     return [];
   }
@@ -57,7 +69,11 @@ class NotificationService {
     try {
       await http.patch(Uri.parse('$_baseUrl/notificaciones/$id/leida'));
     } catch (e) {
-      print('Error marking notification as read: $e');
+      developer.log(
+        'Error marking notification as read',
+        error: e,
+        name: 'NotificationService',
+      );
     }
   }
 }

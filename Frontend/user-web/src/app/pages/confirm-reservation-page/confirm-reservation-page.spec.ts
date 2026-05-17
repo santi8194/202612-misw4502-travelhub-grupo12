@@ -330,12 +330,13 @@ describe('ConfirmReservationPage', () => {
     }));
   });
 
-  it('should show status unavailable alert', async () => {
-    await setup(null);
-    spyOn(window, 'alert');
+  it('should link to reservation detail when booking is confirmed', async () => {
+    await setup();
+    flushBooking();
+    flushSummaryDependencies();
 
-    component.showStatusNotAvailableAlert();
+    const statusLink = fixture.nativeElement.querySelector('.status-actions .action-btn--primary') as HTMLAnchorElement;
 
-    expect(window.alert).toHaveBeenCalledWith('Esta funcionalidad aun no esta disponible.');
+    expect(statusLink.getAttribute('href')).toBe('/mis-reservas/reserva-test-123');
   });
 });

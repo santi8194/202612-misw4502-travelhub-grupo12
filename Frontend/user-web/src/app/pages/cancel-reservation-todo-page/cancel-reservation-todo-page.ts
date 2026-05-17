@@ -258,6 +258,7 @@ export class CancelReservationTodoPage {
       if (error.status === 404) return 'La reserva solicitada no existe o ya no esta disponible.';
       if (error.status === 400) return 'La solicitud de cancelacion no es valida.';
       if (error.status === 409) return 'La reserva no puede cancelarse en su estado actual.';
+      if (error.status === 0) return 'No fue posible contactar el servicio de cancelaciones.';
       if (error.status >= 500) return 'Ocurrio un error tecnico al procesar la solicitud.';
     }
 

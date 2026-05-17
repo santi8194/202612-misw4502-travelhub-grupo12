@@ -785,6 +785,28 @@ def test_cancelacion_preview_rechaza_usuario_no_dueno(client, monkeypatch):
     assert "permiso" in response.json["error"]
 
 
+def test_cancelacion_preview_acepta_username_cognito_como_dueno(client, monkeypatch):
+    reserva = _fake_reserva_preview()
+    _setup_cancelacion_preview(monkeypatch, reserva)
+
+    class DummyAuthClient:
+        def get_current_user(self, _authorization_header):
+            return {
+                "id_usuario": str(uuid.uuid4()),
+                "username": str(reserva.usuario.id),
+            }
+
+    monkeypatch.setattr(reserva_api_mod, 'AuthServiceClient', DummyAuthClient)
+
+    response = client.get(
+        f'/api/reserva/{reserva.id}/cancelacion-preview',
+        headers={"Authorization": "Bearer valid-token"},
+    )
+
+    assert response.status_code == 200
+    assert response.json["reservationId"] == str(reserva.id)
+
+
 def test_cancelacion_preview_rechaza_solicitud_sin_sesion_autenticada(client, monkeypatch):
     reserva = _fake_reserva_preview()
     _setup_cancelacion_preview(monkeypatch, reserva)

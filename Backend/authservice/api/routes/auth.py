@@ -141,6 +141,7 @@ def read_user_by_id(
         full_name=user.full_name,
         rol=user.rol,
         partner_id=user.partner_id,
+        username=user.username,
     )
 
 

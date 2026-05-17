@@ -300,7 +300,4 @@ export class ConfirmReservationPage {
     return reservationId.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
   }
 
-  showStatusNotAvailableAlert(): void {
-    window.alert('Esta funcionalidad aun no esta disponible.');
-  }
 }

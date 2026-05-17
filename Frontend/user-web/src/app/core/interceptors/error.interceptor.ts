@@ -20,7 +20,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       console.error(`[HTTP Error] ${errorMessage}`);
-      return throwError(() => new Error(errorMessage));
+      return throwError(() => error);
     })
   );
 };

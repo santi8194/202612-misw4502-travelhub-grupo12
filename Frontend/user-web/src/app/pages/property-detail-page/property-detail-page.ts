@@ -9,6 +9,7 @@ import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { CurrencyService } from '../../core/services/currency.service';
 
 interface PropertyLocation {
   ciudad?: string;
@@ -73,6 +74,7 @@ interface CategoryCardData {
 export class PropertyDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  protected readonly currency = inject(CurrencyService);
   private readonly authService = inject(AuthService);
   private readonly bookingService = inject(BookingService);
   private readonly store = inject(BookingStore);

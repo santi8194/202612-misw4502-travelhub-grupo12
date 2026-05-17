@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
   version: 'local',
+  publicAppBaseUrl: undefined as string | undefined,
   searchApiUrl: 'https://d1d660udfb1fc0.cloudfront.net/search/api',
   bookingApiUrl: 'https://d1d660udfb1fc0.cloudfront.net/booking/api/reserva',
   catalogApiUrl: 'https://d1d660udfb1fc0.cloudfront.net/catalog',

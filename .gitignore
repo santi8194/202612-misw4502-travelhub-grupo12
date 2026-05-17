@@ -42,5 +42,9 @@ coverage.xml
 example_saga_payments/
 booking.db
 
+# Local ngrok runtime logs
+ngrok-*.log
+
 planes/ 
 docs_dev/
+

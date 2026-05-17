@@ -10,6 +10,7 @@ import { BookingStore } from '../../../core/store/booking-store';
 import { BookingService } from '../../../core/services/booking';
 import { I18nService, LanguageCode } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { CurrencyService, CurrencyCode } from '../../../core/services/currency.service';
 
 @Component({
   selector: 'app-header',
@@ -26,16 +27,19 @@ export class HeaderComponent {
   private readonly bookingStore = inject(BookingStore);
   private readonly bookingService = inject(BookingService);
   protected readonly i18n = inject(I18nService);
+  protected readonly currency = inject(CurrencyService);
 
   mode = input<'default' | 'compact'>('default');
   profileMenuOpen = signal(false);
   languageMenuOpen = signal(false);
+  currencyMenuOpen = signal(false);
   userProfile = signal<UserProfile | null>(null);
   isLoadingProfile = signal(false);
   
   readonly userSession = computed(() => this.authService.session());
   readonly isAuthenticated = computed(() => !!this.userSession());
   readonly supportedLanguages = this.i18n.supportedLanguages;
+  readonly supportedCurrencies = this.currency.supportedCurrencies;
 
   constructor() {
     this.syncUserSession();
@@ -45,6 +49,7 @@ export class HeaderComponent {
     event?.stopPropagation();
     this.syncUserSession();
     this.languageMenuOpen.set(false);
+    this.currencyMenuOpen.set(false);
     
     if (!this.profileMenuOpen()) {
       this.loadUserProfile();
@@ -60,11 +65,28 @@ export class HeaderComponent {
   toggleLanguageMenu(event?: Event): void {
     event?.stopPropagation();
     this.profileMenuOpen.set(false);
+    this.currencyMenuOpen.set(false);
     this.languageMenuOpen.update(open => !open);
   }
 
   closeLanguageMenu(): void {
     this.languageMenuOpen.set(false);
+  }
+
+  toggleCurrencyMenu(event?: Event): void {
+    event?.stopPropagation();
+    this.profileMenuOpen.set(false);
+    this.languageMenuOpen.set(false);
+    this.currencyMenuOpen.update(open => !open);
+  }
+
+  closeCurrencyMenu(): void {
+    this.currencyMenuOpen.set(false);
+  }
+
+  setActiveCurrency(code: CurrencyCode): void {
+    this.currency.setCurrency(code);
+    this.closeCurrencyMenu();
   }
 
   setLanguage(language: LanguageCode): void {
@@ -163,6 +185,7 @@ export class HeaderComponent {
     if (target && !this.hostElement.nativeElement.contains(target)) {
       this.closeProfileMenu();
       this.closeLanguageMenu();
+      this.closeCurrencyMenu();
     }
   }
 

@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { Hospedaje } from '../../../models/hospedaje.interface';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { CurrencyService } from '../../../core/services/currency.service';
+
 
 const MAX_AMENIDADES_VISIBLES = 3;
 
@@ -16,6 +18,7 @@ const MAX_AMENIDADES_VISIBLES = 3;
 })
 export class HospedajeCardComponent {
   private readonly i18n = inject(I18nService);
+  protected readonly currency = inject(CurrencyService);
 
   hospedaje = input.required<Hospedaje>();
 

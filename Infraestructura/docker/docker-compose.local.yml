@@ -1,4 +1,54 @@
 services:
+  user-web:
+    image: travelhub-local/user-web:dev
+    build:
+      context: ../../Frontend/user-web
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: compose
+        PUBLIC_APP_BASE_URL: ${PUBLIC_APP_BASE_URL:-http://localhost:4200}
+    container_name: travelhub-user-web
+    ports:
+      - "${USER_WEB_PUBLISHED_PORT:-4200}:80"
+    depends_on:
+      nginx:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  partner-web:
+    image: travelhub-local/partner-web:dev
+    build:
+      context: ../../Frontend/partner-web
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: compose
+    container_name: travelhub-partner-web
+    ports:
+      - "${PARTNER_WEB_PUBLISHED_PORT:-4300}:80"
+    depends_on:
+      nginx:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: travelhub-ngrok
+    command: ["http", "--web-addr=0.0.0.0:4040", "user-web:80"]
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "${NGROK_INSPECTOR_PORT:-4040}:4040"
+    depends_on:
+      user-web:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - travelhub-dev-net
+
   authservice:
     image: travelhub-local/authservice:dev
     build:
@@ -86,6 +136,7 @@ services:
         condition: service_healthy
     volumes:
       - pms_sqlite_data:/app/data
+      - ../../Backend/pms-integration/data/pms_uuid_mapping_full.json:/app/data/pms_uuid_mapping_full.json:ro
 
   partner-management:
     image: travelhub-local/partner-management:dev

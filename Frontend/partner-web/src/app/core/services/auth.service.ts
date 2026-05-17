@@ -89,6 +89,17 @@ export class AuthService {
         return localStorage.getItem('access_token');
     }
 
+    getPartnerIdSync(): string | null {
+        const token = this.getToken();
+        if (!token) return null;
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return (payload['partner_id'] as string | null) ?? (payload['sub'] as string | null) ?? null;
+        } catch {
+            return null;
+        }
+    }
+
     getSessionExpiry(): Date | null {
         return this.sessionExpirySubject.value;
     }

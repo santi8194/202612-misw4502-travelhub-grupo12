@@ -165,5 +165,57 @@
             </div>
         </div>
 
+        <!-- Acciones de Reserva -->
+        <div class="card acciones-card">
+            <h2 class="card-title">Acciones de Reserva</h2>
+
+            <div class="acciones-feedback acciones-feedback-ok" *ngIf="accionMensaje === 'ok'">
+                ✔ {{ accionMensajeTexto }}
+            </div>
+            <div class="acciones-feedback acciones-feedback-error" *ngIf="accionMensaje === 'error'">
+                ✖ {{ accionMensajeTexto }}
+            </div>
+
+            <p class="acciones-notice" *ngIf="reserva.estado !== 'Pendiente'">
+                Solo se pueden gestionar reservas en estado <strong>Pendiente</strong>.
+                Esta reserva está en estado <strong>{{ reserva.estado }}</strong>.
+            </p>
+
+            <div class="acciones-motivo-block" *ngIf="reserva.estado === 'Pendiente'">
+                <label class="acciones-motivo-label" for="motivo-rechazo">
+                    Motivo de rechazo <span class="motivo-hint">(requerido para rechazar)</span>
+                </label>
+                <textarea
+                    id="motivo-rechazo"
+                    class="acciones-motivo-input"
+                    rows="4"
+                    [value]="motivoRechazo"
+                    [disabled]="accionEnCurso"
+                    (input)="motivoRechazo = $any($event.target).value"
+                ></textarea>
+            </div>
+
+            <div class="acciones-botones">
+                <button
+                    type="button"
+                    class="btn-confirmar"
+                    [disabled]="reserva.estado !== 'Pendiente' || accionEnCurso"
+                    (click)="confirmarReserva()"
+                >
+                    <span *ngIf="accionEnCurso" class="btn-spinner">⏳</span>
+                    {{ accionEnCurso ? 'Procesando...' : 'Confirmar Reserva' }}
+                </button>
+
+                <button
+                    type="button"
+                    class="btn-rechazar"
+                    [disabled]="reserva.estado !== 'Pendiente' || accionEnCurso"
+                    (click)="rechazarReserva()"
+                >
+                    Rechazar Reserva
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>

@@ -4,6 +4,7 @@ import { ReservationViewModel, ReservationStatus } from '../../../models/reserva
 import { getStatusTranslationKey } from '../../../core/services/reservation-status.resolver';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { CurrencyService } from '../../../core/services/currency.service';
 
 @Component({
   selector: 'app-reservation-card',
@@ -14,6 +15,9 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 })
 export class ReservationCardComponent {
   private readonly i18n = inject(I18nService);
+
+  protected readonly currency = inject(CurrencyService);
+
   reservation = input.required<ReservationViewModel>();
 
   protected formatDate(dateStr: string): string {

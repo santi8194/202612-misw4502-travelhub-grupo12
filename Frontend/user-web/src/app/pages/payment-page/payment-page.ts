@@ -7,6 +7,8 @@ import { PaymentIntentResponse } from '../../core/services/booking';
 import { PAYMENT_STORAGE_PREFIX } from '../../core/storage/payment-storage';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { CurrencyService } from '../../core/services/currency.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-payment-page',
@@ -18,6 +20,7 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 export class PaymentPage implements OnInit, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   private readonly i18n = inject(I18nService);
+  protected readonly currency = inject(CurrencyService);
 
   @ViewChild('wompiWidgetForm') private readonly wompiWidgetForm?: ElementRef<HTMLFormElement>;
 
@@ -41,7 +44,7 @@ export class PaymentPage implements OnInit, AfterViewInit {
       return '';
     }
 
-    return this.i18n.formatCurrency(Math.round(current.monto), current.moneda);
+    return this.currency.format(Math.round(current.monto), current.moneda);
   };
 
   private loadPayment(): void {
@@ -75,6 +78,7 @@ export class PaymentPage implements OnInit, AfterViewInit {
     if (!checkout) {
       throw new Error('Payment checkout is required');
     }
+    const publicBaseUrl = environment.publicAppBaseUrl ?? window.location.origin;
 
     return {
       'data-render': 'button',
@@ -83,7 +87,7 @@ export class PaymentPage implements OnInit, AfterViewInit {
       'data-amount-in-cents': String(checkout.amount_in_cents),
       'data-reference': checkout.reference,
       'data-signature:integrity': checkout.signature_integrity,
-      'data-redirect-url': `${window.location.origin}/booking/${this.reservationId}/processing-reservation?id_pago=${encodeURIComponent(payment.id_pago)}`,
+      'data-redirect-url': `${publicBaseUrl}/booking/${this.reservationId}/processing-reservation?id_pago=${encodeURIComponent(payment.id_pago)}`,
     };
   }
 

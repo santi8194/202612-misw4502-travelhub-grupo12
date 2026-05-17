@@ -65,7 +65,7 @@
       </div>
       <div class="card__price" data-testid="card-price">
         <span class="card__price-value" data-testid="card-price-value">
-          {{ hospedaje().moneda === 'USD' ? '$' : hospedaje().moneda }}{{ hospedaje().precio_base }}
+          {{ currency.format(hospedaje().precio_base, hospedaje().moneda) }}
         </span>
         <span class="card__price-label">{{ 'hospedaje.perNight' | translate }}</span>
       </div>

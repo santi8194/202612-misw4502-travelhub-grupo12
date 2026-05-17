@@ -10,6 +10,7 @@ import { BookingStore } from '../../core/store/booking-store';
 import { NotificationService } from '../../core/services/notification';
 import { I18nService, LanguageCode } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { CurrencyService } from '../../core/services/currency.service';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { RoomDetailResponse } from '../../models/room-detail.interface';
@@ -32,6 +33,7 @@ export class RoomDetailPage {
   private readonly store = inject(BookingStore);
   private readonly notificationService = inject(NotificationService);
   private readonly i18n = inject(I18nService);
+  protected readonly currency = inject(CurrencyService);
 
   // ── Estado ──
   readonly loading = signal(true);
@@ -87,6 +89,10 @@ export class RoomDetailPage {
     return roomPrice.cargo_servicio ?? 0;
   });
   readonly impuestoNombre = computed(() => this.roomPrice()?.impuesto_nombre ?? 'IVA');
+
+  readonly sourceCurrency = computed(() =>
+    this.roomPrice()?.moneda ?? this.roomDetail()?.categoria?.precio_base?.moneda ?? 'COP'
+  );
 
   readonly currencySymbol = computed(() => {
     const fromApi = this.roomPrice()?.simbolo_moneda;

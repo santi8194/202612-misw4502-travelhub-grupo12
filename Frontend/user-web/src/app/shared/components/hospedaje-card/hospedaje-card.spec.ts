@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { HospedajeCardComponent } from './hospedaje-card';
 import { Hospedaje } from '../../../models/hospedaje.interface';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { CurrencyService } from '../../../core/services/currency.service';
 
 const mockHospedaje: Hospedaje = {
   id_propiedad: '550e8400-e29b-41d4-a716-446655440000',
@@ -30,10 +31,12 @@ describe('HospedajeCardComponent', () => {
 
   beforeEach(() => {
     localStorage.removeItem('th_language');
+    localStorage.setItem('th_currency', 'USD');
   });
 
   afterEach(() => {
     localStorage.removeItem('th_language');
+    localStorage.removeItem('th_currency');
   });
 
   beforeEach(async () => {
@@ -99,7 +102,7 @@ describe('HospedajeCardComponent', () => {
   it('should display the price', () => {
     const price = fixture.nativeElement.querySelector('[data-testid="card-price-value"]');
     expect(price).toBeTruthy();
-    expect(price.textContent).toContain('75.00');
+    expect(price.textContent).toContain('75');
   });
 
   it('should display the hero image', () => {
@@ -134,16 +137,53 @@ describe('HospedajeCardComponent', () => {
     expect(extra).toBeNull();
   });
 
-  it('should display EUR currency symbol if moneda is EUR', () => {
-    const euroHospedaje: Hospedaje = {
+  it('should display PEN currency code if moneda is PEN', () => {
+    TestBed.inject(CurrencyService).setCurrency('PEN');
+    const penHospedaje: Hospedaje = {
       ...mockHospedaje,
-      moneda: 'EUR',
+      moneda: 'PEN',
     };
-    fixture.componentRef.setInput('hospedaje', euroHospedaje);
+    fixture.componentRef.setInput('hospedaje', penHospedaje);
     fixture.detectChanges();
 
     const price = fixture.nativeElement.querySelector('[data-testid="card-price-value"]');
-    expect(price.textContent).toContain('EUR');
+    expect(price.textContent).toContain('PEN');
+  });
+
+  it('should translate backend property type labels when language is en', async () => {
+    TestBed.inject(I18nService).setLanguage('en');
+
+    const backendLabelHospedaje: Hospedaje = {
+      ...mockHospedaje,
+      propiedad_nombre: 'Finca',
+      categoria_nombre: 'Finca',
+    };
+
+    fixture.componentRef.setInput('hospedaje', backendLabelHospedaje);
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('[data-testid="card-badge"]');
+    const title = fixture.nativeElement.querySelector('[data-testid="card-title"]');
+    expect(badge.textContent.trim()).toBe('Country house');
+    expect(title.textContent.trim()).toBe('Country house');
+  });
+
+  it('should translate property type tokens inside composed labels when language is en', () => {
+    TestBed.inject(I18nService).setLanguage('en');
+
+    const composedLabelHospedaje: Hospedaje = {
+      ...mockHospedaje,
+      propiedad_nombre: 'Alojamiento tipo Finca en Medellín',
+      categoria_nombre: 'Suite en Finca boutique',
+    };
+
+    fixture.componentRef.setInput('hospedaje', composedLabelHospedaje);
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('[data-testid="card-badge"]');
+    const title = fixture.nativeElement.querySelector('[data-testid="card-title"]');
+    expect(badge.textContent.trim()).toContain('Country house');
+    expect(title.textContent.trim()).toBe('Suite en Country house boutique');
   });
 
   it('should translate backend property type labels when language is en', async () => {

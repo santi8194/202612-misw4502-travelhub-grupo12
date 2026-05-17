@@ -7,8 +7,12 @@ import 'l10n/app_localizations.dart';
 import 'models/country_tax.dart';
 import 'services/booking_service.dart';
 import 'services/connectivity_service.dart';
+import 'services/notification_service.dart';
+import 'services/push_notification_service.dart';
 import 'services/tax_config_service.dart';
+import 'services/user_service.dart';
 import 'view_models/login_view_model.dart';
+import 'view_models/notifications_view_model.dart';
 import 'view_models/register_view_model.dart';
 import 'view_models/reservations_list_view_model.dart';
 import 'view_models/search_view_model.dart';
@@ -16,18 +20,25 @@ import 'view_models/user_preferences_view_model.dart';
 import 'views/login_view.dart';
 import 'views/main_navigation_view.dart';
 import 'views/register_view.dart';
+import 'views/reservation_detail_view.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await PushNotificationService.initialize();
+
   final taxConfig = await TaxConfigService.load();
   runApp(
     MultiProvider(
       providers: [
         Provider<Map<String, CountryTax>>.value(value: taxConfig),
+        Provider<UserService>(create: (_) => UserService()),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => RegisterViewModel()),
         ChangeNotifierProvider(create: (_) => UserPreferencesViewModel()),
+        ChangeNotifierProvider(create: (_) => NotificationsViewModel()),
         ChangeNotifierProvider(create: (_) => ConnectivityService()),
         ChangeNotifierProxyProvider<ConnectivityService, SearchViewModel>(
           create: (context) => SearchViewModel(
@@ -62,12 +73,34 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    NotificationService.onNotificationTap.stream.listen((reservaId) {
+      if (reservaId.isNotEmpty && navigatorKey.currentState != null) {
+        // Deep linking to ReservationDetailView
+        navigatorKey.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) =>
+                ReservationDetailView(reservationId: reservaId),
+          ),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'TravelHub',
       theme: ThemeData(
         useMaterial3: true,

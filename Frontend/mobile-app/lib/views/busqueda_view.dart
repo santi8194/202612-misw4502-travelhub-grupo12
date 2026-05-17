@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/location_suggestion.dart';
+import '../view_models/notifications_view_model.dart';
 import '../view_models/search_view_model.dart';
+import 'notifications_view.dart';
 import 'resultados_view.dart';
 
 class BusquedaView extends StatefulWidget {
@@ -200,12 +202,27 @@ class _BusquedaViewState extends State<BusquedaView> {
                       color: Colors.black,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.notifications_none_outlined,
-                      size: 28,
-                    ),
-                    onPressed: () {},
+                  Consumer<NotificationsViewModel>(
+                    builder: (context, notificationsVM, child) {
+                      return IconButton(
+                        icon: Badge(
+                          isLabelVisible: notificationsVM.unreadCount > 0,
+                          label: Text('${notificationsVM.unreadCount}'),
+                          child: const Icon(
+                            Icons.notifications_none_outlined,
+                            size: 28,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationsView(),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "756898654070",
+    "project_id": "travel-hub-grupo-12",
+    "storage_bucket": "travel-hub-grupo-12.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756898654070:android:30078b47d1d9c759c5bc57",
+        "android_client_info": {
+          "package_name": "com.example.travel_hub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASQ2RmqczSKnN1nPZyGgZ21YCVOOzujUo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

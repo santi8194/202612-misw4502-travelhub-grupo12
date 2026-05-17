@@ -41,6 +41,7 @@ coverage.xml
 *pytest-cache*
 example_saga_payments/
 booking.db
-
+# Local ngrok runtime logs
+ngrok-*.log
 planes/ 
 docs_dev/

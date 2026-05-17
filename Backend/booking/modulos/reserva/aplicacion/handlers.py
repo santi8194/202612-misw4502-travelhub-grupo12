@@ -167,6 +167,8 @@ class ConfirmarReservaLocalHandler(Handler):
             reserva.eventos.clear() 
             evento_local = ReservaConfirmadaEvt(
                 id_reserva=reserva.id, 
+                id_cliente=reserva.usuario.id if reserva.usuario else None,
+                email_cliente=reserva.usuario.email if reserva.usuario else None,
                 fecha_actualizacion=datetime.datetime.now()
             )
             reserva.agregar_evento(evento_local)

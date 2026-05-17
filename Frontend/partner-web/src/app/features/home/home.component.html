@@ -213,7 +213,7 @@
         </section>
 
         <section class="section-content" *ngIf="activeSection === 'reportes'">
-            <app-reporte-ingresos></app-reporte-ingresos>
+            <app-reporte-ingresos [idPropiedad]="user?.partner_id ?? null"></app-reporte-ingresos>
         </section>
 
         <section class="section-content" *ngIf="activeSection === 'detalle-reserva'">

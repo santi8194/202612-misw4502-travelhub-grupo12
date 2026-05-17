@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { ReservasService, ReservaPorPropiedadApi } from '../../../../core/services/reservas.service';
 
 export interface FilaReporteMensual {
     mes: string;
@@ -25,7 +26,14 @@ export interface PuntoGrafico {
     templateUrl: './reporte-ingresos.component.html',
     styleUrl: './reporte-ingresos.component.scss'
 })
-export class ReporteIngresosComponent {
+export class ReporteIngresosComponent implements OnChanges {
+    @Input() idPropiedad: string | null = null;
+
+    loadingResumen = false;
+    resumenError = false;
+    private reservasPropiedad: ReservaPorPropiedadApi[] = [];
+
+    constructor(private reservasService: ReservasService) {}
 
     readonly datosMensuales: FilaReporteMensual[] = [
         { mes: 'REPORTS.MONTHS.JAN', ingresosTotales: 65000,    habitaciones: 55250,  servicios: 6500,  impuestos: 3250,  reservas: 180 },
@@ -46,8 +54,26 @@ export class ReporteIngresosComponent {
         return this.datosMensuales.reduce((sum, d) => sum + d.ingresosTotales, 0);
     }
 
+    get totalIngresosPropiedad(): number {
+        return this.reservasPropiedad.reduce((sum, reserva) => sum + (reserva.total ?? 0), 0);
+    }
+
     get totalReservas(): number {
         return this.datosMensuales.reduce((sum, d) => sum + d.reservas, 0);
+    }
+
+    get totalReservasPropiedad(): number {
+        return this.reservasPropiedad.length;
+    }
+
+    get reservasConfirmadasPropiedad(): number {
+        return this.reservasPropiedad.filter(r => r.estado === 'CONFIRMADA').length;
+    }
+
+    get tasaCancelacionPropiedad(): number {
+        if (this.reservasPropiedad.length === 0) { return 0; }
+        const canceladas = this.reservasPropiedad.filter(r => r.estado === 'CANCELADA').length;
+        return (canceladas / this.reservasPropiedad.length) * 100;
     }
 
     get totalHabitaciones(): number {
@@ -62,6 +88,35 @@ export class ReporteIngresosComponent {
         return this.datosMensuales.reduce((sum, d) => sum + d.impuestos, 0);
     }
 
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['idPropiedad']) {
+            this.cargarResumen();
+        }
+    }
+
+    private cargarResumen(): void {
+        this.resumenError = false;
+
+        if (!this.idPropiedad) {
+            this.reservasPropiedad = [];
+            this.loadingResumen = false;
+            return;
+        }
+
+        this.loadingResumen = true;
+        this.reservasService.getReservasPorPropiedad(this.idPropiedad).subscribe({
+            next: (reservas) => {
+                this.reservasPropiedad = reservas;
+                this.loadingResumen = false;
+            },
+            error: () => {
+                this.reservasPropiedad = [];
+                this.loadingResumen = false;
+                this.resumenError = true;
+            }
+        });
+    }
+
     // ─── SVG line chart helpers ───────────────────────────────────────────────
 
     readonly chartWidth  = 560;
@@ -69,22 +124,38 @@ export class ReporteIngresosComponent {
     readonly chartPadX   = 10;
     readonly chartPadY   = 10;
 
-    private get maxIngreso(): number {
-        return Math.max(...this.datosMensuales.map(d => d.ingresosTotales));
+    get ingresosMensualesPropiedad(): number[] {
+        const monthly = new Array(12).fill(0);
+        for (const r of this.reservasPropiedad) {
+            if (r.fecha_check_in && r.total) {
+                const mes = new Date(r.fecha_check_in).getMonth();
+                monthly[mes] += r.total;
+            }
+        }
+        return monthly;
+    }
+
+    get maxIngresoPropiedad(): number {
+        const max = Math.max(...this.ingresosMensualesPropiedad);
+        return max > 0 ? max : 1;
     }
 
     get linePoints(): string {
-        return this.datosMensuales.map((d, i) => {
-            const x = this.chartPadX + (i / (this.datosMensuales.length - 1)) * (this.chartWidth - 2 * this.chartPadX);
-            const y = this.chartHeight - this.chartPadY - ((d.ingresosTotales / this.maxIngreso) * (this.chartHeight - 2 * this.chartPadY));
+        const data = this.ingresosMensualesPropiedad;
+        const max  = this.maxIngresoPropiedad;
+        return data.map((val, i) => {
+            const x = this.chartPadX + (i / (data.length - 1)) * (this.chartWidth - 2 * this.chartPadX);
+            const y = this.chartHeight - this.chartPadY - ((val / max) * (this.chartHeight - 2 * this.chartPadY));
             return `${x},${y}`;
         }).join(' ');
     }
 
     get areaPath(): string {
-        const pts = this.datosMensuales.map((d, i) => {
-            const x = this.chartPadX + (i / (this.datosMensuales.length - 1)) * (this.chartWidth - 2 * this.chartPadX);
-            const y = this.chartHeight - this.chartPadY - ((d.ingresosTotales / this.maxIngreso) * (this.chartHeight - 2 * this.chartPadY));
+        const data = this.ingresosMensualesPropiedad;
+        const max  = this.maxIngresoPropiedad;
+        const pts  = data.map((val, i) => {
+            const x = this.chartPadX + (i / (data.length - 1)) * (this.chartWidth - 2 * this.chartPadX);
+            const y = this.chartHeight - this.chartPadY - ((val / max) * (this.chartHeight - 2 * this.chartPadY));
             return `${x},${y}`;
         });
         const first = pts[0];

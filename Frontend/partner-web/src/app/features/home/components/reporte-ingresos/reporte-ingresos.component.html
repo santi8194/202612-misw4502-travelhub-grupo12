@@ -19,7 +19,7 @@
                 <span class="summary-icon summary-icon-green">$</span>
                 <span class="summary-trend trend-positive">↗ +15.2%</span>
             </div>
-            <strong class="summary-value">${{ totalAnual | number:'1.0-0' }}</strong>
+            <strong class="summary-value">${{ totalIngresosPropiedad | number:'1.0-0' }}</strong>
             <p class="summary-label">{{ 'REPORTS.CARDS.ANNUAL_REVENUE' | translate }}</p>
         </div>
 
@@ -27,24 +27,24 @@
             <div class="summary-card-top">
                 <span class="summary-icon summary-icon-blue">▦</span>
             </div>
-            <strong class="summary-value">{{ totalReservas | number:'1.0-0' }}</strong>
+            <strong class="summary-value">{{ totalReservasPropiedad | number:'1.0-0' }}</strong>
             <p class="summary-label">{{ 'REPORTS.CARDS.TOTAL_BOOKINGS' | translate }}</p>
         </div>
 
         <div class="summary-card">
             <div class="summary-card-top">
-                <span class="summary-icon summary-icon-purple">↗</span>
+                <span class="summary-icon summary-icon-purple">✓</span>
             </div>
-            <strong class="summary-value">82.3%</strong>
-            <p class="summary-label">{{ 'REPORTS.CARDS.AVG_OCCUPANCY' | translate }}</p>
+            <strong class="summary-value">{{ reservasConfirmadasPropiedad | number:'1.0-0' }}</strong>
+            <p class="summary-label">{{ 'REPORTS.CARDS.CONFIRMED_BOOKINGS' | translate }}</p>
         </div>
 
         <div class="summary-card">
             <div class="summary-card-top">
-                <span class="summary-icon summary-icon-orange">$</span>
+                <span class="summary-icon summary-icon-orange">✕</span>
             </div>
-            <strong class="summary-value">$156</strong>
-            <p class="summary-label">{{ 'REPORTS.CARDS.AVG_RATE_NIGHT' | translate }}</p>
+            <strong class="summary-value">{{ tasaCancelacionPropiedad | number:'1.1-1' }}%</strong>
+            <p class="summary-label">{{ 'REPORTS.CARDS.CANCELLATION_RATE' | translate }}</p>
         </div>
     </div>
 
@@ -68,9 +68,9 @@
                 <!-- Line -->
                 <polyline [attr.points]="linePoints" class="line-stroke" fill="none"/>
                 <!-- Data points -->
-                <circle *ngFor="let d of datosMensuales; let i = index"
-                        [attr.cx]="chartPadX + (i / (datosMensuales.length - 1)) * (chartWidth - 2 * chartPadX)"
-                        [attr.cy]="chartHeight - chartPadY - (d.ingresosTotales / 152000) * (chartHeight - 2 * chartPadY)"
+                <circle *ngFor="let val of ingresosMensualesPropiedad; let i = index"
+                        [attr.cx]="chartPadX + (i / (ingresosMensualesPropiedad.length - 1)) * (chartWidth - 2 * chartPadX)"
+                        [attr.cy]="chartHeight - chartPadY - (val / maxIngresoPropiedad) * (chartHeight - 2 * chartPadY)"
                         r="3"
                         class="data-point"/>
             </svg>

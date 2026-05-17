@@ -161,8 +161,8 @@
     "CARDS": {
       "ANNUAL_REVENUE": "Revenus totaux annuels",
       "TOTAL_BOOKINGS": "Total des réservations",
-      "AVG_OCCUPANCY": "Occupation moyenne",
-      "AVG_RATE_NIGHT": "Tarif moyen/nuit"
+      "CONFIRMED_BOOKINGS": "Réservations confirmées",
+      "CANCELLATION_RATE": "Taux d'annulation"
     },
     "TABLE": {
       "MONTH": "Mois",

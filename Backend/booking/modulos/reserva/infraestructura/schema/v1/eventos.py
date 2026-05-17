@@ -50,13 +50,15 @@ class EventoReservaCreada(EventoIntegracion):
         }
 
 class ReservaConfirmadaPayload:
-    def __init__(self, id_reserva: str, emailCliente: str):
+    def __init__(self, id_reserva: str, id_cliente: str, emailCliente: str):
         self.id_reserva = id_reserva
+        self.id_cliente = id_cliente
         self.emailCliente = emailCliente
 
     def to_dict(self):
         return {
             "id_reserva": self.id_reserva,
+            "id_cliente": self.id_cliente,
             "emailCliente": self.emailCliente
         }
 

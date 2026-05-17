@@ -55,7 +55,8 @@ class MapeadorEventosReserva(Mapeador):
         def v1(ev):
             payload = ReservaConfirmadaPayload(
                 id_reserva=str(ev.id_reserva),
-                emailCliente="cliente-simulado@dummy.com" # TODO: Obtener email real del usuario o del contexto de la saga
+                id_cliente=str(ev.id_cliente),
+                emailCliente=ev.email_cliente
             )
             evento_integracion = EventoReservaConfirmada(
                 id=str(ev.id),

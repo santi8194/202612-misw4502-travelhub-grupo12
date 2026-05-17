@@ -39,7 +39,11 @@ jobs:
           cache: true
 
       - name: Create .env file
-        run: echo "SEARCH_API_BASE_URL=${{ secrets.SEARCH_API_BASE_URL }}" > .env
+        run: |
+          echo "SEARCH_API_BASE_URL=${{ secrets.SEARCH_API_BASE_URL }}" > .env
+          echo "NOTIFICATION_API_BASE_URL=${{ secrets.NOTIFICATION_API_BASE_URL }}" >> .env
+          echo "BOOKING_API_BASE_URL=${{ secrets.BOOKING_API_BASE_URL }}" >> .env
+          echo "CATALOG_API_BASE_URL=${{ secrets.CATALOG_API_BASE_URL }}" >> .env
 
       - name: Install dependencies
         run: flutter pub get
@@ -48,9 +52,17 @@ jobs:
         run: flutter analyze
 
       - name: Run tests with coverage
-        run: flutter test --coverage --dart-define=SEARCH_API_BASE_URL=$SEARCH_API_BASE_URL
+        run: |
+          flutter test --coverage \
+            --dart-define=SEARCH_API_BASE_URL=$SEARCH_API_BASE_URL \
+            --dart-define=NOTIFICATION_API_BASE_URL=$NOTIFICATION_API_BASE_URL \
+            --dart-define=BOOKING_API_BASE_URL=$BOOKING_API_BASE_URL \
+            --dart-define=CATALOG_API_BASE_URL=$CATALOG_API_BASE_URL
         env:
           SEARCH_API_BASE_URL: ${{ secrets.SEARCH_API_BASE_URL }}
+          NOTIFICATION_API_BASE_URL: ${{ secrets.NOTIFICATION_API_BASE_URL }}
+          BOOKING_API_BASE_URL: ${{ secrets.BOOKING_API_BASE_URL }}
+          CATALOG_API_BASE_URL: ${{ secrets.CATALOG_API_BASE_URL }}
 
       - name: Check Coverage (>= 80%)
         run: |
@@ -78,9 +90,17 @@ jobs:
 
       - name: Build APK (Release)
         if: startsWith(github.ref, 'refs/tags/v')
-        run: flutter build apk --release --build-name=${{ steps.get_version.outputs.VERSION }} --dart-define=SEARCH_API_BASE_URL=$SEARCH_API_BASE_URL
+        run: |
+          flutter build apk --release --build-name=${{ steps.get_version.outputs.VERSION }} \
+            --dart-define=SEARCH_API_BASE_URL=$SEARCH_API_BASE_URL \
+            --dart-define=NOTIFICATION_API_BASE_URL=$NOTIFICATION_API_BASE_URL \
+            --dart-define=BOOKING_API_BASE_URL=$BOOKING_API_BASE_URL \
+            --dart-define=CATALOG_API_BASE_URL=$CATALOG_API_BASE_URL
         env:
           SEARCH_API_BASE_URL: ${{ secrets.SEARCH_API_BASE_URL }}
+          NOTIFICATION_API_BASE_URL: ${{ secrets.NOTIFICATION_API_BASE_URL }}
+          BOOKING_API_BASE_URL: ${{ secrets.BOOKING_API_BASE_URL }}
+          CATALOG_API_BASE_URL: ${{ secrets.CATALOG_API_BASE_URL }}
           ANDROID_KEYSTORE_PATH: "release.jks"
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}

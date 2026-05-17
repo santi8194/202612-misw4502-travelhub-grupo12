@@ -404,7 +404,7 @@ def test_cancelar_reserva_con_accepted_terms_emite_comando_pms(client, monkeypat
     ]
     assert len(pms_commands) == 1
     assert pms_commands[0].id_reserva == reserva.id
-    assert pms_commands[0].id_habitacion == reserva.id_categoria
+    assert pms_commands[0].id_categoria == reserva.id_categoria
 
 
 def test_cancelar_reserva_con_reason_vacio_lo_acepta_como_no_informado(client, monkeypatch):

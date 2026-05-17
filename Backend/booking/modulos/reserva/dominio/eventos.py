@@ -19,6 +19,8 @@ class ReservaPendiente(EventoDominio):
     monto: float = None
     moneda: str = "COP"
     fecha_reserva: str = None
+    fecha_check_in: str = None
+    fecha_check_out: str = None
 
 @dataclass
 class ReservaConfirmada(EventoDominio):

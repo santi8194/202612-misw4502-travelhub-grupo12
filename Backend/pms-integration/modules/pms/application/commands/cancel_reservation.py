@@ -25,7 +25,7 @@ class CancelReservation:
 
         event = PMSReservationCancelled(
             reservation.reservation_id,
-            reservation.room_id
+            reservation.id_categoria
         )
 
         self.event_bus.publish_event(

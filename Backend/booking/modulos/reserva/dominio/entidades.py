@@ -138,7 +138,9 @@ class Reserva(AgregacionRaiz):
             id_categoria=self.id_categoria,
             monto=monto,
             moneda=moneda,
-            fecha_reserva=self.fecha_check_in.isoformat() if self.fecha_check_in else None
+            fecha_reserva=self.fecha_check_in.isoformat() if self.fecha_check_in else None,
+            fecha_check_in=self.fecha_check_in.isoformat() if self.fecha_check_in else None,
+            fecha_check_out=self.fecha_check_out.isoformat() if self.fecha_check_out else None
         ))
 
     def confirmar_reserva(self):

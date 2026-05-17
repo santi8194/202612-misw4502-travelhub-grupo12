@@ -693,7 +693,7 @@ def cancelar_reserva(id_reserva):
             uow_actualizacion.agregar_eventos([
                 CancelarReservaPmsCmd(
                     id_reserva=reserva.id,
-                    id_habitacion=reserva.id_categoria,
+                    id_categoria=reserva.id_categoria,
                 )
             ])
             uow_actualizacion.commit()

@@ -1,12 +1,10 @@
 import pytest
 import threading
 from uuid import uuid4
-from sqlalchemy.exc import IntegrityError
 
 from modules.pms.application.commands.confirm_reservation import ConfirmReservation
 from modules.pms.infrastructure.repository import ReservationRepository
-from modules.pms.infrastructure.models import ReservationModel
-from modules.pms.infrastructure.database import SessionLocal, Base, engine, DATABASE_URL
+from modules.pms.infrastructure.database import Base, engine, DATABASE_URL
 
 
 # ---------------------------------------------------------------------------
@@ -32,6 +30,14 @@ def setup_db():
     Base.metadata.drop_all(bind=engine)
 
 
+@pytest.fixture(autouse=True)
+def patch_mapping(monkeypatch):
+    monkeypatch.setattr(
+        "modules.pms.application.commands.confirm_reservation.ConfirmReservation._resolve_category",
+        lambda self, _: {"hotel_code": "HOT-001", "hotel_id": "Hotel Test", "room_type_code": "RM001"},
+    )
+
+
 # ---------------------------------------------------------------------------
 # TEST 1: Validación de capa de aplicación (pre-check)
 # Simula que el guardián obtain_active_by_room_and_date() bloquea el overbooking
@@ -42,8 +48,7 @@ def test_app_layer_blocks_second_active_booking(setup_db):
     Si ya existe una reserva ACTIVA (state != CANCELLED) para (room_id, fecha_reserva),
     la capa de aplicación debe rechazar la segunda solicitud emitiendo PMSReservationFailed.
     """
-    room_id = "ROOM-101"
-    fecha = "2026-11-01"
+    id_categoria = "4da16224-9f8c-5c84-bec0-daa88517dd6f"
     repo = ReservationRepository()
     bus1 = MockEventBus()
     bus2 = MockEventBus()
@@ -52,11 +57,11 @@ def test_app_layer_blocks_second_active_booking(setup_db):
     use_case_2 = ConfirmReservation(repo, bus2)
 
     # Primera reserva: debe confirmarse
-    result1 = use_case_1.execute(str(uuid4()), room_id, fecha)
+    result1 = use_case_1.execute(str(uuid4()), id_categoria, "usr-1", "2026-11-01", "2026-11-03")
     assert bus1.events.count("ConfirmacionPmsExitosaEvt") == 1, f"Esperaba éxito, obtuvo: {result1}"
 
-    # Segunda reserva para la misma habitación y fecha: debe rechazarse
-    result2 = use_case_2.execute(str(uuid4()), room_id, fecha)
+    # Segunda reserva con traslape de fechas en la misma categoria: debe rechazarse
+    result2 = use_case_2.execute(str(uuid4()), id_categoria, "usr-2", "2026-11-02", "2026-11-04")
     assert bus2.events.count("ReservaRechazadaPmsEvt") == 1, f"Esperaba fallo, obtuvo: {result2}"
 
 
@@ -71,8 +76,7 @@ def test_concurrent_reservations_no_overbooking(setup_db):
     Dos solicitudes concurrentes para la misma habitación y fecha.
     El resultado agregado debe ser exactamente: 1 éxito y 1 fallo.
     """
-    room_id = "ROOM-202"
-    fecha = "2026-11-15"
+    id_categoria = "4da16224-9f8c-5c84-bec0-daa88517dd6f"
 
     bus1 = MockEventBus()
     bus2 = MockEventBus()
@@ -83,14 +87,14 @@ def test_concurrent_reservations_no_overbooking(setup_db):
 
     errors = []
 
-    def run_use_case(use_case, res_id):
+    def run_use_case(use_case, res_id, user_id):
         try:
-            use_case.execute(res_id, room_id, fecha)
+            use_case.execute(res_id, id_categoria, user_id, "2026-11-15", "2026-11-17")
         except Exception as e:
             errors.append(str(e))
 
-    t1 = threading.Thread(target=run_use_case, args=(use_case_1, str(uuid4())))
-    t2 = threading.Thread(target=run_use_case, args=(use_case_2, str(uuid4())))
+    t1 = threading.Thread(target=run_use_case, args=(use_case_1, str(uuid4()), "usr-a"))
+    t2 = threading.Thread(target=run_use_case, args=(use_case_2, str(uuid4()), "usr-b"))
 
     t1.start()
     t2.start()
@@ -112,13 +116,12 @@ def test_concurrent_reservations_no_overbooking(setup_db):
 # ---------------------------------------------------------------------------
 def test_cancelled_booking_allows_rebooking(setup_db):
     """
-    Si la única reserva existente para (room_id, fecha_reserva) está CANCELADA,
+    Si la única reserva existente para (id_categoria, rango) está CANCELADA,
     se debe poder crear una nueva reserva ACTIVA para esa misma combinación.
     """
     from modules.pms.application.commands.cancel_reservation import CancelReservation
 
-    room_id = "ROOM-303"
-    fecha = "2026-12-25"
+    id_categoria = "4da16224-9f8c-5c84-bec0-daa88517dd6f"
     res_id_1 = str(uuid4())
 
     repo = ReservationRepository()
@@ -128,23 +131,21 @@ def test_cancelled_booking_allows_rebooking(setup_db):
 
     # Paso 1: Confirmar reserva inicial
     use_case_confirm = ConfirmReservation(repo, bus_confirm)
-    use_case_confirm.execute(res_id_1, room_id, fecha)
+    use_case_confirm.execute(res_id_1, id_categoria, "usr-c", "2026-12-25", "2026-12-27")
     assert bus_confirm.events.count("ConfirmacionPmsExitosaEvt") == 1
 
     # Paso 2: Cancelar la reserva
     use_case_cancel = CancelReservation(repo, bus_cancel)
     use_case_cancel.execute(res_id_1)
-    assert bus_cancel.events.count("ReservaCancelledEvt") == 1 or len(bus_cancel.events) > 0
+    assert bus_cancel.events.count("ConfirmacionPmsCanceladaEvt") == 1 or len(bus_cancel.events) > 0
 
-    # Paso 3: Re-reservar la misma habitación y fecha.
-    # En PostgreSQL, el índice único parcial permite re-reserva tras CANCELLED.
-    # En SQLite fallback, el filtro parcial se ignora y puede rechazarse por unique.
+    # Paso 3: Re-reservar la misma categoria y rango.
     use_case_rebook = ConfirmReservation(repo, bus_rebook)
-    use_case_rebook.execute(str(uuid4()), room_id, fecha)
+    use_case_rebook.execute(str(uuid4()), id_categoria, "usr-d", "2026-12-25", "2026-12-27")
 
     if DATABASE_URL.startswith("sqlite"):
         assert bus_rebook.events.count("ReservaRechazadaPmsEvt") == 1, \
-            "En SQLite fallback la re-reserva puede rechazarse por restricción única"
+            "En SQLite fallback la re-reserva puede rechazarse por restriccion unica"
     else:
         assert bus_rebook.events.count("ConfirmacionPmsExitosaEvt") == 1, \
-            "La re-reserva después de cancelar debe ser exitosa en PostgreSQL"
+            "La re-reserva despues de cancelar debe ser exitosa"

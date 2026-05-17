@@ -90,6 +90,8 @@ El script:
 
 El servicio `ngrok` vive dentro de Docker Compose, por lo que no es necesario instalar el binario de ngrok en cada maquina del equipo. Cada persona solo necesita su token propio en el archivo `.env.local.rds.dev` o en el archivo local que use para el entorno RDS.
 
+La configuracion del inspector local de ngrok se define en `ngrok.yml`, que expone la interfaz del agente en `0.0.0.0:4040` dentro del contenedor para poder consultarla desde `http://localhost:4040`.
+
 ## Copiar bases de datos locales (SQLite)
 
 Si estas ejecutando el entorno local con Docker Compose (overlay local), puedes copiar las bases SQLite de cada microservicio para abrirlas en DBeaver.

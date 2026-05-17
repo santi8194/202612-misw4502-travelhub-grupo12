@@ -1,47 +1,57 @@
 class PMSReservationConfirmed:
 
-    def __init__(self, pms_id, reservation_id, fecha_reserva=None):
+    def __init__(self, pms_id, reservation_id, fecha_check_in=None, fecha_check_out=None, id_categoria=None, id_usuario=None, hotel_id=None):
         self.routing_key = "evt.pms.confirmacion_exitosa"
         self.type = "ConfirmacionPmsExitosaEvt"
         self.pms_id = pms_id
         self.reservation_id = reservation_id
-        self.fecha_reserva = fecha_reserva
+        self.fecha_check_in = fecha_check_in
+        self.fecha_check_out = fecha_check_out
+        self.id_categoria = id_categoria
+        self.id_usuario = id_usuario
+        self.hotel_id = hotel_id
 
     def to_dict(self):
         return {
             "codigo_pms": self.pms_id,
             "id_reserva": self.reservation_id,
-            "fecha_reserva": self.fecha_reserva
+            "fecha_check_in": self.fecha_check_in,
+            "fecha_check_out": self.fecha_check_out,
+            "id_categoria": self.id_categoria,
+            "id_usuario": self.id_usuario,
+            "hotel_id": self.hotel_id
         }
 
 
 class PMSReservationFailed:
 
-    def __init__(self, reservation_id, reason, fecha_reserva=None):
+    def __init__(self, reservation_id, reason, fecha_check_in=None, fecha_check_out=None):
         self.routing_key = "evt.pms.rechazada"
         self.type = "ReservaRechazadaPmsEvt"
         self.reservation_id = reservation_id
         self.reason = reason
-        self.fecha_reserva = fecha_reserva
+        self.fecha_check_in = fecha_check_in
+        self.fecha_check_out = fecha_check_out
 
     def to_dict(self):
         return {
             "id_reserva": self.reservation_id,
             "motivo": self.reason,
-            "fecha_reserva": self.fecha_reserva
+            "fecha_check_in": self.fecha_check_in,
+            "fecha_check_out": self.fecha_check_out
         }
 
 
 class PMSReservationCancelled:
-    def __init__(self, reservation_id, room_id):
+    def __init__(self, reservation_id, id_categoria=None):
         self.routing_key = "evt.pms.reserva_cancelada"
         self.type = "ConfirmacionPmsCanceladaEvt"
         self.reservation_id = reservation_id
-        self.room_id = room_id
+        self.id_categoria = id_categoria
 
     def to_dict(self):
         return {
-            "id_habitacion": self.room_id,
+            "id_categoria": self.id_categoria,
             "id_reserva": self.reservation_id
         }
 

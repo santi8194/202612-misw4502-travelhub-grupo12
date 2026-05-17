@@ -147,26 +147,31 @@ def test_procesar_pago_cmd_guarda_campos():
 def test_confirmar_reserva_pms_cmd_guarda_campos():
     """Verifica que ConfirmarReservaPmsCmd almacena todos los campos."""
     id_reserva = uuid.uuid4()
-    id_habitacion = uuid.uuid4()
+    id_categoria = uuid.uuid4()
+    id_usuario = uuid.uuid4()
     cmd = ConfirmarReservaPmsCmd(
         id_reserva=id_reserva,
-        id_habitacion=id_habitacion,
-        fecha_reserva="2026-04-01"
+        id_categoria=id_categoria,
+        id_usuario=id_usuario,
+        fecha_check_in="2026-04-01",
+        fecha_check_out="2026-04-05",
     )
     
     assert cmd.id_reserva == id_reserva
-    assert cmd.id_habitacion == id_habitacion
-    assert cmd.fecha_reserva == "2026-04-01"
+    assert cmd.id_categoria == id_categoria
+    assert cmd.id_usuario == id_usuario
+    assert cmd.fecha_check_in == "2026-04-01"
+    assert cmd.fecha_check_out == "2026-04-05"
 
 
 def test_solicitar_aprobacion_manual_cmd_guarda_campos():
     """Verifica que SolicitarAprobacionManualCmd almacena los campos."""
     id_reserva = uuid.uuid4()
-    id_habitacion = uuid.uuid4()
-    cmd = SolicitarAprobacionManualCmd(id_reserva=id_reserva, id_habitacion=id_habitacion)
+    id_categoria = uuid.uuid4()
+    cmd = SolicitarAprobacionManualCmd(id_reserva=id_reserva, id_categoria=id_categoria)
     
     assert cmd.id_reserva == id_reserva
-    assert cmd.id_habitacion == id_habitacion
+    assert cmd.id_categoria == id_categoria
 
 
 def test_marcar_saga_esperando_voucher_cmd():
@@ -180,11 +185,11 @@ def test_marcar_saga_esperando_voucher_cmd():
 def test_cancelar_reserva_pms_cmd_guarda_campos():
     """Verifica que CancelarReservaPmsCmd (compensación) almacena los campos."""
     id_reserva = uuid.uuid4()
-    id_habitacion = uuid.uuid4()
-    cmd = CancelarReservaPmsCmd(id_reserva=id_reserva, id_habitacion=id_habitacion)
+    id_categoria = uuid.uuid4()
+    cmd = CancelarReservaPmsCmd(id_reserva=id_reserva, id_categoria=id_categoria)
     
     assert cmd.id_reserva == id_reserva
-    assert cmd.id_habitacion == id_habitacion
+    assert cmd.id_categoria == id_categoria
 
 
 def test_reversar_pago_cmd_guarda_campos():

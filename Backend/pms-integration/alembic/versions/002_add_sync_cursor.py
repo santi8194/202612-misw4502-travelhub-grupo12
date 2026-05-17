@@ -24,16 +24,17 @@ def upgrade():
         sa.Column('last_sync_timestamp', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
         sa.PrimaryKeyConstraint('provider_name')
     )
-    
-    op.execute("""
-        COMMENT ON TABLE sync_cursors IS 
-        'Cursor de sincronización para polling de inventario PMS'
-    """)
-    
-    op.execute("""
-        COMMENT ON COLUMN sync_cursors.last_sync_timestamp IS 
-        'Timestamp del último cambio procesado desde el PMS'
-    """)
+
+    bind = op.get_bind()
+    if bind.dialect.name == 'postgresql':
+        op.execute("""
+            COMMENT ON TABLE sync_cursors IS
+            'Cursor de sincronización para polling de inventario PMS'
+        """)
+        op.execute("""
+            COMMENT ON COLUMN sync_cursors.last_sync_timestamp IS
+            'Timestamp del último cambio procesado desde el PMS'
+        """)
 
 
 def downgrade():

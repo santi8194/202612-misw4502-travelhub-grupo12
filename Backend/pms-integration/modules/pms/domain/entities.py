@@ -6,24 +6,28 @@ from dataclasses import dataclass
 class Reservation:
     id: UUID
     reservation_id: UUID
-    room_id: str
-    room_type: str
-    guest_name: str
+    id_categoria: str
+    id_usuario: str
+    hotel_code: str
+    room_type_code: str
     hotel_id: str
-    fecha_reserva: str
+    fecha_check_in: str
+    fecha_check_out: str
     state: str
     version: int = 1
 
     @staticmethod
-    def create(reservation_id, room_id, room_type, guest_name, hotel_id, fecha_reserva):
+    def create(reservation_id, id_categoria, id_usuario, fecha_check_in, fecha_check_out, hotel_id, hotel_code, room_type_code):
         return Reservation(
             id=str(uuid4()),
             reservation_id=str(reservation_id),
-            room_id=room_id,
-            room_type=room_type,
-            guest_name=guest_name,
-            hotel_id=hotel_id,
-            fecha_reserva=fecha_reserva,
+            id_categoria=str(id_categoria),
+            id_usuario=str(id_usuario),
+            hotel_code=str(hotel_code),
+            room_type_code=str(room_type_code),
+            hotel_id=str(hotel_id),
+            fecha_check_in=fecha_check_in,
+            fecha_check_out=fecha_check_out,
             state="CONFIRMED",
             version=1
         )

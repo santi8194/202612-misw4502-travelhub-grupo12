@@ -8,17 +8,29 @@ from modules.pms.infrastructure.services.event_bus import EventBus
 def handle_confirm_reservation(data):
 
     reservation_id = data["id_reserva"]
-    room_id = data["id_habitacion"]
-    fecha_reserva = data.get("fecha_reserva")
+    category_id = data["id_categoria"]
+    user_id = data["id_usuario"]
+    fecha_check_in = data.get("fecha_check_in")
+    fecha_check_out = data.get("fecha_check_out")
 
-    print(f"[PMS] Command received: ConfirmReservation for reservation {reservation_id} on {fecha_reserva}")
+    print(
+        "[PMS] Command received: ConfirmReservation "
+        f"reservation={reservation_id} category={category_id} "
+        f"check_in={fecha_check_in} check_out={fecha_check_out}"
+    )
 
     repository = ReservationRepository()
     event_bus = EventBus()
 
     use_case = ConfirmReservation(repository, event_bus)
 
-    result = use_case.execute(reservation_id, room_id, fecha_reserva)
+    result = use_case.execute(
+        reservation_id,
+        category_id,
+        user_id,
+        fecha_check_in,
+        fecha_check_out,
+    )
 
     print("[PMS] Result:", result)
 

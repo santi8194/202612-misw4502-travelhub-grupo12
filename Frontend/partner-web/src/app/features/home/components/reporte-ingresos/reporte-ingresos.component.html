@@ -6,10 +6,21 @@
             <h2 class="reporte-title">{{ 'REPORTS.TITLE' | translate }}</h2>
             <p class="reporte-subtitle">{{ 'REPORTS.SUBTITLE' | translate }}</p>
         </div>
-        <button type="button" class="btn-exportar" (click)="exportarReporte()">
-            <span class="btn-exportar-icon">⬇</span>
-            {{ 'REPORTS.EXPORT' | translate }}
-        </button>
+        <div class="export-menu-wrap">
+            <button type="button" class="btn-exportar" (click)="toggleMenuExport($event)">
+                <span class="btn-exportar-icon">⬇</span>
+                {{ 'REPORTS.EXPORT' | translate }}
+                <span class="btn-exportar-arrow">▾</span>
+            </button>
+            <div class="export-dropdown" *ngIf="mostrarMenuExport">
+                <button type="button" class="export-option" (click)="exportarPdf()">
+                    <span>&#128196;</span> PDF &ndash; Resumen ejecutivo
+                </button>
+                <button type="button" class="export-option" (click)="exportarExcel()">
+                    <span>&#128202;</span> Excel &ndash; Datos completos
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ── Summary cards ──────────────────────────────────────────── -->

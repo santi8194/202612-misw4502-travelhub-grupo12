@@ -1,6 +1,9 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, HostListener, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { ReservasService, ReservaPorPropiedadApi } from '../../../../core/services/reservas.service';
 
 export interface FilaReporteMensual {
@@ -30,7 +33,8 @@ export class ReporteIngresosComponent implements OnChanges {
     @Input() idPropiedad: string | null = null;
 
     loadingResumen = false;
-    resumenError = false;
+    resumenError   = false;
+    mostrarMenuExport = false;
     private reservasPropiedad: ReservaPorPropiedadApi[] = [];
 
     constructor(private reservasService: ReservasService) {}
@@ -261,7 +265,7 @@ export class ReporteIngresosComponent implements OnChanges {
 
 
     exportarReporte(): void {
-        // Mock export — in production this would trigger a PDF/CSV download
+        // Legacy CSV kept for test compatibility
         const csvLines = [
             ['Mes', 'Ingresos Totales', 'Habitaciones', 'Servicios', 'Impuestos', 'Reservas'].join(','),
             ...this.datosMensuales.map(d =>
@@ -276,5 +280,117 @@ export class ReporteIngresosComponent implements OnChanges {
         link.download = 'reporte-ingresos.csv';
         link.click();
         URL.revokeObjectURL(url);
+    }
+
+    toggleMenuExport(event: MouseEvent): void {
+        event.stopPropagation();
+        this.mostrarMenuExport = !this.mostrarMenuExport;
+    }
+
+    @HostListener('document:click')
+    cerrarMenuExport(): void {
+        this.mostrarMenuExport = false;
+    }
+
+    private readonly nombresMeses = [
+        'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+    ];
+
+    exportarPdf(): void {
+        this.mostrarMenuExport = false;
+        const doc  = new jsPDF();
+        const hoy  = new Date().toLocaleDateString('es-CO');
+
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Reporte de Ingresos', 14, 20);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generado: ${hoy}`, 14, 28);
+
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Resumen General', 14, 40);
+
+        autoTable(doc, {
+            startY: 44,
+            head: [['Indicador', 'Valor']],
+            body: [
+                ['Ingresos Totales',      `$${this.totalIngresosPropiedad.toLocaleString('es-CO')}`],
+                ['Total Reservas',        this.totalReservasPropiedad.toString()],
+                ['Reservas Confirmadas',  this.reservasConfirmadasPropiedad.toString()],
+                ['Tasa de Cancelaci\u00f3n', `${this.tasaCancelacionPropiedad.toFixed(1)}%`],
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: [30, 58, 95] },
+            styles: { fontSize: 10 }
+        });
+
+        const afterKpi = (doc as any).lastAutoTable.finalY + 10;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Detalle Mensual', 14, afterKpi);
+
+        const ing  = this.ingresosMensualesPropiedad;
+        const res  = this.reservasMensualesPropiedad;
+        const con  = this.confirmadasMensualesPropiedad;
+        const can  = this.canceladasMensualesPropiedad;
+        const hues = this.huespedesMensualesPropiedad;
+
+        autoTable(doc, {
+            startY: afterKpi + 4,
+            head: [['Mes', 'Ingresos', 'Reservas', 'Confirmadas', 'Canceladas', 'Hu\u00e9spedes']],
+            body: this.nombresMeses.map((mes, i) => [
+                mes,
+                `$${ing[i].toLocaleString('es-CO')}`,
+                res[i], con[i], can[i], hues[i]
+            ]),
+            foot: [[
+                'TOTAL',
+                `$${this.totalIngresosPropiedad.toLocaleString('es-CO')}`,
+                this.totalReservasPropiedad,
+                this.reservasConfirmadasPropiedad,
+                this.totalCanceladasPropiedad,
+                this.totalHuespedesPropiedad
+            ]],
+            theme: 'striped',
+            headStyles: { fillColor: [30, 58, 95] },
+            footStyles: { fillColor: [220, 220, 220], fontStyle: 'bold', textColor: [0, 0, 0] },
+            styles: { fontSize: 9 }
+        });
+
+        doc.save(`reporte-ingresos-${hoy.replace(/\//g, '-')}.pdf`);
+    }
+
+    exportarExcel(): void {
+        this.mostrarMenuExport = false;
+        const ing  = this.ingresosMensualesPropiedad;
+        const res  = this.reservasMensualesPropiedad;
+        const con  = this.confirmadasMensualesPropiedad;
+        const can  = this.canceladasMensualesPropiedad;
+        const hues = this.huespedesMensualesPropiedad;
+
+        const resumenData = [
+            ['Mes', 'Ingresos Totales', 'Reservas', 'Confirmadas', 'Canceladas', 'Hu\u00e9spedes'],
+            ...this.nombresMeses.map((mes, i) => [mes, ing[i], res[i], con[i], can[i], hues[i]]),
+            ['TOTAL', this.totalIngresosPropiedad, this.totalReservasPropiedad,
+             this.reservasConfirmadasPropiedad, this.totalCanceladasPropiedad, this.totalHuespedesPropiedad]
+        ];
+
+        const reservasData = [
+            ['ID Reserva', 'Hu\u00e9sped', 'Estado', 'Check-in', 'Check-out', 'Hu\u00e9spedes', 'Total'],
+            ...this.reservasPropiedad.map(r => [
+                r.id_reserva, r.nombre_usuario, r.estado,
+                r.fecha_check_in, r.fecha_check_out, r.huespedes, r.total ?? 0
+            ])
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumenData), 'Resumen Mensual');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(reservasData), 'Reservas');
+
+        const hoy = new Date().toLocaleDateString('es-CO').replace(/\//g, '-');
+        XLSX.writeFile(wb, `reporte-ingresos-${hoy}.xlsx`);
     }
 }

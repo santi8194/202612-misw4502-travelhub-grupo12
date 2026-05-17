@@ -1,4 +1,4 @@
-.cancel-todo-page {
+.cancel-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -6,10 +6,10 @@
   font-family: Inter, sans-serif;
 }
 
-.cancel-todo-main {
+.cancel-main {
   flex: 1;
   width: 100%;
-  max-width: 960px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 40px 32px;
   box-sizing: border-box;
@@ -25,31 +25,245 @@
   font: inherit;
 }
 
-.todo-card {
-  padding: 32px;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  background: #fff;
+.page-heading {
+  margin-bottom: 24px;
 }
 
-.todo-card h1 {
-  margin: 0 0 10px;
+.page-heading h1,
+.state-panel h1,
+.result-panel h1 {
+  margin: 0 0 8px;
   color: #0f172a;
   font-size: 32px;
 }
 
-.todo-card p {
+.page-heading p,
+.state-panel p,
+.result-panel p,
+.policy-description,
+.notice-panel p {
   margin: 0;
   color: #64748b;
-  font-size: 16px;
 }
 
-@media (max-width: 640px) {
-  .cancel-todo-main {
+.content-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.panel,
+.state-panel,
+.result-panel,
+.notice-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  padding: 24px;
+}
+
+.panel h2,
+.notice-panel h2,
+.modal-panel h2 {
+  margin: 0 0 18px;
+  color: #0f172a;
+  font-size: 20px;
+}
+
+.detail-grid,
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.detail-grid dt,
+.result-grid dt {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.detail-grid dd,
+.result-grid dd {
+  margin: 6px 0 0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.policy-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.policy-option {
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #475569;
+}
+
+.policy-option--active {
+  border-color: #0f766e;
+  background: #f0fdfa;
+  color: #115e59;
+}
+
+.action-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.reason-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.reason-field textarea {
+  width: 100%;
+  min-height: 112px;
+  resize: vertical;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px;
+  color: #0f172a;
+  font: inherit;
+  font-weight: 400;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn {
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: #0f172a;
+  color: #fff;
+}
+
+.btn--secondary {
+  border-color: #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+}
+
+.btn--danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.notice-panel {
+  margin-bottom: 18px;
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.inline-error {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.eyebrow {
+  margin-bottom: 8px !important;
+  color: #0f766e !important;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.result-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.result-panel--success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.state-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.skeleton-line {
+  height: 16px;
+  width: 45%;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.skeleton-line--wide {
+  width: 70%;
+  height: 24px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.modal-panel {
+  width: min(100%, 520px);
+  border-radius: 14px;
+  background: #fff;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+}
+
+.modal-panel p {
+  margin: 0 0 14px;
+  color: #475569;
+}
+
+.terms-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 18px 0;
+  color: #0f172a;
+}
+
+@media (max-width: 720px) {
+  .cancel-main {
     padding: 24px 16px;
   }
 
-  .todo-card {
-    padding: 24px;
+  .content-grid,
+  .detail-grid,
+  .result-grid {
+    grid-template-columns: 1fr;
   }
 }

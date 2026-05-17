@@ -1,13 +1,11 @@
 import { Component, ElementRef, HostListener, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
-import { catchError, finalize, of } from 'rxjs';
 import { SearchBarComponent } from '../search-bar/search-bar';
 import { CompactSearchBarComponent } from '../compact-search-bar/compact-search-bar';
 import { AuthService, UserProfile } from '../../../core/services/auth';
 import { NotificationService } from '../../../core/services/notification';
 import { BookingStore } from '../../../core/store/booking-store';
-import { BookingService } from '../../../core/services/booking';
 import { I18nService, LanguageCode } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { CurrencyService, CurrencyCode } from '../../../core/services/currency.service';
@@ -25,7 +23,6 @@ export class HeaderComponent {
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
   private readonly bookingStore = inject(BookingStore);
-  private readonly bookingService = inject(BookingService);
   protected readonly i18n = inject(I18nService);
   protected readonly currency = inject(CurrencyService);
 
@@ -95,8 +92,6 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    const reservationId = this.extractReservationId(this.router.url);
-
     const finishLogout = () => {
       this.authService.clearSession();
       this.userProfile.set(null);
@@ -106,24 +101,7 @@ export class HeaderComponent {
       this.router.navigate(['/'], { replaceUrl: true });
     };
 
-    if (!reservationId) {
-      finishLogout();
-      return;
-    }
-
-    this.bookingService
-      .cancelBookingById(reservationId)
-      .pipe(
-        catchError((error) => {
-          console.warn('[Header] No fue posible cancelar la reserva durante logout', {
-            reservationId,
-            error,
-          });
-          return of(null);
-        }),
-        finalize(finishLogout)
-      )
-      .subscribe();
+    finishLogout();
   }
 
   goToMyReservations(): void {
@@ -191,11 +169,6 @@ export class HeaderComponent {
 
   private syncUserSession(): void {
     this.authService.getCurrentSession();
-  }
-
-  private extractReservationId(url: string): string | null {
-    const match = /^\/booking\/([^/?#]+)/.exec(url ?? '');
-    return match?.[1] ?? null;
   }
 
   private clearBookingStorage(): void {

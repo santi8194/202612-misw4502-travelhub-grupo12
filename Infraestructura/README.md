@@ -19,8 +19,9 @@ Los archivos activos son:
 
 - [`docker/docker-compose.yml`](./docker/docker-compose.yml): contrato base reutilizado por CD.
 - [`docker/docker-compose.local.yml`](./docker/docker-compose.local.yml): overlay local con builds desde fuente, frontends, RabbitMQ, Redis y ngrok.
-- [`docker/.env.local.sqlite.dev`](./docker/.env.local.sqlite.dev): ejemplo local con SQLite.
-- `docker/.env.local.rds.dev`: archivo local no versionado con credenciales reales de RDS/dev.
+- [`docker/docker-compose.local.orl.yml`](./docker/docker-compose.local.orl.yml): variante heredada no usada por scripts ni workflows activos.
+- `docker/.env.local.sqlite.dev`: plantilla local ignorada con SQLite, no versionada.
+- `docker/.env.local.rds.dev`: plantilla local ignorada con credenciales reales de RDS/dev.
 
 Usa esta ruta cuando quieras levantar todo el stack en Docker, incluyendo `user-web`, `partner-web` y el gateway local en `http://localhost:5001`.
 
@@ -103,11 +104,19 @@ Los workflows activos de GitHub Actions gestionan:
 
 Los manifiestos de backend para AWS viven en [`k8s/aws/`](./k8s/aws/).
 
-## Inconsistencias resueltas
+Antes de desplegar a AWS, valida estos puntos:
 
-- La documentacion antigua mezclaba comandos manuales historicos con el flujo actual de Terraform y GitHub Actions.
-- El README de Docker queda como fuente operativa para Compose; este archivo funciona como indice de alto nivel.
+- `pms-integration` no debe depender del `mock-pms` local en AWS. Configura un `MOCK_PMS_URL` real alcanzable desde EKS o deshabilita el polling remoto con `ENABLE_POLLING=false` hasta tener PMS real.
+- Usa solo los manifiestos activos con nombres equivalentes a las carpetas de backend, por ejemplo `pms-integration-*` y `partner-management-*`. Los archivos antiguos `pmsintegration-*` y `partnermanagement-*` no forman parte del flujo actual de CD.
+- Verifica que existan los secretos requeridos en Secrets Manager para cada servicio y que el secreto de `payment` incluya las claves de Wompi y RabbitMQ que exige el workflow.
+- Mantén los archivos `.env.local.*` fuera del control de versiones cuando contengan credenciales reales. El `.gitignore` ya los excluye; no los fuerces al repositorio.
+- Si el equipo quiere que un clon nuevo sea operable sin intercambio manual, agrega plantillas `.env.local.*.example` sanitizadas y versionadas antes de apoyarte en ellas en la documentacion.
+
+## Notas de consistencia
+
+- El README de Docker es la fuente operativa para Compose; este archivo funciona como indice de alto nivel.
 - Los scripts locales activos quedan nombrados por responsabilidad:
   - `run-local-ngrok.ps1`
   - `run-minikube-stack.ps1`
   - `sync-minikube-rds-secrets.ps1`
+- `docker-compose.local.orl.yml` no tiene consumidores detectados en el repositorio y no debe asumirse como parte del camino soportado.

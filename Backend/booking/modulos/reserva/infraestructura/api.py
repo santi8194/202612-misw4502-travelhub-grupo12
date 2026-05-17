@@ -359,8 +359,9 @@ def _request_ip_or_none() -> str | None:
 
 
 def _request_user_id_or_none() -> str | None:
-    user_id = request.headers.get("X-User-Id")
-    return user_id.strip() if isinstance(user_id, str) and user_id.strip() else None
+    current_user = AuthServiceClient().get_current_user(request.headers.get("Authorization"))
+    user_id = current_user.get("id_usuario") if isinstance(current_user, dict) else None
+    return str(user_id).strip() if user_id else None
 
 
 def _ownership_error_for_reserva(reserva):

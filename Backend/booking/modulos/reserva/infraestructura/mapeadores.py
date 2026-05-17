@@ -34,7 +34,9 @@ class MapeadorEventosReserva(Mapeador):
                 fecha_creacion=ev.fecha_evento.isoformat() if hasattr(ev, 'fecha_evento') else datetime.datetime.now().isoformat(),
                 fecha_reserva=ev.fecha_reserva if hasattr(ev, 'fecha_reserva') else None,
                 monto=ev.monto if hasattr(ev, 'monto') else None,
-                moneda=ev.moneda if hasattr(ev, 'moneda') else "COP"
+                moneda=ev.moneda if hasattr(ev, 'moneda') else "COP",
+                fecha_check_in=ev.fecha_check_in if hasattr(ev, 'fecha_check_in') else None,
+                fecha_check_out=ev.fecha_check_out if hasattr(ev, 'fecha_check_out') else None
             )
             evento_integracion = EventoReservaCreada(
                 id=str(ev.id),

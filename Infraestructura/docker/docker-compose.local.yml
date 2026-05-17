@@ -134,8 +134,11 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
       MOCK_PMS_URL: http://mock-pms:8080
+      MOCK_PMS_URL: http://mock-pms:8080
     depends_on:
       rabbitmq-broker:
+        condition: service_healthy
+      mock-pms:
         condition: service_healthy
       mock-pms:
         condition: service_healthy

@@ -87,14 +87,15 @@ def procesar_mensaje(ch, method, properties, body):
                 id_usuario = payload.get('id_usuario') or payload.get('id_cliente') or mensaje.get('id_usuario', str(uuid.uuid4()))
                 monto = payload.get('monto') or mensaje.get('monto', 1500.0)
                 id_categoria = payload.get('id_categoria') or mensaje.get('id_categoria')
-                fecha_reserva = payload.get('fecha_reserva') or mensaje.get('fecha_reserva')
+                fecha_check_in = payload.get('fecha_check_in') or payload.get('fecha_reserva') or mensaje.get('fecha_check_in') or mensaje.get('fecha_reserva')
+                fecha_check_out = payload.get('fecha_check_out') or mensaje.get('fecha_check_out')
                 
                 if not id_reserva:
                      logger.info("[SAGA WORKER] Ignorando evento: id_reserva vacío")
                      ch.basic_ack(delivery_tag=method.delivery_tag)
                      return
 
-                logger.info(f"[SAGA WORKER] Iniciando Saga para reserva: {id_reserva} (Fecha: {fecha_reserva})")
+                logger.info(f"[SAGA WORKER] Iniciando Saga para reserva: {id_reserva} (Check-in: {fecha_check_in}, Check-out: {fecha_check_out})")
                      
                 logger.info(f"[SAGA WORKER] Llamando orquestador con id_reserva: {id_reserva}")
                 res = orquestador.iniciar_saga(
@@ -102,7 +103,8 @@ def procesar_mensaje(ch, method, properties, body):
                     id_usuario=uuid.UUID(str(id_usuario)),
                     monto=float(monto),
                     id_categoria=uuid.UUID(str(id_categoria)) if id_categoria else None,
-                    fecha_reserva=fecha_reserva
+                    fecha_check_in=fecha_check_in,
+                    fecha_check_out=fecha_check_out
                 )
                 logger.info(f"[SAGA WORKER] Orquestador terminó con resultado: {res}")
                      

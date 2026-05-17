@@ -147,15 +147,17 @@ def test_handle_confirm_reservation_delega_use_case():
 
         handle_confirm_reservation({
             "id_reserva": "res-1",
-            "id_habitacion": "room-1",
-            "fecha_reserva": "2026-06-01",
+            "id_categoria": "cat-1",
+            "id_usuario": "usr-1",
+            "fecha_check_in": "2026-06-01",
+            "fecha_check_out": "2026-06-05",
         })
 
-    mock_uc.execute.assert_called_once_with("res-1", "room-1", "2026-06-01")
+    mock_uc.execute.assert_called_once_with("res-1", "cat-1", "usr-1", "2026-06-01", "2026-06-05")
 
 
-def test_handle_confirm_reservation_sin_fecha_reserva():
-    """handle_confirm_reservation funciona aunque fecha_reserva sea None."""
+def test_handle_confirm_reservation_campos_obligatorios():
+    """handle_confirm_reservation delega incluyendo todos los campos obligatorios."""
     mock_repo = MagicMock()
     mock_bus = MagicMock()
     mock_uc = MagicMock()
@@ -165,9 +167,17 @@ def test_handle_confirm_reservation_sin_fecha_reserva():
          patch(f"{_HANDLERS_MODULE}.EventBus", return_value=mock_bus), \
          patch(f"{_HANDLERS_MODULE}.ConfirmReservation", return_value=mock_uc):
 
-        handle_confirm_reservation({"id_reserva": "res-2", "id_habitacion": "room-2"})
+        handle_confirm_reservation(
+            {
+                "id_reserva": "res-2",
+                "id_categoria": "cat-2",
+                "id_usuario": "usr-2",
+                "fecha_check_in": "2026-07-01",
+                "fecha_check_out": "2026-07-03",
+            }
+        )
 
-    mock_uc.execute.assert_called_once_with("res-2", "room-2", None)
+    mock_uc.execute.assert_called_once_with("res-2", "cat-2", "usr-2", "2026-07-01", "2026-07-03")
 
 
 # ─── handlers: handle_cancel_reservation ───

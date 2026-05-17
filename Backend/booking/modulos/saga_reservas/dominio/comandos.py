@@ -12,13 +12,15 @@ class ProcesarPagoCmd(Comando):
 @dataclass
 class ConfirmarReservaPmsCmd(Comando):
     id_reserva: uuid.UUID
-    id_habitacion: uuid.UUID
-    fecha_reserva: str = None
+    id_categoria: uuid.UUID
+    id_usuario: uuid.UUID
+    fecha_check_in: str
+    fecha_check_out: str
 
 @dataclass
 class SolicitarAprobacionManualCmd(Comando):
     id_reserva: uuid.UUID
-    id_habitacion: uuid.UUID
+    id_categoria: uuid.UUID
 
 @dataclass
 class MarcarSagaEsperandoVoucherCmd(Comando):
@@ -29,7 +31,7 @@ class MarcarSagaEsperandoVoucherCmd(Comando):
 @dataclass
 class CancelarReservaPmsCmd(Comando):
     id_reserva: uuid.UUID
-    id_habitacion: uuid.UUID
+    id_categoria: uuid.UUID
 
 @dataclass
 class ReversarPagoCmd(Comando):

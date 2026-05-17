@@ -20,7 +20,9 @@ class IniciarSagaHandler(Handler):
         self.orquestador.iniciar_saga(
             id_reserva=evento.id_reserva,
             id_usuario=evento.id_usuario,
-            id_categoria=evento.id_categoria
+            id_categoria=evento.id_categoria,
+            fecha_check_in=evento.fecha_check_in if hasattr(evento, 'fecha_check_in') else None,
+            fecha_check_out=evento.fecha_check_out if hasattr(evento, 'fecha_check_out') else None,
         )
 
 class RespuestaSagaHandler(Handler):

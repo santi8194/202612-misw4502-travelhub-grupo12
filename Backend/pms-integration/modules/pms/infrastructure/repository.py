@@ -22,11 +22,13 @@ class ReservationRepository:
         model = ReservationModel(
             id=reservation.id,
             reservation_id=reservation.reservation_id,
-            room_id=reservation.room_id,
-            room_type=reservation.room_type,
-            guest_name=reservation.guest_name,
+            id_categoria=reservation.id_categoria,
+            id_usuario=reservation.id_usuario,
+            hotel_code=reservation.hotel_code,
+            room_type_code=reservation.room_type_code,
             hotel_id=reservation.hotel_id,
-            fecha_reserva=reservation.fecha_reserva,
+            fecha_check_in=reservation.fecha_check_in,
+            fecha_check_out=reservation.fecha_check_out,
             state=reservation.state,
             version=reservation.version
         )
@@ -53,11 +55,13 @@ class ReservationRepository:
         model = ReservationModel(
             id=reservation.id,
             reservation_id=reservation.reservation_id,
-            room_id=reservation.room_id,
-            room_type=reservation.room_type,
-            guest_name=reservation.guest_name,
+            id_categoria=reservation.id_categoria,
+            id_usuario=reservation.id_usuario,
+            hotel_code=reservation.hotel_code,
+            room_type_code=reservation.room_type_code,
             hotel_id=reservation.hotel_id,
-            fecha_reserva=reservation.fecha_reserva,
+            fecha_check_in=reservation.fecha_check_in,
+            fecha_check_out=reservation.fecha_check_out,
             state=reservation.state,
             version=reservation.version
         )
@@ -72,7 +76,7 @@ class ReservationRepository:
         finally:
             db.close()
 
-    def obtain_by_room_id(self, room_id):
+    def obtain_by_category_id(self, id_categoria):
         """
         Busca reservas por habitación. 
         Útil para auditoría o validaciones generales, aunque la validación 
@@ -80,12 +84,12 @@ class ReservationRepository:
         """
         db: Session = SessionLocal()
         reservation = db.query(ReservationModel)\
-            .filter(ReservationModel.room_id == room_id)\
+            .filter(ReservationModel.id_categoria == id_categoria)\
             .first()
         db.close()
         return reservation
 
-    def obtain_active_by_room_and_date(self, room_id, fecha_reserva):
+    def obtain_active_by_category_and_range(self, id_categoria, fecha_check_in, fecha_check_out):
         """
         Búsqueda específica para validar overbooking:
         Retorna una reserva CONFIRMADA para esa habitación en esa fecha.
@@ -95,9 +99,10 @@ class ReservationRepository:
         db: Session = SessionLocal()
         reservation = db.query(ReservationModel)\
             .filter(
-                ReservationModel.room_id == room_id,
-                ReservationModel.fecha_reserva == fecha_reserva,
-                ReservationModel.state != "CANCELLED"
+                ReservationModel.id_categoria == id_categoria,
+                ReservationModel.state != "CANCELLED",
+                ReservationModel.fecha_check_in < fecha_check_out,
+                ReservationModel.fecha_check_out > fecha_check_in,
             )\
             .first()
         db.close()

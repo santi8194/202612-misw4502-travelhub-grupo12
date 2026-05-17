@@ -164,6 +164,11 @@
       "CONFIRMED_BOOKINGS": "Confirmed Bookings",
       "CANCELLATION_RATE": "Cancellation Rate"
     },
+    "FILTER": {
+      "FROM": "From",
+      "TO": "To",
+      "RESET": "Clear filter"
+    },
     "TABLE": {
       "MONTH": "Month",
       "TOTAL_REVENUE": "Total Revenue",

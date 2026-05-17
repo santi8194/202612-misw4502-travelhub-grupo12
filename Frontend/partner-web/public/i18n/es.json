@@ -164,6 +164,11 @@
       "CONFIRMED_BOOKINGS": "Reservas Confirmadas",
       "CANCELLATION_RATE": "Tasa de Cancelación"
     },
+    "FILTER": {
+      "FROM": "Desde",
+      "TO": "Hasta",
+      "RESET": "Limpiar filtro"
+    },
     "TABLE": {
       "MONTH": "Mes",
       "TOTAL_REVENUE": "Ingresos Totales",

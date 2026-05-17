@@ -23,6 +23,27 @@
         </div>
     </div>
 
+    <!-- ── Date filter ──────────────────────────────────────────────── -->
+    <div class="filtro-fechas">
+        <div class="filtro-group">
+            <label class="filtro-label">{{ 'REPORTS.FILTER.FROM' | translate }}</label>
+            <input type="month" class="filtro-input"
+                   [value]="filtroDesde"
+                   (change)="filtroDesde = $any($event.target).value">
+        </div>
+        <div class="filtro-group">
+            <label class="filtro-label">{{ 'REPORTS.FILTER.TO' | translate }}</label>
+            <input type="month" class="filtro-input"
+                   [value]="filtroHasta"
+                   (change)="filtroHasta = $any($event.target).value">
+        </div>
+        <button type="button" class="filtro-reset"
+                *ngIf="filtroDesde || filtroHasta"
+                (click)="filtroDesde = ''; filtroHasta = ''">
+            &#x2715; {{ 'REPORTS.FILTER.RESET' | translate }}
+        </button>
+    </div>
+
     <!-- ── Summary cards ──────────────────────────────────────────── -->
     <div class="summary-cards">
         <div class="summary-card">

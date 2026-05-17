@@ -164,6 +164,11 @@
       "CONFIRMED_BOOKINGS": "Réservations confirmées",
       "CANCELLATION_RATE": "Taux d'annulation"
     },
+    "FILTER": {
+      "FROM": "Du",
+      "TO": "Au",
+      "RESET": "Effacer le filtre"
+    },
     "TABLE": {
       "MONTH": "Mois",
       "TOTAL_REVENUE": "Revenus totaux",

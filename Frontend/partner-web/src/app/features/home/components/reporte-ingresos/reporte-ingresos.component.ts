@@ -35,7 +35,19 @@ export class ReporteIngresosComponent implements OnChanges {
     loadingResumen = false;
     resumenError   = false;
     mostrarMenuExport = false;
+    filtroDesde = '';
+    filtroHasta = '';
     private reservasPropiedad: ReservaPorPropiedadApi[] = [];
+
+    get reservasFiltradas(): ReservaPorPropiedadApi[] {
+        if (!this.filtroDesde && !this.filtroHasta) { return this.reservasPropiedad; }
+        return this.reservasPropiedad.filter(r => {
+            const mes = (r.fecha_check_in ?? '').substring(0, 7);
+            if (this.filtroDesde && mes < this.filtroDesde) { return false; }
+            if (this.filtroHasta && mes > this.filtroHasta) { return false; }
+            return true;
+        });
+    }
 
     constructor(private reservasService: ReservasService) {}
 
@@ -59,7 +71,7 @@ export class ReporteIngresosComponent implements OnChanges {
     }
 
     get totalIngresosPropiedad(): number {
-        return this.reservasPropiedad.reduce((sum, reserva) => sum + (reserva.total ?? 0), 0);
+        return this.reservasFiltradas.reduce((sum, reserva) => sum + (reserva.total ?? 0), 0);
     }
 
     get totalReservas(): number {
@@ -67,17 +79,17 @@ export class ReporteIngresosComponent implements OnChanges {
     }
 
     get totalReservasPropiedad(): number {
-        return this.reservasPropiedad.length;
+        return this.reservasFiltradas.length;
     }
 
     get reservasConfirmadasPropiedad(): number {
-        return this.reservasPropiedad.filter(r => r.estado === 'CONFIRMADA').length;
+        return this.reservasFiltradas.filter(r => r.estado === 'CONFIRMADA').length;
     }
 
     get tasaCancelacionPropiedad(): number {
-        if (this.reservasPropiedad.length === 0) { return 0; }
-        const canceladas = this.reservasPropiedad.filter(r => r.estado === 'CANCELADA').length;
-        return (canceladas / this.reservasPropiedad.length) * 100;
+        if (this.reservasFiltradas.length === 0) { return 0; }
+        const canceladas = this.reservasFiltradas.filter(r => r.estado === 'CANCELADA').length;
+        return (canceladas / this.reservasFiltradas.length) * 100;
     }
 
     get totalHabitaciones(): number {
@@ -130,7 +142,7 @@ export class ReporteIngresosComponent implements OnChanges {
 
     get ingresosMensualesPropiedad(): number[] {
         const monthly = new Array(12).fill(0);
-        for (const r of this.reservasPropiedad) {
+        for (const r of this.reservasFiltradas) {
             if (r.fecha_check_in && r.total) {
                 const mes = new Date(r.fecha_check_in).getMonth();
                 monthly[mes] += r.total;
@@ -188,7 +200,7 @@ export class ReporteIngresosComponent implements OnChanges {
 
     get reservasMensualesPropiedad(): number[] {
         const monthly = new Array(12).fill(0);
-        for (const r of this.reservasPropiedad) {
+        for (const r of this.reservasFiltradas) {
             if (r.fecha_check_in) {
                 const mes = new Date(r.fecha_check_in).getMonth();
                 monthly[mes]++;
@@ -199,7 +211,7 @@ export class ReporteIngresosComponent implements OnChanges {
 
     get confirmadasMensualesPropiedad(): number[] {
         const monthly = new Array(12).fill(0);
-        for (const r of this.reservasPropiedad) {
+        for (const r of this.reservasFiltradas) {
             if (r.fecha_check_in && r.estado === 'CONFIRMADA') {
                 const mes = new Date(r.fecha_check_in).getMonth();
                 monthly[mes]++;
@@ -210,7 +222,7 @@ export class ReporteIngresosComponent implements OnChanges {
 
     get canceladasMensualesPropiedad(): number[] {
         const monthly = new Array(12).fill(0);
-        for (const r of this.reservasPropiedad) {
+        for (const r of this.reservasFiltradas) {
             if (r.fecha_check_in && r.estado === 'CANCELADA') {
                 const mes = new Date(r.fecha_check_in).getMonth();
                 monthly[mes]++;
@@ -221,7 +233,7 @@ export class ReporteIngresosComponent implements OnChanges {
 
     get huespedesMensualesPropiedad(): number[] {
         const monthly = new Array(12).fill(0);
-        for (const r of this.reservasPropiedad) {
+        for (const r of this.reservasFiltradas) {
             if (r.fecha_check_in) {
                 const mes = new Date(r.fecha_check_in).getMonth();
                 monthly[mes] += r.huespedes ?? 0;
@@ -231,11 +243,11 @@ export class ReporteIngresosComponent implements OnChanges {
     }
 
     get totalCanceladasPropiedad(): number {
-        return this.reservasPropiedad.filter(r => r.estado === 'CANCELADA').length;
+        return this.reservasFiltradas.filter(r => r.estado === 'CANCELADA').length;
     }
 
     get totalHuespedesPropiedad(): number {
-        return this.reservasPropiedad.reduce((sum, r) => sum + (r.huespedes ?? 0), 0);
+        return this.reservasFiltradas.reduce((sum, r) => sum + (r.huespedes ?? 0), 0);
     }
 
     get barIndices(): number[] {

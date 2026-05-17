@@ -37,11 +37,13 @@ services:
   ngrok:
     image: ngrok/ngrok:latest
     container_name: travelhub-ngrok
-    command: ["http", "--web-addr=0.0.0.0:4040", "user-web:80"]
+    command: ["http", "--config=/etc/ngrok.yml", "user-web:80"]
     environment:
       NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
     ports:
       - "${NGROK_INSPECTOR_PORT:-4040}:4040"
+    volumes:
+      - ./ngrok.yml:/etc/ngrok.yml:ro
     depends_on:
       user-web:
         condition: service_started

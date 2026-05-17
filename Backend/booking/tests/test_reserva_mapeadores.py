@@ -44,10 +44,13 @@ def test_mapeador_convierte_reserva_pendiente_a_evento_integracion():
 def test_mapeador_convierte_reserva_confirmada_evt_a_evento_integracion():
     """Verifica que ReservaConfirmadaEvt se mapea a EventoReservaConfirmada."""
     id_reserva = uuid.uuid4()
+    id_cliente = uuid.uuid4()
     fecha_actualizacion = datetime.datetime(2026, 4, 1, 10, 30, 0)
     
     evento_dominio = ReservaConfirmadaEvt(
         id_reserva=id_reserva,
+        id_cliente=id_cliente,
+        email_cliente="test@example.com",
         fecha_actualizacion=fecha_actualizacion,
         emailCliente="cliente@test.com",
         codigo_reserva="TH-RES-100",
@@ -286,30 +289,36 @@ def test_evento_reserva_creada_to_dict_serializa_correctamente():
 def test_reserva_confirmada_payload_guarda_todos_los_campos():
     """Verifica que ReservaConfirmadaPayload almacena correctamente todos los campos."""
     id_reserva = str(uuid.uuid4())
+    id_cliente = str(uuid.uuid4())
     email_cliente = "cliente@test.com"
     
     payload = ReservaConfirmadaPayload(
         id_reserva=id_reserva,
+        id_cliente=id_cliente,
         emailCliente=email_cliente,
     )
     
     assert payload.id_reserva == id_reserva
+    assert payload.id_cliente == id_cliente
     assert payload.emailCliente == email_cliente
 
 
 def test_reserva_confirmada_payload_to_dict_serializa_correctamente():
     """Verifica que to_dict serializa ReservaConfirmadaPayload correctamente."""
     id_reserva = str(uuid.uuid4())
+    id_cliente = str(uuid.uuid4())
     email_cliente = "cliente@test.com"
     
     payload = ReservaConfirmadaPayload(
         id_reserva=id_reserva,
+        id_cliente=id_cliente,
         emailCliente=email_cliente,
     )
     
     resultado = payload.to_dict()
     
     assert resultado["id_reserva"] == id_reserva
+    assert resultado["id_cliente"] == id_cliente
     assert resultado["emailCliente"] == email_cliente
 
 
@@ -318,10 +327,12 @@ def test_reserva_confirmada_payload_to_dict_serializa_correctamente():
 def test_evento_reserva_confirmada_guarda_todos_los_campos():
     """Verifica que EventoReservaConfirmada almacena correctamente todos los campos."""
     id_reserva = str(uuid.uuid4())
+    id_cliente = str(uuid.uuid4())
     email_cliente = "cliente@test.com"
     
     payload = ReservaConfirmadaPayload(
         id_reserva=id_reserva,
+        id_cliente=id_cliente,
         emailCliente=email_cliente,
     )
     
@@ -343,10 +354,12 @@ def test_evento_reserva_confirmada_guarda_todos_los_campos():
 def test_evento_reserva_confirmada_to_dict_serializa_correctamente():
     """Verifica que to_dict serializa EventoReservaConfirmada correctamente."""
     id_reserva = str(uuid.uuid4())
+    id_cliente = str(uuid.uuid4())
     email_cliente = "cliente@test.com"
     
     payload = ReservaConfirmadaPayload(
         id_reserva=id_reserva,
+        id_cliente=id_cliente,
         emailCliente=email_cliente,
     )
     
@@ -367,4 +380,5 @@ def test_evento_reserva_confirmada_to_dict_serializa_correctamente():
     assert "id" in resultado
     assert "time" in resultado
     assert resultado["data"]["id_reserva"] == id_reserva
+    assert resultado["data"]["id_cliente"] == id_cliente
     assert resultado["data"]["emailCliente"] == email_cliente

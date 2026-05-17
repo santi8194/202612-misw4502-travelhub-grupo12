@@ -39,14 +39,17 @@ def test_eventos_de_reserva_heredan_de_evento_dominio_y_guardan_payload():
 
 def test_eventos_locales_guardan_id_y_fecha():
     id_reserva = uuid.uuid4()
+    id_cliente = uuid.uuid4()
     ts = datetime.datetime(2026, 4, 2, 9, 30, 0)
 
-    evt_ok = ReservaConfirmadaEvt(id_reserva=id_reserva, fecha_actualizacion=ts)
+    evt_ok = ReservaConfirmadaEvt(id_reserva=id_reserva, id_cliente=id_cliente, email_cliente="test@example.com", fecha_actualizacion=ts)
     evt_fail = FallaActualizacionLocalEvt(id_reserva=id_reserva, fecha_actualizacion=ts)
 
     assert isinstance(evt_ok, EventoDominio)
     assert isinstance(evt_fail, EventoDominio)
     assert evt_ok.id_reserva == id_reserva
+    assert evt_ok.id_cliente == id_cliente
+    assert evt_ok.email_cliente == "test@example.com"
     assert evt_fail.id_reserva == id_reserva
     assert evt_ok.fecha_actualizacion == ts
     assert evt_fail.fecha_actualizacion == ts

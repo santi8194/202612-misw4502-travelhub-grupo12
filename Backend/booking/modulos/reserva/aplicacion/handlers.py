@@ -199,6 +199,8 @@ class ConfirmarReservaLocalHandler(Handler):
             nombre_categoria = _resolver_nombre_categoria(self.catalog_client, reserva.id_categoria)
             evento_local = ReservaConfirmadaEvt(
                 id_reserva=reserva.id, 
+                id_cliente=reserva.usuario.id if reserva.usuario else None,
+                email_cliente=reserva.usuario.email if reserva.usuario else None,
                 fecha_actualizacion=datetime.datetime.now(),
                 emailCliente=(reserva.usuario.email if reserva.usuario else None),
                 codigo_reserva=(reserva.codigo_confirmacion_ota or reserva.codigo_localizador_pms),

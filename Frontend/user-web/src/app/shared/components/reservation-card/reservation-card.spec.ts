@@ -147,16 +147,16 @@ describe('ReservationCardComponent', () => {
     expect(btn).toBeNull();
   });
 
-  it('should show Cancelar Reserva for CONFIRMADA', async () => {
+  it('should NOT show Cancelar Reserva for CONFIRMADA', async () => {
     await setup(makeReservation({ estado: 'CONFIRMADA' }));
     const btn = fixture.nativeElement.querySelector('[data-testid="btn-cancelar-reserva"]');
-    expect(btn).toBeTruthy();
+    expect(btn).toBeNull();
   });
 
-  it('should show Cancelar Reserva for PENDIENTE_CONFIRMACION_HOTEL', async () => {
+  it('should NOT show Cancelar Reserva for PENDIENTE_CONFIRMACION_HOTEL', async () => {
     await setup(makeReservation({ estado: 'PENDIENTE_CONFIRMACION_HOTEL' }));
     const btn = fixture.nativeElement.querySelector('[data-testid="btn-cancelar-reserva"]');
-    expect(btn).toBeTruthy();
+    expect(btn).toBeNull();
   });
 
   it('should NOT show Cancelar Reserva for CANCELADA', async () => {

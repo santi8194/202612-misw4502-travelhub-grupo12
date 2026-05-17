@@ -66,6 +66,7 @@ class MapeadorEventosReserva(Mapeador):
                 fecha_check_out=getattr(ev, "fecha_check_out", None),
                 huespedes=getattr(ev, "huespedes", None),
                 moneda=getattr(ev, "moneda", None),
+                id_cliente=str(ev.id_cliente),
             )
             evento_integracion = EventoReservaConfirmada(
                 id=str(ev.id),

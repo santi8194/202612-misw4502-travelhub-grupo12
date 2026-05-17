@@ -13,6 +13,7 @@ def sample_user() -> UserInDB:
         full_name="Admin Travelhub",
         rol="ADMIN_HOTEL",
         partner_id=None,
+        username="cognito-sub-admin",
     )
 
 

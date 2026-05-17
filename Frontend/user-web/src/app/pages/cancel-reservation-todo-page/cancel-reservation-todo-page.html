@@ -1,16 +1,269 @@
-<div class="cancel-todo-page" data-testid="cancel-reservation-todo-page">
+<div class="cancel-page" data-testid="cancel-reservation-page">
   <app-header mode="compact" />
 
-  <main class="cancel-todo-main">
+  <main class="cancel-main">
     <button class="back-link" type="button" (click)="goBack()" data-testid="cancel-reservation-back">
       Volver
     </button>
 
-    <section class="todo-card" aria-label="Flujo de cancelacion pendiente">
-      <h1>TODO: Flujo de cancelación</h1>
-      <p>Esta pantalla es temporal. La cancelación completa se implementará en otra historia de usuario.</p>
-    </section>
+    @if (state() === 'loading') {
+      <section class="state-panel" data-testid="cancel-reservation-loading">
+        <div class="skeleton-line skeleton-line--wide"></div>
+        <div class="skeleton-line"></div>
+        <p>Cargando informacion de cancelacion...</p>
+      </section>
+    } @else if (state() === 'notFound') {
+      <section class="state-panel" data-testid="cancel-reservation-not-found">
+        <h1>Reserva no encontrada</h1>
+        <p>{{ errorMessage() || 'La reserva solicitada no existe o ya no esta disponible.' }}</p>
+        <button type="button" class="btn btn--primary" (click)="goBack()">Volver</button>
+      </section>
+    } @else if (state() === 'unauthorized') {
+      <section class="state-panel" data-testid="cancel-reservation-unauthorized">
+        <h1>Reserva no disponible</h1>
+        <p>{{ errorMessage() || 'No tienes permiso para ver esta reserva.' }}</p>
+        <button type="button" class="btn btn--primary" (click)="goBack()">Volver</button>
+      </section>
+    } @else if (state() === 'error') {
+      <section class="state-panel" data-testid="cancel-reservation-error">
+        <h1>No pudimos cargar la cancelacion</h1>
+        <p>{{ errorMessage() }}</p>
+        <div class="button-row">
+          <button type="button" class="btn btn--primary" (click)="retry()">Reintentar</button>
+          <button type="button" class="btn btn--secondary" (click)="goBack()">Volver</button>
+        </div>
+      </section>
+    } @else if (state() === 'success') {
+      <section class="result-panel result-panel--success" data-testid="cancel-reservation-success">
+        <p class="eyebrow">Cancelacion completada</p>
+        <h1>Reserva Cancelada</h1>
+        <p>La reserva fue cancelada correctamente.</p>
+        <dl class="result-grid">
+          <div>
+            <dt>Referencia de cancelacion</dt>
+            <dd data-testid="cancel-success-reference">{{ result()!.cancellationReference }}</dd>
+          </div>
+          <div>
+            <dt>Reembolso esperado</dt>
+            <dd data-testid="cancel-success-refund">
+              {{ formatCurrency(result()!.refundAmount, preview()?.currency) }}
+            </dd>
+          </div>
+          <div>
+            <dt>Estado del reembolso</dt>
+            <dd>{{ result()!.refundStatus === 'PENDING' ? 'Pendiente' : 'No aplica' }}</dd>
+          </div>
+          <div>
+            <dt>Tiempo estimado</dt>
+            <dd>{{ result()!.processingTimeLabel || 'No aplica' }}</dd>
+          </div>
+        </dl>
+        <div class="button-row">
+          <button type="button" class="btn btn--primary" (click)="goHome()">Volver al inicio</button>
+          <button type="button" class="btn btn--secondary" (click)="searchHotels()">Buscar Nuevos Hoteles</button>
+        </div>
+      </section>
+    } @else if (state() === 'cancellationProcessing') {
+      <section class="result-panel" data-testid="cancel-reservation-processing">
+        <p class="eyebrow">Cancelacion en proceso</p>
+        <h1>Cancelacion en proceso</h1>
+        <p>{{ result()?.mensaje || preview()?.mensaje || 'La cancelacion espera confirmacion del PMS.' }}</p>
+        <dl class="result-grid">
+          <div>
+            <dt>Referencia de cancelacion</dt>
+            <dd data-testid="cancel-processing-reference">
+              {{ result()?.cancellationReference || 'Se asignara al confirmar la solicitud' }}
+            </dd>
+          </div>
+          <div>
+            <dt>Reembolso esperado</dt>
+            <dd data-testid="cancel-processing-refund">
+              {{ formatCurrency(result()?.refundAmount ?? preview()?.refund?.expectedRefundAmount, preview()?.currency) }}
+            </dd>
+          </div>
+          <div>
+            <dt>Estado del reembolso</dt>
+            <dd>{{ (result()?.refundStatus || preview()?.refund?.refundStatus) === 'PENDING' ? 'Pendiente' : 'No aplica' }}</dd>
+          </div>
+          <div>
+            <dt>Tiempo estimado</dt>
+            <dd>{{ result()?.processingTimeLabel || preview()?.refund?.processingTimeLabel || 'No aplica' }}</dd>
+          </div>
+        </dl>
+        <div class="button-row">
+          <button type="button" class="btn btn--secondary" (click)="goBack()">Volver al detalle</button>
+        </div>
+      </section>
+    } @else if (preview()) {
+      <section class="page-heading">
+        <h1>Cancelar Reserva</h1>
+        <p>Revisa la politica aplicable antes de confirmar la cancelacion.</p>
+      </section>
+
+      @if (errorMessage()) {
+        <section class="inline-error" data-testid="cancel-submit-error">
+          {{ errorMessage() }}
+        </section>
+      }
+
+      <div class="content-grid">
+        <section class="panel" data-testid="cancel-summary">
+          <h2>Resumen de la reserva</h2>
+          <dl class="detail-grid">
+            <div>
+              <dt>Hotel</dt>
+              <dd data-testid="cancel-summary-hotel">{{ preview()!.hotelName || 'No disponible' }}</dd>
+            </div>
+            <div>
+              <dt>Ubicacion</dt>
+              <dd data-testid="cancel-summary-location">{{ preview()!.location || 'No disponible' }}</dd>
+            </div>
+            <div>
+              <dt>Fecha de llegada</dt>
+              <dd>{{ formatDate(preview()!.checkInDate) }}</dd>
+            </div>
+            <div>
+              <dt>Fecha de salida</dt>
+              <dd>{{ formatDate(preview()!.checkOutDate) }}</dd>
+            </div>
+            <div>
+              <dt>Huespedes</dt>
+              <dd>{{ preview()!.guests }}</dd>
+            </div>
+            <div>
+              <dt>Numero de reserva</dt>
+              <dd>{{ preview()!.reservationNumber || 'No disponible' }}</dd>
+            </div>
+            <div>
+              <dt>Estado actual</dt>
+              <dd>{{ formatStatus(preview()!.currentStatus) }}</dd>
+            </div>
+            <div>
+              <dt>Total pagado</dt>
+              <dd>{{ formatCurrency(preview()!.totalPaid, preview()!.currency) }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="panel" data-testid="cancel-policy">
+          <h2>Politica de cancelacion</h2>
+          <div class="policy-list">
+            @for (policy of ['FREE_CANCELLATION', 'PARTIAL_REFUND', 'NON_REFUNDABLE']; track policy) {
+              <div
+                class="policy-option"
+                [class.policy-option--active]="isPolicyActive($any(policy))"
+                data-testid="cancel-policy-option"
+              >
+                <strong>{{ getPolicyLabel($any(policy)) }}</strong>
+              </div>
+            }
+          </div>
+          <p class="policy-description">
+            {{ preview()!.cancellationPolicy.description || 'No disponible' }}
+          </p>
+        </section>
+
+        <section class="panel" data-testid="cancel-refund">
+          <h2>Desglose de reembolso</h2>
+          <dl class="detail-grid">
+            <div>
+              <dt>Monto pagado</dt>
+              <dd>{{ formatCurrency(preview()!.refund.paidAmount, preview()!.currency) }}</dd>
+            </div>
+            <div>
+              <dt>Reembolso esperado</dt>
+              <dd data-testid="cancel-refund-expected">
+                {{ formatCurrency(preview()!.refund.expectedRefundAmount, preview()!.currency) }}
+              </dd>
+            </div>
+            <div>
+              <dt>Estado del reembolso</dt>
+              <dd data-testid="cancel-refund-status">
+                {{ preview()!.refund.refundStatus === 'PENDING' ? 'Pendiente' : 'No aplica' }}
+              </dd>
+            </div>
+            <div>
+              <dt>Tiempo estimado</dt>
+              <dd>{{ preview()!.refund.processingTimeLabel || 'No aplica' }}</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+
+      @if (state() === 'notCancelable') {
+        <section class="notice-panel" data-testid="cancel-reservation-non-cancelable">
+          <h2>Esta reserva no puede cancelarse</h2>
+          <p>{{ preview()!.nonCancelableReason || 'La reserva no puede cancelarse en este momento.' }}</p>
+        </section>
+      }
+
+      <section class="panel action-panel" data-testid="cancel-actions">
+        <label class="reason-field">
+          <span>Motivo de cancelacion (opcional)</span>
+          <textarea
+            rows="4"
+            [value]="reason()"
+            (input)="updateReason($event)"
+            placeholder="Ej. Cambio de planes"
+            data-testid="cancel-reason"
+          ></textarea>
+        </label>
+
+        <div class="button-row">
+          <button type="button" class="btn btn--secondary" (click)="keepReservation()">
+            Mantener Mi Reserva
+          </button>
+          @if (preview()!.canCancel) {
+            <button
+              type="button"
+              class="btn btn--danger"
+              [disabled]="submitting()"
+              (click)="openWarning()"
+              data-testid="cancel-open-warning"
+            >
+              Cancelar Reserva
+            </button>
+          }
+        </div>
+      </section>
+    }
   </main>
+
+  @if (warningOpen()) {
+    <div class="modal-backdrop" data-testid="cancel-warning-modal">
+      <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="cancel-warning-title">
+        <h2 id="cancel-warning-title">Confirma la cancelacion</h2>
+        <p>Esta accion no se puede deshacer. Si cambias de opinion, deberas hacer una nueva reserva.</p>
+        <p>
+          Reembolso esperado:
+          <strong>{{ formatCurrency(preview()?.refund?.expectedRefundAmount, preview()?.currency) }}</strong>
+        </p>
+        <label class="terms-row">
+          <input
+            type="checkbox"
+            [checked]="acceptedTerms()"
+            (change)="updateAcceptedTerms($event)"
+            data-testid="cancel-terms"
+          />
+          <span>Entiendo los terminos de cancelacion y la politica de reembolso.</span>
+        </label>
+        <div class="button-row">
+          <button type="button" class="btn btn--secondary" [disabled]="submitting()" (click)="closeWarning()">
+            Volver
+          </button>
+          <button
+            type="button"
+            class="btn btn--danger"
+            [disabled]="!canSubmit()"
+            (click)="confirmCancellation()"
+            data-testid="cancel-confirm"
+          >
+            {{ submitting() ? 'Procesando...' : 'Confirmar cancelacion' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
 
   <app-footer />
 </div>

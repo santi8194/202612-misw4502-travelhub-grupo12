@@ -4,6 +4,11 @@ import { Observable, catchError, map, tap, throwError } from 'rxjs';
 import { HoldRequest, HoldResponse } from '../../models/hold.interface';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth';
+import {
+  CancelReservationRequest,
+  CancellationPreview,
+  CancellationResult,
+} from '../../models/reservation.interface';
 
 interface CreateBookingRequest {
   id_usuario: string;
@@ -177,13 +182,29 @@ export class BookingService {
     );
   }
 
-  getCancellationPreviewByBookingId(idReserva: string): Observable<any> {
+  getCancellationPreview(idReserva: string): Observable<CancellationPreview> {
     const url = `${this.apiUrl}/${idReserva}/cancelacion-preview`;
     console.info('[BookingService] GET', url);
-    return this.http.get<any>(url).pipe(
-      tap((response) => console.info('[BookingService] getCancellationPreviewByBookingId success', response)),
+    return this.http.get<CancellationPreview>(url).pipe(
+      tap((response) => console.info('[BookingService] getCancellationPreview success', response)),
       catchError((error) => {
-        console.error('[BookingService] getCancellationPreviewByBookingId error', { idReserva, error });
+        console.error('[BookingService] getCancellationPreview error', { idReserva, error });
+        return throwError(() => error);
+      })
+    );
+  }
+
+  cancelReservation(
+    idReserva: string,
+    request: CancelReservationRequest
+  ): Observable<CancellationResult> {
+    const url = `${this.apiUrl}/${idReserva}/cancelar`;
+    const normalizedRequest = this.normalizeCancelReservationRequest(request);
+    console.info('[BookingService] POST', url, normalizedRequest);
+    return this.http.post<CancellationResult>(url, normalizedRequest).pipe(
+      tap((response) => console.info('[BookingService] cancelReservation success', response)),
+      catchError((error) => {
+        console.error('[BookingService] cancelReservation error', { idReserva, error });
         return throwError(() => error);
       })
     );
@@ -373,5 +394,15 @@ export class BookingService {
 
   private isGenericBackendMessage(message: string): boolean {
     return /bad request|http failure response|internal server error|unexpected error|error$|request failed|status \d+/.test(message);
+  }
+
+  private normalizeCancelReservationRequest(
+    request: CancelReservationRequest
+  ): CancelReservationRequest {
+    const reason = request.reason?.trim();
+
+    return reason
+      ? { ...request, reason }
+      : { acceptedTerms: request.acceptedTerms };
   }
 }

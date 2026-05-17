@@ -40,6 +40,8 @@ class ReservaExpirada(EventoDominio):
 @dataclass
 class ReservaConfirmadaEvt(EventoDominio):
     id_reserva: uuid.UUID = None
+    id_cliente: uuid.UUID = None
+    email_cliente: str = None
     fecha_actualizacion: datetime = None
     emailCliente: str = None
     codigo_reserva: str = None

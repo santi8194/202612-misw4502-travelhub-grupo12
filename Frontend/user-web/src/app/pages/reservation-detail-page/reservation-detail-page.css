@@ -303,8 +303,23 @@
   border-radius: 10px;
   background: #e7000b;
   color: #fff;
+  cursor: pointer;
   font: inherit;
   font-weight: 600;
+  transition: background-color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+.btn-danger:not(:disabled):hover {
+  background: #c10009;
+}
+
+.btn-danger:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.btn-danger:focus-visible {
+  outline: 3px solid rgba(231, 0, 11, 0.28);
+  outline-offset: 2px;
 }
 
 .btn-danger:disabled {

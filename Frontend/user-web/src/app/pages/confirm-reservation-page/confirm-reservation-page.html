@@ -26,9 +26,9 @@
 
       <div class="status-actions">
         @if (isConfirmed()) {
-          <button class="action-btn action-btn--primary" type="button" (click)="showStatusNotAvailableAlert()">
+          <a class="action-btn action-btn--primary" [routerLink]="['/mis-reservas', reservationId()]">
             Ver estado de reserva
-          </button>
+          </a>
         } @else if (!isCancelled()) {
           <a class="action-btn action-btn--primary" [routerLink]="['/booking', reservationId()]">
             Volver al carrito

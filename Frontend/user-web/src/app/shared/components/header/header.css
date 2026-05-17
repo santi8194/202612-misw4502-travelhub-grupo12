@@ -26,6 +26,7 @@
 	flex-shrink: 0;
 	justify-self: start;
 	color: #000;
+	text-decoration: none;
 	-webkit-text-stroke-width: 0.6px;
 	-webkit-text-stroke-color: #000;
 	font-family: Inter, sans-serif;

@@ -78,7 +78,7 @@ export class PaymentPage implements OnInit, AfterViewInit {
     if (!checkout) {
       throw new Error('Payment checkout is required');
     }
-    const publicBaseUrl = environment.publicAppBaseUrl ?? window.location.origin;
+    const publicBaseUrl = this.resolvePublicBaseUrl();
 
     return {
       'data-render': 'button',
@@ -89,6 +89,28 @@ export class PaymentPage implements OnInit, AfterViewInit {
       'data-signature:integrity': checkout.signature_integrity,
       'data-redirect-url': `${publicBaseUrl}/booking/${this.reservationId}/processing-reservation?id_pago=${encodeURIComponent(payment.id_pago)}`,
     };
+  }
+
+  private resolvePublicBaseUrl(
+    runtimeOrigin = window.location.origin,
+    configuredBaseUrl = environment.publicAppBaseUrl
+  ): string {
+    if (!configuredBaseUrl || configuredBaseUrl.includes('__PUBLIC_APP_BASE_URL__')) {
+      return runtimeOrigin;
+    }
+
+    const configuredIsLocal = this.isLocalOrigin(configuredBaseUrl);
+    const runtimeIsLocal = this.isLocalOrigin(runtimeOrigin);
+
+    return configuredIsLocal && !runtimeIsLocal ? runtimeOrigin : configuredBaseUrl;
+  }
+
+  private isLocalOrigin(value: string): boolean {
+    try {
+      return ['localhost', '127.0.0.1'].includes(new URL(value).hostname);
+    } catch {
+      return false;
+    }
   }
 
   private renderWompiWidget(): void {

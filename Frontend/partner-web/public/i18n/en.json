@@ -148,5 +148,49 @@
     "PAYMENT_PAGO": "Paid",
     "PAYMENT_REEMBOLSO": "Refunded",
     "PAYMENT_PENDIENTE": "Pending"
+  },
+  "REPORTS": {
+    "TITLE": "Revenue Report",
+    "SUBTITLE": "Detailed analysis of monthly income and trends",
+    "EXPORT": "Export Report",
+    "CHART_TREND": "Monthly Revenue Trend",
+    "CHART_BOOKINGS_OCC": "Bookings & Occupancy",
+    "TABLE_TITLE": "Monthly Revenue Detail Table",
+    "LEGEND_BOOKINGS": "Total Bookings",
+    "LEGEND_OCC": "Confirmed",
+    "CARDS": {
+      "ANNUAL_REVENUE": "Annual Total Revenue",
+      "TOTAL_BOOKINGS": "Total Bookings",
+      "CONFIRMED_BOOKINGS": "Confirmed Bookings",
+      "CANCELLATION_RATE": "Cancellation Rate"
+    },
+    "FILTER": {
+      "FROM": "From",
+      "TO": "To",
+      "RESET": "Clear filter"
+    },
+    "TABLE": {
+      "MONTH": "Month",
+      "TOTAL_REVENUE": "Total Revenue",
+      "BOOKINGS": "Bookings",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED": "Cancelled",
+      "GUESTS": "Guests",
+      "TOTAL": "TOTAL"
+    },
+    "MONTHS": {
+      "JAN": "January",
+      "FEB": "February",
+      "MAR": "March",
+      "APR": "April",
+      "MAY": "May",
+      "JUN": "June",
+      "JUL": "July",
+      "AUG": "August",
+      "SEP": "September",
+      "OCT": "October",
+      "NOV": "November",
+      "DEC": "December"
+    }
   }
 }

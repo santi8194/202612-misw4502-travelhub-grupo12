@@ -1,0 +1,202 @@
+<div class="reporte-ingresos">
+
+    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <div class="reporte-header">
+        <div class="reporte-header-left">
+            <h2 class="reporte-title">{{ 'REPORTS.TITLE' | translate }}</h2>
+            <p class="reporte-subtitle">{{ 'REPORTS.SUBTITLE' | translate }}</p>
+        </div>
+        <div class="export-menu-wrap">
+            <button type="button" class="btn-exportar" (click)="toggleMenuExport($event)">
+                <span class="btn-exportar-icon">⬇</span>
+                {{ 'REPORTS.EXPORT' | translate }}
+                <span class="btn-exportar-arrow">▾</span>
+            </button>
+            <div class="export-dropdown" *ngIf="mostrarMenuExport">
+                <button type="button" class="export-option" (click)="exportarPdf()">
+                    <span>&#128196;</span> PDF &ndash; Resumen ejecutivo
+                </button>
+                <button type="button" class="export-option" (click)="exportarExcel()">
+                    <span>&#128202;</span> Excel &ndash; Datos completos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Date filter ──────────────────────────────────────────────── -->
+    <div class="filtro-fechas">
+        <div class="filtro-group">
+            <label class="filtro-label">{{ 'REPORTS.FILTER.FROM' | translate }}</label>
+            <input type="month" class="filtro-input"
+                   [value]="filtroDesde"
+                   (change)="filtroDesde = $any($event.target).value">
+        </div>
+        <div class="filtro-group">
+            <label class="filtro-label">{{ 'REPORTS.FILTER.TO' | translate }}</label>
+            <input type="month" class="filtro-input"
+                   [value]="filtroHasta"
+                   (change)="filtroHasta = $any($event.target).value">
+        </div>
+        <button type="button" class="filtro-reset"
+                *ngIf="filtroDesde || filtroHasta"
+                (click)="filtroDesde = ''; filtroHasta = ''">
+            &#x2715; {{ 'REPORTS.FILTER.RESET' | translate }}
+        </button>
+    </div>
+
+    <!-- ── Summary cards ──────────────────────────────────────────── -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="summary-card-top">
+                <span class="summary-icon summary-icon-green">$</span>
+                <span class="summary-trend trend-positive">↗ +15.2%</span>
+            </div>
+            <strong class="summary-value">${{ totalIngresosPropiedad | number:'1.0-0' }}</strong>
+            <p class="summary-label">{{ 'REPORTS.CARDS.ANNUAL_REVENUE' | translate }}</p>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-card-top">
+                <span class="summary-icon summary-icon-blue">▦</span>
+            </div>
+            <strong class="summary-value">{{ totalReservasPropiedad | number:'1.0-0' }}</strong>
+            <p class="summary-label">{{ 'REPORTS.CARDS.TOTAL_BOOKINGS' | translate }}</p>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-card-top">
+                <span class="summary-icon summary-icon-purple">✓</span>
+            </div>
+            <strong class="summary-value">{{ reservasConfirmadasPropiedad | number:'1.0-0' }}</strong>
+            <p class="summary-label">{{ 'REPORTS.CARDS.CONFIRMED_BOOKINGS' | translate }}</p>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-card-top">
+                <span class="summary-icon summary-icon-orange">✕</span>
+            </div>
+            <strong class="summary-value">{{ tasaCancelacionPropiedad | number:'1.1-1' }}%</strong>
+            <p class="summary-label">{{ 'REPORTS.CARDS.CANCELLATION_RATE' | translate }}</p>
+        </div>
+    </div>
+
+    <!-- ── Line chart ─────────────────────────────────────────────── -->
+    <div class="chart-card">
+        <h3 class="chart-title">{{ 'REPORTS.CHART_TREND' | translate }}</h3>
+        <div class="line-chart-wrap">
+            <svg [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight"
+                 preserveAspectRatio="none"
+                 class="line-chart-svg"
+                 aria-hidden="true">
+                <!-- Grid lines -->
+                <line *ngFor="let y of [0.25, 0.5, 0.75, 1]"
+                      [attr.x1]="chartPadX"
+                      [attr.x2]="chartWidth - chartPadX"
+                      [attr.y1]="chartHeight - chartPadY - y * (chartHeight - 2 * chartPadY)"
+                      [attr.y2]="chartHeight - chartPadY - y * (chartHeight - 2 * chartPadY)"
+                      class="grid-line"/>
+                <!-- Area fill -->
+                <path [attr.d]="areaPath" class="area-fill"/>
+                <!-- Line -->
+                <polyline [attr.points]="linePoints" class="line-stroke" fill="none"/>
+                <!-- Data points -->
+                <circle *ngFor="let val of ingresosMensualesPropiedad; let i = index"
+                        [attr.cx]="chartPadX + (i / (ingresosMensualesPropiedad.length - 1)) * (chartWidth - 2 * chartPadX)"
+                        [attr.cy]="chartHeight - chartPadY - (val / maxIngresoPropiedad) * (chartHeight - 2 * chartPadY)"
+                        r="3"
+                        class="data-point"/>
+            </svg>
+
+            <!-- X-axis labels -->
+            <div class="x-axis-labels">
+                <span *ngFor="let lbl of lineChartLabels" class="x-label">{{ lbl | translate }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Bar chart ──────────────────────────────────────────────── -->
+    <div class="chart-card">
+        <h3 class="chart-title">{{ 'REPORTS.CHART_BOOKINGS_OCC' | translate }}</h3>
+        <div class="bar-chart-wrap">
+            <svg [attr.viewBox]="'0 0 ' + barChartWidth + ' ' + barChartHeight"
+                 preserveAspectRatio="none"
+                 class="bar-chart-svg"
+                 aria-hidden="true">
+                <!-- Grid lines -->
+                <line *ngFor="let y of [0.25, 0.5, 0.75, 1]"
+                      [attr.x1]="barChartPadX"
+                      [attr.x2]="barChartWidth - barChartPadX"
+                      [attr.y1]="barChartHeight - barChartPadY - y * (barChartHeight - 2 * barChartPadY)"
+                      [attr.y2]="barChartHeight - barChartPadY - y * (barChartHeight - 2 * barChartPadY)"
+                      class="grid-line"/>
+
+                <!-- Bars: total reservas (green) & confirmadas (blue) -->
+                <ng-container *ngFor="let i of barIndices">
+                    <!-- Total reservas bar -->
+                    <rect [attr.x]="getBarX(i, false)"
+                          [attr.y]="getBarY(reservasMensualesPropiedad[i], maxReservas)"
+                          [attr.width]="barWidth"
+                          [attr.height]="getBarHeight(reservasMensualesPropiedad[i], maxReservas)"
+                          class="bar-reservas"/>
+                    <!-- Confirmadas bar -->
+                    <rect [attr.x]="getBarX(i, true)"
+                          [attr.y]="getBarY(confirmadasMensualesPropiedad[i], maxReservas)"
+                          [attr.width]="barWidth"
+                          [attr.height]="getBarHeight(confirmadasMensualesPropiedad[i], maxReservas)"
+                          class="bar-ocupacion"/>
+                </ng-container>
+            </svg>
+
+            <!-- X-axis labels -->
+            <div class="x-axis-labels">
+                <span *ngFor="let lbl of lineChartLabels" class="x-label">{{ lbl | translate }}</span>
+            </div>
+
+            <!-- Legend -->
+            <div class="bar-legend">
+                <span class="legend-item legend-reservas">{{ 'REPORTS.LEGEND_BOOKINGS' | translate }}</span>
+                <span class="legend-item legend-ocupacion">{{ 'REPORTS.LEGEND_OCC' | translate }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Monthly detail table ───────────────────────────────────── -->
+    <div class="table-card">
+        <h3 class="chart-title">{{ 'REPORTS.TABLE_TITLE' | translate }}</h3>
+        <div class="table-scroll">
+            <table class="monthly-table">
+                <thead>
+                    <tr>
+                        <th>{{ 'REPORTS.TABLE.MONTH' | translate }}</th>
+                        <th class="col-highlight">{{ 'REPORTS.TABLE.TOTAL_REVENUE' | translate }}</th>
+                        <th>{{ 'REPORTS.TABLE.BOOKINGS' | translate }}</th>
+                        <th>{{ 'REPORTS.TABLE.CONFIRMED' | translate }}</th>
+                        <th>{{ 'REPORTS.TABLE.CANCELLED' | translate }}</th>
+                        <th>{{ 'REPORTS.TABLE.GUESTS' | translate }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let i of barIndices">
+                        <td>{{ lineChartLabels[i] | translate }}</td>
+                        <td class="col-highlight">${{ ingresosMensualesPropiedad[i] | number:'1.0-0' }}</td>
+                        <td>{{ reservasMensualesPropiedad[i] }}</td>
+                        <td>{{ confirmadasMensualesPropiedad[i] }}</td>
+                        <td>{{ canceladasMensualesPropiedad[i] }}</td>
+                        <td>{{ huespedesMensualesPropiedad[i] }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td>{{ 'REPORTS.TABLE.TOTAL' | translate }}</td>
+                        <td class="col-highlight">${{ totalIngresosPropiedad | number:'1.0-0' }}</td>
+                        <td>{{ totalReservasPropiedad }}</td>
+                        <td>{{ reservasConfirmadasPropiedad }}</td>
+                        <td>{{ totalCanceladasPropiedad }}</td>
+                        <td>{{ totalHuespedesPropiedad }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</div>

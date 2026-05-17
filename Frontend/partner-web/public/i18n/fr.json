@@ -148,5 +148,49 @@
     "PAYMENT_PAGO": "Payé",
     "PAYMENT_REEMBOLSO": "Remboursé",
     "PAYMENT_PENDIENTE": "En attente"
+  },
+  "REPORTS": {
+    "TITLE": "Rapport de revenus",
+    "SUBTITLE": "Analyse détaillée des revenus mensuels et tendances",
+    "EXPORT": "Exporter le rapport",
+    "CHART_TREND": "Tendance des revenus mensuels",
+    "CHART_BOOKINGS_OCC": "Réservations et occupation",
+    "TABLE_TITLE": "Tableau détaillé des revenus mensuels",
+    "LEGEND_BOOKINGS": "Total réservations",
+    "LEGEND_OCC": "Confirmées",
+    "CARDS": {
+      "ANNUAL_REVENUE": "Revenus totaux annuels",
+      "TOTAL_BOOKINGS": "Total des réservations",
+      "CONFIRMED_BOOKINGS": "Réservations confirmées",
+      "CANCELLATION_RATE": "Taux d'annulation"
+    },
+    "FILTER": {
+      "FROM": "Du",
+      "TO": "Au",
+      "RESET": "Effacer le filtre"
+    },
+    "TABLE": {
+      "MONTH": "Mois",
+      "TOTAL_REVENUE": "Revenus totaux",
+      "BOOKINGS": "Réservations",
+      "CONFIRMED": "Confirmées",
+      "CANCELLED": "Annulées",
+      "GUESTS": "Voyageurs",
+      "TOTAL": "TOTAL"
+    },
+    "MONTHS": {
+      "JAN": "Janvier",
+      "FEB": "Février",
+      "MAR": "Mars",
+      "APR": "Avril",
+      "MAY": "Mai",
+      "JUN": "Juin",
+      "JUL": "Juillet",
+      "AUG": "Août",
+      "SEP": "Septembre",
+      "OCT": "Octobre",
+      "NOV": "Novembre",
+      "DEC": "Décembre"
+    }
   }
 }

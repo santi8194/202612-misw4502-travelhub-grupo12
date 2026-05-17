@@ -192,8 +192,8 @@ class TestPublishEvent:
 
         body = json.loads(mock_ch.basic_publish.call_args.kwargs["body"])
         assert body["type"] == "MyEvt"
-        assert body["id_reserva"] == "r-2"
-        assert body["extra"] == "val"
+        assert body["data"]["id_reserva"] == "r-2"
+        assert body["data"]["extra"] == "val"
 
     @patch(
         "modules.partner.infrastructure.publishers.aprobacion_publisher.create_connection"
@@ -221,7 +221,8 @@ class TestPublishEvent:
         mock_conn.channel.side_effect = RuntimeError("channel error")
         mock_cc.return_value = mock_conn
 
-        publish_event("rk", "Evt", {"id_reserva": "r-err"})  # must not raise
+        with pytest.raises(RuntimeError, match="channel error"):
+            publish_event("rk", "Evt", {"id_reserva": "r-err"})
 
         mock_conn.close.assert_called_once()
 
@@ -231,8 +232,8 @@ class TestPublishEvent:
     def test_create_connection_fails_no_close(self, mock_cc):
         from modules.partner.infrastructure.publishers.aprobacion_publisher import publish_event
         mock_cc.side_effect = RuntimeError("no connection")
-        # connection is None; must not raise
-        publish_event("rk", "Evt", {"id_reserva": "r-none"})
+        with pytest.raises(RuntimeError, match="no connection"):
+            publish_event("rk", "Evt", {"id_reserva": "r-none"})
 
 
 class TestPublishReservaAprobada:
@@ -244,11 +245,13 @@ class TestPublishReservaAprobada:
             publish_reserva_aprobada,
         )
         publish_reserva_aprobada("res-abc")
-        mock_pe.assert_called_once_with(
-            routing_key="evt.partnermanagement.reserva-aprobada",
-            event_type="ReservaAprobadaManualEvt",
-            data={"id_reserva": "res-abc"},
-        )
+        mock_pe.assert_called_once()
+        kwargs = mock_pe.call_args.kwargs
+        assert kwargs["routing_key"] == "evt.reserva.aprobada"
+        assert kwargs["event_type"] == "ReservaAprobadaManualEvt"
+        assert kwargs["data"]["id_reserva"] == "res-abc"
+        assert kwargs["data"]["id_usuario_admin"] == ""
+        assert "fecha_aprobacion" in kwargs["data"]
 
 
 class TestPublishReservaRechazada:
@@ -260,11 +263,14 @@ class TestPublishReservaRechazada:
             publish_reserva_rechazada,
         )
         publish_reserva_rechazada("res-xyz", "motivo de rechazo")
-        mock_pe.assert_called_once_with(
-            routing_key="evt.partnermanagement.reserva-rechazada",
-            event_type="ReservaRechazadaManualEvt",
-            data={"id_reserva": "res-xyz", "motivo": "motivo de rechazo"},
-        )
+        mock_pe.assert_called_once()
+        kwargs = mock_pe.call_args.kwargs
+        assert kwargs["routing_key"] == "evt.reserva.rechazada"
+        assert kwargs["event_type"] == "ReservaRechazadaManualEvt"
+        assert kwargs["data"]["id_reserva"] == "res-xyz"
+        assert kwargs["data"]["motivo"] == "motivo de rechazo"
+        assert kwargs["data"]["id_usuario_admin"] == ""
+        assert "fecha_rechazo" in kwargs["data"]
 
 
 # ===========================================================================

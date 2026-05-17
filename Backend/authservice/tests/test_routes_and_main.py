@@ -147,7 +147,7 @@ def test_get_user_by_id_forbidden_when_requesting_another_user(monkeypatch, samp
             id_usuario=sample_user.id_usuario,
             email=sample_user.email,
             full_name=sample_user.full_name,
-            rol=sample_user.rol,
+            rol="USER",
             partner_id=None,
         )
 

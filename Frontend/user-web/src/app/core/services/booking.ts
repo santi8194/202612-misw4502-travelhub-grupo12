@@ -175,6 +175,18 @@ export class BookingService {
     );
   }
 
+  getCancellationPreviewByBookingId(idReserva: string): Observable<any> {
+    const url = `${this.apiUrl}/${idReserva}/cancelacion-preview`;
+    console.info('[BookingService] GET', url);
+    return this.http.get<any>(url).pipe(
+      tap((response) => console.info('[BookingService] getCancellationPreviewByBookingId success', response)),
+      catchError((error) => {
+        console.error('[BookingService] getCancellationPreviewByBookingId error', { idReserva, error });
+        return throwError(() => error);
+      })
+    );
+  }
+
   formalizeBookingById(
     idReserva: string,
     request: FormalizeBookingRequest = {}

@@ -6,6 +6,11 @@ import { BookingCartSummaryComponent } from '../../shared/components/booking-car
 import { BookingCartStepperComponent } from '../../shared/components/booking-cart-page/stepper/booking-cart-stepper';
 import { BookingService } from '../../core/services/booking';
 import { CatalogService } from '../../core/services/catalog';
+import { AuthService } from '../../core/services/auth';
+import {
+  ReservationEmailNotificationService,
+  ReservationStatusEmailPayload,
+} from '../../core/services/reservation-email-notification';
 import { BookingSummaryData } from '../../models/booking-summary.interface';
 import { RoomPriceResponse } from '../../models/room-price.interface';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
@@ -54,6 +59,15 @@ interface PropertyData {
   };
 }
 
+interface CancellationPreviewData {
+  refund?: {
+    expectedRefundAmount?: number;
+    currency?: string;
+    refundStatus?: string;
+    processingTimeLabel?: string;
+  };
+}
+
 @Component({
   selector: 'app-confirm-reservation-page',
   standalone: true,
@@ -73,6 +87,10 @@ export class ConfirmReservationPage {
   private route = inject(ActivatedRoute);
   private bookingService = inject(BookingService);
   private catalogService = inject(CatalogService);
+  private authService = inject(AuthService);
+  private reservationEmailNotificationService = inject(ReservationEmailNotificationService);
+
+  private reservationStatusEmailSent = false;
 
   summary = signal<BookingSummaryData | null>(null);
   isLoadingSummary = signal(true);
@@ -178,6 +196,7 @@ export class ConfirmReservationPage {
 
       const { booking, catalog, category, property, roomPrice } = result;
       this.bookingStatus.set(booking?.estado ?? '');
+      this.triggerReservationStatusEmail(booking);
       const checkIn = this.extractCheckIn(booking);
       const checkOut = this.extractCheckOut(booking);
       const guests = this.extractGuests(booking);
@@ -298,6 +317,94 @@ export class ConfirmReservationPage {
 
   private buildTemporaryConfirmationCode(reservationId: string): string {
     return reservationId.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
+  }
+
+  private triggerReservationStatusEmail(booking: BookingData): void {
+    if (this.reservationStatusEmailSent) {
+      return;
+    }
+
+    const reservationId = this.reservationId();
+    if (!reservationId) {
+      return;
+    }
+
+    const email = this.authService.getCurrentSession()?.email?.trim();
+    if (!email) {
+      return;
+    }
+
+    const status = this.resolveStatusForNotification(booking);
+    if (!status) {
+      return;
+    }
+
+    this.reservationStatusEmailSent = true;
+
+    if (status === 'CANCELADA') {
+      this.bookingService.getCancellationPreviewByBookingId(reservationId).pipe(
+        catchError(() => of(null))
+      ).subscribe({
+        next: (preview: CancellationPreviewData | null) => {
+          const refundAmount = preview?.refund?.expectedRefundAmount;
+          const refundCurrency = preview?.refund?.currency ?? 'COP';
+          const refundDetail =
+            preview?.refund?.processingTimeLabel
+            ?? preview?.refund?.refundStatus
+            ?? this.reason();
+
+          this.sendReservationStatusEmail({
+            id_reserva: reservationId,
+            email_cliente: email,
+            estado: 'CANCELADA',
+            monto_reembolso: typeof refundAmount === 'number' ? refundAmount : 0,
+            moneda_reembolso: refundCurrency,
+            detalle_reembolso: refundDetail,
+          });
+        },
+        error: () => {
+          this.reservationStatusEmailSent = false;
+        },
+      });
+      return;
+    }
+
+    this.sendReservationStatusEmail({
+      id_reserva: reservationId,
+      email_cliente: email,
+      estado: 'CONFIRMADA',
+      codigo_reserva: this.confirmationCode(),
+    });
+  }
+
+  private sendReservationStatusEmail(payload: ReservationStatusEmailPayload): void {
+    this.reservationEmailNotificationService.sendReservationStatusEmail(payload).subscribe({
+      error: () => {
+        this.reservationStatusEmailSent = false;
+      },
+    });
+  }
+
+  private resolveStatusForNotification(booking: BookingData): 'CONFIRMADA' | 'CANCELADA' | null {
+    const normalizedBookingStatus = this.normalizeText(booking?.estado ?? '');
+
+    if (normalizedBookingStatus === 'confirmada') {
+      return 'CONFIRMADA';
+    }
+
+    if (normalizedBookingStatus === 'cancelada' || normalizedBookingStatus === 'cancelled' || normalizedBookingStatus === 'canceled') {
+      return 'CANCELADA';
+    }
+
+    if (this.isCancelled()) {
+      return 'CANCELADA';
+    }
+
+    if (this.isConfirmed()) {
+      return 'CONFIRMADA';
+    }
+
+    return null;
   }
 
   showStatusNotAvailableAlert(): void {

@@ -53,6 +53,71 @@ class TestHealthEndpoint:
         assert resp.json() == {"status": "Notification Service running"}
 
 
+class TestReservationStatusNotificationEndpoint:
+    """Tests for POST /notifications/reservations/status-email."""
+
+    def test_confirmed_status_notification(self):
+        with patch("config.app.start_consumer"), patch(
+            "api.reservation_notifications.send_reservation_status_email"
+        ) as sender:
+            from config.app import create_app
+            app = create_app()
+            with TestClient(app) as client:
+                response = client.post(
+                    "/notifications/reservations/status-email",
+                    json={
+                        "id_reserva": "res-123",
+                        "email_cliente": "viajero@example.com",
+                        "estado": "CONFIRMADA",
+                        "codigo_reserva": "ABC123",
+                    },
+                )
+
+        assert response.status_code == 200
+        assert response.json()["estado"] == "CONFIRMADA"
+        sender.assert_called_once()
+
+    def test_cancelled_status_notification_with_refund(self):
+        with patch("config.app.start_consumer"), patch(
+            "api.reservation_notifications.send_reservation_status_email"
+        ) as sender:
+            from config.app import create_app
+            app = create_app()
+            with TestClient(app) as client:
+                response = client.post(
+                    "/notifications/reservations/status-email",
+                    json={
+                        "id_reserva": "res-456",
+                        "email_cliente": "viajero@example.com",
+                        "estado": "CANCELADA",
+                        "monto_reembolso": 250000,
+                        "moneda_reembolso": "COP",
+                        "detalle_reembolso": "Reembolso parcial en 5-10 dias habiles",
+                    },
+                )
+
+        assert response.status_code == 200
+        assert response.json()["estado"] == "CANCELADA"
+        sender.assert_called_once()
+
+    def test_invalid_status_returns_400(self):
+        with patch("config.app.start_consumer"):
+            from config.app import create_app
+            app = create_app()
+            with TestClient(app) as client:
+                response = client.post(
+                    "/notifications/reservations/status-email",
+                    json={
+                        "id_reserva": "res-789",
+                        "email_cliente": "viajero@example.com",
+                        "estado": "PENDIENTE",
+                    },
+                )
+
+        assert response.status_code == 400
+        assert "CONFIRMADA o CANCELADA" in response.json()["detail"]
+
+
 # ===========================================================================
 # config/settings.py
 # ===========================================================================

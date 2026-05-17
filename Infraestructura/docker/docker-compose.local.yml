@@ -115,12 +115,32 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+      MOCK_PMS_URL: http://mock-pms:8080
     depends_on:
       rabbitmq-broker:
+        condition: service_healthy
+      mock-pms:
         condition: service_healthy
     volumes:
       - pms_sqlite_data:/app/data
       - ../../Backend/pms-integration/data/pms_uuid_mapping_full.json:/app/data/pms_uuid_mapping_full.json:ro
+
+  mock-pms:
+    image: travelhub-local/mock-pms:dev
+    build:
+      context: ../../Backend/mock-pms
+      dockerfile: Dockerfile
+    environment:
+      PMS_INTEGRATION_URL: http://pms-integration:8001
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../Backend/mock-pms/data:/app/data
 
   partner-management:
     image: travelhub-local/partner-management:dev
@@ -240,3 +260,7 @@ volumes:
   pms_sqlite_data:
   partner_sqlite_data:
   notification_sqlite_data:
+
+networks:
+  travelhub-dev-net:
+    driver: bridge

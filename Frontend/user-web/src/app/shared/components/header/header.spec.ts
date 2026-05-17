@@ -36,6 +36,13 @@ describe('HeaderComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should link the TravelHub brand to the home search view', () => {
+    const brand = fixture.nativeElement.querySelector('.brand') as HTMLAnchorElement;
+
+    expect(brand).toBeTruthy();
+    expect(brand.getAttribute('href')).toBe('/');
+  });
+
   it('should show login and register options when there is no active session', () => {
     component.toggleProfileMenu();
     fixture.detectChanges();

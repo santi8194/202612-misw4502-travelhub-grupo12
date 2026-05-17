@@ -115,4 +115,16 @@ describe('PaymentPage', () => {
     expect(script?.getAttribute('data-signature:integrity')).toBe('sig');
     expect(script?.getAttribute('data-redirect-url')).toContain('/booking/reserva-123/processing-reservation?id_pago=pay-1');
   });
+
+  it('should prefer the runtime public origin when the configured base url is local', () => {
+    fixture = TestBed.createComponent(PaymentPage);
+    const component = fixture.componentInstance as any;
+
+    expect(
+      component.resolvePublicBaseUrl(
+        'https://implicit-destiny-hacking.ngrok-free.dev',
+        'http://localhost:4200'
+      )
+    ).toBe('https://implicit-destiny-hacking.ngrok-free.dev');
+  });
 });

@@ -232,6 +232,10 @@ export class ReservationDetailPage {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    if (checkInDate <= today) {
+      return { canCancel: false, reason: 'Esta reserva no se puede cancelar por su estado actual.' };
+    }
+
     const millisecondsPerDay = 24 * 60 * 60 * 1000;
     const daysUntilCheckIn = Math.ceil((checkInDate.getTime() - today.getTime()) / millisecondsPerDay);
 

@@ -153,3 +153,7 @@ El archivo `docker-compose.local.orl.yml` queda hoy como una variante local here
 - No es la entrada recomendada para desarrollo local.
 - Si se conserva, debe tratarse como una variante manual aislada hasta que el equipo decida si la documenta formalmente o la elimina.
 
+## Documentación relacionada
+
+- [`../../docs/operacion/README.md`](../../docs/operacion/README.md)
+- [`../../docs/arquitectura/despliegue-y-entornos.md`](../../docs/arquitectura/despliegue-y-entornos.md)

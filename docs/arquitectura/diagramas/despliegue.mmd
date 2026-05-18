@@ -1,0 +1,19 @@
+flowchart TB
+    subgraph Local
+      DC["Docker Compose"]
+      MK["Minikube"]
+    end
+    subgraph AWS
+      TF["Terraform"]
+      EKS["EKS"]
+      RDS["RDS"]
+      SM["Secrets Manager"]
+      STATIC["Sitios estáticos"]
+    end
+    GH["GitHub Actions"] --> TF
+    TF --> EKS
+    TF --> RDS
+    TF --> SM
+    TF --> STATIC
+    DC --> LOCALSTACK["Servicios locales"]
+    MK --> K8SLOCAL["Servicios backend en Kubernetes local"]

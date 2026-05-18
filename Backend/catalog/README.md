@@ -1,45 +1,58 @@
 # Catalog Service
 
-Microservicio de catalogo para TravelHub con una estructura ligera inspirada en arquitectura hexagonal.
+## Propósito
 
-## Estructura
+Servicio de catálogo para propiedades, categorías, precios, temporadas e inventario.
 
-- `config/`: inicializacion y acceso a SQLite.
-- `data/`: base de datos local `catalog.db`.
-- `modules/catalog/`: dominio, puertos, servicio de aplicacion, adaptador SQLite y API HTTP.
-- `tests/`: pruebas de smoke y flujo principal.
-- `app.py` y `main.py`: bootstrap de FastAPI.
+## Responsabilidad dentro del sistema
 
-## Dominio
+Proveer información comercial y disponibilidad consumida por búsqueda, reserva y frontends.
 
-El servicio modela:
+## Dependencias
 
-- `Propiedad` como raiz de agregado.
-- `Categoria_Habitacion` para contenido OTA.
-- `Media`, `Amenidad` e `Inventario`.
-- Objetos de valor para direccion, dinero y politica de cancelacion.
+- Base de datos del servicio
+- RabbitMQ para inventario PMS
+
+## Requisitos
+
+- Python
+- Dependencias de `requirements.txt`
+
+## Configuración
+
+Soporta ejecución local y procesamiento opcional de eventos.
+
+## Ejecución local
+
+Consultar:
+
+- [`QUICK_START.md`](./QUICK_START.md)
+- [`DOCKER.md`](./DOCKER.md)
+
+## Pruebas
+
+```bash
+pytest
+```
 
 ## Endpoints principales
 
 - `GET /catalog/health`
 - `POST /catalog/properties`
 - `GET /catalog/properties`
-- `GET /catalog/properties/{property_id}`
-- `PUT /catalog/properties/{property_id}/categories/{category_id}/inventory`
-- `GET /catalog/properties/{property_id}/categories/{category_id}/availability/{inventory_date}`
+- `GET /catalog/categories/{id_categoria}`
+- `PUT /catalog/properties/{id_propiedad}/categories/{id_categoria}/inventory`
 
-## Ejecucion local
+## Eventos publicados y consumidos
 
-```bash
-pip install -r requirements.txt
-uvicorn main:app --reload
-pytest
-pytest --cov=api --cov=config --cov=main --cov=modules/catalog --cov-report=term-missing
-```
+- Consume `PMSInventoryUpdated`.
 
-## PostgreSQL / RDS
+## Persistencia
 
-Cuando `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD` estan
-definidas, el servicio usa PostgreSQL. En ese modo el schema debe quedar
-administrado por Alembic; `main.py` solo ejecuta `create_all()` para el flujo
-historico con SQLite local.
+Gestiona propiedades, categorías, precios, temporadas e inventario.
+
+## Documentación relacionada
+
+- [`./scripts/README_SEED.md`](./scripts/README_SEED.md)
+- [`./SEED_SUMMARY_100.md`](./SEED_SUMMARY_100.md)
+- [`../../docs/api/endpoints.md`](../../docs/api/endpoints.md)

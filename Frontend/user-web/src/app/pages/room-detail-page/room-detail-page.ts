@@ -365,6 +365,7 @@ export class RoomDetailPage {
       id_categoria: categoryId,
       fecha_check_in: checkIn,
       fecha_check_out: checkOut,
+      usuario_email: this.authService.getCurrentSession()?.email,
       ocupacion: {
         adultos: guests,
         ninos: 0,

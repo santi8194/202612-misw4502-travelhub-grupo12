@@ -277,6 +277,7 @@ def test_register_login_and_get_user_info_flow(monkeypatch):
             full_name=kwargs["full_name"],
             rol="USER",
             partner_id=None,
+            username=kwargs.get("username"),
         )
         persisted_users[user_id] = user
         return user

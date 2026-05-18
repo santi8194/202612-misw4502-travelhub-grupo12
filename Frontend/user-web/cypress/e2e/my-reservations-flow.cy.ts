@@ -82,7 +82,7 @@ describe('My Reservations Flow', () => {
       cy.get('[data-testid="reservation-card"]').eq(0).within(() => {
         cy.get('[data-testid="reservation-name"]').should('contain.text', 'Suite Deluxe');
         cy.get('[data-testid="reservation-status-badge"]').should('contain.text', 'Confirmada');
-        cy.get('[data-testid="reservation-price"]').should('contain.text', '2.378.000').and('contain.text', 'COP');
+        cy.get('[data-testid="reservation-price"]').should('contain.text', '580').and('contain.text', 'US$');
         cy.get('[data-testid="reservation-id"]')
           .should('contain.text', 'Código confirmación')
           .and('contain.text', 'RES001');

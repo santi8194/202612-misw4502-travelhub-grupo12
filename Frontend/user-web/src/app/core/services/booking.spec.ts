@@ -109,6 +109,7 @@ describe('BookingService', () => {
     expect(req.request.body.fecha_check_out).toBe('2026-10-15');
     expect(req.request.body.ocupacion).toEqual({ adultos: 2, ninos: 0, infantes: 0 });
     expect(req.request.body.id_usuario).toBe('test-user-uuid-001');
+    expect(req.request.body.usuario_email).toBe('juan@ejemplo.com');
     req.flush({ id_reserva: 'reserva-123' });
   });
 

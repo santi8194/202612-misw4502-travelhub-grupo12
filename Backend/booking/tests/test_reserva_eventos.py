@@ -4,6 +4,7 @@ import uuid
 from modulos.reserva.dominio.eventos import (
     FallaActualizacionLocalEvt,
     ReservaCancelada,
+    ReservaCanceladaEvt,
     ReservaConfirmada,
     ReservaConfirmadaEvt,
     ReservaIniciada,
@@ -52,3 +53,33 @@ def test_eventos_locales_guardan_id_y_fecha():
     assert evt_fail.id_reserva == id_reserva
     assert evt_ok.fecha_actualizacion == ts
     assert evt_fail.fecha_actualizacion == ts
+
+
+def test_eventos_notificacion_guardan_detalles_reserva():
+    id_reserva = uuid.uuid4()
+
+    evt_ok = ReservaConfirmadaEvt(
+        id_reserva=id_reserva,
+        emailCliente="viajero@test.com",
+        codigo_reserva="TH-ABC-999",
+        categoria="cat-xyz",
+        fecha_check_in="2026-06-10",
+        fecha_check_out="2026-06-12",
+        huespedes=2,
+        moneda="COP",
+    )
+    evt_cancel = ReservaCanceladaEvt(
+        id_reserva=id_reserva,
+        emailCliente="viajero@test.com",
+        codigo_reserva="TH-ABC-999",
+        categoria="cat-xyz",
+        fecha_check_in="2026-06-10",
+        fecha_check_out="2026-06-12",
+        huespedes=2,
+        moneda="COP",
+        motivo_cancelacion="Compensacion de saga",
+    )
+
+    assert evt_ok.codigo_reserva == "TH-ABC-999"
+    assert evt_ok.huespedes == 2
+    assert evt_cancel.motivo_cancelacion == "Compensacion de saga"

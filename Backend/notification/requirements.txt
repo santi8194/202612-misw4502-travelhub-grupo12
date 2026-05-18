@@ -5,6 +5,8 @@ pika
 python-dotenv
 alembic
 psycopg2-binary
+sqlalchemy
+firebase-admin
 pytest
 pytest-cov
 httpx

@@ -73,6 +73,7 @@ class DespachadorRabbitMQ(Despachador):
         "ReservaAprobadaManualEvt": ("travelhub.events.exchange", "evt.partnermanagement.aprobada"),
         "ReservaRechazadaManualEvt": ("travelhub.events.exchange", "evt.partnermanagement.rechazada"),
         "ReservaConfirmadaEvt": ("travelhub.events.exchange", "evt.reserva.confirmada"),
+        "ReservaCanceladaEvt": ("travelhub.events.exchange", "evt.reserva.cancelada"),
         "VoucherEnviadoEvt": ("travelhub.events.exchange", "evt.voucher.enviado"),
         "FalloEnvioVoucherEvt": ("travelhub.events.exchange", "evt.notification.fallo_envio"),
     }

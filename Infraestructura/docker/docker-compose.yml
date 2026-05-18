@@ -221,6 +221,14 @@ services:
       RABBITMQ_PORT: ${NOTIFICATION_RABBITMQ_PORT:-5672}
       RABBITMQ_USER: ${NOTIFICATION_RABBITMQ_USER:-guest}
       RABBITMQ_PASS: ${NOTIFICATION_RABBITMQ_PASS:-guest}
+      SMTP_HOST: ${NOTIFICATION_SMTP_HOST:-}
+      SMTP_PORT: ${NOTIFICATION_SMTP_PORT:-587}
+      SMTP_USER: ${NOTIFICATION_SMTP_USER:-}
+      SMTP_PASS: ${NOTIFICATION_SMTP_PASS:-}
+      SMTP_FROM: ${NOTIFICATION_SMTP_FROM:-}
+      SMTP_USE_TLS: ${NOTIFICATION_SMTP_USE_TLS:-true}
+      SMTP_USE_SSL: ${NOTIFICATION_SMTP_USE_SSL:-false}
+      SMTP_TIMEOUT: ${NOTIFICATION_SMTP_TIMEOUT:-20}
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
       interval: 15s

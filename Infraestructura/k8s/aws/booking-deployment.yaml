@@ -26,6 +26,8 @@ spec:
             value: http://catalog/catalog
           - name: PAYMENT_SERVICE_URL
             value: http://payment
+          - name: AUTH_SERVICE_URL
+            value: http://authservice/auth
           - name: PAYMENT_MODE
             value: wompi
           - name: RABBITMQ_HOST

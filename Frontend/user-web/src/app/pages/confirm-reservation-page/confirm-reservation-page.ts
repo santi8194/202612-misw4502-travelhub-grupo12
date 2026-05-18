@@ -342,7 +342,7 @@ export class ConfirmReservationPage {
     this.reservationStatusEmailSent = true;
 
     if (status === 'CANCELADA') {
-      this.bookingService.getCancellationPreviewByBookingId(reservationId).pipe(
+      this.bookingService.getCancellationPreview(reservationId).pipe(
         catchError(() => of(null))
       ).subscribe({
         next: (preview: CancellationPreviewData | null) => {

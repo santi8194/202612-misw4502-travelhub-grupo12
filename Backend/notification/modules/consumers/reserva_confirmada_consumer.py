@@ -2,9 +2,17 @@
 import json
 import pika
 import time
+from firebase_admin import messaging
 from config.rabbitmq import create_connection
 from modules.services.email_service import send_voucher_email
 from modules.publishers.voucher_enviado_publisher import publish_voucher_enviado
+try:
+    from config.db import SessionLocal
+    from models.notification import Notificacion, DeviceToken
+except ImportError:
+    SessionLocal = None
+    Notificacion = None
+    DeviceToken = None
 
 EVENTS_EXCHANGE = "travelhub.events.exchange"
 QUEUE_NAME = "notification.events.queue"
@@ -27,8 +35,62 @@ def callback(ch, method, properties, body):
         payload = data.get("data", data)
         reserva_id = payload.get("id_reserva")
         email = payload.get("emailCliente")
+        user_id = payload.get("id_cliente", email)  # fallback to email if id_cliente not present
 
-        print(f"Procesando reserva {reserva_id} para {email}")
+        print(f"Procesando reserva {reserva_id} for {email}")
+
+        if SessionLocal is not None:
+            db = SessionLocal()
+            try:
+                # Deduplication
+                existing = None
+                if Notificacion is not None:
+                    existing = db.query(Notificacion).filter(
+                        Notificacion.reserva_id == str(reserva_id),
+                        Notificacion.tipo == "confirmed"
+                    ).first()
+
+                if existing:
+                    print(f"Notificación de confirmación ya existe para reserva {reserva_id}, saltando push.")
+                elif Notificacion is not None:
+                    titulo = "¡Reserva Confirmada!"
+                    cuerpo = f"Tu estadía para la reserva {reserva_id} ha sido confirmada."
+                    
+                    notif = Notificacion(
+                        user_id=str(user_id),
+                        tipo="confirmed",
+                        titulo=titulo,
+                        cuerpo=cuerpo,
+                        reserva_id=str(reserva_id)
+                    )
+                    db.add(notif)
+                    db.commit()
+
+                    # Send Push Notification
+                    dt = None
+                    if DeviceToken is not None:
+                        dt = db.query(DeviceToken).filter(DeviceToken.user_id == str(user_id)).first()
+                    if dt and dt.token:
+                        try:
+                            message = messaging.Message(
+                                notification=messaging.Notification(
+                                    title=titulo,
+                                    body=cuerpo,
+                                ),
+                                data={
+                                    "reserva_id": str(reserva_id),
+                                    "tipo": "confirmed"
+                                },
+                                token=dt.token
+                            )
+                            response = messaging.send(message)
+                            print(f"Push notification enviada con éxito: {response}")
+                        except Exception as push_err:
+                            print(f"Error enviando push notification: {push_err}")
+            finally:
+                db.close()
+        else:
+            print("SessionLocal not available, skipping DB operations.")
 
         send_voucher_email(email, reserva_id)
         publish_voucher_enviado(reserva_id)

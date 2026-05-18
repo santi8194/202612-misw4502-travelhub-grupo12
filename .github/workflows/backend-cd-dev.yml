@@ -415,6 +415,7 @@ jobs:
               f"SEARCH_DB_NAME={get_required('SEARCH', 'dbname')}",
               f"SEARCH_DB_USER={get_required('SEARCH', 'username')}",
               f"SEARCH_DB_PASSWORD={get_required('SEARCH', 'password')}",
+              f"FIREBASE_CREDENTIALS_JSON={os.environ.get('FIREBASE_CREDENTIALS_JSON', '')}",
           ]
 
           with open("/tmp/travelhub-dev.env", "w", encoding="utf-8") as fh:

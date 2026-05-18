@@ -14,7 +14,11 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = None
+import sys
+sys.path.append(str(PROJECT_ROOT))
+from config.db import Base
+from models.notification import Notificacion, DeviceToken
+target_metadata = Base.metadata
 
 
 def _env(*keys: str) -> str | None:

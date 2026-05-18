@@ -2,7 +2,6 @@
 import json
 import pika
 import time
-from firebase_admin import messaging
 from config.rabbitmq import create_connection
 from modules.services.email_service import send_voucher_email, send_reservation_status_email
 from modules.publishers.voucher_enviado_publisher import publish_voucher_enviado
@@ -18,6 +17,29 @@ EVENTS_EXCHANGE = "travelhub.events.exchange"
 QUEUE_NAME = "notification.events.queue"
 ROUTING_KEYS = ("evt.reserva.confirmada", "evt.reserva.cancelada")
 RETRY_DELAY_SECONDS = 5
+
+
+def _send_push_notification(token, title, body, reserva_id):
+    try:
+        from firebase_admin import messaging
+
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            data={
+                "reserva_id": str(reserva_id),
+                "tipo": "confirmed"
+            },
+            token=token,
+        )
+        response = messaging.send(message)
+        print(f"Push notification enviada con éxito: {response}")
+    except ImportError:
+        print("Firebase Admin not available, skipping push notification.")
+    except Exception as push_err:
+        print(f"Error enviando push notification: {push_err}")
 
 def callback(ch, method, properties, body):
     try:
@@ -84,22 +106,7 @@ def callback(ch, method, properties, body):
                     if DeviceToken is not None:
                         dt = db.query(DeviceToken).filter(DeviceToken.user_id == str(user_id)).first()
                     if dt and dt.token:
-                        try:
-                            message = messaging.Message(
-                                notification=messaging.Notification(
-                                    title=titulo,
-                                    body=cuerpo,
-                                ),
-                                data={
-                                    "reserva_id": str(reserva_id),
-                                    "tipo": "confirmed"
-                                },
-                                token=dt.token
-                            )
-                            response = messaging.send(message)
-                            print(f"Push notification enviada con éxito: {response}")
-                        except Exception as push_err:
-                            print(f"Error enviando push notification: {push_err}")
+                        _send_push_notification(dt.token, titulo, cuerpo, reserva_id)
             finally:
                 db.close()
         else:
@@ -109,12 +116,25 @@ def callback(ch, method, properties, body):
             send_voucher_email(email, reserva_id, **details)
             publish_voucher_enviado(reserva_id)
         elif event_type == "ReservaCanceladaEvt":
+            cancel_details = {
+                "codigo_reserva": details.get("codigo_reserva"),
+                "hotel": details.get("hotel"),
+                "categoria": details.get("categoria"),
+                "fecha_check_in": details.get("fecha_check_in"),
+                "fecha_check_out": details.get("fecha_check_out"),
+                "huespedes": details.get("huespedes"),
+                "motivo_cancelacion": details.get("motivo_cancelacion"),
+                "monto_reembolso": details.get("monto_total"),
+                "moneda_reembolso": details.get("moneda"),
+            }
+            cancel_details = {k: v for k, v in cancel_details.items() if v is not None}
+
             send_reservation_status_email(
                 email=email,
                 reserva_id=reserva_id,
                 estado="CANCELADA",
                 detalle_reembolso="Cancelacion por compensacion de saga",
-                **details,
+                **cancel_details,
             )
 
         ch.basic_ack(delivery_tag=method.delivery_tag)

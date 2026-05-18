@@ -1,4 +1,6 @@
-from sqlalchemy import Column, String, Boolean, DateTime, Text, func
+from datetime import datetime
+
+from sqlalchemy import Column, String, Boolean, DateTime, Text
 import uuid
 from config.db import Base
 
@@ -14,7 +16,7 @@ class Notificacion(Base):
     titulo = Column(String, nullable=False)
     cuerpo = Column(Text, nullable=False)
     reserva_id = Column(String, nullable=True)
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column(DateTime(timezone=True), default=datetime.utcnow)
     leida = Column(Boolean, default=False)
 
 class DeviceToken(Base):
@@ -23,4 +25,4 @@ class DeviceToken(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(String, nullable=False, unique=True, index=True)
     token = Column(String, nullable=False)
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -326,6 +326,20 @@ describe('ReservationDetailPage', () => {
     expect(actions.textContent).toContain('estado actual');
   });
 
+  it('should treat past check-in dates as non-cancelable because of current state', () => {
+    flushBooking({
+      ...mockBooking,
+      estado: 'CONFIRMADA',
+      fecha_check_in: '2020-01-01',
+      fecha_check_out: '2020-01-03',
+    });
+    flushCatalog();
+    flushApprovedPayment();
+
+    expect(component.detail()?.canCancel).toBeFalse();
+    expect(component.detail()?.cancellationReason).toBe('Esta reserva no se puede cancelar por su estado actual.');
+  });
+
   it('should keep detail visible and show total unavailable when payment and price fail', () => {
     flushBooking();
     flushCatalog();

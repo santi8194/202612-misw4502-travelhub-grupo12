@@ -912,6 +912,20 @@ def test_cancelacion_preview_fuera_de_ventana_no_cancelable(client, monkeypatch)
     assert body["refund"]["refundStatus"] == "NOT_APPLICABLE"
 
 
+def test_cancelacion_preview_reserva_pasada_usa_mensaje_de_estado_actual(client, monkeypatch):
+    reserva = _fake_reserva_preview(check_in_days=-1)
+    _setup_cancelacion_preview(monkeypatch, reserva, dias_anticipacion=2)
+
+    response = client.get(f'/api/reserva/{reserva.id}/cancelacion-preview', headers=_owner_headers(reserva))
+
+    assert response.status_code == 200
+    body = response.json
+    assert body["canCancel"] is False
+    assert body["nonCancelableReason"] == "Esta reserva no se puede cancelar por su estado actual."
+    assert body["refund"]["expectedRefundAmount"] == 0
+    assert body["refund"]["refundStatus"] == "NOT_APPLICABLE"
+
+
 def test_cancelacion_preview_sin_pago_aprobado_no_cancelable(client, monkeypatch):
     reserva = _fake_reserva_preview()
     _setup_cancelacion_preview(

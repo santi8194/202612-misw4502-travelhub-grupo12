@@ -275,6 +275,9 @@ def _build_cancellation_preview(reserva, category_info: dict, property_info: dic
     elif days_until_check_in is None:
         can_cancel = False
         non_cancelable_reason = "La reserva no tiene fecha de llegada para evaluar la politica."
+    elif days_until_check_in <= 0:
+        can_cancel = False
+        non_cancelable_reason = "Esta reserva no se puede cancelar por su estado actual."
     elif days_until_check_in < dias_anticipacion:
         can_cancel = False
         non_cancelable_reason = f"La politica requiere al menos {dias_anticipacion} dias de anticipacion para cancelar."

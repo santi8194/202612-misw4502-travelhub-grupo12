@@ -3,101 +3,101 @@
 
   <main class="cancel-main">
     <button class="back-link" type="button" (click)="goBack()" data-testid="cancel-reservation-back">
-      Volver
+      {{ 'cancelReservation.back' | translate }}
     </button>
 
     @if (state() === 'loading') {
       <section class="state-panel" data-testid="cancel-reservation-loading">
         <div class="skeleton-line skeleton-line--wide"></div>
         <div class="skeleton-line"></div>
-        <p>Cargando informacion de cancelacion...</p>
+        <p>{{ 'cancelReservation.loading' | translate }}</p>
       </section>
     } @else if (state() === 'notFound') {
       <section class="state-panel" data-testid="cancel-reservation-not-found">
-        <h1>Reserva no encontrada</h1>
-        <p>{{ errorMessage() || 'La reserva solicitada no existe o ya no esta disponible.' }}</p>
-        <button type="button" class="btn btn--primary" (click)="goBack()">Volver</button>
+        <h1>{{ 'cancelReservation.notFoundTitle' | translate }}</h1>
+        <p>{{ errorMessage() || ('cancelReservation.notFoundBody' | translate) }}</p>
+        <button type="button" class="btn btn--primary" (click)="goBack()">{{ 'cancelReservation.back' | translate }}</button>
       </section>
     } @else if (state() === 'unauthorized') {
       <section class="state-panel" data-testid="cancel-reservation-unauthorized">
-        <h1>Reserva no disponible</h1>
-        <p>{{ errorMessage() || 'No tienes permiso para ver esta reserva.' }}</p>
-        <button type="button" class="btn btn--primary" (click)="goBack()">Volver</button>
+        <h1>{{ 'cancelReservation.unavailableTitle' | translate }}</h1>
+        <p>{{ errorMessage() || ('cancelReservation.unavailableBody' | translate) }}</p>
+        <button type="button" class="btn btn--primary" (click)="goBack()">{{ 'cancelReservation.back' | translate }}</button>
       </section>
     } @else if (state() === 'error') {
       <section class="state-panel" data-testid="cancel-reservation-error">
-        <h1>No pudimos cargar la cancelacion</h1>
+        <h1>{{ 'cancelReservation.errorTitle' | translate }}</h1>
         <p>{{ errorMessage() }}</p>
         <div class="button-row">
-          <button type="button" class="btn btn--primary" (click)="retry()">Reintentar</button>
-          <button type="button" class="btn btn--secondary" (click)="goBack()">Volver</button>
+          <button type="button" class="btn btn--primary" (click)="retry()">{{ 'cancelReservation.retry' | translate }}</button>
+          <button type="button" class="btn btn--secondary" (click)="goBack()">{{ 'cancelReservation.back' | translate }}</button>
         </div>
       </section>
     } @else if (state() === 'success') {
       <section class="result-panel result-panel--success" data-testid="cancel-reservation-success">
-        <p class="eyebrow">Cancelacion completada</p>
-        <h1>Reserva Cancelada</h1>
-        <p>La reserva fue cancelada correctamente.</p>
+        <p class="eyebrow">{{ 'cancelReservation.completed' | translate }}</p>
+        <h1>{{ 'cancelReservation.successTitle' | translate }}</h1>
+        <p>{{ 'cancelReservation.successBody' | translate }}</p>
         <dl class="result-grid">
           <div>
-            <dt>Referencia de cancelacion</dt>
+            <dt>{{ 'cancelReservation.reference' | translate }}</dt>
             <dd data-testid="cancel-success-reference">{{ result()!.cancellationReference }}</dd>
           </div>
           <div>
-            <dt>Reembolso esperado</dt>
+            <dt>{{ 'cancelReservation.expectedRefund' | translate }}</dt>
             <dd data-testid="cancel-success-refund">
               {{ formatCurrency(result()!.refundAmount, preview()?.currency) }}
             </dd>
           </div>
           <div>
-            <dt>Estado del reembolso</dt>
-            <dd>{{ result()!.refundStatus === 'PENDING' ? 'Pendiente' : 'No aplica' }}</dd>
+            <dt>{{ 'cancelReservation.refundStatus' | translate }}</dt>
+            <dd>{{ result()!.refundStatus === 'PENDING' ? ('cancelReservation.pending' | translate) : ('cancelReservation.notApplicable' | translate) }}</dd>
           </div>
           <div>
-            <dt>Tiempo estimado</dt>
-            <dd>{{ result()!.processingTimeLabel || 'No aplica' }}</dd>
+            <dt>{{ 'cancelReservation.estimatedTime' | translate }}</dt>
+            <dd>{{ result()!.processingTimeLabel || ('cancelReservation.notApplicable' | translate) }}</dd>
           </div>
         </dl>
         <div class="button-row">
-          <button type="button" class="btn btn--primary" (click)="goHome()">Volver al inicio</button>
-          <button type="button" class="btn btn--secondary" (click)="searchHotels()">Buscar Nuevos Hoteles</button>
+          <button type="button" class="btn btn--primary" (click)="goHome()">{{ 'cancelReservation.backHome' | translate }}</button>
+          <button type="button" class="btn btn--secondary" (click)="searchHotels()">{{ 'cancelReservation.searchHotels' | translate }}</button>
         </div>
       </section>
     } @else if (state() === 'cancellationProcessing') {
       <section class="result-panel" data-testid="cancel-reservation-processing">
-        <p class="eyebrow">Cancelacion en proceso</p>
-        <h1>Cancelacion en proceso</h1>
-        <p>{{ result()?.mensaje || preview()?.mensaje || 'La cancelacion espera confirmacion del PMS.' }}</p>
+        <p class="eyebrow">{{ 'cancelReservation.processing' | translate }}</p>
+        <h1>{{ 'cancelReservation.processing' | translate }}</h1>
+        <p>{{ result()?.mensaje || preview()?.mensaje || ('cancelReservation.processingFallback' | translate) }}</p>
         <dl class="result-grid">
           <div>
-            <dt>Referencia de cancelacion</dt>
+            <dt>{{ 'cancelReservation.reference' | translate }}</dt>
             <dd data-testid="cancel-processing-reference">
-              {{ result()?.cancellationReference || 'Se asignara al confirmar la solicitud' }}
+              {{ result()?.cancellationReference || ('cancelReservation.referencePending' | translate) }}
             </dd>
           </div>
           <div>
-            <dt>Reembolso esperado</dt>
+            <dt>{{ 'cancelReservation.expectedRefund' | translate }}</dt>
             <dd data-testid="cancel-processing-refund">
               {{ formatCurrency(result()?.refundAmount ?? preview()?.refund?.expectedRefundAmount, preview()?.currency) }}
             </dd>
           </div>
           <div>
-            <dt>Estado del reembolso</dt>
-            <dd>{{ (result()?.refundStatus || preview()?.refund?.refundStatus) === 'PENDING' ? 'Pendiente' : 'No aplica' }}</dd>
+            <dt>{{ 'cancelReservation.refundStatus' | translate }}</dt>
+            <dd>{{ (result()?.refundStatus || preview()?.refund?.refundStatus) === 'PENDING' ? ('cancelReservation.pending' | translate) : ('cancelReservation.notApplicable' | translate) }}</dd>
           </div>
           <div>
-            <dt>Tiempo estimado</dt>
-            <dd>{{ result()?.processingTimeLabel || preview()?.refund?.processingTimeLabel || 'No aplica' }}</dd>
+            <dt>{{ 'cancelReservation.estimatedTime' | translate }}</dt>
+            <dd>{{ result()?.processingTimeLabel || preview()?.refund?.processingTimeLabel || ('cancelReservation.notApplicable' | translate) }}</dd>
           </div>
         </dl>
         <div class="button-row">
-          <button type="button" class="btn btn--secondary" (click)="goBack()">Volver al detalle</button>
+          <button type="button" class="btn btn--secondary" (click)="goBack()">{{ 'cancelReservation.backToDetail' | translate }}</button>
         </div>
       </section>
     } @else if (preview()) {
       <section class="page-heading">
-        <h1>Cancelar Reserva</h1>
-        <p>Revisa la politica aplicable antes de confirmar la cancelacion.</p>
+        <h1>{{ 'cancelReservation.title' | translate }}</h1>
+        <p>{{ 'cancelReservation.subtitle' | translate }}</p>
       </section>
 
       @if (errorMessage()) {
@@ -108,45 +108,45 @@
 
       <div class="content-grid">
         <section class="panel" data-testid="cancel-summary">
-          <h2>Resumen de la reserva</h2>
+          <h2>{{ 'cancelReservation.summaryTitle' | translate }}</h2>
           <dl class="detail-grid">
             <div>
-              <dt>Hotel</dt>
-              <dd data-testid="cancel-summary-hotel">{{ preview()!.hotelName || 'No disponible' }}</dd>
+              <dt>{{ 'cancelReservation.hotel' | translate }}</dt>
+              <dd data-testid="cancel-summary-hotel">{{ preview()!.hotelName || ('cancelReservation.notAvailable' | translate) }}</dd>
             </div>
             <div>
-              <dt>Ubicacion</dt>
-              <dd data-testid="cancel-summary-location">{{ preview()!.location || 'No disponible' }}</dd>
+              <dt>{{ 'cancelReservation.location' | translate }}</dt>
+              <dd data-testid="cancel-summary-location">{{ preview()!.location || ('cancelReservation.notAvailable' | translate) }}</dd>
             </div>
             <div>
-              <dt>Fecha de llegada</dt>
+              <dt>{{ 'cancelReservation.arrival' | translate }}</dt>
               <dd>{{ formatDate(preview()!.checkInDate) }}</dd>
             </div>
             <div>
-              <dt>Fecha de salida</dt>
+              <dt>{{ 'cancelReservation.departure' | translate }}</dt>
               <dd>{{ formatDate(preview()!.checkOutDate) }}</dd>
             </div>
             <div>
-              <dt>Huespedes</dt>
+              <dt>{{ 'cancelReservation.guests' | translate }}</dt>
               <dd>{{ preview()!.guests }}</dd>
             </div>
             <div>
-              <dt>Numero de reserva</dt>
-              <dd>{{ preview()!.reservationNumber || 'No disponible' }}</dd>
+              <dt>{{ 'cancelReservation.reservationNumber' | translate }}</dt>
+              <dd>{{ preview()!.reservationNumber || ('cancelReservation.notAvailable' | translate) }}</dd>
             </div>
             <div>
-              <dt>Estado actual</dt>
+              <dt>{{ 'cancelReservation.currentStatus' | translate }}</dt>
               <dd>{{ formatStatus(preview()!.currentStatus) }}</dd>
             </div>
             <div>
-              <dt>Total pagado</dt>
+              <dt>{{ 'cancelReservation.totalPaid' | translate }}</dt>
               <dd>{{ formatCurrency(preview()!.totalPaid, preview()!.currency) }}</dd>
             </div>
           </dl>
         </section>
 
         <section class="panel" data-testid="cancel-policy">
-          <h2>Politica de cancelacion</h2>
+          <h2>{{ 'cancelReservation.policyTitle' | translate }}</h2>
           <div class="policy-list">
             @for (policy of ['FREE_CANCELLATION', 'PARTIAL_REFUND', 'NON_REFUNDABLE']; track policy) {
               <div
@@ -159,32 +159,32 @@
             }
           </div>
           <p class="policy-description">
-            {{ preview()!.cancellationPolicy.description || 'No disponible' }}
+            {{ preview()!.cancellationPolicy.description || ('cancelReservation.notAvailable' | translate) }}
           </p>
         </section>
 
         <section class="panel" data-testid="cancel-refund">
-          <h2>Desglose de reembolso</h2>
+          <h2>{{ 'cancelReservation.refundBreakdownTitle' | translate }}</h2>
           <dl class="detail-grid">
             <div>
-              <dt>Monto pagado</dt>
+              <dt>{{ 'cancelReservation.paidAmount' | translate }}</dt>
               <dd>{{ formatCurrency(preview()!.refund.paidAmount, preview()!.currency) }}</dd>
             </div>
             <div>
-              <dt>Reembolso esperado</dt>
+              <dt>{{ 'cancelReservation.expectedRefund' | translate }}</dt>
               <dd data-testid="cancel-refund-expected">
                 {{ formatCurrency(preview()!.refund.expectedRefundAmount, preview()!.currency) }}
               </dd>
             </div>
             <div>
-              <dt>Estado del reembolso</dt>
+              <dt>{{ 'cancelReservation.refundStatus' | translate }}</dt>
               <dd data-testid="cancel-refund-status">
-                {{ preview()!.refund.refundStatus === 'PENDING' ? 'Pendiente' : 'No aplica' }}
+                {{ preview()!.refund.refundStatus === 'PENDING' ? ('cancelReservation.pending' | translate) : ('cancelReservation.notApplicable' | translate) }}
               </dd>
             </div>
             <div>
-              <dt>Tiempo estimado</dt>
-              <dd>{{ preview()!.refund.processingTimeLabel || 'No aplica' }}</dd>
+              <dt>{{ 'cancelReservation.estimatedTime' | translate }}</dt>
+              <dd>{{ preview()!.refund.processingTimeLabel || ('cancelReservation.notApplicable' | translate) }}</dd>
             </div>
           </dl>
         </section>
@@ -192,26 +192,26 @@
 
       @if (state() === 'notCancelable') {
         <section class="notice-panel" data-testid="cancel-reservation-non-cancelable">
-          <h2>Esta reserva no puede cancelarse</h2>
-          <p>{{ preview()!.nonCancelableReason || 'La reserva no puede cancelarse en este momento.' }}</p>
+          <h2>{{ 'cancelReservation.nonCancelableTitle' | translate }}</h2>
+          <p>{{ preview()!.nonCancelableReason || ('cancelReservation.nonCancelableBody' | translate) }}</p>
         </section>
       }
 
       <section class="panel action-panel" data-testid="cancel-actions">
         <label class="reason-field">
-          <span>Motivo de cancelacion (opcional)</span>
+          <span>{{ 'cancelReservation.reasonLabel' | translate }}</span>
           <textarea
             rows="4"
             [value]="reason()"
             (input)="updateReason($event)"
-            placeholder="Ej. Cambio de planes"
+            [placeholder]="'cancelReservation.reasonPlaceholder' | translate"
             data-testid="cancel-reason"
           ></textarea>
         </label>
 
         <div class="button-row">
-          <button type="button" class="btn btn--secondary" (click)="keepReservation()">
-            Mantener Mi Reserva
+          <button type="button" class="btn btn--secondary" (click)="keepReservation()" data-testid="cancel-keep-reservation">
+            {{ 'cancelReservation.keepReservation' | translate }}
           </button>
           @if (preview()!.canCancel) {
             <button
@@ -221,7 +221,7 @@
               (click)="openWarning()"
               data-testid="cancel-open-warning"
             >
-              Cancelar Reserva
+              {{ 'cancelReservation.cancelReservation' | translate }}
             </button>
           }
         </div>
@@ -232,10 +232,10 @@
   @if (warningOpen()) {
     <div class="modal-backdrop" data-testid="cancel-warning-modal">
       <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="cancel-warning-title">
-        <h2 id="cancel-warning-title">Confirma la cancelacion</h2>
-        <p>Esta accion no se puede deshacer. Si cambias de opinion, deberas hacer una nueva reserva.</p>
+        <h2 id="cancel-warning-title">{{ 'cancelReservation.confirmTitle' | translate }}</h2>
+        <p>{{ 'cancelReservation.confirmBody' | translate }}</p>
         <p>
-          Reembolso esperado:
+          {{ 'cancelReservation.expectedRefund' | translate }}:
           <strong>{{ formatCurrency(preview()?.refund?.expectedRefundAmount, preview()?.currency) }}</strong>
         </p>
         <label class="terms-row">
@@ -245,11 +245,11 @@
             (change)="updateAcceptedTerms($event)"
             data-testid="cancel-terms"
           />
-          <span>Entiendo los terminos de cancelacion y la politica de reembolso.</span>
+          <span>{{ 'cancelReservation.confirmTerms' | translate }}</span>
         </label>
         <div class="button-row">
-          <button type="button" class="btn btn--secondary" [disabled]="submitting()" (click)="closeWarning()">
-            Volver
+          <button type="button" class="btn btn--secondary" [disabled]="submitting()" (click)="closeWarning()" data-testid="cancel-close-warning">
+            {{ 'cancelReservation.back' | translate }}
           </button>
           <button
             type="button"
@@ -258,7 +258,7 @@
             (click)="confirmCancellation()"
             data-testid="cancel-confirm"
           >
-            {{ submitting() ? 'Procesando...' : 'Confirmar cancelacion' }}
+            {{ submitting() ? ('cancelReservation.processingAction' | translate) : ('cancelReservation.confirmAction' | translate) }}
           </button>
         </div>
       </section>

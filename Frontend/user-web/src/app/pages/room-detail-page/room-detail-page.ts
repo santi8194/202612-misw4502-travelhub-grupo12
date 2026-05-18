@@ -349,7 +349,7 @@ export class RoomDetailPage {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
       this.creatingBooking.set(false);
-      const message = this.i18n.translate('auth.login.error');
+      const message = this.i18n.translate('bookingCart.loginRequiredToReserve');
       this.error.set(message);
       this.notificationService.showError(message);
       this.router.navigate(['/auth/login'], {

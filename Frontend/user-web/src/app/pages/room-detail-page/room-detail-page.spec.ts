@@ -454,8 +454,8 @@ describe('RoomDetailPage', () => {
     fixture.detectChanges();
 
     httpTesting.expectNone(r => BOOKING_URL_PATTERN.test(r.url));
-    expect(component.error()).toBe('No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.');
-    expect(notificationSpy).toHaveBeenCalledWith('No se pudo iniciar sesión. Verifica tus credenciales e intenta nuevamente.');
+    expect(component.error()).toBe('Debes iniciar sesión para reservar.');
+    expect(notificationSpy).toHaveBeenCalledWith('Debes iniciar sesión para reservar.');
     expect(navigateSpy).toHaveBeenCalledWith(['/auth/login'], {
       queryParams: { redirect: '/' },
     });

@@ -366,7 +366,7 @@ export class PropertyDetailPage {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
       this.creatingBooking.set(false);
-      this.error.set(this.i18n.translate('auth.login.error'));
+      this.error.set(this.i18n.translate('bookingCart.loginRequiredToReserve'));
       return;
     }
 

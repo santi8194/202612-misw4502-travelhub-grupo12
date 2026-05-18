@@ -55,6 +55,46 @@ spec:
               value: guest
             - name: REDIS_HOST
               value: redis-db
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: notification-app-secret
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: notification-app-secret
+                  key: SMTP_PORT
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: notification-app-secret
+                  key: SMTP_USER
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: notification-app-secret
+                  key: SMTP_PASS
+            - name: SMTP_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: notification-app-secret
+                  key: SMTP_FROM
+            - name: SMTP_USE_TLS
+              valueFrom:
+                secretKeyRef:
+                  name: notification-app-secret
+                  key: SMTP_USE_TLS
+            - name: SMTP_USE_SSL
+              valueFrom:
+                secretKeyRef:
+                  name: notification-app-secret
+                  key: SMTP_USE_SSL
+            - name: SMTP_TIMEOUT
+              valueFrom:
+                secretKeyRef:
+                  name: notification-app-secret
+                  key: SMTP_TIMEOUT
           startupProbe:
             httpGet:
               path: /health

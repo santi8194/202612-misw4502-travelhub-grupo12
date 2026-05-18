@@ -10,16 +10,16 @@
       </div>
 
       <h1 class="status-title" data-testid="confirm-reservation-title">
-        {{ isConfirmed() ? '¡Reserva Confirmada!' : 'Reserva no confirmada' }}
+        {{ statusTitle() }}
       </h1>
 
       <p class="status-subtitle" data-testid="confirm-reservation-reason">
-        {{ isConfirmed() ? 'Tu reserva ha sido confirmada. Se ha enviado un correo con los detalles.' : reason() }}
+        {{ statusReason() }}
       </p>
 
       @if (!isCancelled()) {
         <div class="status-id">
-          <span>Número de confirmación</span>
+          <span>{{ t('confirmReservation.confirmationNumber') }}</span>
           <strong>{{ confirmationCode() }}</strong>
         </div>
       }
@@ -27,16 +27,16 @@
       <div class="status-actions">
         @if (isConfirmed()) {
           <a class="action-btn action-btn--primary" [routerLink]="['/mis-reservas', reservationId()]">
-            Ver estado de reserva
+            {{ t('confirmReservation.viewReservationStatus') }}
           </a>
         } @else if (!isCancelled()) {
           <a class="action-btn action-btn--primary" [routerLink]="['/booking', reservationId()]">
-            Volver al carrito
+            {{ t('confirmReservation.backToCart') }}
           </a>
         }
 
         <a class="action-btn action-btn--secondary" routerLink="/">
-          Buscar otra opción
+          {{ t('confirmReservation.searchAnotherOption') }}
         </a>
       </div>
     </section>

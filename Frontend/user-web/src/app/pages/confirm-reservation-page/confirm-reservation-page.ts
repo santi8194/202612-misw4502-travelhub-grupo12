@@ -7,6 +7,7 @@ import { BookingCartStepperComponent } from '../../shared/components/booking-car
 import { BookingService } from '../../core/services/booking';
 import { CatalogService } from '../../core/services/catalog';
 import { AuthService } from '../../core/services/auth';
+import { I18nService } from '../../core/i18n/i18n.service';
 import {
   ReservationEmailNotificationService,
   ReservationStatusEmailPayload,
@@ -88,6 +89,7 @@ export class ConfirmReservationPage {
   private bookingService = inject(BookingService);
   private catalogService = inject(CatalogService);
   private authService = inject(AuthService);
+  private i18n = inject(I18nService);
   private reservationEmailNotificationService = inject(ReservationEmailNotificationService);
 
   private reservationStatusEmailSent = false;
@@ -128,8 +130,22 @@ export class ConfirmReservationPage {
 
   readonly reason = computed(
     () => this.route.snapshot.queryParamMap.get('reason') ??
-      'No fue posible confirmar la reserva.'
+      this.i18n.translate('confirmReservation.rejectedDefaultReason')
   );
+
+  readonly statusTitle = computed(() =>
+    this.isConfirmed()
+      ? this.i18n.translate('confirmReservation.titleConfirmed')
+      : this.i18n.translate('confirmReservation.titleRejected')
+  );
+
+  readonly statusReason = computed(() => {
+    if (this.isConfirmed()) {
+      return this.i18n.translate('confirmReservation.reasonConfirmed');
+    }
+
+    return this.localizeRejectedReason(this.reason());
+  });
 
   constructor() {
     this.loadSummary();
@@ -315,6 +331,26 @@ export class ConfirmReservationPage {
       .toLowerCase();
   }
 
+  private normalizeComparableText(text: string): string {
+    return this.normalizeText(text).replace(/[.!]+$/, '');
+  }
+
+  private localizeRejectedReason(reason: string): string {
+    const normalizedReason = this.normalizeComparableText(reason);
+    const genericReasons = [
+      'The booking could not be confirmed.',
+      'No fue posible confirmar la reserva.',
+      'Reservation could not be confirmed.',
+      'Reserva no confirmada.',
+    ].map(value => this.normalizeComparableText(value));
+
+    if (genericReasons.includes(normalizedReason)) {
+      return this.i18n.translate('processing.cancelled');
+    }
+
+    return reason;
+  }
+
   private buildTemporaryConfirmationCode(reservationId: string): string {
     return reservationId.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
   }
@@ -409,5 +445,9 @@ export class ConfirmReservationPage {
 
   showStatusNotAvailableAlert(): void {
     window.alert('Esta funcionalidad aun no esta disponible.');
+  }
+
+  t(key: string): string {
+    return this.i18n.translate(key);
   }
 }

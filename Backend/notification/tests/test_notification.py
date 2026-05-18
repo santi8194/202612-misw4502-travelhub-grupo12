@@ -64,7 +64,10 @@ class TestReservationStatusNotificationEndpoint:
     """Tests for POST /notifications/reservations/status-email."""
 
     def test_confirmed_status_notification(self):
-        with patch("config.app.start_consumer"), patch(
+        with patch("config.app.start_consumer"), \
+             patch("config.app.Base.metadata.create_all"), \
+             patch("config.app.initialize_firebase"), \
+             patch(
             "api.reservation_notifications.send_reservation_status_email"
         ) as sender:
             from config.app import create_app
@@ -85,7 +88,10 @@ class TestReservationStatusNotificationEndpoint:
         sender.assert_called_once()
 
     def test_cancelled_status_notification_with_refund(self):
-        with patch("config.app.start_consumer"), patch(
+        with patch("config.app.start_consumer"), \
+             patch("config.app.Base.metadata.create_all"), \
+             patch("config.app.initialize_firebase"), \
+             patch(
             "api.reservation_notifications.send_reservation_status_email"
         ) as sender:
             from config.app import create_app
@@ -108,7 +114,9 @@ class TestReservationStatusNotificationEndpoint:
         sender.assert_called_once()
 
     def test_invalid_status_returns_400(self):
-        with patch("config.app.start_consumer"):
+        with patch("config.app.start_consumer"), \
+             patch("config.app.Base.metadata.create_all"), \
+             patch("config.app.initialize_firebase"):
             from config.app import create_app
             app = create_app()
             with TestClient(app) as client:
@@ -385,9 +393,12 @@ class TestConsumerCallback:
             "data": {"id_reserva": "r-9", "emailCliente": "cancel@test.com"},
         }).encode()
 
-        with patch("modules.consumers.reserva_confirmada_consumer.send_voucher_email") as me, \
+        with patch("modules.consumers.reserva_confirmada_consumer.SessionLocal") as mock_session, \
+             patch("modules.consumers.reserva_confirmada_consumer.send_voucher_email") as me, \
              patch("modules.consumers.reserva_confirmada_consumer.publish_voucher_enviado") as mp, \
              patch("modules.consumers.reserva_confirmada_consumer.send_reservation_status_email") as ms:
+            db = mock_session.return_value
+            db.query.return_value.filter.return_value.first.return_value = None
             callback(ch, method, props, body)
 
         me.assert_not_called()

@@ -26,7 +26,7 @@ export class ReservationCardComponent {
 
   protected formatCurrency(amount: number | null, moneda: string): string {
     if (amount === null) return '—';
-    return this.i18n.formatCurrency(amount, moneda);
+    return this.currency.format(amount, moneda);
   }
 
   protected getStatusClass(estado: ReservationStatus): string {

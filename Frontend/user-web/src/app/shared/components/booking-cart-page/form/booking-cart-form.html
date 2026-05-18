@@ -1,9 +1,9 @@
 <div class="details-card" data-testid="guest-details-card">
-  <h2 class="card-title">Detalles del huésped principal</h2>
+  <h2 class="card-title">{{ 'bookingCartForm.title' | translate }}</h2>
 
   <div class="form-grid">
     <div class="field-wrap">
-      <label class="field-label" for="name">Nombre(s)</label>
+      <label class="field-label" for="name">{{ 'bookingCartForm.name' | translate }}</label>
       <input 
         id="name" 
         class="field-input" 
@@ -14,12 +14,12 @@
         data-testid="input-name" 
         placeholder="Juan" />
       @if (shouldShowError('name')) {
-        <small class="field-error">Ingresa un nombre válido (solo letras y espacios).</small>
+        <small class="field-error">{{ 'bookingCartForm.nameError' | translate }}</small>
       }
     </div>
 
     <div class="field-wrap">
-      <label class="field-label" for="lastName">Apellido</label>
+      <label class="field-label" for="lastName">{{ 'bookingCartForm.lastName' | translate }}</label>
       <input 
         id="lastName" 
         class="field-input" 
@@ -30,13 +30,13 @@
         data-testid="input-lastname" 
         placeholder="Pérez" />
       @if (shouldShowError('lastName')) {
-        <small class="field-error">Ingresa un apellido válido (solo letras y espacios).</small>
+        <small class="field-error">{{ 'bookingCartForm.lastNameError' | translate }}</small>
       }
     </div>
   </div>
 
   <div class="field-wrap field-full">
-    <label class="field-label" for="email">Email</label>
+    <label class="field-label" for="email">{{ 'bookingCartForm.email' | translate }}</label>
     <input 
       id="email" 
       type="email"
@@ -48,12 +48,12 @@
       data-testid="input-email" 
       placeholder="tu@ejemplo.com" />
     @if (shouldShowError('email')) {
-      <small class="field-error">Ingresa un correo válido (ej: tu@ejemplo.com).</small>
+      <small class="field-error">{{ 'bookingCartForm.emailError' | translate }}</small>
     }
   </div>
 
   <div class="field-wrap field-full">
-    <label class="field-label" for="phone">Celular</label>
+    <label class="field-label" for="phone">{{ 'bookingCartForm.phone' | translate }}</label>
     <input 
       id="phone" 
       type="tel"
@@ -65,12 +65,12 @@
       data-testid="input-phone" 
       placeholder="+573001112233" />
     @if (shouldShowError('phone')) {
-      <small class="field-error">Debe incluir el código de país (ej: +573001112233).</small>
+      <small class="field-error">{{ 'bookingCartForm.phoneError' | translate }}</small>
     }
   </div>
 
   <div class="field-wrap field-full">
-    <label class="field-label" for="request">Solicitud detallada (Opcional)</label>
+    <label class="field-label" for="request">{{ 'bookingCartForm.request' | translate }}</label>
     <textarea 
       id="request" 
       class="field-textarea" 
@@ -84,6 +84,6 @@
     class="pay-btn"
     [disabled]="disableContinue || !isFormValid()"
     data-testid="continue-payment-btn">
-    {{ isSubmitting ? 'Confirmando reserva...' : 'Continuar con el pago' }}
+    {{ isSubmitting ? ('bookingCartForm.submitting' | translate) : ('bookingCartForm.continuePayment' | translate) }}
   </button>
 </div>

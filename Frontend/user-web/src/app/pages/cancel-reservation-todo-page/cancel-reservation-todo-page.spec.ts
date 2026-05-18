@@ -186,9 +186,7 @@ describe('CancelReservationTodoPage', () => {
     textarea.value = 'Cambio de planes';
     textarea.dispatchEvent(new Event('input'));
 
-    const keepButton = Array.from(
-      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>
-    ).find(button => button.textContent?.includes('Mantener Mi Reserva')) as HTMLButtonElement;
+    const keepButton = fixture.nativeElement.querySelector('[data-testid="cancel-keep-reservation"]') as HTMLButtonElement;
     keepButton.click();
 
     expect(textarea.value).toBe('Cambio de planes');
@@ -221,9 +219,7 @@ describe('CancelReservationTodoPage', () => {
     (fixture.nativeElement.querySelector('[data-testid="cancel-open-warning"]') as HTMLButtonElement).click();
     fixture.detectChanges();
 
-    const closeButton = Array.from(
-      fixture.nativeElement.querySelectorAll('.modal-panel button') as NodeListOf<HTMLButtonElement>
-    ).find(button => button.textContent?.includes('Volver')) as HTMLButtonElement;
+    const closeButton = fixture.nativeElement.querySelector('[data-testid="cancel-close-warning"]') as HTMLButtonElement;
     closeButton.click();
     fixture.detectChanges();
 

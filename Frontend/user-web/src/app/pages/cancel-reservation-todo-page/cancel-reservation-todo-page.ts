@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { BookingService } from '../../core/services/booking';
 import type {
   BookingEstado,
@@ -12,6 +13,7 @@ import type {
 } from '../../models/reservation.interface';
 import { FooterComponent } from '../../shared/components/footer/footer';
 import { HeaderComponent } from '../../shared/components/header/header';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 type CancellationPageState =
   | 'loading'
@@ -26,7 +28,7 @@ type CancellationPageState =
 @Component({
   selector: 'app-cancel-reservation-todo-page',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent],
+  imports: [HeaderComponent, FooterComponent, TranslatePipe],
   templateUrl: './cancel-reservation-todo-page.html',
   styleUrl: './cancel-reservation-todo-page.css',
 })
@@ -35,6 +37,7 @@ export class CancelReservationTodoPage {
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly bookingService = inject(BookingService);
+  private readonly i18n = inject(I18nService);
 
   readonly state = signal<CancellationPageState>('loading');
   readonly preview = signal<CancellationPreview | null>(null);
@@ -123,43 +126,32 @@ export class CancelReservationTodoPage {
       next: (result) => this.handleCancellationResult(result),
       error: (error) => {
         this.warningOpen.set(false);
-        this.errorMessage.set(this.resolveErrorMessage(error, 'No fue posible procesar la cancelacion. Intenta nuevamente.'));
+        this.errorMessage.set(this.resolveErrorMessage(error, this.i18n.translate('cancelReservation.error.processFallback')));
         this.state.set(this.preview()?.canCancel ? 'loaded' : 'notCancelable');
       },
     });
   }
 
   protected formatDate(value: string | null): string {
-    if (!value) return 'No disponible';
-
-    const date = new Date(`${value}T00:00:00`);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+    if (!value) return this.i18n.translate('cancelReservation.notAvailable');
+    return this.i18n.formatDate(value);
   }
 
   protected formatCurrency(amount: number | null | undefined, currency: string | null | undefined): string {
-    if (amount === null || amount === undefined || !currency) return 'No disponible';
-
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    if (amount === null || amount === undefined || !currency) return this.i18n.translate('cancelReservation.notAvailable');
+    return this.i18n.formatCurrency(amount, currency);
   }
 
   protected formatStatus(status: BookingEstado | null | undefined): string {
     const labels: Partial<Record<BookingEstado, string>> = {
-      HOLD: 'Hold',
-      PENDIENTE: 'Pendiente',
-      CONFIRMADA: 'Confirmada',
-      CANCELACION_EN_PROCESO: 'Cancelacion en proceso',
-      CANCELADA: 'Cancelada',
-      EXPIRADA: 'Expirada',
+      HOLD: this.i18n.translate('cancelReservation.status.hold'),
+      PENDIENTE: this.i18n.translate('cancelReservation.status.pending'),
+      CONFIRMADA: this.i18n.translate('cancelReservation.status.confirmed'),
+      CANCELACION_EN_PROCESO: this.i18n.translate('cancelReservation.status.processing'),
+      CANCELADA: this.i18n.translate('cancelReservation.status.cancelled'),
+      EXPIRADA: this.i18n.translate('cancelReservation.status.expired'),
     };
-    return status ? labels[status] ?? status : 'No disponible';
+    return status ? labels[status] ?? status : this.i18n.translate('cancelReservation.notAvailable');
   }
 
   protected isPolicyActive(type: CancellationPolicyType): boolean {
@@ -168,9 +160,9 @@ export class CancelReservationTodoPage {
 
   protected getPolicyLabel(type: CancellationPolicyType): string {
     const labels: Record<CancellationPolicyType, string> = {
-      FREE_CANCELLATION: 'Cancelacion gratuita',
-      PARTIAL_REFUND: 'Reembolso parcial',
-      NON_REFUNDABLE: 'No reembolsable',
+      FREE_CANCELLATION: this.i18n.translate('cancelReservation.policy.free'),
+      PARTIAL_REFUND: this.i18n.translate('cancelReservation.policy.partial'),
+      NON_REFUNDABLE: this.i18n.translate('cancelReservation.policy.none'),
     };
     return labels[type];
   }
@@ -209,7 +201,7 @@ export class CancelReservationTodoPage {
 
   private handlePreviewError(error: unknown): void {
     const status = error instanceof HttpErrorResponse ? error.status : undefined;
-    this.errorMessage.set(this.resolveErrorMessage(error, 'No fue posible cargar la informacion de cancelacion.'));
+    this.errorMessage.set(this.resolveErrorMessage(error, this.i18n.translate('cancelReservation.error.loadFallback')));
 
     if (status === 401) {
       this.state.set('unauthorized');
@@ -253,13 +245,13 @@ export class CancelReservationTodoPage {
         return backendMessage.trim();
       }
 
-      if (error.status === 401) return 'Debes iniciar sesion para continuar.';
-      if (error.status === 403) return 'No tienes permiso para cancelar esta reserva.';
-      if (error.status === 404) return 'La reserva solicitada no existe o ya no esta disponible.';
-      if (error.status === 400) return 'La solicitud de cancelacion no es valida.';
-      if (error.status === 409) return 'La reserva no puede cancelarse en su estado actual.';
-      if (error.status === 0) return 'No fue posible contactar el servicio de cancelaciones.';
-      if (error.status >= 500) return 'Ocurrio un error tecnico al procesar la solicitud.';
+      if (error.status === 401) return this.i18n.translate('cancelReservation.error.loginRequired');
+      if (error.status === 403) return this.i18n.translate('cancelReservation.error.forbidden');
+      if (error.status === 404) return this.i18n.translate('cancelReservation.notFoundBody');
+      if (error.status === 400) return this.i18n.translate('cancelReservation.error.badRequest');
+      if (error.status === 409) return this.i18n.translate('cancelReservation.error.conflict');
+      if (error.status === 0) return this.i18n.translate('cancelReservation.error.unreachable');
+      if (error.status >= 500) return this.i18n.translate('cancelReservation.error.server');
     }
 
     return fallback;

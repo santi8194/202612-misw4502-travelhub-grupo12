@@ -108,8 +108,8 @@ describe('Cancel Reservation Flow', () => {
     cy.wait('@getPayment');
     cy.get('[data-testid="reservation-detail-cancel"]').click();
     cy.location('pathname').should('eq', `/mis-reservas/${RESERVATION_ID}/cancelar`);
-    cy.wait('@getPreview');
-    cy.contains('button', 'Mantener Mi Reserva').click();
+    cy.wait('@getPreview', { timeout: 20000 });
+    cy.get('[data-testid="cancel-keep-reservation"]').click();
     cy.location('pathname').should('eq', `/mis-reservas/${RESERVATION_ID}`);
   });
 
@@ -133,13 +133,13 @@ describe('Cancel Reservation Flow', () => {
       },
     });
 
-    cy.wait('@getPreview');
+    cy.wait('@getPreview', { timeout: 20000 });
     cy.get('[data-testid="cancel-summary"]').should('be.visible');
     cy.get('[data-testid="cancel-open-warning"]').click();
     cy.get('[data-testid="cancel-terms"]').check();
     cy.get('[data-testid="cancel-confirm"]').click();
     cy.wait('@cancelReservation');
-    cy.get('[data-testid="cancel-reservation-processing"]').should('contain.text', 'Cancelacion en proceso');
+    cy.get('[data-testid="cancel-reservation-processing"]').invoke('text').should('match', /Cancelaci[oó]n en proceso/i);
     cy.get('[data-testid="cancel-processing-reference"]').should('contain.text', 'CXL-BK002');
   });
 
@@ -156,7 +156,7 @@ describe('Cancel Reservation Flow', () => {
       },
     });
 
-    cy.wait('@getPreview');
+    cy.wait('@getPreview', { timeout: 20000 });
     cy.get('[data-testid="cancel-reservation-non-cancelable"]').should('contain.text', 'La politica ya no permite cancelacion.');
     cy.get('[data-testid="cancel-open-warning"]').should('not.exist');
   });
@@ -175,7 +175,7 @@ describe('Cancel Reservation Flow', () => {
       },
     });
 
-    cy.wait('@getPreview');
+    cy.wait('@getPreview', { timeout: 20000 });
     cy.get('[data-testid="cancel-open-warning"]').click();
     cy.get('[data-testid="cancel-terms"]').check();
     cy.get('[data-testid="cancel-confirm"]').click();

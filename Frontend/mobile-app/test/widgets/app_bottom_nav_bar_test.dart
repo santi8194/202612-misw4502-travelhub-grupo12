@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
+import 'package:travel_hub/services/booking_service.dart';
+import 'package:travel_hub/services/user_service.dart';
+import 'package:travel_hub/view_models/notifications_view_model.dart';
 import 'package:travel_hub/view_models/reservations_list_view_model.dart';
 import 'package:travel_hub/view_models/search_view_model.dart';
 import 'package:travel_hub/view_models/user_preferences_view_model.dart';
@@ -14,13 +17,25 @@ class MockSearchViewModel extends Mock implements SearchViewModel {}
 class MockReservationsListViewModel extends Mock
     implements ReservationsListViewModel {}
 
+class MockNotificationsViewModel extends Mock
+    implements NotificationsViewModel {}
+
+class MockUserService extends Mock implements UserService {}
+
+class MockBookingService extends Mock implements BookingService {}
+
 Widget _buildTestApp({
   required Widget child,
   NavigatorObserver? navigatorObserver,
 }) {
   final mockSearchVM = MockSearchViewModel();
   final mockReservationsVM = MockReservationsListViewModel();
+  final mockNotificationsVM = MockNotificationsViewModel();
+  final mockUserService = MockUserService();
+  final mockBookingService = MockBookingService();
 
+  when(() => mockNotificationsVM.unreadCount).thenReturn(0);
+  when(() => mockUserService.getUserId()).thenAnswer((_) async => 'user-123');
   when(() => mockSearchVM.destinationQuery).thenReturn('');
   when(() => mockSearchVM.isSearching).thenReturn(false);
   when(() => mockSearchVM.isOffline).thenReturn(false);
@@ -40,7 +55,12 @@ Widget _buildTestApp({
       ChangeNotifierProvider<ReservationsListViewModel>.value(
         value: mockReservationsVM,
       ),
+      ChangeNotifierProvider<NotificationsViewModel>.value(
+        value: mockNotificationsVM,
+      ),
       ChangeNotifierProvider(create: (_) => UserPreferencesViewModel()),
+      Provider<UserService>.value(value: mockUserService),
+      Provider<BookingService>.value(value: mockBookingService),
     ],
     child: MaterialApp(
       locale: const Locale('en'),

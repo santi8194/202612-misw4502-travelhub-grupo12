@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../services/user_service.dart';
 import '../view_models/reservations_list_view_model.dart';
 import '../widgets/reservation_card.dart';
 import '../widgets/reservation_card_skeleton.dart';
@@ -15,12 +16,22 @@ class ReservationsListView extends StatefulWidget {
 }
 
 class _ReservationsListViewState extends State<ReservationsListView> {
+  bool _isInitialLoad = true;
+
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ReservationsListViewModel>().loadReservations('user-123');
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInitialLoad) {
+      _loadReservations();
+      _isInitialLoad = false;
+    }
+  }
+
+  Future<void> _loadReservations() async {
+    final userService = context.read<UserService>();
+    final listViewModel = context.read<ReservationsListViewModel>();
+    final userId = await userService.getUserId();
+    await listViewModel.loadReservations(userId);
   }
 
   @override
@@ -38,7 +49,10 @@ class _ReservationsListViewState extends State<ReservationsListView> {
             }
 
             return RefreshIndicator(
-              onRefresh: () => viewModel.loadReservations('user-123'),
+              onRefresh: () async {
+                final userId = await context.read<UserService>().getUserId();
+                await viewModel.loadReservations(userId);
+              },
               child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(

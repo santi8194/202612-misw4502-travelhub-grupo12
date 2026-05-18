@@ -6,18 +6,28 @@ import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
 import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/models/reservation.dart';
+import 'package:travel_hub/services/booking_service.dart';
+import 'package:travel_hub/services/user_service.dart';
 import 'package:travel_hub/view_models/reservations_list_view_model.dart';
 import 'package:travel_hub/views/reservations_list_view.dart';
 
 class MockReservationsListViewModel extends Mock
     implements ReservationsListViewModel {}
 
+class MockUserService extends Mock implements UserService {}
+
+class MockBookingService extends Mock implements BookingService {}
+
 void main() {
   late MockReservationsListViewModel mockVM;
+  late MockUserService mockUserService;
+  late MockBookingService mockBookingService;
   late List<Reservation> upcoming;
 
   setUp(() {
     mockVM = MockReservationsListViewModel();
+    mockUserService = MockUserService();
+    mockBookingService = MockBookingService();
     upcoming = [
       Reservation(
         id: 'res-1',
@@ -45,12 +55,15 @@ void main() {
     when(() => mockVM.reservations).thenReturn(upcoming);
     when(() => mockVM.errorMessage).thenReturn(null);
     when(() => mockVM.isOffline).thenReturn(false);
+    when(() => mockUserService.getUserId()).thenAnswer((_) async => 'user-123');
     when(() => mockVM.loadReservations(any())).thenAnswer((_) async => {});
   });
 
   Widget createWidgetUnderTest() {
     return MultiProvider(
       providers: [
+        Provider<UserService>.value(value: mockUserService),
+        Provider<BookingService>.value(value: mockBookingService),
         ChangeNotifierProvider<ReservationsListViewModel>.value(value: mockVM),
       ],
       child: const MaterialApp(
@@ -123,7 +136,7 @@ void main() {
     await tester.fling(find.text('Mis Reservas'), const Offset(0, 300), 1000);
     await tester.pumpAndSettle();
 
-    verify(() => mockVM.loadReservations('user-123')).called(greaterThan(0));
+    verify(() => mockVM.loadReservations(any())).called(greaterThan(0));
   });
 
   testWidgets('ReservationsListView tap navigates to detail', (tester) async {

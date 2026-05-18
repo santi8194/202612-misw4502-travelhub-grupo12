@@ -48,7 +48,11 @@ class BookingService {
 
   Future<Reservation> getReservationDetail(String reservationId) async {
     final uri = Uri.parse('$baseUrl/reserva/$reservationId');
+    debugPrint('BookingService: GET $uri for reservation $reservationId');
     final response = await _httpClient.get(uri);
+    debugPrint(
+      'BookingService: response status=${response.statusCode}, body=${response.body}',
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body) as Map<String, dynamic>;
@@ -75,11 +79,36 @@ class BookingService {
   Future<Map<String, dynamic>?> _getCategory(String categoryId) async {
     try {
       final uri = Uri.parse('$catalogBaseUrl/categories/$categoryId');
+      debugPrint('BookingService: GET category $uri');
       final response = await _httpClient.get(uri);
+      debugPrint(
+        'BookingService: category response status=${response.statusCode}, body=${response.body}',
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body) as Map<String, dynamic>;
       }
-    } catch (_) {}
+    } catch (error) {
+      debugPrint('BookingService: category error=$error');
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> _getPropertyDetail(String categoryId) async {
+    try {
+      final uri = Uri.parse(
+        '$catalogBaseUrl/categories/$categoryId/view-detail',
+      );
+      debugPrint('BookingService: GET property detail $uri');
+      final response = await _httpClient.get(uri);
+      debugPrint(
+        'BookingService: property detail response status=${response.statusCode}, body=${response.body}',
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      }
+    } catch (error) {
+      debugPrint('BookingService: property detail error=$error');
+    }
     return null;
   }
 
@@ -88,11 +117,17 @@ class BookingService {
       final uri = Uri.parse(
         '$paymentBaseUrl/payments/by-reserva/$reservationId',
       );
+      debugPrint('BookingService: GET payment info $uri');
       final response = await _httpClient.get(uri);
+      debugPrint(
+        'BookingService: payment response status=${response.statusCode}, body=${response.body}',
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body) as Map<String, dynamic>;
       }
-    } catch (_) {}
+    } catch (error) {
+      debugPrint('BookingService: payment error=$error');
+    }
     return null;
   }
 
@@ -103,6 +138,9 @@ class BookingService {
   ) async {
     try {
       final uri = Uri.parse('$catalogBaseUrl/calculate-room-price');
+      debugPrint(
+        'BookingService: POST $uri body=${json.encode({'id_categoria': categoryId, 'fecha_inicio': checkIn, 'fecha_fin': checkOut, 'pais_usuario': 'CO'})}',
+      );
       final response = await _httpClient.post(
         uri,
         headers: {'Content-Type': 'application/json'},
@@ -113,28 +151,43 @@ class BookingService {
           'pais_usuario': 'CO', // Default to CO if unknown
         }),
       );
+      debugPrint(
+        'BookingService: price calc response status=${response.statusCode}, body=${response.body}',
+      );
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
         return (data['total'] as num?)?.toDouble();
       }
-    } catch (_) {}
+    } catch (error) {
+      debugPrint('BookingService: price calc error=$error');
+    }
     return null;
   }
 
   Future<Reservation> _enrichReservation(Map<String, dynamic> booking) async {
     final reservationId = booking['id_reserva'] as String;
     final categoryId = booking['id_categoria'] as String;
+    debugPrint(
+      'BookingService: enriching reservation=$reservationId booking=$booking',
+    );
 
     final results = await Future.wait([
       _getCategory(categoryId),
       _getPaymentInfo(reservationId),
+      _getPropertyDetail(categoryId),
     ]);
+
+    debugPrint('BookingService: category/payment/property results = $results');
 
     final category = results[0];
     final payment = results[1];
+    final propertyDetail = results[2];
 
     final paymentStatus = payment?['estado'] as String?;
     double? price = (payment?['monto'] as num?)?.toDouble();
+    debugPrint(
+      'BookingService: paymentStatus=$paymentStatus initialPrice=$price',
+    );
 
     if (paymentStatus != 'APPROVED') {
       final calculatedPrice = await _calculatePrice(
@@ -142,6 +195,7 @@ class BookingService {
         booking['fecha_check_in'] as String,
         booking['fecha_check_out'] as String,
       );
+      debugPrint('BookingService: calculatedPrice=$calculatedPrice');
       if (calculatedPrice != null) {
         price = calculatedPrice;
       }
@@ -153,9 +207,30 @@ class BookingService {
         (ocupacion['ninos'] as int? ?? 0) +
         (ocupacion['infantes'] as int? ?? 0);
 
+    final property = propertyDetail?['propiedad'] as Map<String, dynamic>?;
+    final locationData = property?['ubicacion'] as Map<String, dynamic>?;
+    final String location;
+    if (locationData != null) {
+      final city = locationData['ciudad'] as String? ?? '';
+      final state = locationData['estado_provincia'] as String? ?? '';
+      final country = locationData['pais'] as String? ?? '';
+      location = [city, state, country].where((s) => s.isNotEmpty).join(', ');
+    } else {
+      location = '';
+    }
+
+    final amenitiesList = propertyDetail?['amenidades'] as List<dynamic>? ?? [];
+    final amenities = amenitiesList
+        .map((a) => (a as Map<String, dynamic>)['nombre'] as String)
+        .toList();
+
     return Reservation(
       id: reservationId,
-      hotelName: category?['nombre_comercial'] as String? ?? '—',
+      hotelName:
+          property?['nombre'] as String? ??
+          category?['nombre_comercial'] as String? ??
+          '—',
+      hotelAddress: location,
       confirmationCode:
           (booking['codigo_confirmacion_ota'] as String?) ??
           (booking['codigo_localizador_pms'] as String?) ??
@@ -168,13 +243,12 @@ class BookingService {
       status: _resolveStatus(booking['estado'] as String, paymentStatus),
       room: Habitacion(
         title: category?['nombre_comercial'] as String? ?? 'Habitación',
-        location:
-            '', // Catalog doesn't provide this in the category list endpoint
+        location: location,
         imageUrl:
             category?['foto_portada_url'] as String? ??
             'https://via.placeholder.com/150',
         price: price ?? 0.0,
-        amenities: [],
+        amenities: amenities,
       ),
     );
   }
@@ -182,16 +256,26 @@ class BookingService {
   Future<List<Reservation>> getUserReservations(String userId) async {
     try {
       final uri = Uri.parse('$baseUrl/reserva/usuario/$userId');
+      debugPrint('BookingService: GET $uri for user $userId');
       final response = await _httpClient.get(uri);
+      debugPrint(
+        'BookingService: user reservations response status=${response.statusCode}, body=${response.body}',
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> bookings = json.decode(response.body);
+        debugPrint('BookingService: found ${bookings.length} bookings');
         final enrichedReservations = await Future.wait(
           bookings.map((b) => _enrichReservation(b as Map<String, dynamic>)),
         );
+        debugPrint(
+          'BookingService: enriched reservations count=${enrichedReservations.length}',
+        );
         return enrichedReservations;
       }
-    } catch (_) {}
+    } catch (error) {
+      debugPrint('BookingService: getUserReservations error=$error');
+    }
     return [];
   }
 }

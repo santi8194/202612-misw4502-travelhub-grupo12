@@ -4,7 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
+import 'package:travel_hub/services/booking_service.dart';
 import 'package:travel_hub/services/connectivity_service.dart';
+import 'package:travel_hub/services/user_service.dart';
+import 'package:travel_hub/view_models/notifications_view_model.dart';
 import 'package:travel_hub/view_models/reservations_list_view_model.dart';
 import 'package:travel_hub/view_models/search_view_model.dart';
 import 'package:travel_hub/view_models/user_preferences_view_model.dart';
@@ -17,6 +20,13 @@ class MockReservationsListViewModel extends Mock
 
 class MockConnectivityService extends Mock implements ConnectivityService {}
 
+class MockNotificationsViewModel extends Mock
+    implements NotificationsViewModel {}
+
+class MockUserService extends Mock implements UserService {}
+
+class MockBookingService extends Mock implements BookingService {}
+
 void main() {
   setUpAll(() {
     registerFallbackValue(DateTime.now());
@@ -28,7 +38,12 @@ void main() {
     final mockSearchVM = MockSearchViewModel();
     final mockReservationsVM = MockReservationsListViewModel();
     final mockConnectivity = MockConnectivityService();
+    final mockNotificationsVM = MockNotificationsViewModel();
+    final mockUserService = MockUserService();
+    final mockBookingService = MockBookingService();
 
+    when(() => mockNotificationsVM.unreadCount).thenReturn(0);
+    when(() => mockUserService.getUserId()).thenAnswer((_) async => 'user-123');
     when(() => mockSearchVM.destinationQuery).thenReturn('');
     when(() => mockSearchVM.selectedDateRange).thenReturn(null);
     when(() => mockSearchVM.guestCount).thenReturn(2);
@@ -61,6 +76,11 @@ void main() {
           ChangeNotifierProvider<UserPreferencesViewModel>(
             create: (_) => UserPreferencesViewModel(),
           ),
+          ChangeNotifierProvider<NotificationsViewModel>.value(
+            value: mockNotificationsVM,
+          ),
+          Provider<UserService>.value(value: mockUserService),
+          Provider<BookingService>.value(value: mockBookingService),
         ],
         child: const MaterialApp(
           localizationsDelegates: [

@@ -16,17 +16,22 @@ class ReservationsListView extends StatefulWidget {
 }
 
 class _ReservationsListViewState extends State<ReservationsListView> {
+  bool _isInitialLoad = true;
+
   @override
-  void initState() {
-    super.initState();
-    _loadReservations();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInitialLoad) {
+      _loadReservations();
+      _isInitialLoad = false;
+    }
   }
 
   Future<void> _loadReservations() async {
     final userService = context.read<UserService>();
     final listViewModel = context.read<ReservationsListViewModel>();
     final userId = await userService.getUserId();
-    listViewModel.loadReservations(userId);
+    await listViewModel.loadReservations(userId);
   }
 
   @override

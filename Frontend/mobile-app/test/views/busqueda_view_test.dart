@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:travel_hub/l10n/app_localizations.dart';
 import 'package:travel_hub/models/habitacion.dart';
 import 'package:travel_hub/models/location_suggestion.dart';
 import 'package:travel_hub/services/search_service.dart';
+import 'package:travel_hub/view_models/notifications_view_model.dart';
 import 'package:travel_hub/view_models/search_view_model.dart';
 import 'package:travel_hub/views/busqueda_view.dart';
+
+class MockNotificationsViewModel extends Mock
+    implements NotificationsViewModel {}
 
 class MockSearchService extends SearchService {
   @override
@@ -35,11 +40,16 @@ void main() {
     WidgetTester tester,
   ) async {
     final viewModel = SearchViewModel(searchService: MockSearchService());
+    final mockNotificationsVM = MockNotificationsViewModel();
+    when(() => mockNotificationsVM.unreadCount).thenReturn(0);
 
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider<SearchViewModel>.value(value: viewModel),
+          ChangeNotifierProvider<NotificationsViewModel>.value(
+            value: mockNotificationsVM,
+          ),
         ],
         child: MaterialApp(
           localizationsDelegates: const [

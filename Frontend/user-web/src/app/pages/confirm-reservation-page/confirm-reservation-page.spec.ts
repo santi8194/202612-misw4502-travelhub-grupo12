@@ -413,4 +413,64 @@ describe('ConfirmReservationPage', () => {
     });
     req.flush({ ok: true });
   });
+
+  it('should fallback to query cancelled status and default refund values in status email payload', async () => {
+    await setup(
+      RESERVATION_ID,
+      {
+        status: 'cancelled',
+        reason: 'Reserva cancelada por inventario',
+      },
+      'viajero@travelhub.com',
+    );
+
+    flushBooking({ ...mockBooking, estado: undefined });
+    flushSummaryDependencies();
+
+    const previewReq = httpTesting.expectOne(
+      `${environment.bookingApiUrl}/${RESERVATION_ID}/cancelacion-preview`
+    );
+    expect(previewReq.request.method).toBe('GET');
+    previewReq.flush({ refund: {} });
+
+    const req = httpTesting.expectOne(
+      `${environment.notificationApiUrl}/notifications/reservations/status-email`
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      id_reserva: RESERVATION_ID,
+      email_cliente: 'viajero@travelhub.com',
+      estado: 'CANCELADA',
+      monto_reembolso: 0,
+      moneda_reembolso: 'COP',
+      detalle_reembolso: 'Reserva cancelada por inventario',
+    });
+    req.flush({ ok: true });
+  });
+
+  it('should fallback to query confirmed status for reservation status email', async () => {
+    await setup(
+      RESERVATION_ID,
+      {
+        status: 'confirmed',
+        reason: 'Reserva formalizada correctamente',
+      },
+      'viajero@travelhub.com',
+    );
+
+    flushBooking({ ...mockBooking, estado: undefined });
+    flushSummaryDependencies();
+
+    const req = httpTesting.expectOne(
+      `${environment.notificationApiUrl}/notifications/reservations/status-email`
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      id_reserva: RESERVATION_ID,
+      email_cliente: 'viajero@travelhub.com',
+      estado: 'CONFIRMADA',
+      codigo_reserva: 'RESERV',
+    });
+    req.flush({ ok: true });
+  });
 });

@@ -30,6 +30,10 @@ def _env(*keys: str) -> str | None:
 
 
 def build_database_url() -> str:
+    explicit_url = os.getenv("DATABASE_URL")
+    if explicit_url:
+        return explicit_url
+
     db_host = _env("NOTIFICATION_DB_HOST", "DB_HOST")
     db_port = _env("NOTIFICATION_DB_PORT", "DB_PORT") or "5432"
     db_name = _env("NOTIFICATION_DB_NAME", "DB_NAME")

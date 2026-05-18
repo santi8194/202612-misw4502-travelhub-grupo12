@@ -6,6 +6,7 @@ from api.notifications import router as notifications_router
 from api.reservation_notifications import router as reservation_notifications_router
 from modules.consumers.reserva_confirmada_consumer import start_consumer
 from config.firebase import initialize_firebase
+from config.db import Base, engine
 
 def create_app():
     initialize_firebase()
@@ -16,6 +17,7 @@ def create_app():
 
     @app.on_event("startup")
     def startup_event():
+        Base.metadata.create_all(bind=engine)
         consumer_thread = threading.Thread(target=start_consumer, daemon=True)
         consumer_thread.start()
 

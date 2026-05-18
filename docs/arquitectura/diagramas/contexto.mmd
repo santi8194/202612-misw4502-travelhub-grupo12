@@ -1,0 +1,11 @@
+flowchart LR
+    user["Usuario final"] --> userweb["user-web"]
+    partner["Partner hotelero"] --> partnerweb["partner-web"]
+    mobile["Usuario móvil"] --> mobileapp["mobile-app"]
+    userweb --> backend["TravelHub backend"]
+    partnerweb --> backend
+    mobileapp --> backend
+    backend --> wompi["Wompi"]
+    backend --> pms["PMS externo o mock-pms"]
+    devops["GitHub Actions"] --> aws["AWS"]
+    backend --> aws

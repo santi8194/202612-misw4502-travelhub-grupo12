@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant U as user-web
+    participant B as booking
+    participant MQ as RabbitMQ
+    participant P as payment
+    participant PMS as pms-integration
+    participant PM as partner-management
+    participant N as notification
+
+    U->>B: Crear reserva
+    B->>MQ: ReservaCreadaIntegracionEvt
+    MQ->>P: ProcesarPagoCmd / evt.reserva.creada
+    P->>MQ: PagoExitosoEvt o PagoRechazadoEvt
+    MQ->>PMS: ConfirmarReservaPmsCmd
+    PMS->>MQ: ConfirmacionPmsExitosaEvt o ReservaRechazadaPmsEvt
+    MQ->>PM: SolicitarAprobacionManualCmd
+    PM->>MQ: ReservaAprobadaManualEvt o ReservaRechazadaManualEvt
+    MQ->>B: ConfirmarReservaLocalCmd
+    B->>MQ: ReservaConfirmadaEvt
+    MQ->>N: evt.reserva.confirmada
+    N->>MQ: VoucherEnviadoEvt

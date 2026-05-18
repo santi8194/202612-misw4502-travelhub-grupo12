@@ -1,89 +1,56 @@
 # Auth Service
 
-Microservicio de autenticación para la plataforma hotelera. Genera tokens JWT stateless integrándose de forma mockeada con el servicio de Usuarios.
+## Propósito
+
+Servicio de autenticación para registro, inicio de sesión y emisión de tokens JWT.
+
+## Responsabilidad dentro del sistema
+
+Centraliza autenticación y consulta de identidad para el resto de componentes.
+
+## Dependencias
+
+- Base de datos del servicio
 
 ## Requisitos
 
-- Python 3.9+
+- Python
+- Dependencias de `requirements.txt`
 
-Instala las dependencias:
+## Configuración
+
+Se configura por variables de entorno propias del servicio.
+
+## Ejecución local
 
 ```bash
 pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
 ```
 
-## Pruebas y Cobertura
-
-Desde la carpeta `Backend/AuthService`, ejecuta:
+## Pruebas
 
 ```bash
 python -m pytest --maxfail=1 --disable-warnings --cov=. --cov-report=term-missing --cov-fail-under=80
 ```
 
-Este comando estandariza la validacion de pruebas y fuerza una cobertura minima del 80%.
+## Endpoints principales
 
-## Ejecución
+- `POST /login`
+- `POST /register`
+- `POST /register/confirm`
+- `GET /me`
+- `POST /refresh`
 
-Para iniciar el servidor en modo desarrollo:
+## Eventos publicados y consumidos
 
-```bash
-uvicorn main:app --reload --port 8000
-```
+No participa en la mensajería principal de la saga.
 
-La documentación interactiva (Swagger) estará disponible en: [http://localhost:8000/docs](http://localhost:8000/docs)
+## Persistencia
 
-## Ejemplos de Uso
+Gestiona usuarios y datos asociados a autenticación.
 
-### 1. Iniciar Sesión (Login JSON request)
+## Documentación relacionada
 
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/auth/login' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "email": "admin@hotel.com",
-  "password": "admin123"
-}'
-```
-
-**Respuesta Exitosa:**
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
-}
-```
-
-### 2. Obtener Usuario Actual (/me)
-Requiere pasar el **access_token** obtenido en el Header `Authorization`.
-
-```bash
-curl -X 'GET' \
-  'http://localhost:8000/auth/me' \
-  -H 'accept: application/json' \
-  -H 'Authorization: Bearer <TOKEN_AQUI>'
-```
-
-### 3. Refrescar Token (/refresh)
-Genera un nuevo token JWT a partir de uno existente.
-
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/auth/refresh' \
-  -H 'accept: application/json' \
-  -H 'Authorization: Bearer <TOKEN_AQUI>'
-```
-
-## Usuarios Mockeados por Defecto
-
-En `app/services/user_service.py` se incluyeron los siguientes usuarios de prueba:
-
-- **Admin/Partner**: `admin@hotel.com` / `admin123`
-- **Usuario Normal**: `user@hotel.com` / `user123`
-
-## Protección contra Fuerza Bruta
-
-El servicio incorpora un mecanismo sencillo en memoria para bloqueo de cuentas tras varios intentos fallidos.
-- **Límite**: 5 intentos fallidos
-- **Bloqueo**: 15 minutos (configurable en `.env` o `config.py`)
+- [`../../docs/api/autenticacion.md`](../../docs/api/autenticacion.md)
+- [`../../docs/api/endpoints.md`](../../docs/api/endpoints.md)

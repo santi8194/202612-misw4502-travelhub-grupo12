@@ -1,0 +1,40 @@
+flowchart LR
+    subgraph Frontend
+      UW["user-web"]
+      PW["partner-web"]
+      MA["mobile-app"]
+    end
+    subgraph Backend
+      AUTH["authservice"]
+      BOOK["booking"]
+      CAT["catalog"]
+      SEARCH["search"]
+      PAY["payment"]
+      PMS["pms-integration"]
+      PARTNER["partner-management"]
+      NOTIF["notification"]
+    end
+    MQ["RabbitMQ"]
+    REDIS["Redis"]
+    DB["Bases de datos por servicio"]
+    WOMPI["Wompi"]
+    EXTPMS["PMS externo o mock-pms"]
+
+    UW --> AUTH
+    UW --> SEARCH
+    UW --> BOOK
+    PW --> PARTNER
+    MA --> AUTH
+    MA --> BOOK
+    SEARCH --> DB
+    BOOK --> DB
+    CAT --> DB
+    PAY --> DB
+    BOOK <--> MQ
+    PAY <--> MQ
+    PMS <--> MQ
+    PARTNER <--> MQ
+    NOTIF <--> MQ
+    PMS --> EXTPMS
+    PAY --> WOMPI
+    BOOK --> REDIS

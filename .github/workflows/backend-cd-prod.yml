@@ -26,6 +26,7 @@ env:
   CATALOG_DB_SECRET_NAME_DEV: travelhub/dev/catalog/db-credentials
   PAYMENT_DB_SECRET_NAME_DEV: travelhub/dev/payment/db-credentials
   PAYMENT_APP_SECRET_NAME_DEV: travelhub/dev/payment/app-secrets
+  NOTIFICATION_APP_SECRET_NAME_DEV: travelhub/dev/notification/app-secrets
   PMS_INTEGRATION_DB_SECRET_NAME_DEV: travelhub/dev/pms-integration/db-credentials
   PARTNER_MANAGEMENT_DB_SECRET_NAME_DEV: travelhub/dev/partner-management/db-credentials
   NOTIFICATION_DB_SECRET_NAME_DEV: travelhub/dev/notification/db-credentials
@@ -595,6 +596,56 @@ jobs:
           kubectl create secret generic payment-app-secret \
             --namespace "${K8S_NAMESPACE_DEV}" \
             --from-env-file="${PAYMENT_APP_ENV_FILE}" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+      - name: Reconcile notification app secret
+        if: ${{ matrix.service_name == 'notification' }}
+        shell: bash
+        env:
+          NOTIFICATION_APP_ENV_FILE: /tmp/notification-app-secret.env
+        run: |
+          set -euo pipefail
+
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id "${NOTIFICATION_APP_SECRET_NAME_DEV}" \
+            --query 'SecretString' \
+            --output text)
+
+          export SECRET_JSON NOTIFICATION_APP_ENV_FILE
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          secret = json.loads(os.environ["SECRET_JSON"])
+          env_file = os.environ["NOTIFICATION_APP_ENV_FILE"]
+
+          required_keys = [
+              "SMTP_HOST",
+              "SMTP_USER",
+              "SMTP_PASS",
+              "SMTP_FROM",
+          ]
+          missing = [key for key in required_keys if key not in secret]
+          if missing:
+              print("::error::Notification app secret is missing required keys: " + ", ".join(missing))
+              sys.exit(1)
+
+          with open(env_file, "w", encoding="utf-8") as fh:
+              fh.write(f"SMTP_HOST={secret.get('SMTP_HOST', '')}\n")
+              fh.write(f"SMTP_PORT={secret.get('SMTP_PORT', '587')}\n")
+              fh.write(f"SMTP_USER={secret.get('SMTP_USER', '')}\n")
+              fh.write(f"SMTP_PASS={secret.get('SMTP_PASS', '')}\n")
+              fh.write(f"SMTP_FROM={secret.get('SMTP_FROM', '')}\n")
+              fh.write(f"SMTP_USE_TLS={secret.get('SMTP_USE_TLS', 'true')}\n")
+              fh.write(f"SMTP_USE_SSL={secret.get('SMTP_USE_SSL', 'false')}\n")
+              fh.write(f"SMTP_TIMEOUT={secret.get('SMTP_TIMEOUT', '20')}\n")
+          PY
+
+          kubectl create secret generic notification-app-secret \
+            --namespace "${K8S_NAMESPACE_DEV}" \
+            --from-env-file="${NOTIFICATION_APP_ENV_FILE}" \
             --dry-run=client \
             -o yaml | kubectl apply -f -
 

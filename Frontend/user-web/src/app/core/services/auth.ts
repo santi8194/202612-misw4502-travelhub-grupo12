@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 import {
   AuthTokenResponse,
   ConfirmRegistrationRequest,
@@ -112,6 +112,27 @@ export class AuthService {
     return !!this.sessionState();
   }
 
+  ensureActiveSession(): Observable<boolean> {
+    this.refreshSessionState(true, false);
+
+    const session = this.sessionState();
+    if (!session) {
+      return of(false);
+    }
+
+    if (!this.isExpired(session.expiresAt)) {
+      return of(true);
+    }
+
+    return this.refreshAccessToken(session).pipe(
+      map(() => true),
+      catchError(() => {
+        this.clearSession();
+        return of(false);
+      })
+    );
+  }
+
   getCurrentSession(): AuthSession | null {
     this.refreshSessionState(true);
     return this.sessionState();
@@ -125,7 +146,7 @@ export class AuthService {
     return this.http.get<UserProfile>(`${this.authBaseUrl}/users/${userId}`);
   }
 
-  private refreshSessionState(updateActivity: boolean): void {
+  private refreshSessionState(updateActivity: boolean, clearExpired = true): void {
     const accessToken = localStorage.getItem(this.SESSION_KEYS.accessToken);
     const refreshToken = localStorage.getItem(this.SESSION_KEYS.refreshToken);
     const tokenType = localStorage.getItem(this.SESSION_KEYS.tokenType);
@@ -145,7 +166,7 @@ export class AuthService {
     const claims = this.decodeJwtClaims(accessToken);
     const expiresAt = this.resolveStoredExpiresAt(claims);
 
-    if (expiresAt && Date.now() >= expiresAt) {
+    if (clearExpired && this.isExpired(expiresAt)) {
       this.clearSession();
       return;
     }
@@ -177,6 +198,19 @@ export class AuthService {
     } else if (!lastActivityAt) {
       this.touchActivity();
     }
+  }
+
+  private refreshAccessToken(session: AuthSession): Observable<AuthTokenResponse> {
+    return this.http.post<AuthTokenResponse>(`${this.authBaseUrl}/refresh`, {
+      refresh_token: session.refreshToken,
+      email: session.email,
+    }).pipe(
+      tap((tokens) => this.saveSession(tokens, session.email))
+    );
+  }
+
+  private isExpired(expiresAt: number | null): boolean {
+    return !!expiresAt && Date.now() >= expiresAt;
   }
 
   private touchActivity(): void {

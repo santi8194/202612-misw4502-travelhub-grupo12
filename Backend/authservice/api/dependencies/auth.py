@@ -54,5 +54,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
         email=user.email,
         full_name=user.full_name,
         rol=user.rol,
-        partner_id=user.partner_id
+        partner_id=user.partner_id,
+        username=user.username,
     )

@@ -7,4 +7,5 @@ export const environment = {
   catalogApiUrl: 'http://localhost:5001/catalog',
   paymentApiUrl: 'http://localhost:5001/payment',
   authApiUrl: 'http://localhost:5001/auth',
+  notificationApiUrl: 'http://localhost:5001/notification',
 };

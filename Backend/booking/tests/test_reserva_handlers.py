@@ -23,7 +23,7 @@ from modulos.reserva.aplicacion.handlers import (
 )
 from modulos.reserva.aplicacion.queries import ObtenerReservasPorUsuario
 from modulos.reserva.dominio.entidades import Reserva, Usuario
-from modulos.reserva.dominio.eventos import FallaActualizacionLocalEvt, ReservaConfirmadaEvt
+from modulos.reserva.dominio.eventos import FallaActualizacionLocalEvt, ReservaConfirmadaEvt, ReservaCanceladaEvt
 from modulos.reserva.dominio.objetos_valor import EstadoReserva, Pax
 
 
@@ -222,13 +222,22 @@ def test_confirmar_handler_ok_emite_evento_local():
 	repositorio = MagicMock()
 	uow = _uow_mock()
 	reserva = _reserva_en_hold()
+	reserva.codigo_confirmacion_ota = "TH-RES-001"
 	reserva.formalizar_y_pagar()
 	repositorio.obtener_por_id.return_value = reserva
-	handler = ConfirmarReservaLocalHandler(repositorio=repositorio, uow=uow)
+	catalog_client = MagicMock()
+	catalog_client.get_category_by_id.return_value = {"nombre_comercial": "Suite Deluxe"}
+	handler = ConfirmarReservaLocalHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
 
 	evento = handler.handle(ConfirmarReservaLocalCmd(id_reserva=uuid.UUID(reserva.id)))
 
 	assert isinstance(evento, ReservaConfirmadaEvt)
+	assert evento.codigo_reserva == "TH-RES-001"
+	assert evento.categoria == "Suite Deluxe"
+	assert evento.fecha_check_in == "2026-04-10"
+	assert evento.fecha_check_out == "2026-04-11"
+	assert evento.huespedes == 2
+	assert evento.moneda == "COP"
 	repositorio.actualizar.assert_called_once_with(reserva)
 	uow.commit.assert_called_once()
 
@@ -247,6 +256,7 @@ def test_cancelar_handler_ok_emite_evento_falla_local():
 	repositorio = MagicMock()
 	uow = _uow_mock()
 	catalog_client = MagicMock()
+	catalog_client.get_category_by_id.return_value = {"nombre_comercial": "Suite Deluxe"}
 	reserva = _reserva_en_hold()
 	repositorio.obtener_por_id.return_value = reserva
 	handler = CancelarReservaLocalHandler(repositorio=repositorio, uow=uow, catalog_client=catalog_client)
@@ -254,6 +264,15 @@ def test_cancelar_handler_ok_emite_evento_falla_local():
 	evento = handler.handle(CancelarReservaLocalCmd(id_reserva=uuid.UUID(reserva.id)))
 
 	assert isinstance(evento, FallaActualizacionLocalEvt)
+	assert any(isinstance(evt, ReservaCanceladaEvt) for evt in reserva.eventos)
+	evento_cancelacion = next(evt for evt in reserva.eventos if isinstance(evt, ReservaCanceladaEvt))
+	assert evento_cancelacion.emailCliente == "ana@test.com"
+	assert evento_cancelacion.categoria == "Suite Deluxe"
+	assert evento_cancelacion.fecha_check_in == "2026-04-10"
+	assert evento_cancelacion.fecha_check_out == "2026-04-11"
+	assert evento_cancelacion.huespedes == 2
+	assert evento_cancelacion.moneda == "COP"
+	assert evento_cancelacion.motivo_cancelacion == "Cancelacion por compensacion de saga"
 	catalog_client.release_inventory.assert_called_once_with(
 		str(reserva.id_categoria),
 		reserva.fecha_check_in,

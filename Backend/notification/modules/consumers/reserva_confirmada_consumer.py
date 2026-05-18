@@ -2,9 +2,8 @@
 import json
 import pika
 import time
-from firebase_admin import messaging
 from config.rabbitmq import create_connection
-from modules.services.email_service import send_voucher_email
+from modules.services.email_service import send_voucher_email, send_reservation_status_email
 from modules.publishers.voucher_enviado_publisher import publish_voucher_enviado
 try:
     from config.db import SessionLocal
@@ -16,8 +15,31 @@ except ImportError:
 
 EVENTS_EXCHANGE = "travelhub.events.exchange"
 QUEUE_NAME = "notification.events.queue"
-ROUTING_KEY = "evt.reserva.confirmada"
+ROUTING_KEYS = ("evt.reserva.confirmada", "evt.reserva.cancelada")
 RETRY_DELAY_SECONDS = 5
+
+
+def _send_push_notification(token, title, body, reserva_id):
+    try:
+        from firebase_admin import messaging
+
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            data={
+                "reserva_id": str(reserva_id),
+                "tipo": "confirmed"
+            },
+            token=token,
+        )
+        response = messaging.send(message)
+        print(f"Push notification enviada con éxito: {response}")
+    except ImportError:
+        print("Firebase Admin not available, skipping push notification.")
+    except Exception as push_err:
+        print(f"Error enviando push notification: {push_err}")
 
 def callback(ch, method, properties, body):
     try:
@@ -27,7 +49,7 @@ def callback(ch, method, properties, body):
 
         event_type = data.get("type")
 
-        if event_type != "ReservaConfirmadaEvt":
+        if event_type not in {"ReservaConfirmadaEvt", "ReservaCanceladaEvt"}:
             print("Evento ignorado:", event_type)
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
@@ -37,7 +59,20 @@ def callback(ch, method, properties, body):
         email = payload.get("emailCliente")
         user_id = payload.get("id_cliente", email)  # fallback to email if id_cliente not present
 
-        print(f"Procesando reserva {reserva_id} for {email}")
+        details = {
+            "codigo_reserva": payload.get("codigo_reserva") or payload.get("codigoReserva"),
+            "hotel": payload.get("hotel"),
+            "categoria": payload.get("categoria"),
+            "fecha_check_in": payload.get("fecha_check_in") or payload.get("fechaCheckIn"),
+            "fecha_check_out": payload.get("fecha_check_out") or payload.get("fechaCheckOut"),
+            "huespedes": payload.get("huespedes"),
+            "monto_total": payload.get("monto_total") or payload.get("montoTotal"),
+            "moneda": payload.get("moneda"),
+            "motivo_cancelacion": payload.get("motivo_cancelacion") or payload.get("motivoCancelacion") or payload.get("motivo"),
+        }
+        details = {k: v for k, v in details.items() if v is not None}
+
+        print(f"Procesando reserva {reserva_id} para {email}")
 
         if SessionLocal is not None:
             db = SessionLocal()
@@ -71,29 +106,36 @@ def callback(ch, method, properties, body):
                     if DeviceToken is not None:
                         dt = db.query(DeviceToken).filter(DeviceToken.user_id == str(user_id)).first()
                     if dt and dt.token:
-                        try:
-                            message = messaging.Message(
-                                notification=messaging.Notification(
-                                    title=titulo,
-                                    body=cuerpo,
-                                ),
-                                data={
-                                    "reserva_id": str(reserva_id),
-                                    "tipo": "confirmed"
-                                },
-                                token=dt.token
-                            )
-                            response = messaging.send(message)
-                            print(f"Push notification enviada con éxito: {response}")
-                        except Exception as push_err:
-                            print(f"Error enviando push notification: {push_err}")
+                        _send_push_notification(dt.token, titulo, cuerpo, reserva_id)
             finally:
                 db.close()
         else:
             print("SessionLocal not available, skipping DB operations.")
 
-        send_voucher_email(email, reserva_id)
-        publish_voucher_enviado(reserva_id)
+        if event_type == "ReservaConfirmadaEvt":
+            send_voucher_email(email, reserva_id, **details)
+            publish_voucher_enviado(reserva_id)
+        elif event_type == "ReservaCanceladaEvt":
+            cancel_details = {
+                "codigo_reserva": details.get("codigo_reserva"),
+                "hotel": details.get("hotel"),
+                "categoria": details.get("categoria"),
+                "fecha_check_in": details.get("fecha_check_in"),
+                "fecha_check_out": details.get("fecha_check_out"),
+                "huespedes": details.get("huespedes"),
+                "motivo_cancelacion": details.get("motivo_cancelacion"),
+                "monto_reembolso": details.get("monto_total"),
+                "moneda_reembolso": details.get("moneda"),
+            }
+            cancel_details = {k: v for k, v in cancel_details.items() if v is not None}
+
+            send_reservation_status_email(
+                email=email,
+                reserva_id=reserva_id,
+                estado="CANCELADA",
+                detalle_reembolso="Cancelacion por compensacion de saga",
+                **cancel_details,
+            )
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -104,7 +146,7 @@ def callback(ch, method, properties, body):
 
 def _configure_consumer_channel(channel):
     print("Notification service started")
-    print("Waiting for evt.reserva.confirmada...")
+    print("Waiting for reservation status events...")
 
     # Declarar exchange de eventos
     channel.exchange_declare(
@@ -120,11 +162,12 @@ def _configure_consumer_channel(channel):
     )
 
     # Vincular cola al exchange
-    channel.queue_bind(
-        exchange=EVENTS_EXCHANGE,
-        queue=QUEUE_NAME,
-        routing_key=ROUTING_KEY
-    )
+    for routing_key in ROUTING_KEYS:
+        channel.queue_bind(
+            exchange=EVENTS_EXCHANGE,
+            queue=QUEUE_NAME,
+            routing_key=routing_key
+        )
 
     channel.basic_consume(
         queue=QUEUE_NAME,

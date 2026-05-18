@@ -33,6 +33,7 @@ def test_routing_registry_tiene_eventos_conocidos():
     assert "ConfirmacionPmsExitosaEvt" in registry
     assert "ReservaRechazadaPmsEvt" in registry
     assert "ReservaConfirmadaEvt" in registry
+    assert "ReservaCanceladaEvt" in registry
     assert "VoucherEnviadoEvt" in registry
 
 
@@ -86,6 +87,16 @@ def test_obtener_routing_retorna_routing_para_reserva_confirmada_evt():
     
     assert exchange == "travelhub.events.exchange"
     assert key == "evt.reserva.confirmada"
+
+
+def test_obtener_routing_retorna_routing_para_reserva_cancelada_evt():
+    """Verifica que _obtener_routing retorna el routing correcto para ReservaCanceladaEvt."""
+    dispatcher = DespachadorRabbitMQ(mapeador_eventos=None)
+
+    exchange, key = dispatcher._obtener_routing("ReservaCanceladaEvt")
+
+    assert exchange == "travelhub.events.exchange"
+    assert key == "evt.reserva.cancelada"
 
 
 def test_obtener_routing_usa_fallback_para_comando_local_desconocido():

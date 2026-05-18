@@ -30,6 +30,7 @@ class UserService:
             password_hash=getattr(user, "password_hash", None),
             rol=rol,
             partner_id=getattr(user, "partner_id", None),
+            username=getattr(user, "username", None),
         )
     
     @staticmethod

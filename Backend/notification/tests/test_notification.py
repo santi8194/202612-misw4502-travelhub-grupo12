@@ -60,6 +60,79 @@ class TestHealthEndpoint:
         assert resp.json() == {"status": "Notification Service running"}
 
 
+class TestReservationStatusNotificationEndpoint:
+    """Tests for POST /notifications/reservations/status-email."""
+
+    def test_confirmed_status_notification(self):
+        with patch("config.app.start_consumer"), \
+             patch("config.app.Base.metadata.create_all"), \
+             patch("config.app.initialize_firebase"), \
+             patch(
+            "api.reservation_notifications.send_reservation_status_email"
+        ) as sender:
+            from config.app import create_app
+            app = create_app()
+            with TestClient(app) as client:
+                response = client.post(
+                    "/notifications/reservations/status-email",
+                    json={
+                        "id_reserva": "res-123",
+                        "email_cliente": "viajero@example.com",
+                        "estado": "CONFIRMADA",
+                        "codigo_reserva": "ABC123",
+                    },
+                )
+
+        assert response.status_code == 200
+        assert response.json()["estado"] == "CONFIRMADA"
+        sender.assert_called_once()
+
+    def test_cancelled_status_notification_with_refund(self):
+        with patch("config.app.start_consumer"), \
+             patch("config.app.Base.metadata.create_all"), \
+             patch("config.app.initialize_firebase"), \
+             patch(
+            "api.reservation_notifications.send_reservation_status_email"
+        ) as sender:
+            from config.app import create_app
+            app = create_app()
+            with TestClient(app) as client:
+                response = client.post(
+                    "/notifications/reservations/status-email",
+                    json={
+                        "id_reserva": "res-456",
+                        "email_cliente": "viajero@example.com",
+                        "estado": "CANCELADA",
+                        "monto_reembolso": 250000,
+                        "moneda_reembolso": "COP",
+                        "detalle_reembolso": "Reembolso parcial en 5-10 dias habiles",
+                    },
+                )
+
+        assert response.status_code == 200
+        assert response.json()["estado"] == "CANCELADA"
+        sender.assert_called_once()
+
+    def test_invalid_status_returns_400(self):
+        with patch("config.app.start_consumer"), \
+             patch("config.app.Base.metadata.create_all"), \
+             patch("config.app.initialize_firebase"):
+            from config.app import create_app
+            app = create_app()
+            with TestClient(app) as client:
+                response = client.post(
+                    "/notifications/reservations/status-email",
+                    json={
+                        "id_reserva": "res-789",
+                        "email_cliente": "viajero@example.com",
+                        "estado": "PENDIENTE",
+                    },
+                )
+
+        assert response.status_code == 400
+        assert "CONFIRMADA o CANCELADA" in response.json()["detail"]
+
+
 # ===========================================================================
 # config/settings.py
 # ===========================================================================
@@ -303,11 +376,34 @@ class TestConsumerCallback:
         body = json.dumps({"type": "OtroEvento", "data": {}}).encode()
 
         with patch("modules.consumers.reserva_confirmada_consumer.send_voucher_email") as me, \
-             patch("modules.consumers.reserva_confirmada_consumer.publish_voucher_enviado") as mp:
+             patch("modules.consumers.reserva_confirmada_consumer.publish_voucher_enviado") as mp, \
+             patch("modules.consumers.reserva_confirmada_consumer.send_reservation_status_email") as ms:
             callback(ch, method, props, body)
 
         me.assert_not_called()
         mp.assert_not_called()
+        ms.assert_not_called()
+        ch.basic_ack.assert_called_once_with(delivery_tag=method.delivery_tag)
+
+    def test_valid_cancellation_event_sends_status_email(self):
+        from modules.consumers.reserva_confirmada_consumer import callback
+        ch, method, props = _make_callback_mocks()
+        body = json.dumps({
+            "type": "ReservaCanceladaEvt",
+            "data": {"id_reserva": "r-9", "emailCliente": "cancel@test.com"},
+        }).encode()
+
+        with patch("modules.consumers.reserva_confirmada_consumer.SessionLocal") as mock_session, \
+             patch("modules.consumers.reserva_confirmada_consumer.send_voucher_email") as me, \
+             patch("modules.consumers.reserva_confirmada_consumer.publish_voucher_enviado") as mp, \
+             patch("modules.consumers.reserva_confirmada_consumer.send_reservation_status_email") as ms:
+            db = mock_session.return_value
+            db.query.return_value.filter.return_value.first.return_value = None
+            callback(ch, method, props, body)
+
+        me.assert_not_called()
+        mp.assert_not_called()
+        ms.assert_called_once()
         ch.basic_ack.assert_called_once_with(delivery_tag=method.delivery_tag)
 
     def test_invalid_json_is_caught(self):
@@ -373,11 +469,17 @@ class TestConfigureConsumerChannel:
         from modules.consumers.reserva_confirmada_consumer import _configure_consumer_channel
         ch = MagicMock()
         _configure_consumer_channel(ch)
-        ch.queue_bind.assert_called_once_with(
+        ch.queue_bind.assert_any_call(
             exchange="travelhub.events.exchange",
             queue="notification.events.queue",
             routing_key="evt.reserva.confirmada",
         )
+        ch.queue_bind.assert_any_call(
+            exchange="travelhub.events.exchange",
+            queue="notification.events.queue",
+            routing_key="evt.reserva.cancelada",
+        )
+        assert ch.queue_bind.call_count == 2
 
     def test_basic_consume_configured_correctly(self):
         from modules.consumers.reserva_confirmada_consumer import _configure_consumer_channel

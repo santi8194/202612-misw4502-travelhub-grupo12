@@ -113,20 +113,6 @@
         </button>
       }
 
-      @if (showCancelarReserva(reservation().estado)) {
-        <button
-          class="btn btn--danger"
-          type="button"
-          data-testid="btn-cancelar-reserva"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M15 9l-6 6M9 9l6 6"/>
-          </svg>
-          {{ 'reservationCard.cancelReservation' | translate }}
-        </button>
-      }
-
       <button
         class="btn btn--icon"
         type="button"

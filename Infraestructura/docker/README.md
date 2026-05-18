@@ -9,7 +9,8 @@ Modo SQLite local:
 
 ```powershell
 cd D:\Code\MISW\202612-misw4502-travelhub-grupo12\Infraestructura\docker
-Copy-Item .env.local.sqlite.example .env.local
+# Si ya tienes la plantilla local ignorada:
+Copy-Item .env.local.sqlite.dev .env.local
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d --build
 ```
 
@@ -17,10 +18,15 @@ Modo RDS:
 
 ```powershell
 cd D:\Code\MISW\202612-misw4502-travelhub-grupo12\Infraestructura\docker
-Copy-Item .env.local.rds.example .env.local
+# Si ya tienes la plantilla local ignorada:
+Copy-Item .env.local.rds.dev .env.local
 # Edita .env.local con los hosts, usuarios y passwords reales de cada base
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d --build
 ```
+
+Las plantillas `.env.local.sqlite.dev` y `.env.local.rds.dev` son archivos locales ignorados por Git. En un clon nuevo no aparecen hasta que el equipo los provea por un canal seguro o se creen plantillas `.example` sanitizadas y versionadas.
+
+El overlay local actual incluye `ngrok` siempre. Si `NGROK_AUTHTOKEN` queda vacio, el resto del stack puede iniciar, pero el contenedor de `ngrok` no quedara operativo. Para un entorno local realmente limpio, configura el token o separa `ngrok` a un overlay/perfil opcional en una mejora posterior.
 
 La regla es simple:
 
@@ -33,6 +39,16 @@ Los archivos SQLite locales quedan persistidos en volumenes Docker para:
 - `catalog`
 - `booking`
 - `search`
+- `payment`
+- `pms-integration`
+- `partner-management`
+- `notification`
+
+Antes de levantar el stack, puedes validar que la combinacion de archivos renderiza correctamente:
+
+```powershell
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml config
+```
 
 Endpoints esperados por `nginx`:
 
@@ -90,6 +106,8 @@ El script:
 
 El servicio `ngrok` vive dentro de Docker Compose, por lo que no es necesario instalar el binario de ngrok en cada maquina del equipo. Cada persona solo necesita su token propio en el archivo `.env.local.rds.dev` o en el archivo local que use para el entorno RDS.
 
+La configuracion del inspector local de ngrok se define en `ngrok.yml`, que expone la interfaz del agente en `0.0.0.0:4040` dentro del contenedor para poder consultarla desde `http://localhost:4040`.
+
 ## Copiar bases de datos locales (SQLite)
 
 Si estas ejecutando el entorno local con Docker Compose (overlay local), puedes copiar las bases SQLite de cada microservicio para abrirlas en DBeaver.
@@ -107,7 +125,6 @@ docker cp travelhub-authservice:/src/data/auth.db ./auth.db
 docker cp travelhub-catalog:/app/data/catalog.db ./catalog.db
 docker cp travelhub-search:/app/data/search.db ./search.db
 docker cp travelhub-booking:/src/instance/booking.db ./booking.db
-docker cp travelhub-booking:/src/Booking/instance/booking.db ./booking.db
 docker cp travelhub-payment:/app/data/payments.db ./payments.db
 docker cp travelhub-pms-integration:/app/data/pms.db ./pms.db
 docker cp travelhub-partner-management:/app/data/partner_management.db ./partner_management.db
@@ -127,4 +144,12 @@ Verifica que los archivos quedaron en tu maquina:
 ```bash
 ls -lh ./*.db
 ```
+
+## Variante heredada
+
+El archivo `docker-compose.local.orl.yml` queda hoy como una variante local heredada con Postgres centralizado y un subconjunto del stack.
+
+- No lo usa ningun script, workflow ni README activo del repositorio.
+- No es la entrada recomendada para desarrollo local.
+- Si se conserva, debe tratarse como una variante manual aislada hasta que el equipo decida si la documenta formalmente o la elimina.
 

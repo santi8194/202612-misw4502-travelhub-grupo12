@@ -43,6 +43,10 @@ function mockConfirmReservationSummary(bookingOverrides: Record<string, unknown>
 
 describe('Flujos E2E de reserva (confirm, existing session, processing)', () => {
   it('Confirm reservation: muestra estado confirmado y resumen de la reserva', () => {
+    cy.intercept('POST', '**/notification/notifications/reservations/status-email', (req) => {
+      req.reply({ statusCode: 200, body: { ok: true } });
+    }).as('sendStatusEmail');
+
     mockConfirmReservationSummary({ estado: 'CONFIRMADA' });
 
     cy.visit(`/booking/${RESERVATION_ID}/confirm-reservation?status=confirmed&reason=Reserva%20formalizada`, {
@@ -57,6 +61,14 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
     cy.wait('@getCategoryForSummary');
     cy.wait('@getPropertyForSummary');
     cy.wait('@calculateRoomPriceForSummary');
+    cy.wait('@sendStatusEmail').then(({ request }) => {
+      expect(request.body).to.include({
+        id_reserva: RESERVATION_ID,
+        email_cliente: 'e2e@travelhub.com',
+        estado: 'CONFIRMADA',
+        codigo_reserva: CONFIRMATION_CODE,
+      });
+    });
 
     cy.get('[data-testid="confirm-reservation-title"]')
       .should('be.visible')
@@ -74,6 +86,20 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
   });
 
   it('Confirm reservation: muestra estado rechazado por cancelación y oculta resumen', () => {
+    cy.intercept('GET', `**/api/reserva/${RESERVATION_ID}/cancelacion-preview`, {
+      body: {
+        refund: {
+          expectedRefundAmount: 250,
+          currency: 'COP',
+          processingTimeLabel: 'Reembolso estimado en 3 dias habiles',
+        },
+      },
+    }).as('getCancellationPreview');
+
+    cy.intercept('POST', '**/notification/notifications/reservations/status-email', (req) => {
+      req.reply({ statusCode: 200, body: { ok: true } });
+    }).as('sendStatusEmail');
+
     mockConfirmReservationSummary({ estado: 'CANCELADA' });
 
     cy.visit(`/booking/${RESERVATION_ID}/confirm-reservation?status=rejected&reason=La%20reserva%20fue%20cancelada%20por%20inventario`, {
@@ -88,6 +114,16 @@ describe('Flujos E2E de reserva (confirm, existing session, processing)', () => 
     cy.wait('@getCategoryForSummary');
     cy.wait('@getPropertyForSummary');
     cy.wait('@calculateRoomPriceForSummary');
+    cy.wait('@getCancellationPreview');
+    cy.wait('@sendStatusEmail').then(({ request }) => {
+      expect(request.body).to.include({
+        id_reserva: RESERVATION_ID,
+        email_cliente: 'e2e@travelhub.com',
+        estado: 'CANCELADA',
+        monto_reembolso: 250,
+        moneda_reembolso: 'COP',
+      });
+    });
 
     cy.get('[data-testid="confirm-reservation-title"]')
       .should('be.visible')

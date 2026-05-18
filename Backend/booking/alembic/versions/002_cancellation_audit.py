@@ -18,7 +18,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(length=40), nullable=False),
         sa.Column("id_reserva", sa.String(length=40), nullable=False),
         sa.Column("id_usuario", sa.String(length=40), nullable=True),
-        sa.Column("ip_origen", sa.String(length=45), nullable=True),
+        sa.Column("ip_origen", sa.String(length=100), nullable=True),
         sa.Column("motivo", sa.Text(), nullable=True),
         sa.Column("estado_anterior", sa.String(length=30), nullable=False),
         sa.Column("estado_nuevo", sa.String(length=30), nullable=False),

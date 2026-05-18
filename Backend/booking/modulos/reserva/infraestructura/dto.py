@@ -4,6 +4,7 @@ class ReservaDTO(db.Model):
     __tablename__ = "reservas"
     id = db.Column(db.String(40), primary_key=True)
     usuario = db.Column(db.String(40), nullable=False)
+    usuario_email = db.Column(db.String(255), nullable=True)
     id_categoria = db.Column(db.String(40), nullable=False)
     codigo_confirmacion_ota = db.Column(db.String(100), nullable=True)
     codigo_localizador_pms = db.Column(db.String(100), nullable=True)

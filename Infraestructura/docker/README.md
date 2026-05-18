@@ -24,6 +24,8 @@ Copy-Item .env.local.rds.dev .env.local
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d --build
 ```
 
+En este modo, `BOOKING_DB_MODE` debe quedar en `postgres`. Si no se define, el overlay local usa su fallback `sqlite`, lo que deja `booking` y `booking-saga-worker` fuera de RDS aunque existan credenciales RDS en el archivo.
+
 Las plantillas `.env.local.sqlite.dev` y `.env.local.rds.dev` son archivos locales ignorados por Git. En un clon nuevo no aparecen hasta que el equipo los provea por un canal seguro o se creen plantillas `.example` sanitizadas y versionadas.
 
 El overlay local actual incluye `ngrok` siempre. Si `NGROK_AUTHTOKEN` queda vacio, el resto del stack puede iniciar, pero el contenedor de `ngrok` no quedara operativo. Para un entorno local realmente limpio, configura el token o separa `ngrok` a un overlay/perfil opcional en una mejora posterior.
